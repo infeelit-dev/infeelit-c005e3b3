@@ -87,7 +87,10 @@ const Signup = () => {
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-sm flex flex-col flex-1">
-        <h1 className="text-3xl font-bold text-center text-foreground mb-8">
+        <h1
+          className="text-3xl font-bold text-center mb-10"
+          style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: "hsl(var(--brand-teal))" }}
+        >
           Sign Up
         </h1>
         <p className="text-center text-xl font-semibold mb-14 max-w-xs mx-auto leading-relaxed" style={{ color: "#1A1A1A" }}>
@@ -99,10 +102,10 @@ const Signup = () => {
         {/* Country selector — pill glassmorphism */}
         <button
           onClick={() => setShowCountryPicker(!showCountryPicker)}
-          className={`w-full text-left rounded-full px-5 py-4 mb-3 backdrop-blur-sm transition-all border focus:outline-none focus:border-secondary/60 focus:shadow-[0_0_16px_-4px_hsl(var(--brand-orange)/0.25)] ${
+          className={`w-full text-left rounded-full px-5 py-4 mb-3 backdrop-blur-sm transition-all border focus:outline-none ${
             error && !selectedCountry
               ? "border-destructive/40 bg-white/90"
-              : "border-gray-300 bg-white/90 hover:bg-white"
+              : "border-gray-300 bg-white/90 hover:bg-white focus:border-gray-300 focus:shadow-[0_0_20px_-4px_hsl(var(--brand-orange)/0.2)]"
           }`}
         >
           {selectedCountry ? (
@@ -153,7 +156,7 @@ const Signup = () => {
         <div
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-sm transition-all border ${
             phoneFocused
-              ? "border-secondary/60 bg-white/95 shadow-[0_0_24px_-4px_hsl(var(--brand-orange)/0.3)]"
+              ? "border-gray-300 bg-white/95 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
               : error && !phone.trim()
                 ? "border-destructive/40 bg-white/90"
                 : "border-gray-300 bg-white/90"
@@ -199,7 +202,7 @@ const Signup = () => {
         </p>
 
         {/* Next button — centered pill with glow */}
-        <div className="flex justify-center mt-10">
+        <div className="flex justify-center mt-16">
           <button
             onClick={handleNext}
             disabled={loading}
@@ -211,10 +214,10 @@ const Signup = () => {
 
         {/* Footer — fine & low */}
         <div className="mt-auto pb-6 flex items-center justify-center gap-1">
-          <span className="text-gray-400 text-[10px] tracking-wide">Already have an account?</span>
+          <span className="text-gray-400 text-[10px] font-light tracking-wide">Already have an account?</span>
           <button
             onClick={() => navigate("/welcome")}
-            className="text-[10px] font-medium text-gray-500 underline underline-offset-2 tracking-wide"
+            className="text-[10px] font-light text-gray-400 underline underline-offset-2 tracking-wide"
           >
             Sign in
           </button>
