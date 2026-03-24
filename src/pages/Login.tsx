@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import infeelit from "@/assets/infeelit-logo.jpg";
 
 const COUNTRIES = [
   { name: "France", flag: "🇫🇷", code: "+33" },
@@ -31,8 +32,7 @@ const Login = () => {
         const res = await fetch("https://ipapi.co/json/");
         if (res.ok) {
           const data = await res.json();
-          const code = data.country_calling_code;
-          const match = COUNTRIES.find((c) => c.code === code);
+          const match = COUNTRIES.find((c) => c.code === data.country_calling_code);
           if (match) setSelectedCountry(match);
         }
       } catch {
@@ -44,25 +44,15 @@ const Login = () => {
 
   const handleNext = async () => {
     setError("");
-    if (!selectedCountry) {
-      setError("Please select your country.");
-      return;
-    }
-    if (!phone.trim()) {
-      setError("Phone number is required.");
-      return;
-    }
+    if (!selectedCountry) { setError("Please select your country."); return; }
+    if (!phone.trim()) { setError("Phone number is required."); return; }
 
     const fullPhone = `${selectedCountry.code}${phone.replace(/\s/g, "")}`;
     setLoading(true);
-
     try {
       const { error: authError } = await supabase.auth.signInWithOtp({ phone: fullPhone });
-      if (authError) {
-        setError(authError.message);
-      } else {
-        navigate("/verify", { state: { phone: fullPhone } });
-      }
+      if (authError) setError(authError.message);
+      else navigate("/verify", { state: { phone: fullPhone } });
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -73,22 +63,33 @@ const Login = () => {
   const hasPhoneValue = phone.length > 0;
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center px-6 pt-16 overflow-hidden" style={{ backgroundColor: "#FAF8F6" }}>
+    <div className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden" style={{ backgroundColor: "#FAF8F6" }}>
       {/* Ethereal corner clouds */}
       <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-sm flex flex-col flex-1">
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+        {/* Logo */}
+        <img
+          src={infeelit}
+          alt="Infeelit"
+          className="w-24 h-24 object-contain rounded-2xl mb-6"
+          style={{ mixBlendMode: "multiply" }}
+        />
+
+        {/* Title */}
         <h1
-          className="text-3xl font-bold text-center mb-10"
+          className="text-3xl font-bold text-center mb-3"
           style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: "hsl(var(--brand-teal))" }}
         >
           Welcome Back
         </h1>
-        <p className="text-center text-xl font-semibold mb-14 max-w-xs mx-auto leading-relaxed" style={{ color: "#1A1A1A" }}>
-          Enter your phone number
+
+        {/* Sub-heading */}
+        <p className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed" style={{ color: "#1A1A1A" }}>
+          Your circle is waiting for you.
           <br />
-          to access your memories.
+          Reconnect with your legacy.
         </p>
 
         {/* Country selector */}
@@ -102,9 +103,7 @@ const Login = () => {
         >
           {selectedCountry ? (
             <div className="flex items-center gap-3">
-              <span className="text-xl w-8 h-8 flex items-center justify-center rounded-full bg-gray-100/80">
-                {selectedCountry.flag}
-              </span>
+              <span className="text-xl w-8 h-8 flex items-center justify-center rounded-full bg-gray-100/80">{selectedCountry.flag}</span>
               <span className="text-foreground font-semibold text-base">{selectedCountry.name}</span>
               <span className="text-muted-foreground text-sm ml-auto">{selectedCountry.code}</span>
             </div>
@@ -114,15 +113,11 @@ const Login = () => {
         </button>
 
         {showCountryPicker && (
-          <div className="mb-3 rounded-2xl overflow-hidden bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg max-h-64 overflow-y-auto">
+          <div className="mb-3 w-full rounded-2xl overflow-hidden bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg max-h-64 overflow-y-auto">
             {COUNTRIES.map((country) => (
               <button
                 key={country.name}
-                onClick={() => {
-                  setSelectedCountry(country);
-                  setShowCountryPicker(false);
-                  setError("");
-                }}
+                onClick={() => { setSelectedCountry(country); setShowCountryPicker(false); setError(""); }}
                 className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-gray-50 ${
                   selectedCountry?.name === country.name ? "bg-secondary/10" : ""
                 }`}
@@ -145,13 +140,11 @@ const Login = () => {
                 : "border-gray-300 bg-white/90"
           }`}
         >
-          <span
-            className={`absolute left-5 transition-all pointer-events-none ${
-              hasPhoneValue || phoneFocused
-                ? "top-1.5 text-[10px] font-bold text-secondary"
-                : "top-4 text-base text-muted-foreground"
-            }`}
-          >
+          <span className={`absolute left-5 transition-all pointer-events-none ${
+            hasPhoneValue || phoneFocused
+              ? "top-1.5 text-[10px] font-bold text-secondary"
+              : "top-4 text-base text-muted-foreground"
+          }`}>
             Phone number
           </span>
           <input
@@ -160,20 +153,19 @@ const Login = () => {
             onFocus={() => setPhoneFocused(true)}
             onBlur={() => setPhoneFocused(false)}
             onChange={(e) => { setPhone(e.target.value); setError(""); }}
-            className={`w-full bg-transparent outline-none text-foreground text-base ${
-              hasPhoneValue || phoneFocused ? "pt-3" : "pt-0"
-            }`}
+            className={`w-full bg-transparent outline-none text-foreground text-base ${hasPhoneValue || phoneFocused ? "pt-3" : "pt-0"}`}
           />
         </div>
 
         {error && (
-          <div className="flex items-center gap-1.5 mt-3 pl-2">
+          <div className="flex items-center gap-1.5 mt-3 pl-2 self-start">
             <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
             <span className="text-destructive text-xs">{error}</span>
           </div>
         )}
 
-        <div className="flex justify-center mt-16">
+        {/* Log In button */}
+        <div className="flex justify-center mt-12">
           <button
             onClick={handleNext}
             disabled={loading}
@@ -183,13 +175,14 @@ const Login = () => {
           </button>
         </div>
 
-        <div className="mt-auto pb-6 flex items-center justify-center gap-1">
-          <span className="text-gray-400 text-[10px] font-light tracking-wide">Don't have an account?</span>
+        {/* Footer */}
+        <div className="mt-10 flex items-center justify-center gap-1">
+          <span className="text-gray-400 text-[10px] font-light tracking-wide">New to Infeelit?</span>
           <button
             onClick={() => navigate("/signup")}
             className="text-[10px] font-light text-gray-400 underline underline-offset-2 tracking-wide"
           >
-            Sign Up
+            Create my account
           </button>
         </div>
       </div>
