@@ -31,13 +31,11 @@ const bubbles: QuestionBubble[] = [
   { question: "", size: 40, x: 25, y: 85, category: "future", anim: "animate-float-fast", delay: "0.3s" },
 ];
 
-const BubbleCanvas = () => {
-  const handleBubbleClick = (question: string) => {
-    if (question) {
-      console.log("Navigate to capture screen with prompt:", question);
-    }
-  };
+interface BubbleCanvasProps {
+  onBubbleClick: (question: string, category: BubbleCategory) => void;
+}
 
+const BubbleCanvas = ({ onBubbleClick }: BubbleCanvasProps) => {
   return (
     <div className="absolute inset-0 z-[1] overflow-hidden">
       {/* Bokeh background elements */}
@@ -57,7 +55,7 @@ const BubbleCanvas = () => {
           category={b.category}
           animationClass={b.anim}
           delay={b.delay}
-          onClick={() => handleBubbleClick(b.question)}
+          onClick={() => onBubbleClick(b.question, b.category)}
         />
       ))}
     </div>
