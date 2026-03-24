@@ -73,20 +73,20 @@ const Login = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-24 h-24 object-contain rounded-2xl mb-6"
+          className="w-28 h-28 object-contain rounded-2xl mb-6"
           style={{ mixBlendMode: "multiply" }}
         />
 
         {/* Title */}
         <h1
-          className="text-3xl font-bold text-center mb-3"
+          className="text-4xl font-bold text-center mb-3"
           style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: "hsl(var(--brand-teal))" }}
         >
           Welcome Back
         </h1>
 
         {/* Sub-heading */}
-        <p className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed" style={{ color: "#1A1A1A" }}>
+        <p className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed" style={{ color: "#333333" }}>
           Your circle is waiting for you.
           <br />
           Reconnect with your legacy.
@@ -176,11 +176,11 @@ const Login = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-10 flex items-center justify-center gap-1">
-          <span className="text-gray-400 text-[10px] font-light tracking-wide">New to Infeelit?</span>
+        <div className="mt-10 flex items-center justify-center gap-1.5">
+          <span className="text-muted-foreground text-sm">New to Infeelit?</span>
           <button
             onClick={() => navigate("/signup")}
-            className="text-[10px] font-light text-gray-400 underline underline-offset-2 tracking-wide"
+            className="text-sm font-bold text-foreground underline underline-offset-2"
           >
             Create my account
           </button>
