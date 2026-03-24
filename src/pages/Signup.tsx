@@ -87,11 +87,13 @@ const Signup = () => {
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-sm flex flex-col flex-1">
-        <h1 className="text-2xl font-extrabold text-center text-foreground mb-4">
+        <h1 className="text-3xl font-extrabold text-center text-foreground mb-6">
           Sign Up
         </h1>
-        <p className="text-center text-muted-foreground/70 text-[11px] mb-12 max-w-[260px] mx-auto leading-relaxed tracking-widest font-light">
-          Your mobile number is the key to your private circle. We secure your account via SMS.
+        <p className="text-center text-muted-foreground text-base font-medium mb-12 max-w-xs mx-auto leading-relaxed">
+          Your mobile number is the key to your private circle.
+          <br />
+          We secure your account via SMS.
         </p>
 
         {/* Country selector — glassmorphism */}
@@ -108,7 +110,7 @@ const Signup = () => {
               <span className="text-xl w-7 h-7 flex items-center justify-center rounded-full bg-white/50">
                 {selectedCountry.flag}
               </span>
-              <span className="text-foreground font-semibold text-sm">
+              <span className="text-foreground font-semibold text-base">
                 {selectedCountry.name}
               </span>
               <span className="text-muted-foreground text-sm ml-auto">
@@ -116,7 +118,7 @@ const Signup = () => {
               </span>
             </div>
           ) : (
-            <span className="text-muted-foreground text-sm">Select your country</span>
+            <span className="text-muted-foreground text-base font-medium">Select your country</span>
           )}
         </button>
 
@@ -201,7 +203,7 @@ const Signup = () => {
           <button
             onClick={handleNext}
             disabled={loading}
-            className="px-14 py-3.5 rounded-full gradient-orange text-primary-foreground font-bold text-sm transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_32px_0px_hsl(var(--brand-orange)/0.6)]"
+            className="px-16 py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_32px_0px_hsl(var(--brand-orange)/0.6)]"
           >
             {loading ? "Sending..." : "Next"}
           </button>
