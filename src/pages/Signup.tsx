@@ -80,34 +80,34 @@ const Signup = () => {
   const hasPhoneValue = phone.length > 0;
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center px-6 pt-16 overflow-hidden">
-      {/* Subtle sunrise gradient backdrop */}
-      <div className="absolute inset-0 gradient-canvas opacity-[0.12] pointer-events-none" />
-      <div className="absolute inset-0 bg-white/90 pointer-events-none" />
+    <div className="min-h-screen relative flex flex-col items-center px-6 pt-16 overflow-hidden" style={{ backgroundColor: "#FAFAFA" }}>
+      {/* Ethereal corner clouds */}
+      <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_50%_78%)] opacity-[0.05] blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-[420px] h-[420px] rounded-full bg-[hsl(25_85%_70%)] opacity-[0.05] blur-[120px] pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-sm flex flex-col flex-1">
-        <h1 className="text-3xl font-extrabold text-center text-foreground mb-6">
+        <h1 className="text-3xl font-bold text-center text-foreground mb-8">
           Sign Up
         </h1>
-        <p className="text-center text-muted-foreground text-base font-medium mb-12 max-w-xs mx-auto leading-relaxed">
+        <p className="text-center text-muted-foreground text-xl font-medium mb-14 max-w-xs mx-auto leading-relaxed">
           Your mobile number is the key to your private circle.
           <br />
           We secure your account via SMS.
         </p>
 
-        {/* Country selector — glassmorphism */}
+        {/* Country selector — pill glassmorphism */}
         <button
           onClick={() => setShowCountryPicker(!showCountryPicker)}
-          className={`w-full text-left rounded-2xl px-4 py-3.5 mb-3 backdrop-blur-md transition-all border ${
+          className={`w-full text-left rounded-full px-5 py-4 mb-3 backdrop-blur-sm transition-all border ${
             error && !selectedCountry
-              ? "border-destructive/60 bg-white/40"
-              : "border-white/50 bg-white/30 hover:bg-white/40"
+              ? "border-destructive/40 bg-white/70"
+              : "border-gray-200 bg-white/70 hover:bg-white/80"
           }`}
         >
           {selectedCountry ? (
             <div className="flex items-center gap-3">
-              <span className="text-xl w-7 h-7 flex items-center justify-center rounded-full bg-white/50">
+              <span className="text-xl w-8 h-8 flex items-center justify-center rounded-full bg-gray-100/80">
                 {selectedCountry.flag}
               </span>
               <span className="text-foreground font-semibold text-base">
@@ -124,7 +124,7 @@ const Signup = () => {
 
         {/* Country picker dropdown */}
         {showCountryPicker && (
-          <div className="mb-3 rounded-2xl overflow-hidden backdrop-blur-lg bg-white/60 border border-white/50 shadow-lg max-h-64 overflow-y-auto">
+          <div className="mb-3 rounded-2xl overflow-hidden bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg max-h-64 overflow-y-auto">
             {COUNTRIES.map((country) => (
               <button
                 key={country.name}
@@ -133,13 +133,13 @@ const Signup = () => {
                   setShowCountryPicker(false);
                   setError("");
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/50 ${
+                className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-gray-50 ${
                   selectedCountry?.name === country.name
                     ? "bg-secondary/10"
                     : ""
                 }`}
               >
-                <span className="text-lg w-7 h-7 flex items-center justify-center rounded-full bg-white/50">
+                <span className="text-lg w-7 h-7 flex items-center justify-center rounded-full bg-gray-100/80">
                   {country.flag}
                 </span>
                 <span className="text-foreground font-medium text-sm">{country.name}</span>
@@ -149,22 +149,22 @@ const Signup = () => {
           </div>
         )}
 
-        {/* Phone input — glassmorphism with floating label */}
+        {/* Phone input — pill glassmorphism with floating label */}
         <div
-          className={`relative w-full rounded-2xl px-4 py-3.5 backdrop-blur-md transition-all border ${
+          className={`relative w-full rounded-full px-5 py-4 backdrop-blur-sm transition-all border ${
             phoneFocused
-              ? "border-secondary/60 bg-white/40 shadow-[0_0_20px_-4px_hsl(var(--brand-orange)/0.25)]"
+              ? "border-secondary/50 bg-white/80 shadow-[0_0_24px_-4px_hsl(var(--brand-orange)/0.2)]"
               : error && !phone.trim()
-                ? "border-destructive/60 bg-white/40"
-                : "border-white/50 bg-white/30"
+                ? "border-destructive/40 bg-white/70"
+                : "border-gray-200 bg-white/70"
           }`}
         >
           {/* Floating label */}
           <span
-            className={`absolute left-4 transition-all pointer-events-none ${
+            className={`absolute left-5 transition-all pointer-events-none ${
               hasPhoneValue || phoneFocused
                 ? "top-1.5 text-[10px] font-bold text-secondary"
-                : "top-3.5 text-sm text-muted-foreground"
+                : "top-4 text-base text-muted-foreground"
             }`}
           >
             Phone number
@@ -186,7 +186,7 @@ const Signup = () => {
 
         {/* Error message */}
         {error && (
-          <div className="flex items-center gap-1.5 mt-3">
+          <div className="flex items-center gap-1.5 mt-3 pl-2">
             <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
             <span className="text-destructive text-xs">{error}</span>
           </div>
@@ -199,22 +199,22 @@ const Signup = () => {
         </p>
 
         {/* Next button — centered pill with glow */}
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center mt-10">
           <button
             onClick={handleNext}
             disabled={loading}
-            className="px-16 py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_32px_0px_hsl(var(--brand-orange)/0.6)]"
+            className="px-20 py-4.5 rounded-full gradient-orange text-primary-foreground font-bold text-base transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
           >
             {loading ? "Sending..." : "Next"}
           </button>
         </div>
 
-        {/* Footer */}
-        <div className="mt-auto pb-8 flex items-center justify-center gap-1">
-          <span className="text-muted-foreground text-[11px] tracking-wide">Already have an account?</span>
+        {/* Footer — fine & low */}
+        <div className="mt-auto pb-6 flex items-center justify-center gap-1">
+          <span className="text-gray-400 text-[10px] tracking-wide">Already have an account?</span>
           <button
             onClick={() => navigate("/welcome")}
-            className="text-[11px] font-semibold text-foreground underline underline-offset-2 tracking-wide"
+            className="text-[10px] font-medium text-gray-500 underline underline-offset-2 tracking-wide"
           >
             Sign in
           </button>
