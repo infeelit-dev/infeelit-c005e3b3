@@ -6,8 +6,8 @@ const Welcome = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gradient-canvas px-6">
-      {/* Logo — blend away white bg */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-8">
+      {/* Logo & Mantra */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-6">
         <img
           src={infeelit}
           alt="Infeelit"
@@ -15,10 +15,9 @@ const Welcome = () => {
           style={{ mixBlendMode: "multiply" }}
         />
 
-        {/* Mantra */}
-        <div className="text-center max-w-xs space-y-1">
+        <div className="text-center max-w-sm space-y-2">
           <p
-            className="text-lg text-foreground/90 italic leading-relaxed"
+            className="text-xl text-foreground/90 leading-relaxed"
             style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
           >
             Some memories deserve to be felt again.
@@ -30,25 +29,25 @@ const Welcome = () => {
       </div>
 
       {/* Bottom section */}
-      <div className="w-full max-w-sm pb-12 space-y-7">
+      <div className="w-full max-w-sm pb-12 space-y-8">
         {/* Primary CTA — Phone */}
         <button
           onClick={() => navigate("/signup")}
           className="w-full py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base tracking-wide transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
         >
-          Sign up with phone
+          Sign in with Phone
         </button>
 
         {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-foreground/15" />
           <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
-            or continue with
+            or
           </span>
           <div className="flex-1 h-px bg-foreground/15" />
         </div>
 
-        {/* Social buttons — premium frosted glass */}
+        {/* Social buttons — minimalist frosted glass circles */}
         <div className="flex items-center justify-center gap-5">
           {[
             {
