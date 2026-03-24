@@ -56,6 +56,11 @@ export default {
           orange: "hsl(var(--brand-orange))",
           "orange-dark": "hsl(var(--brand-orange-dark))",
         },
+        category: {
+          past: "hsl(var(--category-past))",
+          future: "hsl(var(--category-future))",
+          family: "hsl(var(--category-family))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

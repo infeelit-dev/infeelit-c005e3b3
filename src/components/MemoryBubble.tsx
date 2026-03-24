@@ -1,29 +1,49 @@
 import { useState } from "react";
 
+export type BubbleCategory = "past" | "future" | "family";
+
 interface MemoryBubbleProps {
-  image: string;
+  question: string;
   size: number;
   x: number;
   y: number;
-  label?: string;
-  glowColor?: "orange" | "teal";
+  category: BubbleCategory;
   animationClass: string;
   delay?: string;
+  onClick?: () => void;
 }
 
+const categoryConfig: Record<BubbleCategory, { glow: string; icon: string; gradient: string }> = {
+  past: {
+    glow: "bubble-glow-past",
+    icon: "💜",
+    gradient: "from-purple-400/20 via-purple-300/10 to-transparent",
+  },
+  future: {
+    glow: "bubble-glow-future",
+    icon: "🔥",
+    gradient: "from-orange-400/20 via-orange-300/10 to-transparent",
+  },
+  family: {
+    glow: "bubble-glow-family",
+    icon: "✨",
+    gradient: "from-amber-400/20 via-yellow-300/10 to-transparent",
+  },
+};
+
 const MemoryBubble = ({
-  image,
+  question,
   size,
   x,
   y,
-  label,
-  glowColor,
+  category,
   animationClass,
   delay = "0s",
+  onClick,
 }: MemoryBubbleProps) => {
   const [hovered, setHovered] = useState(false);
-
-  const glowClass = glowColor === "orange" ? "bubble-glow-orange" : glowColor === "teal" ? "bubble-glow-teal" : "";
+  const config = categoryConfig[category];
+  const isSmall = size < 80;
 
   return (
     <div
@@ -37,28 +57,35 @@ const MemoryBubble = ({
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
     >
       <div
-        className={`w-full h-full rounded-full glass-surface overflow-hidden transition-all duration-500 shadow-inner ${glowClass} ${
-          hovered ? "scale-110 border-white/70 shadow-lg" : ""
-        }`}
+        className={`w-full h-full rounded-full glass-surface overflow-hidden transition-all duration-500 shadow-inner ${config.glow} ${
+          hovered ? "scale-110 shadow-lg" : ""
+        } flex items-center justify-center p-2`}
       >
-        <img
-          src={image}
-          alt={label || "Memory"}
-          loading="lazy"
-          className={`w-full h-full object-cover rounded-full transition-all duration-500 ${
-            hovered ? "opacity-100 scale-105" : "opacity-80"
-          }`}
-        />
-        {/* Glassy overlay */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+        {/* Colored gradient overlay */}
+        <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${config.gradient} pointer-events-none`} />
+
+        {/* Glassy highlight */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none" />
+
+        {isSmall ? (
+          <span className="text-lg relative z-[1]">{config.icon}</span>
+        ) : (
+          <div className="relative z-[1] flex flex-col items-center gap-1 px-2">
+            <span className="text-base">{config.icon}</span>
+            <p
+              className={`text-center leading-tight font-semibold text-primary-foreground text-shadow-soft transition-opacity duration-300 ${
+                hovered ? "opacity-100" : "opacity-80"
+              }`}
+              style={{ fontSize: size < 120 ? "9px" : "11px" }}
+            >
+              {question}
+            </p>
+          </div>
+        )}
       </div>
-      {label && hovered && (
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 glass-surface-strong rounded-full px-3 py-0.5 text-[11px] font-semibold text-primary-foreground whitespace-nowrap text-shadow-soft">
-          {label}
-        </div>
-      )}
     </div>
   );
 };

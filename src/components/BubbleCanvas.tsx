@@ -1,42 +1,63 @@
-import MemoryBubble from "./MemoryBubble";
-import memory1 from "@/assets/memory1.jpg";
-import memory2 from "@/assets/memory2.jpg";
-import memory3 from "@/assets/memory3.jpg";
-import memory4 from "@/assets/memory4.jpg";
+import MemoryBubble, { BubbleCategory } from "./MemoryBubble";
 
-const bubbles = [
-  { image: memory1, size: 140, x: 8, y: 20, label: "Sunset Walk", glowColor: "orange" as const, anim: "animate-float-slow", delay: "0s" },
-  { image: memory2, size: 110, x: 55, y: 12, label: "Rooftop Vibes", glowColor: "teal" as const, anim: "animate-float-medium", delay: "1s" },
-  { image: memory3, size: 160, x: 35, y: 45, label: "Cherry Blossoms", glowColor: "teal" as const, anim: "animate-float-slow", delay: "2s" },
-  { image: memory4, size: 100, x: 70, y: 55, label: "Cappadocia", glowColor: "orange" as const, anim: "animate-float-medium", delay: "0.5s" },
-  // Small ambient bubbles (no image)
-  { image: memory1, size: 45, x: 82, y: 25, anim: "animate-float-fast", delay: "3s" },
-  { image: memory2, size: 35, x: 18, y: 65, anim: "animate-float-fast", delay: "1.5s" },
-  { image: memory3, size: 55, x: 60, y: 75, anim: "animate-float-medium", delay: "2.5s" },
-  { image: memory4, size: 30, x: 45, y: 15, anim: "animate-float-fast", delay: "0.8s" },
+interface QuestionBubble {
+  question: string;
+  size: number;
+  x: number;
+  y: number;
+  category: BubbleCategory;
+  anim: string;
+  delay: string;
+}
+
+const bubbles: QuestionBubble[] = [
+  // Past (Purple)
+  { question: "What was the smell of your childhood home?", size: 150, x: 6, y: 22, category: "past", anim: "animate-float-slow", delay: "0s" },
+  { question: "A song that takes you back instantly?", size: 110, x: 58, y: 10, category: "past", anim: "animate-float-medium", delay: "1.2s" },
+  { question: "Your first heartbreak — what did it teach you?", size: 55, x: 82, y: 38, category: "past", anim: "animate-float-fast", delay: "2.8s" },
+
+  // Future / Forever (Orange)
+  { question: "A promise you want to keep forever?", size: 160, x: 32, y: 44, category: "future", anim: "animate-float-slow", delay: "0.5s" },
+  { question: "What does your dream morning look like?", size: 90, x: 72, y: 58, category: "future", anim: "animate-float-medium", delay: "1.8s" },
+  { question: "Where do you see yourself in 10 years?", size: 45, x: 18, y: 68, category: "future", anim: "animate-float-fast", delay: "3.2s" },
+
+  // Family Circle (Gold)
+  { question: "A lesson your father taught you?", size: 130, x: 55, y: 70, category: "family", anim: "animate-float-slow", delay: "2s" },
+  { question: "Your grandmother's best advice?", size: 100, x: 8, y: 55, category: "family", anim: "animate-float-medium", delay: "0.8s" },
+
+  // Small ambient
+  { question: "", size: 35, x: 45, y: 12, category: "past", anim: "animate-float-fast", delay: "1.5s" },
+  { question: "", size: 30, x: 88, y: 20, category: "family", anim: "animate-float-fast", delay: "2.5s" },
+  { question: "", size: 40, x: 25, y: 85, category: "future", anim: "animate-float-fast", delay: "0.3s" },
 ];
 
 const BubbleCanvas = () => {
+  const handleBubbleClick = (question: string) => {
+    if (question) {
+      console.log("Navigate to capture screen with prompt:", question);
+    }
+  };
+
   return (
     <div className="absolute inset-0 z-[1] overflow-hidden">
       {/* Bokeh background elements */}
-      <div className="bokeh-circle w-60 h-60 bg-white/40 top-[10%] left-[-5%] animate-bokeh" />
+      <div className="bokeh-circle w-60 h-60 bg-purple-200/30 top-[10%] left-[-5%] animate-bokeh" />
       <div className="bokeh-circle w-80 h-80 bg-orange-200/30 bottom-[15%] right-[-10%] animate-bokeh" style={{ animationDelay: "4s" }} />
-      <div className="bokeh-circle w-48 h-48 bg-cyan-200/25 top-[50%] left-[30%] animate-bokeh" style={{ animationDelay: "7s" }} />
-      <div className="bokeh-circle w-36 h-36 bg-amber-200/20 top-[25%] right-[20%] animate-bokeh" style={{ animationDelay: "2s" }} />
+      <div className="bokeh-circle w-48 h-48 bg-amber-200/25 top-[50%] left-[30%] animate-bokeh" style={{ animationDelay: "7s" }} />
+      <div className="bokeh-circle w-36 h-36 bg-purple-300/20 top-[25%] right-[20%] animate-bokeh" style={{ animationDelay: "2s" }} />
 
-      {/* Memory bubbles */}
+      {/* Question bubbles */}
       {bubbles.map((b, i) => (
         <MemoryBubble
           key={i}
-          image={b.image}
+          question={b.question}
           size={b.size}
           x={b.x}
           y={b.y}
-          label={b.label}
-          glowColor={b.glowColor}
+          category={b.category}
           animationClass={b.anim}
           delay={b.delay}
+          onClick={() => handleBubbleClick(b.question)}
         />
       ))}
     </div>
