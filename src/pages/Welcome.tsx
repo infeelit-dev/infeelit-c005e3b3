@@ -35,7 +35,7 @@ const Welcome = () => {
           onClick={() => navigate("/signup")}
           className="w-full py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base tracking-wide transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
         >
-          Get Started
+          Create my account
         </button>
 
         {/* Divider */}
