@@ -80,17 +80,17 @@ const Signup = () => {
   const hasPhoneValue = phone.length > 0;
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center px-6 pt-16 overflow-hidden" style={{ backgroundColor: "#FAFAFA" }}>
+    <div className="min-h-screen relative flex flex-col items-center px-6 pt-16 overflow-hidden" style={{ backgroundColor: "#FAF8F6" }}>
       {/* Ethereal corner clouds */}
-      <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_50%_78%)] opacity-[0.05] blur-[120px] pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-[420px] h-[420px] rounded-full bg-[hsl(25_85%_70%)] opacity-[0.05] blur-[120px] pointer-events-none" />
+      <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-sm flex flex-col flex-1">
         <h1 className="text-3xl font-bold text-center text-foreground mb-8">
           Sign Up
         </h1>
-        <p className="text-center text-muted-foreground text-xl font-medium mb-14 max-w-xs mx-auto leading-relaxed">
+        <p className="text-center text-xl font-semibold mb-14 max-w-xs mx-auto leading-relaxed" style={{ color: "#1A1A1A" }}>
           Your mobile number is the key to your private circle.
           <br />
           We secure your account via SMS.
@@ -99,10 +99,10 @@ const Signup = () => {
         {/* Country selector — pill glassmorphism */}
         <button
           onClick={() => setShowCountryPicker(!showCountryPicker)}
-          className={`w-full text-left rounded-full px-5 py-4 mb-3 backdrop-blur-sm transition-all border ${
+          className={`w-full text-left rounded-full px-5 py-4 mb-3 backdrop-blur-sm transition-all border focus:outline-none focus:border-secondary/60 focus:shadow-[0_0_16px_-4px_hsl(var(--brand-orange)/0.25)] ${
             error && !selectedCountry
-              ? "border-destructive/40 bg-white/70"
-              : "border-gray-200 bg-white/70 hover:bg-white/80"
+              ? "border-destructive/40 bg-white/90"
+              : "border-gray-300 bg-white/90 hover:bg-white"
           }`}
         >
           {selectedCountry ? (
@@ -118,7 +118,7 @@ const Signup = () => {
               </span>
             </div>
           ) : (
-            <span className="text-muted-foreground text-base font-medium">Select your country</span>
+            <span className="text-gray-500 text-base font-semibold">Select your country</span>
           )}
         </button>
 
@@ -153,10 +153,10 @@ const Signup = () => {
         <div
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-sm transition-all border ${
             phoneFocused
-              ? "border-secondary/50 bg-white/80 shadow-[0_0_24px_-4px_hsl(var(--brand-orange)/0.2)]"
+              ? "border-secondary/60 bg-white/95 shadow-[0_0_24px_-4px_hsl(var(--brand-orange)/0.3)]"
               : error && !phone.trim()
-                ? "border-destructive/40 bg-white/70"
-                : "border-gray-200 bg-white/70"
+                ? "border-destructive/40 bg-white/90"
+                : "border-gray-300 bg-white/90"
           }`}
         >
           {/* Floating label */}
@@ -203,7 +203,7 @@ const Signup = () => {
           <button
             onClick={handleNext}
             disabled={loading}
-            className="px-20 py-4.5 rounded-full gradient-orange text-primary-foreground font-bold text-base transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            className="px-24 py-5 rounded-full gradient-orange text-white font-bold text-lg transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
           >
             {loading ? "Sending..." : "Next"}
           </button>
