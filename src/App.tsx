@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/Signup";
+import Login from "./pages/Login";
 import Verify from "./pages/Verify";
 import FamilyIdentity from "./pages/FamilyIdentity";
 import Portrait from "./pages/Portrait";
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/identity" element={<FamilyIdentity />} />
           <Route path="/portrait" element={<Portrait />} />
