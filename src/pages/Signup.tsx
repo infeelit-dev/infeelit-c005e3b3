@@ -87,13 +87,11 @@ const Signup = () => {
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-sm flex flex-col flex-1">
-        <h1 className="text-2xl font-extrabold text-center text-foreground mb-2">
+        <h1 className="text-2xl font-extrabold text-center text-foreground mb-4">
           Sign Up
         </h1>
-        <p className="text-center text-muted-foreground text-xs mb-10 max-w-[280px] mx-auto leading-relaxed tracking-wide">
-          Votre numéro est la clé de votre cercle familial.
-          <br />
-          Nous le sécurisons via SMS.
+        <p className="text-center text-muted-foreground/70 text-[11px] mb-12 max-w-[260px] mx-auto leading-relaxed tracking-widest font-light">
+          Your mobile number is the key to your private circle. We secure your account via SMS.
         </p>
 
         {/* Country selector — glassmorphism */}
