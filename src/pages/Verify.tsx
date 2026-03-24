@@ -66,7 +66,23 @@ const Verify = () => {
       if (authError) {
         setError(authError.message);
       } else {
-        navigate("/portrait", { replace: true });
+        // Check if user already completed onboarding
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name, onboarding_completed")
+            .eq("user_id", user.id)
+            .single();
+
+          if (profile?.onboarding_completed) {
+            navigate("/", { replace: true });
+          } else if (profile?.display_name) {
+            navigate("/portrait", { replace: true });
+          } else {
+            navigate("/identity", { replace: true });
+          }
+        }
       }
     } catch {
       setError("Verification failed. Please try again.");
