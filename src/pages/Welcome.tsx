@@ -35,14 +35,14 @@ const Welcome = () => {
           onClick={() => navigate("/signup")}
           className="w-full py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base tracking-wide transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
         >
-          Sign in with Phone
+          Get Started
         </button>
 
         {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-foreground/15" />
           <span className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
-            or
+            or continue with
           </span>
           <div className="flex-1 h-px bg-foreground/15" />
         </div>
@@ -84,10 +84,10 @@ const Welcome = () => {
         <div className="flex items-center justify-center gap-1 text-sm">
           <span className="text-muted-foreground">Already have an account?</span>
           <button
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/login")}
             className="font-bold text-foreground underline underline-offset-2"
           >
-            Sign in
+            Log In
           </button>
         </div>
       </div>
