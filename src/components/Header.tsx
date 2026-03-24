@@ -1,4 +1,4 @@
-import { Search, Zap } from "lucide-react";
+import { Search } from "lucide-react";
 import logo from "@/assets/infeelit-logo.jpg";
 import { useState } from "react";
 
@@ -8,51 +8,57 @@ const Header = () => {
   const [activeTab, setActiveTab] = useState<string>("Memories");
 
   return (
-    <header className="absolute top-0 left-0 right-0 z-10 px-5 pt-4 pb-2">
-      {/* Top row */}
-      <div className="flex items-center justify-between">
-        {/* Left: avatar + search */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full glass-surface flex items-center justify-center overflow-hidden">
-            <span className="text-primary-foreground text-sm font-bold text-shadow-soft">A</span>
+    <header className="absolute top-0 left-0 right-0 z-10">
+      {/* Frosted glass bar */}
+      <div className="mx-3 mt-3 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/40 shadow-lg px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Left: avatar + search */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur border border-white/40 flex items-center justify-center overflow-hidden">
+              <span className="text-primary-foreground text-xs font-bold text-shadow-soft">A</span>
+            </div>
+            <button className="w-8 h-8 rounded-full bg-white/15 backdrop-blur border border-white/30 flex items-center justify-center transition-all hover:bg-white/25">
+              <Search className="w-3.5 h-3.5 text-primary-foreground drop-shadow" />
+            </button>
           </div>
-          <button className="w-9 h-9 rounded-full glass-surface flex items-center justify-center">
-            <Search className="w-4 h-4 text-primary-foreground drop-shadow" />
-          </button>
+
+          {/* Center: logo — translucent, blended */}
+          <img
+            src={logo}
+            alt="Infeelit"
+            className="h-7 opacity-90 drop-shadow-sm"
+            style={{ mixBlendMode: "luminosity" }}
+          />
+
+          {/* Right: status badges */}
+          <div className="flex items-center gap-1.5">
+            <span className="bg-white/15 backdrop-blur border border-white/30 rounded-full px-2 py-0.5 text-[9px] font-bold text-primary-foreground tracking-wider text-shadow-soft flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+              LIVE
+            </span>
+            <span className="gradient-orange rounded-full px-2 py-0.5 text-[9px] font-bold text-primary-foreground tracking-wider">
+              Pro
+            </span>
+          </div>
         </div>
 
-        {/* Center: logo */}
-        <img src={logo} alt="Infeelit" className="h-8 drop-shadow-md" />
-
-        {/* Right: status badges */}
-        <div className="flex items-center gap-2">
-          <span className="glass-surface rounded-full px-2.5 py-0.5 text-[10px] font-bold text-primary-foreground tracking-wider text-shadow-soft flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-            LIVE
-          </span>
-          <span className="gradient-orange rounded-full px-2.5 py-0.5 text-[10px] font-bold text-primary-foreground tracking-wider flex items-center gap-1">
-            <Zap className="w-3 h-3" />
-            Pro
-          </span>
-        </div>
+        {/* Sub-navigation tabs */}
+        <nav className="flex justify-center gap-6 mt-2.5 pt-2 border-t border-white/15">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`transition-all duration-300 text-shadow-soft ${
+                activeTab === tab
+                  ? "text-primary-foreground font-extrabold text-sm scale-105"
+                  : "text-white/60 font-semibold text-xs"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </nav>
       </div>
-
-      {/* Sub-navigation tabs */}
-      <nav className="flex justify-center gap-6 mt-4">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`transition-all duration-300 text-shadow-soft ${
-              activeTab === tab
-                ? "text-primary-foreground font-extrabold text-base scale-105"
-                : "text-white/70 font-semibold text-sm"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </nav>
     </header>
   );
 };

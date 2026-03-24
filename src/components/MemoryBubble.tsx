@@ -10,25 +10,20 @@ interface MemoryBubbleProps {
   category: BubbleCategory;
   animationClass: string;
   delay?: string;
+  image: string;
   onClick?: () => void;
 }
 
-const categoryConfig: Record<BubbleCategory, { glow: string; icon: string; gradient: string }> = {
-  past: {
-    glow: "bubble-glow-past",
-    icon: "💜",
-    gradient: "from-purple-400/20 via-purple-300/10 to-transparent",
-  },
-  future: {
-    glow: "bubble-glow-future",
-    icon: "🔥",
-    gradient: "from-orange-400/20 via-orange-300/10 to-transparent",
-  },
-  family: {
-    glow: "bubble-glow-family",
-    icon: "✨",
-    gradient: "from-amber-400/20 via-yellow-300/10 to-transparent",
-  },
+const categoryBorder: Record<BubbleCategory, string> = {
+  past: "border-purple-300/50",
+  future: "border-orange-300/50",
+  family: "border-amber-300/50",
+};
+
+const categoryGlow: Record<BubbleCategory, string> = {
+  past: "shadow-[0_0_30px_8px_hsla(270,60%,50%,0.2)]",
+  future: "shadow-[0_0_30px_8px_hsla(20,90%,48%,0.2)]",
+  family: "shadow-[0_0_30px_8px_hsla(42,90%,50%,0.2)]",
 };
 
 const MemoryBubble = ({
@@ -39,54 +34,101 @@ const MemoryBubble = ({
   category,
   animationClass,
   delay = "0s",
+  image,
   onClick,
 }: MemoryBubbleProps) => {
-  const [hovered, setHovered] = useState(false);
-  const config = categoryConfig[category];
-  const isSmall = size < 80;
+  const [expanded, setExpanded] = useState(false);
+
+  const handleClick = () => {
+    if (!expanded) {
+      setExpanded(true);
+    }
+  };
+
+  const handleAnswer = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(false);
+    onClick?.();
+  };
+
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(false);
+  };
 
   return (
-    <div
-      className={`absolute ${animationClass} cursor-pointer group`}
-      style={{
-        left: `${x}%`,
-        top: `${y}%`,
-        width: size,
-        height: size,
-        animationDelay: delay,
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={onClick}
-    >
-      <div
-        className={`w-full h-full rounded-full glass-surface overflow-hidden transition-all duration-500 shadow-inner ${config.glow} ${
-          hovered ? "scale-110 shadow-lg" : ""
-        } flex items-center justify-center p-2`}
-      >
-        {/* Colored gradient overlay */}
-        <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${config.gradient} pointer-events-none`} />
+    <>
+      {/* Expanded overlay */}
+      {expanded && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fade-in"
+          onClick={handleClose}
+        >
+          <div
+            className="relative rounded-full overflow-hidden border-2 border-white/50 animate-scale-in"
+            style={{ width: Math.min(320, size * 2.5), height: Math.min(320, size * 2.5) }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Bokeh image */}
+            <img
+              src={image}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover scale-110 blur-[2px]"
+            />
+            {/* Glass overlay */}
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent" />
 
-        {/* Glassy highlight */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none" />
-
-        {isSmall ? (
-          <span className="text-lg relative z-[1]">{config.icon}</span>
-        ) : (
-          <div className="relative z-[1] flex flex-col items-center gap-1 px-2">
-            <span className="text-base">{config.icon}</span>
-            <p
-              className={`text-center leading-tight font-semibold text-primary-foreground text-shadow-soft transition-opacity duration-300 ${
-                hovered ? "opacity-100" : "opacity-80"
-              }`}
-              style={{ fontSize: size < 120 ? "9px" : "11px" }}
-            >
-              {question}
-            </p>
+            {/* Question text + Answer button */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              <p className="text-primary-foreground text-center font-bold text-sm leading-snug text-shadow-soft mb-4">
+                {question}
+              </p>
+              <button
+                onClick={handleAnswer}
+                className="px-6 py-2 rounded-full gradient-orange text-primary-foreground text-xs font-bold tracking-wider uppercase fab-glow transition-transform duration-200 hover:scale-105 active:scale-95"
+              >
+                Answer
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Floating bubble */}
+      <div
+        className={`absolute ${animationClass} cursor-pointer`}
+        style={{
+          left: `${x}%`,
+          top: `${y}%`,
+          width: size,
+          height: size,
+          animationDelay: delay,
+        }}
+        onClick={handleClick}
+      >
+        <div
+          className={`w-full h-full rounded-full overflow-hidden border border-white/50 backdrop-blur-xl transition-all duration-500 hover:scale-110 hover:border-white/70 ${categoryBorder[category]} ${categoryGlow[category]}`}
+        >
+          {/* Bokeh background image */}
+          <img
+            src={image}
+            alt=""
+            loading="lazy"
+            width={512}
+            height={512}
+            className="absolute inset-0 w-full h-full object-cover scale-110"
+          />
+
+          {/* Glass highlights */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/30 via-white/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tl from-white/10 via-transparent to-transparent pointer-events-none" />
+
+          {/* Inner shadow for depth */}
+          <div className="absolute inset-0 rounded-full shadow-[inset_0_2px_8px_rgba(255,255,255,0.3),inset_0_-2px_8px_rgba(0,0,0,0.1)] pointer-events-none" />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
