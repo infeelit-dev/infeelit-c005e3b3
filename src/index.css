@@ -105,29 +105,6 @@
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.15);
   }
 
-  .bubble-glow-orange {
-    box-shadow: 0 0 20px 4px rgba(227, 93, 15, 0.2);
-  }
-
-  .bubble-glow-teal {
-    box-shadow: 0 0 20px 4px rgba(36, 88, 99, 0.2);
-  }
-
-  .bubble-glow-past {
-    box-shadow: 0 0 22px 5px hsla(270, 60%, 50%, 0.25);
-    border-color: hsla(270, 60%, 70%, 0.5);
-  }
-
-  .bubble-glow-future {
-    box-shadow: 0 0 22px 5px hsla(20, 90%, 48%, 0.25);
-    border-color: hsla(20, 90%, 60%, 0.5);
-  }
-
-  .bubble-glow-family {
-    box-shadow: 0 0 22px 5px hsla(42, 90%, 50%, 0.25);
-    border-color: hsla(42, 90%, 60%, 0.5);
-  }
-
   .fab-glow {
     box-shadow: 0 0 20px 6px rgba(227, 93, 15, 0.5);
   }
@@ -140,42 +117,55 @@
   }
 }
 
-/* Bubble floating animations */
+/* Bubble floating animations — organic, asynchronous */
 @keyframes float-slow {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(8px, -12px) scale(1.01); }
-  50% { transform: translate(-5px, -20px) scale(1); }
-  75% { transform: translate(10px, -8px) scale(0.99); }
+  20% { transform: translate(6px, -14px) scale(1.015); }
+  40% { transform: translate(-4px, -22px) scale(1.005); }
+  60% { transform: translate(10px, -16px) scale(0.995); }
+  80% { transform: translate(-3px, -8px) scale(1.01); }
 }
 
 @keyframes float-medium {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(-10px, -15px); }
-  66% { transform: translate(8px, -25px); }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-8px, -18px) scale(1.01); }
+  50% { transform: translate(5px, -28px) scale(0.99); }
+  75% { transform: translate(-6px, -10px) scale(1.005); }
 }
 
 @keyframes float-fast {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(6px, -18px); }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  30% { transform: translate(5px, -12px) scale(1.02); }
+  60% { transform: translate(-4px, -20px) scale(0.98); }
 }
 
 @keyframes bokeh-drift {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.2; }
-  50% { transform: translate(20px, -30px) scale(1.1); opacity: 0.35; }
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.15; }
+  50% { transform: translate(25px, -35px) scale(1.15); opacity: 0.3; }
+}
+
+@keyframes countdown-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  40% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
 }
 
 .animate-float-slow {
-  animation: float-slow 8s ease-in-out infinite;
+  animation: float-slow 10s ease-in-out infinite;
 }
 
 .animate-float-medium {
-  animation: float-medium 6s ease-in-out infinite;
+  animation: float-medium 7s ease-in-out infinite;
 }
 
 .animate-float-fast {
-  animation: float-fast 4s ease-in-out infinite;
+  animation: float-fast 5s ease-in-out infinite;
 }
 
 .animate-bokeh {
-  animation: bokeh-drift 12s ease-in-out infinite;
+  animation: bokeh-drift 14s ease-in-out infinite;
+}
+
+.animate-countdown {
+  animation: countdown-pop 1s ease-out forwards;
 }
