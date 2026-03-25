@@ -113,7 +113,7 @@ const Verify = () => {
         </p>
 
         {/* OTP Inputs */}
-        <div className="grid grid-cols-6 gap-2 w-full max-w-[340px] mx-auto" onPaste={handlePaste}>
+        <div className="grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
@@ -124,7 +124,7 @@ const Verify = () => {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`w-full aspect-square text-center text-2xl font-bold rounded-2xl backdrop-blur-md border outline-none transition-all bg-white/70 ${
+              className={`w-[56px] h-[56px] aspect-square text-center text-2xl font-bold rounded-full backdrop-blur-md border outline-none transition-all bg-white/70 mx-auto ${
                 error
                   ? "border-destructive/50"
                   : digit
