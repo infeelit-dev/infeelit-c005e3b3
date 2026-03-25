@@ -95,10 +95,10 @@ const Login = () => {
         {/* Country selector */}
         <button
           onClick={() => setShowCountryPicker(!showCountryPicker)}
-          className={`w-full text-left rounded-full px-5 py-4 mb-3 backdrop-blur-sm transition-all border focus:outline-none ${
+          className={`w-full text-center rounded-full px-5 py-4 mb-3 backdrop-blur-md bg-white/80 transition-all border focus:outline-none ${
             error && !selectedCountry
-              ? "border-destructive/40 bg-white/90"
-              : "border-gray-300 bg-white/90 hover:bg-white focus:border-gray-300 focus:shadow-[0_0_20px_-4px_hsl(var(--brand-orange)/0.2)]"
+              ? "border-destructive/40"
+              : "border-white/40 hover:bg-white/90 focus:border-white/50 focus:shadow-[0_0_20px_-4px_hsl(var(--brand-orange)/0.2)]"
           }`}
         >
           {selectedCountry ? (
