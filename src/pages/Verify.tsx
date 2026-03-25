@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import infeelit from "@/assets/infeelit-logo.png";
 
 const OTP_LENGTH = 6;
 
@@ -95,31 +96,35 @@ const Verify = () => {
   };
 
   return (
-    <div
-      className="min-h-screen relative flex flex-col items-center px-6 pt-16 overflow-hidden"
-      style={{ backgroundColor: "#FAF8F6" }}
-    >
+    <div className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden" style={{ backgroundColor: "#FAF8F6" }}>
       {/* Ethereal corner clouds */}
       <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-sm flex flex-col flex-1">
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+        {/* Logo */}
+        <img
+          src={infeelit}
+          alt="Infeelit"
+          className="w-[350px] h-auto object-contain mx-auto mb-8"
+          style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
+        />
+
+        {/* Title */}
         <h1
-          className="text-3xl font-bold text-center mb-6"
-          style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: "hsl(var(--brand-teal))" }}
+          className="text-4xl font-semibold text-center mt-4 mb-1"
+          style={{ fontFamily: "'Inter', sans-serif", color: '#1A3B47' }}
         >
-          Verification
+          Secure Access
         </h1>
 
-        <p className="text-center text-base font-medium mb-12 max-w-xs mx-auto leading-relaxed text-muted-foreground">
-          We've sent a 6-digit code via SMS to
-          <br />
-          <span className="font-bold text-foreground">{phone}</span>
+        {/* Sub-heading */}
+        <p className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed" style={{ color: '#1A1A1A' }}>
+          Enter the 6-digit code sent to your phone
         </p>
 
-        {/* OTP inputs — frosted glass squares */}
-        <div className="flex gap-3 justify-center mb-6" onPaste={handlePaste}>
+        {/* OTP inputs — frosted glass boxes */}
+        <div className="flex gap-3 justify-center mb-6 w-full" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
@@ -130,13 +135,13 @@ const Verify = () => {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`w-12 h-14 text-center text-xl font-bold rounded-lg backdrop-blur-sm border outline-none transition-all bg-white/90 ${
+              className={`w-12 h-14 text-center text-xl font-bold rounded-lg backdrop-blur-md border outline-none transition-all bg-white/80 ${
                 error
                   ? "border-destructive/50"
                   : digit
-                    ? "border-secondary/40 shadow-[0_0_16px_-4px_hsl(var(--brand-orange)/0.2)]"
-                    : "border-gray-300"
-              } focus:border-gray-300 focus:shadow-[0_0_20px_-2px_hsl(var(--brand-orange)/0.25)]`}
+                    ? "border-white/50 shadow-[0_0_16px_-4px_hsl(var(--brand-orange)/0.2)]"
+                    : "border-white/40"
+              } focus:border-white/50 focus:shadow-[0_0_20px_-2px_hsl(var(--brand-orange)/0.25)]`}
             />
           ))}
         </div>
@@ -158,17 +163,15 @@ const Verify = () => {
           <span className="font-bold text-foreground underline underline-offset-2">Send again</span>
         </button>
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
         {/* Verify button */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mt-10 mb-4 w-full">
           <button
             onClick={handleVerify}
             disabled={loading}
-            className="px-24 py-5 rounded-full gradient-orange text-white font-bold text-lg transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            style={{ color: '#1A1A1A' }}
           >
-            {loading ? "Verifying..." : "Verify"}
+            {loading ? "Verifying..." : "Access my memories"}
           </button>
         </div>
       </div>
