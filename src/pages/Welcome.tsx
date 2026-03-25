@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import infeelit from "@/assets/infeelit-logo.png";
+import infeelit from "@/assets/infeelit-logo-transparent.png";
 
 const Welcome = () => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import logo from "@/assets/infeelit-logo.png";
+import logo from "@/assets/infeelit-logo-transparent.png";
 import { useState } from "react";
 
 const tabs = ["Memories", "Instant", "Forever"] as const;
