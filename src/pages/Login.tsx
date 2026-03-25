@@ -73,7 +73,7 @@ const Login = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[96px] md:w-[120px] h-auto object-contain"
+          className="w-[144px] md:w-[180px] h-auto object-contain"
         />
 
         {/* Title */}
