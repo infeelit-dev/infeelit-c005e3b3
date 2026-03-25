@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import infeelit from "@/assets/infeelit-logo.jpg";
+import infeelit from "@/assets/infeelit-logo.png";
 
 const COUNTRIES = [
   { name: "France", flag: "🇫🇷", code: "+33" },
@@ -74,7 +74,7 @@ const Login = () => {
           src={infeelit}
           alt="Infeelit"
           className="w-28 h-28 object-contain rounded-2xl mb-6"
-          style={{ mixBlendMode: "multiply" }}
+          
         />
 
         {/* Title */}
