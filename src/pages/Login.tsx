@@ -73,20 +73,20 @@ const Login = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[120px] h-auto object-contain rounded-2xl mb-8"
+          className="w-[140px] h-auto object-contain"
           style={{ mixBlendMode: "multiply" }}
         />
 
         {/* Title */}
         <h1
-          className="text-4xl font-bold text-center mb-3"
+          className="text-4xl font-bold text-center mt-6 mb-2"
           style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: "hsl(var(--brand-teal))" }}
         >
           Welcome Back
         </h1>
 
         {/* Sub-heading */}
-        <p className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed" style={{ color: "#333333" }}>
+        <p className="text-center text-base font-medium mb-6 max-w-xs mx-auto leading-relaxed text-foreground/80">
           Your circle is waiting for you.
           <br />
           Reconnect with your legacy.
@@ -165,11 +165,11 @@ const Login = () => {
         )}
 
         {/* Log In button */}
-        <div className="flex justify-center mt-12">
+        <div className="flex justify-center mt-8 w-full">
           <button
             onClick={handleNext}
             disabled={loading}
-            className="px-24 py-5 rounded-full gradient-orange text-white font-bold text-lg transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            className="w-full py-5 rounded-full gradient-orange text-white font-bold text-lg transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
           >
             {loading ? "Sending..." : "Log In"}
           </button>
