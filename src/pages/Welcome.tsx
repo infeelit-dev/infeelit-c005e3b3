@@ -22,7 +22,7 @@ const Welcome = () => {
           >
             Some memories deserve to be felt again.
           </p>
-          <p className="text-sm font-medium tracking-wide py-12" style={{ color: '#1A1A1A' }}>
+          <p className="text-sm font-semibold tracking-wide py-12 text-white">
             Capture them. Share them. Keep them alive.
           </p>
         </div>
