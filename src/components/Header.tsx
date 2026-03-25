@@ -27,7 +27,7 @@ const Header = () => {
             src={logo}
             alt="Infeelit"
             className="h-7 opacity-90 drop-shadow-sm"
-            style={{ mixBlendMode: "luminosity" }}
+            style={{ mixBlendMode: "multiply" }}
           />
 
           {/* Right: status badges */}
