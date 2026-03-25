@@ -125,7 +125,7 @@ const Verify = () => {
         </p>
 
         {/* OTP inputs — frosted glass boxes */}
-        <div className="flex justify-between my-10 w-full max-w-[370px] mx-auto" onPaste={handlePaste}>
+        <div className="flex gap-2.5 justify-center my-10 w-full px-5" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
@@ -136,7 +136,7 @@ const Verify = () => {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`w-[52px] h-[52px] text-center text-2xl font-bold rounded-full backdrop-blur-md border outline-none transition-all bg-white/70 ${
+              className={`flex-1 aspect-square text-center text-2xl font-bold rounded-full backdrop-blur-md border outline-none transition-all bg-white/70 ${
                 error
                   ? "border-destructive/50"
                   : digit
