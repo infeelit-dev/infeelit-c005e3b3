@@ -74,7 +74,6 @@ const Login = () => {
           src={infeelit}
           alt="Infeelit"
           className="w-[140px] h-auto object-contain"
-          style={{ mixBlendMode: "multiply" }}
         />
 
         {/* Title */}
