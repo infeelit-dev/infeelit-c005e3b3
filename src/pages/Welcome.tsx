@@ -11,8 +11,7 @@ const Welcome = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[160px] md:w-[220px] h-auto object-contain rounded-2xl"
-          style={{ mixBlendMode: "multiply" }}
+          className="w-[160px] md:w-[220px] h-auto object-contain"
         />
 
         <div className="text-center max-w-sm space-y-2">
