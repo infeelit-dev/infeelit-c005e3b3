@@ -73,7 +73,7 @@ const Login = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-28 h-28 object-contain rounded-2xl mb-6"
+          className="w-[120px] h-auto object-contain rounded-2xl mb-8"
           style={{ mixBlendMode: "multiply" }}
         />
 
