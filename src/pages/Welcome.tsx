@@ -22,7 +22,7 @@ const Welcome = () => {
           >
             Some memories deserve to be felt again.
           </p>
-          <p className="text-sm font-semibold text-primary/70 tracking-wide pt-2">
+          <p className="text-sm font-semibold tracking-wide pt-2" style={{ color: '#1A3B47' }}>
             Capture them. Share them. Keep them alive.
           </p>
         </div>
