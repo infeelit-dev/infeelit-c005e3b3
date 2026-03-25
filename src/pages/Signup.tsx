@@ -165,11 +165,12 @@ const Signup = () => {
         )}
 
         {/* Create account button */}
-        <div className="flex justify-center mt-8 w-full">
+        <div className="flex justify-center mt-8 mb-4 w-full">
           <button
             onClick={handleNext}
             disabled={loading}
-            className="w-full px-5 py-4 rounded-full gradient-orange text-white font-bold text-lg transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            className="w-full px-5 py-4 rounded-full gradient-orange font-semibold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            style={{ color: '#1A3B47' }}
           >
             {loading ? "Sending..." : "Create my account"}
           </button>
