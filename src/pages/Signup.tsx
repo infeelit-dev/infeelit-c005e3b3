@@ -86,7 +86,7 @@ const Signup = () => {
         </h1>
 
         {/* Sub-heading */}
-        <p className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed text-foreground/80">
+        <p className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed" style={{ color: '#1A1A1A' }}>
           Start your legacy today.
           <br />
           Your circle is waiting.
