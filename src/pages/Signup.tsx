@@ -169,7 +169,7 @@ const Signup = () => {
           <button
             onClick={handleNext}
             disabled={loading}
-            className="w-[80%] px-5 py-4 rounded-full gradient-orange font-semibold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            className="w-[85%] px-5 py-4 rounded-full gradient-orange font-semibold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
             style={{ color: '#1A3B47' }}
           >
             {loading ? "Sending..." : "Create my account"}
