@@ -106,14 +106,14 @@ const Verify = () => {
 
         {/* Sub-heading */}
         <p
-          className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed"
+          className="text-center text-base font-medium mb-6 max-w-xs mx-auto leading-relaxed"
           style={{ color: "#1A1A1A" }}
         >
           Enter the 6-digit code sent to your phone
         </p>
 
         {/* OTP Inputs */}
-        <div className="grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto my-8 justify-items-center" onPaste={handlePaste}>
+        <div className="grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto mt-6 mb-8 justify-items-center" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
