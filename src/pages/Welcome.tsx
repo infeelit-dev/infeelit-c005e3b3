@@ -7,11 +7,11 @@ const Welcome = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gradient-canvas px-6">
       {/* Logo & Mantra */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-8">
+      <div className="flex-1 flex flex-col items-center justify-center gap-10">
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[160px] md:w-[220px] h-auto object-contain"
+          className="w-[144px] md:w-[180px] h-auto object-contain"
         />
 
         <div className="text-center max-w-sm space-y-2">

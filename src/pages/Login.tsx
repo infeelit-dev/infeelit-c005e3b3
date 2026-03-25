@@ -73,19 +73,19 @@ const Login = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[140px] h-auto object-contain"
+          className="w-[96px] md:w-[120px] h-auto object-contain"
         />
 
         {/* Title */}
         <h1
-          className="text-4xl font-bold text-center mt-6 mb-2"
+          className="text-4xl font-bold text-center mt-4 mb-1"
           style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: "hsl(var(--brand-teal))" }}
         >
           Welcome Back
         </h1>
 
         {/* Sub-heading */}
-        <p className="text-center text-base font-medium mb-6 max-w-xs mx-auto leading-relaxed text-foreground/80">
+        <p className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed text-foreground/80">
           Your circle is waiting for you.
           <br />
           Reconnect with your legacy.
