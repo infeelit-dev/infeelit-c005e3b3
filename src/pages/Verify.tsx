@@ -15,9 +15,10 @@ const Verify = () => {
   const [loading, setLoading] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  useEffect(() => {
-    if (!phone) navigate("/signup", { replace: true });
-  }, [phone, navigate]);
+  // TODO: Re-enable redirect after UI tweaks
+  // useEffect(() => {
+  //   if (!phone) navigate("/signup", { replace: true });
+  // }, [phone, navigate]);
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
