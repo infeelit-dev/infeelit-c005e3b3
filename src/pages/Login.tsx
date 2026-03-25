@@ -132,12 +132,12 @@ const Login = () => {
 
         {/* Phone input */}
         <div
-          className={`relative w-full rounded-full px-5 py-4 backdrop-blur-sm transition-all border ${
+          className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
             phoneFocused
-              ? "border-gray-300 bg-white/95 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
+              ? "border-white/50 bg-white/80 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
               : error && !phone.trim()
-                ? "border-destructive/40 bg-white/90"
-                : "border-gray-300 bg-white/90"
+                ? "border-destructive/40 bg-white/80"
+                : "border-white/40 bg-white/80"
           }`}
         >
           <span className={`absolute left-5 transition-all pointer-events-none ${
