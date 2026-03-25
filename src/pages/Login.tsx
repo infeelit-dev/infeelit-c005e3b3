@@ -140,7 +140,7 @@ const Login = () => {
                 : "border-white/40 bg-white/80"
           }`}
         >
-          <span className={`absolute left-5 transition-all pointer-events-none ${
+          <span className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
             hasPhoneValue || phoneFocused
               ? "top-1.5 text-[10px] font-bold text-secondary"
               : "top-4 text-base text-muted-foreground"
