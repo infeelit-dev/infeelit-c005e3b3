@@ -106,7 +106,7 @@ const Verify = () => {
 
         {/* Sub-heading */}
         <p
-          className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed"
+          className="text-center text-base font-medium mb-6 max-w-xs mx-auto leading-relaxed"
           style={{ color: "#1A1A1A" }}
         >
           Enter the 6-digit code sent to your phone
