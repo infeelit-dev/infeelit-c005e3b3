@@ -125,7 +125,7 @@ const Verify = () => {
         </p>
 
         {/* OTP inputs — frosted glass boxes */}
-        <div className="flex gap-3 justify-center mb-6 w-full" onPaste={handlePaste}>
+        <div className="flex gap-3 justify-center my-10 w-full" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
