@@ -79,8 +79,8 @@ const Login = () => {
 
         {/* Title */}
         <h1
-          className="text-4xl font-bold text-center mt-4 mb-1"
-          style={{ fontFamily: "'Montserrat', 'Inter', sans-serif", color: '#1A3B47' }}
+          className="text-4xl font-semibold text-center mt-4 mb-1"
+          style={{ fontFamily: "'Inter', sans-serif", color: '#1A3B47' }}
         >
           Welcome Back
         </h1>
