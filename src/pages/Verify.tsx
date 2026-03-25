@@ -124,7 +124,7 @@ const Verify = () => {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`w-[56px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md border outline-none transition-all bg-white/70 mx-auto ${
+              className={`w-[50px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md border outline-none transition-all bg-white/70 mx-auto ${
                 error
                   ? "border-destructive/50"
                   : digit
