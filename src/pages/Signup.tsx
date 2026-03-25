@@ -26,22 +26,17 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [phoneFocused, setPhoneFocused] = useState(false);
 
-  // Attempt IP geolocation on mount
   useEffect(() => {
     const detectCountry = async () => {
       try {
         const res = await fetch("https://ipapi.co/json/");
         if (res.ok) {
           const data = await res.json();
-          const code = data.country_calling_code; // e.g. "+33"
-          const match = COUNTRIES.find((c) => c.code === code);
-          if (match) {
-            setSelectedCountry(match);
-            return;
-          }
+          const match = COUNTRIES.find((c) => c.code === data.country_calling_code);
+          if (match) setSelectedCountry(match);
         }
       } catch {
-        // silent fail
+        // silent
       }
     };
     detectCountry();
@@ -49,28 +44,15 @@ const Signup = () => {
 
   const handleNext = async () => {
     setError("");
-    if (!selectedCountry) {
-      setError("Please select your country.");
-      return;
-    }
-    if (!phone.trim()) {
-      setError("Phone number is required.");
-      return;
-    }
+    if (!selectedCountry) { setError("Please select your country."); return; }
+    if (!phone.trim()) { setError("Phone number is required."); return; }
 
     const fullPhone = `${selectedCountry.code}${phone.replace(/\s/g, "")}`;
     setLoading(true);
-
     try {
-      const { error: authError } = await supabase.auth.signInWithOtp({
-        phone: fullPhone,
-      });
-
-      if (authError) {
-        setError(authError.message);
-      } else {
-        navigate("/verify", { state: { phone: fullPhone } });
-      }
+      const { error: authError } = await supabase.auth.signInWithOtp({ phone: fullPhone });
+      if (authError) setError(authError.message);
+      else navigate("/verify", { state: { phone: fullPhone } });
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -81,77 +63,66 @@ const Signup = () => {
   const hasPhoneValue = phone.length > 0;
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center px-6 pt-16 overflow-hidden" style={{ backgroundColor: "#FAF8F6" }}>
+    <div className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden" style={{ backgroundColor: "#FAF8F6" }}>
       {/* Ethereal corner clouds */}
       <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-sm flex flex-col flex-1">
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+        {/* Logo */}
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[80px] md:w-[100px] h-auto object-contain mx-auto mb-6"
-          style={{ imageRendering: "-webkit-optimize-contrast" as any }}
+          className="w-[140px] h-auto object-contain mx-auto"
+          style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
+
+        {/* Title */}
         <h1
-          className="text-3xl font-bold text-center mb-10"
-          style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: "hsl(var(--brand-teal))" }}
+          className="text-4xl font-semibold text-center mt-4 mb-1"
+          style={{ fontFamily: "'Inter', sans-serif", color: '#1A3B47' }}
         >
-          Sign Up
+          Create Your Account
         </h1>
-        <p className="text-center text-xl font-semibold mb-14 max-w-xs mx-auto leading-relaxed" style={{ color: "#1A1A1A" }}>
-          Your mobile number is the key to your private circle.
+
+        {/* Sub-heading */}
+        <p className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed text-foreground/80">
+          Start your legacy today.
           <br />
-          We secure your account via SMS.
+          Your circle is waiting.
         </p>
 
-        {/* Country selector — pill glassmorphism */}
+        {/* Country selector */}
         <button
           onClick={() => setShowCountryPicker(!showCountryPicker)}
-          className={`w-full text-left rounded-full px-5 py-4 mb-3 backdrop-blur-sm transition-all border focus:outline-none ${
+          className={`w-full text-center rounded-full px-5 py-4 mb-3 backdrop-blur-md bg-white/80 transition-all border focus:outline-none ${
             error && !selectedCountry
-              ? "border-destructive/40 bg-white/90"
-              : "border-gray-300 bg-white/90 hover:bg-white focus:border-gray-300 focus:shadow-[0_0_20px_-4px_hsl(var(--brand-orange)/0.2)]"
+              ? "border-destructive/40"
+              : "border-white/40 hover:bg-white/90 focus:border-white/50 focus:shadow-[0_0_20px_-4px_hsl(var(--brand-orange)/0.2)]"
           }`}
         >
           {selectedCountry ? (
             <div className="flex items-center gap-3">
-              <span className="text-xl w-8 h-8 flex items-center justify-center rounded-full bg-gray-100/80">
-                {selectedCountry.flag}
-              </span>
-              <span className="text-foreground font-semibold text-base">
-                {selectedCountry.name}
-              </span>
-              <span className="text-muted-foreground text-sm ml-auto">
-                {selectedCountry.code}
-              </span>
+              <span className="text-xl w-8 h-8 flex items-center justify-center rounded-full bg-gray-100/80">{selectedCountry.flag}</span>
+              <span className="text-foreground font-semibold text-base">{selectedCountry.name}</span>
+              <span className="text-muted-foreground text-sm ml-auto">{selectedCountry.code}</span>
             </div>
           ) : (
             <span className="text-gray-500 text-base font-semibold">Select your country</span>
           )}
         </button>
 
-        {/* Country picker dropdown */}
         {showCountryPicker && (
-          <div className="mb-3 rounded-2xl overflow-hidden bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg max-h-64 overflow-y-auto">
+          <div className="mb-3 w-full rounded-2xl overflow-hidden bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg max-h-64 overflow-y-auto">
             {COUNTRIES.map((country) => (
               <button
                 key={country.name}
-                onClick={() => {
-                  setSelectedCountry(country);
-                  setShowCountryPicker(false);
-                  setError("");
-                }}
+                onClick={() => { setSelectedCountry(country); setShowCountryPicker(false); setError(""); }}
                 className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-gray-50 ${
-                  selectedCountry?.name === country.name
-                    ? "bg-secondary/10"
-                    : ""
+                  selectedCountry?.name === country.name ? "bg-secondary/10" : ""
                 }`}
               >
-                <span className="text-lg w-7 h-7 flex items-center justify-center rounded-full bg-gray-100/80">
-                  {country.flag}
-                </span>
+                <span className="text-lg w-7 h-7 flex items-center justify-center rounded-full bg-gray-100/80">{country.flag}</span>
                 <span className="text-foreground font-medium text-sm">{country.name}</span>
                 <span className="text-muted-foreground text-xs ml-auto">{country.code}</span>
               </button>
@@ -159,24 +130,21 @@ const Signup = () => {
           </div>
         )}
 
-        {/* Phone input — pill glassmorphism with floating label */}
+        {/* Phone input */}
         <div
-          className={`relative w-full rounded-full px-5 py-4 backdrop-blur-sm transition-all border ${
+          className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
             phoneFocused
-              ? "border-gray-300 bg-white/95 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
+              ? "border-white/50 bg-white/80 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
               : error && !phone.trim()
-                ? "border-destructive/40 bg-white/90"
-                : "border-gray-300 bg-white/90"
+                ? "border-destructive/40 bg-white/80"
+                : "border-white/40 bg-white/80"
           }`}
         >
-          {/* Floating label */}
-          <span
-            className={`absolute left-5 transition-all pointer-events-none ${
-              hasPhoneValue || phoneFocused
-                ? "top-1.5 text-[10px] font-bold text-secondary"
-                : "top-4 text-base text-muted-foreground"
-            }`}
-          >
+          <span className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
+            hasPhoneValue || phoneFocused
+              ? "top-1.5 text-[10px] font-bold text-secondary"
+              : "top-4 text-base text-muted-foreground"
+          }`}>
             Phone number
           </span>
           <input
@@ -184,49 +152,37 @@ const Signup = () => {
             value={phone}
             onFocus={() => setPhoneFocused(true)}
             onBlur={() => setPhoneFocused(false)}
-            onChange={(e) => {
-              setPhone(e.target.value);
-              setError("");
-            }}
-            className={`w-full bg-transparent outline-none text-foreground text-base ${
-              hasPhoneValue || phoneFocused ? "pt-3" : "pt-0"
-            }`}
+            onChange={(e) => { setPhone(e.target.value); setError(""); }}
+            className={`w-full bg-transparent outline-none text-foreground text-base ${hasPhoneValue || phoneFocused ? "pt-3" : "pt-0"}`}
           />
         </div>
 
-        {/* Error message */}
         {error && (
-          <div className="flex items-center gap-1.5 mt-3 pl-2">
+          <div className="flex items-center gap-1.5 mt-3 pl-2 self-start">
             <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
             <span className="text-destructive text-xs">{error}</span>
           </div>
         )}
 
-        {/* Privacy text */}
-        <p className="text-[11px] text-muted-foreground mt-4 text-center leading-relaxed">
-          We'll text you to confirm your number.{" "}
-          <button className="underline font-medium">Privacy Policy</button>
-        </p>
-
-        {/* Next button — centered pill with glow */}
-        <div className="flex justify-center mt-16">
+        {/* Create account button */}
+        <div className="flex justify-center mt-8 w-full">
           <button
             onClick={handleNext}
             disabled={loading}
-            className="px-24 py-5 rounded-full gradient-orange text-white font-bold text-lg transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            className="w-full px-5 py-4 rounded-full gradient-orange text-white font-bold text-lg transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
           >
-            {loading ? "Sending..." : "Next"}
+            {loading ? "Sending..." : "Create my account"}
           </button>
         </div>
 
-        {/* Footer — fine & low */}
-        <div className="mt-auto pb-6 flex items-center justify-center gap-1">
-          <span className="text-gray-400 text-[10px] font-light tracking-wide">Already have an account?</span>
+        {/* Footer */}
+        <div className="mt-10 flex items-center justify-center gap-1.5">
+          <span className="text-muted-foreground text-sm">Already have an account?</span>
           <button
-            onClick={() => navigate("/welcome")}
-            className="text-[10px] font-light text-gray-400 underline underline-offset-2 tracking-wide"
+            onClick={() => navigate("/login")}
+            className="text-sm font-bold text-foreground underline underline-offset-2"
           >
-            Sign in
+            Log In
           </button>
         </div>
       </div>
