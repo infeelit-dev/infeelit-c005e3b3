@@ -7,11 +7,11 @@ const Welcome = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gradient-canvas px-6">
       {/* Logo & Mantra */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+      <div className="flex-1 flex flex-col items-center justify-center gap-8">
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-36 h-36 object-contain rounded-2xl"
+          className="w-[140px] md:w-[180px] h-auto object-contain rounded-2xl"
           style={{ mixBlendMode: "multiply" }}
         />
 
