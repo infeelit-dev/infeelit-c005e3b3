@@ -33,7 +33,7 @@ const Welcome = () => {
         {/* Primary CTA — Phone */}
         <button
           onClick={() => navigate("/signup")}
-          className="w-full py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base tracking-wide transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+          className="w-[85%] mx-auto block py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base tracking-wide transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
         >
           Create my account
         </button>
