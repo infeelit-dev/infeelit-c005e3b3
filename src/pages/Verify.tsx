@@ -107,7 +107,7 @@ const Verify = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[350px] h-auto object-contain mx-auto mb-8"
+          className="w-[875px] max-w-[90vw] h-auto object-contain mx-auto mb-10"
           style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
 
