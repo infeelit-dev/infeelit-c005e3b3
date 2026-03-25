@@ -125,26 +125,28 @@ const Verify = () => {
         </p>
 
         {/* OTP inputs — frosted glass boxes */}
-        <div className="flex gap-2.5 justify-center my-10 w-full px-5" onPaste={handlePaste}>
-          {otp.map((digit, i) => (
-            <input
-              key={i}
-              ref={(el) => { inputRefs.current[i] = el; }}
-              type="tel"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`flex-1 aspect-square text-center text-2xl font-bold rounded-full backdrop-blur-md border outline-none transition-all bg-white/70 ${
-                error
-                  ? "border-destructive/50"
-                  : digit
-                    ? "border-[#1A3B47] shadow-[0_0_16px_-4px_hsl(var(--brand-orange)/0.2)]"
-                    : "border-gray-200"
-              } focus:border-[#1A3B47] focus:shadow-[0_0_20px_-2px_hsl(var(--brand-orange)/0.25)]`}
-            />
-          ))}
+        <div className="w-full max-w-[100vw] px-4 my-10 mx-auto">
+          <div className="flex w-full gap-2" onPaste={handlePaste}>
+            {otp.map((digit, i) => (
+              <input
+                key={i}
+                ref={(el) => { inputRefs.current[i] = el; }}
+                type="tel"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                className={`flex-1 min-w-0 aspect-square text-center text-2xl font-bold rounded-full backdrop-blur-md border outline-none transition-all bg-white/70 ${
+                  error
+                    ? "border-destructive/50"
+                    : digit
+                      ? "border-[#1A3B47] shadow-[0_0_16px_-4px_hsl(var(--brand-orange)/0.2)]"
+                      : "border-gray-200"
+                } focus:border-[#1A3B47] focus:shadow-[0_0_20px_-2px_hsl(var(--brand-orange)/0.25)]`}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Error message */}
