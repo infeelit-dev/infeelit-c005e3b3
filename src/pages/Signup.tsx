@@ -73,7 +73,7 @@ const Signup = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[140px] h-auto object-contain mx-auto"
+          className="w-[350px] h-auto object-contain mx-auto mb-8"
           style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
 
