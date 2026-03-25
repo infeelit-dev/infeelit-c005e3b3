@@ -113,7 +113,7 @@ const Verify = () => {
         </p>
 
         {/* OTP Inputs */}
-        <div className="grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto" onPaste={handlePaste}>
+        <div className="grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto my-8 justify-items-center" onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
