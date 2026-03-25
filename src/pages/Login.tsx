@@ -73,8 +73,8 @@ const Login = () => {
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[144px] md:w-[180px] h-auto object-contain"
-          style={{ imageRendering: "-webkit-optimize-contrast" as any }}
+          className="w-[216px] md:w-[270px] h-auto object-contain mx-auto"
+          style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
 
         {/* Title */}
