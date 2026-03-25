@@ -98,7 +98,7 @@ const Verify = () => {
 
         {/* Title */}
         <h1
-          className="text-4xl font-semibold text-center mt-4 mb-1"
+          className="text-4xl font-semibold text-center mb-4"
           style={{ fontFamily: "'Inter', sans-serif", color: "#1A3B47" }}
         >
           Secure Access
