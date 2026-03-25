@@ -12,6 +12,7 @@ const Welcome = () => {
           src={infeelit}
           alt="Infeelit"
           className="w-[144px] md:w-[180px] h-auto object-contain"
+          style={{ imageRendering: "-webkit-optimize-contrast" as any }}
         />
 
         <div className="text-center max-w-sm space-y-2">

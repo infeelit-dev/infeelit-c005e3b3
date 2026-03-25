@@ -92,6 +92,7 @@ const Signup = () => {
           src={infeelit}
           alt="Infeelit"
           className="w-[80px] md:w-[100px] h-auto object-contain mx-auto mb-6"
+          style={{ imageRendering: "-webkit-optimize-contrast" as any }}
         />
         <h1
           className="text-3xl font-bold text-center mb-10"

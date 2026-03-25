@@ -27,6 +27,7 @@ const Header = () => {
             src={logo}
             alt="Infeelit"
             className="h-7 opacity-90 drop-shadow-sm"
+            style={{ imageRendering: "-webkit-optimize-contrast" as any }}
           />
 
           {/* Right: status badges */}
