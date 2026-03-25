@@ -80,7 +80,7 @@ const Login = () => {
         {/* Title */}
         <h1
           className="text-4xl font-bold text-center mt-4 mb-1"
-          style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: "hsl(var(--brand-teal))" }}
+          style={{ fontFamily: "'Montserrat', 'Inter', sans-serif", color: '#1A3B47' }}
         >
           Welcome Back
         </h1>
