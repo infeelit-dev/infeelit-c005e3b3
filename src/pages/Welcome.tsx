@@ -12,7 +12,7 @@ const Welcome = () => {
           src={infeelit}
           alt="Infeelit"
           className="w-36 h-36 object-contain rounded-2xl"
-          
+          style={{ mixBlendMode: "multiply" }}
         />
 
         <div className="text-center max-w-sm space-y-2">
