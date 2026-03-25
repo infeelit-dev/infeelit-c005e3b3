@@ -15,14 +15,14 @@ const Welcome = () => {
           style={{ imageRendering: "-webkit-optimize-contrast" as any }}
         />
 
-        <div className="text-center max-w-sm space-y-2">
+        <div className="text-center max-w-sm space-y-3 mb-10">
           <p
-            className="text-xl text-foreground/90 leading-relaxed"
+            className="text-xl text-primary leading-relaxed"
             style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
           >
             Some memories deserve to be felt again.
           </p>
-          <p className="text-sm font-semibold text-foreground/70 tracking-wide">
+          <p className="text-sm font-semibold text-primary/70 tracking-wide pt-2">
             Capture them. Share them. Keep them alive.
           </p>
         </div>
