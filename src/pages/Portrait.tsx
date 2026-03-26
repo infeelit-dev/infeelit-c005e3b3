@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -9,6 +9,15 @@ const GENERATIONS = [
   "Millennials",
   "Generation Z",
   "Generation Alpha",
+];
+
+// URLs d'images pour les bulles
+const BUBBLE_IMAGES = [
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150",
+  "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=150",
+  "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=150",
+  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=150",
+  "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=150",
 ];
 
 const Portrait = () => {
@@ -43,56 +52,52 @@ const Portrait = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-canvas flex flex-col px-6 pt-10 overflow-hidden relative">
-      {/* STYLE CSS POUR L'ANIMATION (Injecté direct) */}
+    <div className="min-h-screen gradient-canvas flex flex-col px-6 pt-4 overflow-hidden relative">
+      {/* ANIMATION FLUIDE STYLE DASHBOARD */}
       <style>{`
-        @keyframes float {
-          0% { transform: translateY(0px) translateX(-40px) rotate(-10deg); }
-          50% { transform: translateY(-10px) translateX(-35px) rotate(-8deg); }
-          100% { transform: translateY(0px) translateX(-40px) rotate(-10deg); }
+        @keyframes float-around {
+          0% { transform: translate(0, 0) rotate(0deg); }
+          33% { transform: translate(30px, -15px) rotate(5deg); }
+          66% { transform: translate(-20px, 10px) rotate(-5deg); }
+          100% { transform: translate(0, 0) rotate(0deg); }
         }
-        @keyframes float-main {
-          0% { transform: translateY(0px) scale(1); }
-          50% { transform: translateY(-15px) scale(1.05); }
-          100% { transform: translateY(0px) scale(1); }
-        }
-        .animate-float-custom { animation: float 4s ease-in-out infinite; }
-        .animate-float-main { animation: float-main 5s ease-in-out infinite; }
+        .bubble-float { animation: float-around 8s ease-in-out infinite; }
+        .bubble-delay-1 { animation-delay: -2s; animation-duration: 10s; }
+        .bubble-delay-2 { animation-delay: -4s; animation-duration: 12s; }
+        .bubble-delay-3 { animation-delay: -1s; animation-duration: 9s; }
       `}</style>
 
-      {/* TEASER BUBBLES - Libérées et mobiles */}
-      <div className="relative h-40 mb-2 flex justify-center items-center">
-        <div className="absolute w-20 h-20 rounded-full border-2 border-white/40 shadow-xl overflow-hidden z-10 animate-float-custom">
-          <img
-            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200"
-            className="w-full h-full object-cover opacity-80"
-          />
-        </div>
-        <div className="absolute w-28 h-28 rounded-full border-4 border-white/90 shadow-2xl z-20 overflow-hidden animate-float-main">
-          <img
-            src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=300"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="absolute w-16 h-16 rounded-full border-2 border-white/40 shadow-xl overflow-hidden z-10 translate-x-20 -translate-y-4 animate-bounce-slow">
-          <img
-            src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200"
-            className="w-full h-full object-cover opacity-70"
-          />
-        </div>
+      {/* ZONE DES BULLES TEASER (Toute la largeur du haut) */}
+      <div className="relative h-48 w-full mb-2">
+        {BUBBLE_IMAGES.map((img, i) => (
+          <div
+            key={i}
+            className={`absolute rounded-full border-2 border-white/60 shadow-lg overflow-hidden bubble-float bubble-delay-${i % 4}`}
+            style={{
+              width: `${50 + i * 10}px`, // Tailles variées mais pas trop grosses
+              height: `${50 + i * 10}px`,
+              top: `${Math.random() * 40}%`,
+              left: `${10 + i * 18}%`,
+              opacity: 0.9,
+            }}
+          >
+            <img src={img} className="w-full h-full object-cover" />
+          </div>
+        ))}
       </div>
 
-      <h1 className="text-3xl font-bold text-center text-[#1A4D4D] mb-1">A little bit about you</h1>
-      <p className="text-center text-[#4A5568] text-sm mb-8">Help us personalize your experience.</p>
+      <h1 className="text-2xl font-bold text-center text-[#1A4D4D] mb-1">A little bit about you</h1>
+      <p className="text-center text-[#4A5568] text-xs mb-6 px-4">Help us personalize your experience.</p>
 
-      <div className="grid grid-cols-2 gap-3 mb-8">
+      {/* Grille de générations épurée */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
         {GENERATIONS.map((gen) => (
           <button
             key={gen}
             onClick={() => setGeneration(gen)}
-            className={`px-3 py-4 rounded-2xl transition-all text-xs font-semibold border ${
+            className={`px-2 py-3 rounded-2xl transition-all text-[11px] font-semibold border ${
               generation === gen
-                ? "bg-white/50 border-[#F97316] shadow-lg scale-105"
+                ? "bg-white/60 border-[#F97316] shadow-md scale-105"
                 : "bg-white/10 border-white/20 text-[#1A4D4D]/70"
             }`}
           >
@@ -101,9 +106,10 @@ const Portrait = () => {
         ))}
       </div>
 
-      <div className="mb-8 text-center">
-        <p className="text-[#1A4D4D] font-bold mb-4">Do you have a family circle?</p>
-        <div className="flex gap-8 justify-center">
+      {/* Question Famille */}
+      <div className="mb-6 text-center">
+        <p className="text-[#1A4D4D] text-sm font-bold mb-3">Do you have a family circle?</p>
+        <div className="flex gap-6 justify-center">
           {[
             { label: "Yes", value: true },
             { label: "No", value: false },
@@ -111,7 +117,7 @@ const Portrait = () => {
             <button
               key={opt.label}
               onClick={() => setHasChildren(opt.value)}
-              className={`w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
+              className={`w-14 h-14 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
                 hasChildren === opt.value
                   ? "bg-[#F97316] border-[#F97316] text-white shadow-lg scale-110"
                   : "bg-white/10 border-white/30"
@@ -123,10 +129,13 @@ const Portrait = () => {
         </div>
       </div>
 
+      <div className="flex-1" />
+
+      {/* Bouton Final */}
       <button
         onClick={handleFinish}
         disabled={!generation || hasChildren === null || loading}
-        className="w-full py-4 rounded-full bg-[#F97316] text-white font-bold text-lg shadow-xl mt-auto mb-10 disabled:opacity-30"
+        className="w-full py-4 rounded-full bg-[#F97316] text-white font-bold text-base shadow-xl mb-8 disabled:opacity-30"
       >
         {loading ? "Creating..." : "Create my story"}
       </button>
