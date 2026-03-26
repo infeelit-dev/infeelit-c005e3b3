@@ -12,22 +12,27 @@ const FamilyIdentity = () => {
 
   useEffect(() => {
     const prefill = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      // TODO: Re-enable redirect after UI tweaks
-      // if (!user) {
-      //   navigate("/welcome", { replace: true });
-      //   return;
-      // }
-      const meta = user.user_metadata || {};
-      if (meta.full_name) {
-        const parts = meta.full_name.split(" ");
-        setFirstName(parts[0] || "");
-        setLastName(parts.slice(1).join(" ") || "");
-      } else {
-        setFirstName(meta.first_name || meta.given_name || "");
-        setLastName(meta.last_name || meta.family_name || "");
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        // TODO: Re-enable redirect after UI tweaks
+        // if (!user) {
+        //   navigate("/welcome", { replace: true });
+        //   return;
+        // }
+        const meta = user?.user_metadata ?? {};
+        if (meta.full_name) {
+          const parts = meta.full_name.split(" ");
+          setFirstName(parts[0] || "");
+          setLastName(parts.slice(1).join(" ") || "");
+        } else {
+          setFirstName(meta.first_name || meta.given_name || "");
+          setLastName(meta.last_name || meta.family_name || "");
+        }
+      } finally {
+        setInitialLoading(false);
       }
-      setInitialLoading(false);
     };
     prefill();
   }, [navigate]);
