@@ -135,7 +135,7 @@ const Verify = () => {
         </p>
 
         {/* OTP Inputs */}
-        <div className={`grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto mt-6 mb-8 justify-items-center ${shake ? "animate-shake" : ""}`} onPaste={handlePaste}>
+        <div className={`grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto mt-6 justify-items-center ${shake ? "animate-shake" : ""}`} onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
@@ -146,9 +146,9 @@ const Verify = () => {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`w-[50px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md border outline-none transition-all bg-white/70 mx-auto ${
+              className={`w-[50px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md border-2 outline-none transition-all bg-white/70 mx-auto ${
                 error
-                  ? "border-destructive/50"
+                  ? "border-[#D32F2F]"
                   : digit
                     ? "border-[#1A3B47] shadow-[0_0_12px_-4px_hsl(var(--brand-orange)/0.2)]"
                     : "border-gray-200"
@@ -159,10 +159,9 @@ const Verify = () => {
 
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-1.5 mt-3 justify-center w-full">
-            <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
-            <span className="text-xs font-medium" style={{ color: "#1A1A1A" }}>{error}</span>
-          </div>
+          <p className="text-sm font-bold text-center mt-3 w-full" style={{ color: "#D32F2F" }}>
+            {error}
+          </p>
         )}
 
         {/* Wrong number link */}
