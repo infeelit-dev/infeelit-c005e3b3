@@ -141,7 +141,7 @@ const Signup = () => {
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
             phoneFocused
               ? "border-white/50 bg-white/80 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
-              : error && !phone.trim()
+              : error
                 ? "border-destructive/40 bg-white/80"
                 : "border-white/40 bg-white/80"
           }`}
