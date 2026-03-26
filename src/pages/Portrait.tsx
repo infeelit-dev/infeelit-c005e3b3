@@ -71,71 +71,46 @@ const Portrait = () => {
         />
       ))}
 
-      {/* ── Teaser: vibrant photo bubble cluster ── */}
-      <div className="relative w-full h-[150px] mt-4 mb-1 flex items-center justify-center">
-        {/* Bubble 1 — large, left */}
+      {/* ── Teaser: real photo bubbles ── */}
+      <div className="relative w-full h-[160px] mt-4 mb-2 flex items-center justify-center">
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
-            width: 80, height: 80,
-            top: "15%", left: "20%",
+            width: 88, height: 88,
+            top: "10%", left: "15%",
             filter: "blur(2px)",
+            border: "2px solid rgba(255,255,255,0.35)",
+            boxShadow: "0 6px 24px rgba(0,0,0,0.15), 0 0 16px rgba(255,255,255,0.1)",
             animationDelay: "0s",
           }}
         >
-          <div className="w-full h-full rounded-full" style={{
-            background: "linear-gradient(135deg, hsl(20 90% 55% / 0.6), hsl(35 95% 60% / 0.4))",
-            border: "1.5px solid rgba(255,255,255,0.3)",
-            boxShadow: "0 4px 20px hsl(20 90% 55% / 0.3), inset 0 0 20px rgba(255,255,255,0.15)",
-          }} />
+          <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&h=200&fit=crop" alt="" className="w-full h-full object-cover rounded-full" />
         </div>
-        {/* Bubble 2 — medium, center-top */}
+        <div
+          className="absolute rounded-full animate-bokeh overflow-hidden"
+          style={{
+            width: 72, height: 72,
+            top: "5%", left: "48%",
+            filter: "blur(2px)",
+            border: "2px solid rgba(255,255,255,0.3)",
+            boxShadow: "0 6px 24px rgba(0,0,0,0.12), 0 0 14px rgba(255,255,255,0.08)",
+            animationDelay: "2.5s",
+          }}
+        >
+          <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=200&h=200&fit=crop" alt="" className="w-full h-full object-cover rounded-full" />
+        </div>
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
             width: 60, height: 60,
-            top: "5%", left: "48%",
-            filter: "blur(1.5px)",
-            animationDelay: "2s",
+            top: "42%", left: "38%",
+            filter: "blur(2px)",
+            border: "2px solid rgba(255,255,255,0.3)",
+            boxShadow: "0 6px 20px rgba(0,0,0,0.12), 0 0 12px rgba(255,255,255,0.08)",
+            animationDelay: "5s",
           }}
         >
-          <div className="w-full h-full rounded-full" style={{
-            background: "linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(195 40% 45% / 0.35))",
-            border: "1.5px solid rgba(255,255,255,0.25)",
-            boxShadow: "0 4px 20px hsl(var(--primary) / 0.25), inset 0 0 16px rgba(255,255,255,0.12)",
-          }} />
-        </div>
-        {/* Bubble 3 — small, right */}
-        <div
-          className="absolute rounded-full animate-bokeh overflow-hidden"
-          style={{
-            width: 50, height: 50,
-            top: "35%", left: "65%",
-            filter: "blur(2.5px)",
-            animationDelay: "4s",
-          }}
-        >
-          <div className="w-full h-full rounded-full" style={{
-            background: "linear-gradient(135deg, hsl(30 85% 58% / 0.55), hsl(15 80% 50% / 0.35))",
-            border: "1.5px solid rgba(255,255,255,0.25)",
-            boxShadow: "0 4px 16px hsl(30 85% 58% / 0.25), inset 0 0 14px rgba(255,255,255,0.1)",
-          }} />
-        </div>
-        {/* Bubble 4 — tiny accent */}
-        <div
-          className="absolute rounded-full animate-bokeh overflow-hidden"
-          style={{
-            width: 36, height: 36,
-            top: "55%", left: "35%",
-            filter: "blur(1.5px)",
-            animationDelay: "6s",
-          }}
-        >
-          <div className="w-full h-full rounded-full" style={{
-            background: "linear-gradient(135deg, hsl(var(--accent) / 0.45), hsl(25 90% 52% / 0.3))",
-            border: "1px solid rgba(255,255,255,0.2)",
-            boxShadow: "0 3px 12px hsl(var(--accent) / 0.2), inset 0 0 10px rgba(255,255,255,0.1)",
-          }} />
+          <img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200&h=200&fit=crop" alt="" className="w-full h-full object-cover rounded-full" />
         </div>
       </div>
 
