@@ -76,13 +76,13 @@ const Portrait = () => {
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
-            width: 96,
-            height: 96,
+            width: 192,
+            height: 192,
             top: "8%",
             left: "13%",
             opacity: 1,
-            filter: "blur(2px)",
-            border: "2px solid hsl(0 0% 100% / 0.5)",
+            filter: "blur(0px)",
+            border: "2px solid white",
             boxShadow:
               "0 0 18px hsl(0 0% 100% / 0.8), 0 10px 28px hsl(0 0% 0% / 0.25)",
             background: "hsl(var(--accent) / 0.25)",
@@ -100,13 +100,13 @@ const Portrait = () => {
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
-            width: 78,
-            height: 78,
+            width: 156,
+            height: 156,
             top: "4%",
             left: "49%",
             opacity: 1,
-            filter: "blur(2px)",
-            border: "2px solid hsl(0 0% 100% / 0.5)",
+            filter: "blur(0px)",
+            border: "2px solid white",
             boxShadow:
               "0 0 18px hsl(0 0% 100% / 0.8), 0 10px 26px hsl(0 0% 0% / 0.22)",
             background: "hsl(var(--primary) / 0.25)",
@@ -124,13 +124,13 @@ const Portrait = () => {
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
-            width: 66,
-            height: 66,
+            width: 132,
+            height: 132,
             top: "40%",
             left: "36%",
             opacity: 1,
-            filter: "blur(2px)",
-            border: "2px solid hsl(0 0% 100% / 0.5)",
+            filter: "blur(0px)",
+            border: "2px solid white",
             boxShadow:
               "0 0 15px hsl(0 0% 100% / 0.8), 0 8px 22px hsl(0 0% 0% / 0.2)",
             background: "hsl(var(--accent) / 0.2)",
