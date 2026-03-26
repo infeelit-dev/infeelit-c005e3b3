@@ -72,7 +72,7 @@ const Portrait = () => {
       ))}
 
       {/* ── Teaser: high-visibility photo bubbles ── */}
-      <div className="relative z-10 w-full h-[170px] mt-4 mb-2 flex items-center justify-center overflow-hidden">
+      <div className="relative z-10 w-full h-[300px] mt-4 mb-2 flex items-center justify-center overflow-hidden">
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
