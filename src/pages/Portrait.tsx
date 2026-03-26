@@ -17,10 +17,8 @@ const Portrait = () => {
   const [hasChildren, setHasChildren] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const canContinue = generation && hasChildren !== null;
-
   const handleFinish = async () => {
-    if (!canContinue) return;
+    if (!generation || hasChildren === null) return;
     setLoading(true);
     try {
       const {
@@ -36,54 +34,66 @@ const Portrait = () => {
           })
           .eq("user_id", user.id);
       }
-      navigate("/dashboard", { replace: true });
+      navigate("/dashboard");
     } catch {
-      navigate("/dashboard", { replace: true });
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen gradient-canvas flex flex-col px-6 pt-10 overflow-hidden">
-      {/* TEASER BUBBLES - High Visibility */}
-      <div className="relative h-32 mb-4 flex justify-center items-center">
-        <div className="absolute w-24 h-24 rounded-full border-2 border-white/50 shadow-xl rotate-[-10deg] translate-x-[-40px] overflow-hidden z-10 animate-float">
+    <div className="min-h-screen gradient-canvas flex flex-col px-6 pt-10 overflow-hidden relative">
+      {/* STYLE CSS POUR L'ANIMATION (Injecté direct) */}
+      <style>{`
+        @keyframes float {
+          0% { transform: translateY(0px) translateX(-40px) rotate(-10deg); }
+          50% { transform: translateY(-10px) translateX(-35px) rotate(-8deg); }
+          100% { transform: translateY(0px) translateX(-40px) rotate(-10deg); }
+        }
+        @keyframes float-main {
+          0% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-15px) scale(1.05); }
+          100% { transform: translateY(0px) scale(1); }
+        }
+        .animate-float-custom { animation: float 4s ease-in-out infinite; }
+        .animate-float-main { animation: float-main 5s ease-in-out infinite; }
+      `}</style>
+
+      {/* TEASER BUBBLES - Libérées et mobiles */}
+      <div className="relative h-40 mb-2 flex justify-center items-center">
+        <div className="absolute w-20 h-20 rounded-full border-2 border-white/40 shadow-xl overflow-hidden z-10 animate-float-custom">
           <img
-            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&h=200&fit=crop"
-            className="w-full h-full object-cover"
-            alt="teaser"
+            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200"
+            className="w-full h-full object-cover opacity-80"
           />
         </div>
-        <div className="absolute w-28 h-28 rounded-full border-2 border-white/80 shadow-2xl z-20 overflow-hidden animate-float-delayed">
+        <div className="absolute w-28 h-28 rounded-full border-4 border-white/90 shadow-2xl z-20 overflow-hidden animate-float-main">
           <img
-            src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=300&h=300&fit=crop"
+            src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=300"
             className="w-full h-full object-cover"
-            alt="teaser"
           />
         </div>
-        <div className="absolute w-20 h-20 rounded-full border-2 border-white/50 shadow-xl rotate-[15deg] translate-x-[50px] overflow-hidden z-10 animate-float">
+        <div className="absolute w-16 h-16 rounded-full border-2 border-white/40 shadow-xl overflow-hidden z-10 translate-x-20 -translate-y-4 animate-bounce-slow">
           <img
-            src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200&h=200&fit=crop"
-            className="w-full h-full object-cover"
-            alt="teaser"
+            src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200"
+            className="w-full h-full object-cover opacity-70"
           />
         </div>
       </div>
 
-      <h1 className="text-3xl font-bold text-center text-[#1A4D4D] mb-2">A little bit about you</h1>
-      <p className="text-center text-[#4A5568] text-sm mb-10">Help us personalize your experience.</p>
+      <h1 className="text-3xl font-bold text-center text-[#1A4D4D] mb-1">A little bit about you</h1>
+      <p className="text-center text-[#4A5568] text-sm mb-8">Help us personalize your experience.</p>
 
-      {/* Generation Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-10">
+      <div className="grid grid-cols-2 gap-3 mb-8">
         {GENERATIONS.map((gen) => (
           <button
             key={gen}
             onClick={() => setGeneration(gen)}
-            className={`px-3 py-4 rounded-2xl transition-all text-xs font-semibold backdrop-blur-md border ${
+            className={`px-3 py-4 rounded-2xl transition-all text-xs font-semibold border ${
               generation === gen
-                ? "bg-white/40 border-[#F97316] text-[#1A4D4D] shadow-lg scale-105"
-                : "bg-white/10 border-white/20 text-[#1A4D4D]/80 hover:bg-white/20"
+                ? "bg-white/50 border-[#F97316] shadow-lg scale-105"
+                : "bg-white/10 border-white/20 text-[#1A4D4D]/70"
             }`}
           >
             {gen}
@@ -91,8 +101,7 @@ const Portrait = () => {
         ))}
       </div>
 
-      {/* Family Circle */}
-      <div className="mb-12 text-center">
+      <div className="mb-8 text-center">
         <p className="text-[#1A4D4D] font-bold mb-4">Do you have a family circle?</p>
         <div className="flex gap-8 justify-center">
           {[
@@ -102,10 +111,10 @@ const Portrait = () => {
             <button
               key={opt.label}
               onClick={() => setHasChildren(opt.value)}
-              className={`w-20 h-20 rounded-full flex items-center justify-center text-sm font-bold transition-all border-2 backdrop-blur-lg ${
+              className={`w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
                 hasChildren === opt.value
-                  ? "bg-[#F97316] border-[#F97316] text-white shadow-xl scale-110"
-                  : "bg-white/10 border-white/30 text-[#1A4D4D]/70"
+                  ? "bg-[#F97316] border-[#F97316] text-white shadow-lg scale-110"
+                  : "bg-white/10 border-white/30"
               }`}
             >
               {opt.label}
@@ -114,13 +123,10 @@ const Portrait = () => {
         </div>
       </div>
 
-      <div className="flex-1" />
-
-      {/* Final Button */}
       <button
         onClick={handleFinish}
-        disabled={!canContinue || loading}
-        className="w-full py-4 rounded-full bg-[#F97316] text-white font-bold text-lg shadow-2xl transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 mb-10"
+        disabled={!generation || hasChildren === null || loading}
+        className="w-full py-4 rounded-full bg-[#F97316] text-white font-bold text-lg shadow-xl mt-auto mb-10 disabled:opacity-30"
       >
         {loading ? "Creating..." : "Create my story"}
       </button>
