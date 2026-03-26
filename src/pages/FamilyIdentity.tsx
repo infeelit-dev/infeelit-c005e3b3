@@ -108,7 +108,7 @@ const FamilyIdentity = () => {
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             placeholder="First Name"
-            className="w-full px-6 py-4 rounded-full backdrop-blur-md bg-white/70 border border-gray-200 text-base font-medium outline-none transition-all focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_hsl(25_90%_65%/0.25)] placeholder:text-gray-400"
+            className="w-full px-6 py-4 rounded-full backdrop-blur-md bg-white/70 border border-gray-200 text-base font-medium outline-none transition-all focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_rgba(26,59,71,0.2)] placeholder:text-gray-400"
             style={{ color: "#1A1A1A" }}
           />
           <input
@@ -116,7 +116,7 @@ const FamilyIdentity = () => {
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             placeholder="Last Name"
-            className="w-full px-6 py-4 rounded-full backdrop-blur-md bg-white/70 border border-gray-200 text-base font-medium outline-none transition-all focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_hsl(25_90%_65%/0.25)] placeholder:text-gray-400"
+            className="w-full px-6 py-4 rounded-full backdrop-blur-md bg-white/70 border border-gray-200 text-base font-medium outline-none transition-all focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_rgba(26,59,71,0.2)] placeholder:text-gray-400"
             style={{ color: "#1A1A1A" }}
           />
         </div>
