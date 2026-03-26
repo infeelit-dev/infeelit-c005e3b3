@@ -53,9 +53,9 @@ const FamilyIdentity = () => {
           .update({ display_name: displayName })
           .eq("user_id", user.id);
       }
-      navigate("/portrait", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch {
-      navigate("/portrait", { replace: true });
+      navigate("/dashboard", { replace: true });
     } finally {
       setLoading(false);
     }
