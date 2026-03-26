@@ -89,7 +89,7 @@ const Login = () => {
         <p className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed text-foreground/80">
           Your circle is waiting for you.
           <br />
-          Reconnect with your legacy.
+          Reconnect with your story.
         </p>
 
         {/* Country selector */}
