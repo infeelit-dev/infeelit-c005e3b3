@@ -13,6 +13,7 @@ const Verify = () => {
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [shake, setShake] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // TODO: Re-enable redirect after UI tweaks
@@ -53,7 +54,11 @@ const Verify = () => {
     setLoading(true);
     try {
       const { error: authError } = await supabase.auth.verifyOtp({ phone, token: code, type: "sms" });
-      if (authError) { setError(authError.message); }
+      if (authError) {
+        setError("Invalid code. Please try again.");
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
+      }
       else {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -113,7 +118,7 @@ const Verify = () => {
         </p>
 
         {/* OTP Inputs */}
-        <div className="grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto mt-6 mb-8 justify-items-center" onPaste={handlePaste}>
+        <div className={`grid grid-cols-6 gap-3 w-full max-w-[400px] mx-auto mt-6 mb-8 justify-items-center ${shake ? "animate-shake" : ""}`} onPaste={handlePaste}>
           {otp.map((digit, i) => (
             <input
               key={i}
@@ -135,11 +140,17 @@ const Verify = () => {
           ))}
         </div>
 
+        {/* Wrong number link */}
+        <button onClick={() => navigate("/signup")} className="text-sm text-muted-foreground text-center">
+          Wrong number?{" "}
+          <span className="font-bold text-foreground underline underline-offset-2">Edit</span>
+        </button>
+
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-1.5 mt-4 justify-center">
+          <div className="flex items-center gap-1.5 mt-3 justify-center">
             <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
-            <span className="text-destructive text-xs">{error}</span>
+            <span className="text-destructive text-xs" style={{ color: "#1A1A1A" }}>{error}</span>
           </div>
         )}
 

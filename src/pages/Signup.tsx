@@ -47,7 +47,13 @@ const Signup = () => {
     if (!selectedCountry) { setError("Please select your country."); return; }
     if (!phone.trim()) { setError("Phone number is required."); return; }
 
-    const fullPhone = `${selectedCountry.code}${phone.replace(/\s/g, "")}`;
+    const digits = phone.replace(/\s/g, "").replace(/[^\d]/g, "");
+    if (digits.length < 6 || digits.length > 15) {
+      setError("Please enter a valid phone number.");
+      return;
+    }
+
+    const fullPhone = `${selectedCountry.code}${digits}`;
     setLoading(true);
     try {
       const { error: authError } = await supabase.auth.signInWithOtp({ phone: fullPhone });
@@ -135,7 +141,7 @@ const Signup = () => {
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
             phoneFocused
               ? "border-white/50 bg-white/80 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
-              : error && !phone.trim()
+              : error
                 ? "border-destructive/40 bg-white/80"
                 : "border-white/40 bg-white/80"
           }`}
