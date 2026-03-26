@@ -69,12 +69,13 @@ const FamilyIdentity = () => {
 
   return (
     <div
-      className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden"
-      style={{ backgroundColor: "#FAF8F6" }}
+      className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden gradient-canvas"
     >
-      {/* Ethereal corner clouds */}
-      <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
-      <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
+      {/* Bokeh cloud shapes */}
+      <div className="bokeh-circle w-[340px] h-[340px] bg-[hsl(187_50%_78%)] top-[-80px] left-[-60px]" />
+      <div className="bokeh-circle w-[260px] h-[260px] bg-[hsl(25_85%_80%)] bottom-[10%] right-[-40px]" />
+      <div className="bokeh-circle w-[200px] h-[200px] bg-[hsl(190_45%_82%)] top-[40%] left-[20%]" />
+      <div className="bokeh-circle w-[180px] h-[180px] bg-[hsl(30_60%_85%)] top-[15%] right-[10%]" />
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         {/* Logo */}
