@@ -3,24 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const GENERATIONS = [
-  "Silent Generation (1928–1945)",
-  "Baby Boomers (1946–1964)",
-  "Generation X (1965–1980)",
-  "Millennials (1981–1996)",
-  "Generation Z (1997–2012)",
-  "Generation Alpha (2013+)",
-];
-
-const CHILDREN_OPTIONS = [
-  { label: "Yes", value: true as boolean | null },
-  { label: "No", value: false as boolean | null },
-  { label: "Prefer not to say", value: null as boolean | null },
+  { label: "Silent", range: "1928–1945" },
+  { label: "Boomers", range: "1946–1964" },
+  { label: "Gen X", range: "1965–1980" },
+  { label: "Millennials", range: "1981–1996" },
+  { label: "Gen Z", range: "1997–2012" },
+  { label: "Gen Alpha", range: "2013+" },
 ];
 
 const Portrait = () => {
   const navigate = useNavigate();
   const [generation, setGeneration] = useState("");
-  const [childrenAnswer, setChildrenAnswer] = useState<string>("");
+  const [hasFamily, setHasFamily] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
 
   const canContinue = generation !== "";
@@ -28,20 +22,14 @@ const Portrait = () => {
   const handleFinish = async () => {
     if (!canContinue) return;
     setLoading(true);
-
-    const hasChildren =
-      childrenAnswer === "Yes" ? true : childrenAnswer === "No" ? false : null;
-
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase
           .from("profiles")
           .update({
             generation,
-            has_children: hasChildren,
+            has_children: hasFamily,
             onboarding_completed: true,
           })
           .eq("user_id", user.id);
@@ -55,78 +43,76 @@ const Portrait = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-canvas flex flex-col px-6 pt-16 pb-8 relative overflow-hidden">
-      {/* Floating cloud shapes */}
-      <div className="absolute top-[-60px] left-[-40px] w-52 h-52 rounded-full bg-white/10 blur-3xl animate-bokeh pointer-events-none" />
-      <div className="absolute top-[30%] right-[-50px] w-44 h-44 rounded-full bg-accent/8 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "4s" }} />
-      <div className="absolute bottom-[10%] left-[-30px] w-40 h-40 rounded-full bg-white/8 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "8s" }} />
+    <div className="min-h-screen gradient-canvas flex flex-col items-center px-6 pt-20 pb-10 relative overflow-hidden">
+      {/* Floating clouds — subtle & numerous */}
+      <div className="absolute top-[-80px] left-[-50px] w-60 h-60 rounded-full bg-white/8 blur-3xl animate-bokeh pointer-events-none" />
+      <div className="absolute top-[10%] right-[-60px] w-36 h-36 rounded-full bg-white/6 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "2s" }} />
+      <div className="absolute top-[35%] left-[10%] w-28 h-28 rounded-full bg-accent/5 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "5s" }} />
+      <div className="absolute top-[55%] right-[5%] w-32 h-32 rounded-full bg-white/6 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "7s" }} />
+      <div className="absolute bottom-[15%] left-[-40px] w-44 h-44 rounded-full bg-white/5 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "9s" }} />
+      <div className="absolute bottom-[-30px] right-[20%] w-24 h-24 rounded-full bg-accent/4 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "11s" }} />
 
-      {/* Header */}
-      <h1 className="text-3xl font-semibold text-center text-primary mb-2">
+      {/* Title only */}
+      <h1 className="text-[1.75rem] font-semibold text-primary text-center mb-16 relative z-10">
         A little bit about you
       </h1>
-      <p className="text-center text-muted-foreground text-sm mb-12 max-w-[260px] mx-auto leading-relaxed">
-        Help us personalize your experience.
-      </p>
 
-      {/* Generation picker */}
-      <div className="mb-10 relative z-10">
-        <label className="text-sm font-semibold text-foreground mb-4 block">
-          Which generation do you belong to?
-        </label>
-        <div className="flex flex-wrap gap-2.5">
-          {GENERATIONS.map((gen) => {
-            const isSelected = generation === gen;
-            return (
-              <button
-                key={gen}
-                onClick={() => setGeneration(gen)}
-                className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-200 backdrop-blur-md border ${
-                  isSelected
-                    ? "bg-white/25 border-primary/60 text-foreground shadow-[0_0_14px_3px_hsl(var(--primary)/0.2)]"
-                    : "bg-white/10 border-white/30 text-foreground/70 hover:border-primary/40 hover:bg-white/18"
-                }`}
-              >
-                {gen}
-              </button>
-            );
-          })}
-        </div>
+      {/* 3x2 Generation grid */}
+      <div className="grid grid-cols-3 gap-3 w-full max-w-[320px] mb-16 relative z-10">
+        {GENERATIONS.map((gen) => {
+          const isSelected = generation === gen.label;
+          return (
+            <button
+              key={gen.label}
+              onClick={() => setGeneration(gen.label)}
+              className={`flex flex-col items-center justify-center py-4 rounded-2xl backdrop-blur-md border transition-all duration-300 ${
+                isSelected
+                  ? "bg-white/20 border-accent/70 shadow-[0_0_20px_4px_hsl(var(--accent)/0.35)]"
+                  : "bg-white/8 border-white/20 hover:bg-white/14 hover:border-white/40"
+              }`}
+            >
+              <span className={`text-xs font-semibold ${isSelected ? "text-foreground" : "text-foreground/65"}`}>
+                {gen.label}
+              </span>
+              <span className={`text-[10px] mt-0.5 ${isSelected ? "text-foreground/70" : "text-foreground/40"}`}>
+                {gen.range}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Family circle question */}
-      <div className="mb-10 relative z-10">
-        <label className="text-sm font-semibold text-foreground mb-4 block">
-          Do you have a family circle?
-        </label>
-        <div className="flex gap-3">
-          {CHILDREN_OPTIONS.map((opt) => {
-            const isSelected = childrenAnswer === opt.label;
-            return (
-              <button
-                key={opt.label}
-                onClick={() => setChildrenAnswer(opt.label)}
-                className={`flex-1 py-3 rounded-full text-xs font-bold transition-all duration-200 backdrop-blur-md border ${
-                  isSelected
-                    ? "bg-white/25 border-primary/60 text-foreground shadow-[0_0_14px_3px_hsl(var(--primary)/0.2)]"
-                    : "bg-white/10 border-white/30 text-foreground/70 hover:border-primary/40 hover:bg-white/18"
-                }`}
-              >
+      {/* Family circle — two minimal pills */}
+      <div className="flex gap-5 mb-6 relative z-10">
+        {[
+          { label: "Yes", value: true },
+          { label: "No", value: false },
+        ].map((opt) => {
+          const isSelected = hasFamily === opt.value;
+          return (
+            <button
+              key={opt.label}
+              onClick={() => setHasFamily(opt.value)}
+              className={`w-20 h-20 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-300 ${
+                isSelected
+                  ? "bg-white/20 border-accent/70 shadow-[0_0_20px_4px_hsl(var(--accent)/0.35)]"
+                  : "bg-white/8 border-white/20 hover:bg-white/14 hover:border-white/40"
+              }`}
+            >
+              <span className={`text-sm font-semibold ${isSelected ? "text-foreground" : "text-foreground/60"}`}>
                 {opt.label}
-              </button>
-            );
-          })}
-        </div>
+              </span>
+            </button>
+          );
+        })}
       </div>
+      <p className="text-[11px] text-foreground/40 mb-auto relative z-10">Family circle</p>
 
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* CTA button */}
+      {/* CTA */}
       <button
         onClick={handleFinish}
         disabled={!canContinue || loading}
-        className="w-full py-4 rounded-full gradient-orange font-bold text-base transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 relative z-10"
+        className="w-full max-w-[300px] py-4 rounded-full gradient-orange font-bold text-base transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 relative z-10"
         style={{ color: "#1A1A1A" }}
       >
         {loading ? "Saving..." : "Create my story"}
