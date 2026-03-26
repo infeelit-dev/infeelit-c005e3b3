@@ -87,7 +87,7 @@ const FamilyIdentity = () => {
 
         {/* Title */}
         <h1
-          className="text-4xl font-semibold text-center mb-4"
+          className="text-5xl font-semibold text-center mb-4"
           style={{ fontFamily: "'Inter', sans-serif", color: "#1A3B47" }}
         >
           Tell us your name
