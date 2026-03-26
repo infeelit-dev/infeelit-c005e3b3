@@ -11,28 +11,19 @@ const Verify = () => {
   const phone = (location.state as { phone?: string })?.phone || "";
 
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
-  const [error, setError] = useState("Invalid code. Please try again.");
-  const [isError, setIsError] = useState(true);
+  const [error, setError] = useState("");
+  const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [shake, setShake] = useState(true);
+  const [shake, setShake] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // DEBUG: repeat shake every 3s
-  useState(() => {
-    const interval = setInterval(() => {
-      setShake(false);
-      setTimeout(() => setShake(true), 50);
-    }, 3000);
-    return () => clearInterval(interval);
-  });
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
-    setError("Invalid code. Please try again.");
-    setIsError(true);
+    setError("");
+    setIsError(false);
     if (value && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -59,26 +50,14 @@ const Verify = () => {
     if (code.length < OTP_LENGTH) { setError("Please enter the full code."); return; }
     setLoading(true);
 
-    // TODO: TESTING ONLY – always trigger error state
-    setTimeout(() => {
-      setError("Invalid code. Please try again.");
-      setIsError(true);
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-      setLoading(false);
-    }, 400);
-    return;
-
-    // Original verification logic (commented out for testing)
-    /*
     try {
       const { error: authError } = await supabase.auth.verifyOtp({ phone, token: code, type: "sms" });
       if (authError) {
         setError("Invalid code. Please try again.");
+        setIsError(true);
         setShake(true);
         setTimeout(() => setShake(false), 500);
-      }
-      else {
+      } else {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: profile } = await supabase
@@ -93,10 +72,12 @@ const Verify = () => {
       }
     } catch {
       setError("Verification failed. Please try again.");
+      setIsError(true);
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
     } finally {
       setLoading(false);
     }
-    */
   };
 
   const handleResend = async () => {
