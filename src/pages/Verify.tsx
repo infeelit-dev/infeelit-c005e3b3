@@ -52,6 +52,18 @@ const Verify = () => {
     const code = otp.join("");
     if (code.length < OTP_LENGTH) { setError("Please enter the full code."); return; }
     setLoading(true);
+
+    // TODO: TESTING ONLY – always trigger error state
+    setTimeout(() => {
+      setError("Invalid code. Please try again.");
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      setLoading(false);
+    }, 400);
+    return;
+
+    // Original verification logic (commented out for testing)
+    /*
     try {
       const { error: authError } = await supabase.auth.verifyOtp({ phone, token: code, type: "sms" });
       if (authError) {
@@ -77,6 +89,7 @@ const Verify = () => {
     } finally {
       setLoading(false);
     }
+    */
   };
 
   const handleResend = async () => {
@@ -140,24 +153,24 @@ const Verify = () => {
           ))}
         </div>
 
-        {/* Wrong number link */}
-        <button onClick={() => navigate("/signup")} className="text-sm text-muted-foreground text-center">
-          Wrong number?{" "}
-          <span className="font-bold text-foreground underline underline-offset-2">Edit</span>
-        </button>
-
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-1.5 mt-3 justify-center">
+          <div className="flex items-center gap-1.5 mt-4 mb-4 justify-center w-full">
             <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
-            <span className="text-destructive text-xs" style={{ color: "#1A1A1A" }}>{error}</span>
+            <span className="text-xs font-medium" style={{ color: "#1A1A1A" }}>{error}</span>
           </div>
         )}
 
+        {/* Wrong number link */}
+        <button onClick={() => navigate("/signup")} className="text-xs text-muted-foreground text-center mt-1">
+          Wrong number?{" "}
+          <span className="font-medium text-foreground underline underline-offset-2">Edit</span>
+        </button>
+
         {/* Resend */}
-        <button onClick={handleResend} className="text-sm text-muted-foreground text-center mt-6 mb-4">
+        <button onClick={handleResend} className="text-xs text-muted-foreground text-center mt-4 mb-4">
           Haven't received a code?{" "}
-          <span className="font-bold text-foreground underline underline-offset-2">Send again</span>
+          <span className="font-medium text-foreground underline underline-offset-2">Send again</span>
         </button>
 
         {/* Button */}
