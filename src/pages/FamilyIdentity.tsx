@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import infeelit from "@/assets/infeelit-logo.png";
 
 const FamilyIdentity = () => {
   const navigate = useNavigate();
@@ -16,7 +17,6 @@ const FamilyIdentity = () => {
         navigate("/welcome", { replace: true });
         return;
       }
-      // Pre-fill from user metadata (Google/Apple may provide this)
       const meta = user.user_metadata || {};
       if (meta.full_name) {
         const parts = meta.full_name.split(" ");
@@ -55,60 +55,78 @@ const FamilyIdentity = () => {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen gradient-canvas flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#FAF8F6" }}>
         <div className="w-8 h-8 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen gradient-canvas flex flex-col px-6 pt-16">
-      <h1 className="text-2xl font-bold text-center text-foreground mb-3">
-        Votre identité familiale
-      </h1>
-      <p className="text-center text-muted-foreground text-sm mb-10 max-w-xs mx-auto leading-relaxed">
-        C'est sous ce nom que vos proches vous reconnaîtront dans le cercle Infeelit.
-      </p>
+    <div
+      className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden"
+      style={{ backgroundColor: "#FAF8F6" }}
+    >
+      {/* Ethereal corner clouds */}
+      <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
-      {/* First name */}
-      <div className="mb-4">
-        <label className="text-sm font-semibold text-foreground mb-2 block">
-          Prénom
-        </label>
-        <input
-          type="text"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          placeholder="Votre prénom"
-          className="w-full px-4 py-3 rounded-xl glass-surface text-foreground placeholder:text-muted-foreground outline-none focus:border-secondary/60 transition-colors text-base"
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+        {/* Logo */}
+        <img
+          src={infeelit}
+          alt="Infeelit"
+          className="w-[875px] max-w-[90vw] h-auto object-contain mx-auto mb-10"
+          style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
+
+        {/* Title */}
+        <h1
+          className="text-4xl font-semibold text-center mb-4"
+          style={{ fontFamily: "'Inter', sans-serif", color: "#1A3B47" }}
+        >
+          Tell us your name
+        </h1>
+
+        {/* Sub-heading */}
+        <p
+          className="text-center text-base font-medium mb-6 max-w-xs mx-auto leading-relaxed"
+          style={{ color: "#1A1A1A" }}
+        >
+          Your circle will know you by this name. Start your legacy here.
+        </p>
+
+        {/* Input fields */}
+        <div className="w-full space-y-4 mt-6 mb-8">
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="First Name"
+            className="w-full px-6 py-4 rounded-full backdrop-blur-md bg-white/70 border border-gray-200 text-base font-medium outline-none transition-all focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_hsl(25_90%_65%/0.25)] placeholder:text-gray-400"
+            style={{ color: "#1A1A1A" }}
+          />
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Last Name"
+            className="w-full px-6 py-4 rounded-full backdrop-blur-md bg-white/70 border border-gray-200 text-base font-medium outline-none transition-all focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_hsl(25_90%_65%/0.25)] placeholder:text-gray-400"
+            style={{ color: "#1A1A1A" }}
+          />
+        </div>
+
+        {/* Button */}
+        <div className="flex justify-center mt-16 w-full">
+          <button
+            onClick={handleContinue}
+            disabled={!canContinue || loading}
+            className="w-[80%] px-5 py-4 rounded-full gradient-orange font-bold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
+            style={{ color: "#1A1A1A" }}
+          >
+            {loading ? "Saving..." : "Continue my story"}
+          </button>
+        </div>
       </div>
-
-      {/* Last name */}
-      <div className="mb-8">
-        <label className="text-sm font-semibold text-foreground mb-2 block">
-          Nom
-        </label>
-        <input
-          type="text"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          placeholder="Votre nom"
-          className="w-full px-4 py-3 rounded-xl glass-surface text-foreground placeholder:text-muted-foreground outline-none focus:border-secondary/60 transition-colors text-base"
-        />
-      </div>
-
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Continue button */}
-      <button
-        onClick={handleContinue}
-        disabled={!canContinue || loading}
-        className="w-full py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 mb-8"
-      >
-        {loading ? "Saving..." : "Continuer"}
-      </button>
     </div>
   );
 };
