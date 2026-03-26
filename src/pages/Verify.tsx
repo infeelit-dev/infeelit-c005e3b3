@@ -17,6 +17,47 @@ const Verify = () => {
   const [shake, setShake] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const triggerErrorState = () => {
+    setError("Invalid code. Please try again.");
+    setIsError(true);
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
+  };
+
+  const verifyCode = async (code: string) => {
+    if (code.length < OTP_LENGTH) {
+      setError("Please enter the full code.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error: authError } = await supabase.auth.verifyOtp({ phone, token: code, type: "sms" });
+      if (authError) {
+        triggerErrorState();
+      } else {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name, onboarding_completed")
+            .eq("user_id", user.id)
+            .single();
+          if (profile?.onboarding_completed) navigate("/", { replace: true });
+          else if (profile?.display_name) navigate("/portrait", { replace: true });
+          else navigate("/identity", { replace: true });
+        }
+      }
+    } catch {
+      triggerErrorState();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
     const newOtp = [...otp];
@@ -26,6 +67,10 @@ const Verify = () => {
     setIsError(false);
     if (value && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
+    }
+
+    if (newOtp.every((digit) => digit.length === 1)) {
+      void verifyCode(newOtp.join(""));
     }
   };
 
@@ -41,43 +86,18 @@ const Verify = () => {
     const newOtp = [...otp];
     text.split("").forEach((char, i) => { newOtp[i] = char; });
     setOtp(newOtp);
+    setError("");
+    setIsError(false);
     const nextEmpty = newOtp.findIndex((v) => !v);
     inputRefs.current[nextEmpty === -1 ? OTP_LENGTH - 1 : nextEmpty]?.focus();
+
+    if (text.length === OTP_LENGTH) {
+      void verifyCode(text);
+    }
   };
 
   const handleVerify = async () => {
-    const code = otp.join("");
-    if (code.length < OTP_LENGTH) { setError("Please enter the full code."); return; }
-    setLoading(true);
-
-    try {
-      const { error: authError } = await supabase.auth.verifyOtp({ phone, token: code, type: "sms" });
-      if (authError) {
-        setError("Invalid code. Please try again.");
-        setIsError(true);
-        setShake(true);
-        setTimeout(() => setShake(false), 500);
-      } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("display_name, onboarding_completed")
-            .eq("user_id", user.id)
-            .single();
-          if (profile?.onboarding_completed) navigate("/", { replace: true });
-          else if (profile?.display_name) navigate("/portrait", { replace: true });
-          else navigate("/identity", { replace: true });
-        }
-      }
-    } catch {
-      setError("Verification failed. Please try again.");
-      setIsError(true);
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-    } finally {
-      setLoading(false);
-    }
+    void verifyCode(otp.join(""));
   };
 
   const handleResend = async () => {
@@ -131,7 +151,7 @@ const Verify = () => {
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
               style={{
-                border: isError ? "2px solid #FF0000" : digit ? "2px solid #1A3B47" : "2px solid #d1d5db",
+                border: isError ? "2px solid #D32F2F" : digit ? "2px solid #1A3B47" : "2px solid #d1d5db",
               }}
               className="w-[50px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md outline-none transition-all bg-white/70 mx-auto focus:shadow-[0_0_16px_-2px_hsl(var(--brand-orange)/0.25)]"
             />
@@ -145,7 +165,7 @@ const Verify = () => {
               marginTop: "12px",
               width: "100%",
               textAlign: "center",
-              color: "#FF0000",
+              color: "#D32F2F",
               fontWeight: 700,
               fontSize: "14px",
               lineHeight: "20px",
