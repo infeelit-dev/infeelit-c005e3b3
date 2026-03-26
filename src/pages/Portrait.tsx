@@ -11,12 +11,7 @@ const GENERATIONS = [
   { label: "Gen Alpha", range: "2013+" },
 ];
 
-const TEASER_BUBBLES = [
-  { size: 72, top: "12%", left: "18%", delay: "0s", color: "hsl(var(--accent) / 0.25)" },
-  { size: 56, top: "8%", left: "55%", delay: "2s", color: "hsl(var(--primary) / 0.18)" },
-  { size: 48, top: "28%", left: "40%", delay: "4s", color: "hsl(var(--accent) / 0.20)" },
-  { size: 64, top: "18%", left: "72%", delay: "1s", color: "hsl(var(--primary) / 0.15)" },
-];
+
 
 const Portrait = () => {
   const navigate = useNavigate();
@@ -76,25 +71,72 @@ const Portrait = () => {
         />
       ))}
 
-      {/* ── Teaser: floating photo bubbles (blurred peek of dashboard) ── */}
-      <div className="relative w-full h-[160px] mt-6 mb-2">
-        {TEASER_BUBBLES.map((b, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full animate-bokeh"
-            style={{
-              width: b.size,
-              height: b.size,
-              top: b.top,
-              left: b.left,
-              animationDelay: b.delay,
-              background: `radial-gradient(circle at 35% 35%, ${b.color}, transparent 70%)`,
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              filter: "blur(1.5px)",
-            }}
-          />
-        ))}
+      {/* ── Teaser: vibrant photo bubble cluster ── */}
+      <div className="relative w-full h-[150px] mt-4 mb-1 flex items-center justify-center">
+        {/* Bubble 1 — large, left */}
+        <div
+          className="absolute rounded-full animate-bokeh overflow-hidden"
+          style={{
+            width: 80, height: 80,
+            top: "15%", left: "20%",
+            filter: "blur(2px)",
+            animationDelay: "0s",
+          }}
+        >
+          <div className="w-full h-full rounded-full" style={{
+            background: "linear-gradient(135deg, hsl(20 90% 55% / 0.6), hsl(35 95% 60% / 0.4))",
+            border: "1.5px solid rgba(255,255,255,0.3)",
+            boxShadow: "0 4px 20px hsl(20 90% 55% / 0.3), inset 0 0 20px rgba(255,255,255,0.15)",
+          }} />
+        </div>
+        {/* Bubble 2 — medium, center-top */}
+        <div
+          className="absolute rounded-full animate-bokeh overflow-hidden"
+          style={{
+            width: 60, height: 60,
+            top: "5%", left: "48%",
+            filter: "blur(1.5px)",
+            animationDelay: "2s",
+          }}
+        >
+          <div className="w-full h-full rounded-full" style={{
+            background: "linear-gradient(135deg, hsl(var(--primary) / 0.5), hsl(195 40% 45% / 0.35))",
+            border: "1.5px solid rgba(255,255,255,0.25)",
+            boxShadow: "0 4px 20px hsl(var(--primary) / 0.25), inset 0 0 16px rgba(255,255,255,0.12)",
+          }} />
+        </div>
+        {/* Bubble 3 — small, right */}
+        <div
+          className="absolute rounded-full animate-bokeh overflow-hidden"
+          style={{
+            width: 50, height: 50,
+            top: "35%", left: "65%",
+            filter: "blur(2.5px)",
+            animationDelay: "4s",
+          }}
+        >
+          <div className="w-full h-full rounded-full" style={{
+            background: "linear-gradient(135deg, hsl(30 85% 58% / 0.55), hsl(15 80% 50% / 0.35))",
+            border: "1.5px solid rgba(255,255,255,0.25)",
+            boxShadow: "0 4px 16px hsl(30 85% 58% / 0.25), inset 0 0 14px rgba(255,255,255,0.1)",
+          }} />
+        </div>
+        {/* Bubble 4 — tiny accent */}
+        <div
+          className="absolute rounded-full animate-bokeh overflow-hidden"
+          style={{
+            width: 36, height: 36,
+            top: "55%", left: "35%",
+            filter: "blur(1.5px)",
+            animationDelay: "6s",
+          }}
+        >
+          <div className="w-full h-full rounded-full" style={{
+            background: "linear-gradient(135deg, hsl(var(--accent) / 0.45), hsl(25 90% 52% / 0.3))",
+            border: "1px solid rgba(255,255,255,0.2)",
+            boxShadow: "0 3px 12px hsl(var(--accent) / 0.2), inset 0 0 10px rgba(255,255,255,0.1)",
+          }} />
+        </div>
       </div>
 
       {/* ── Title ── */}
