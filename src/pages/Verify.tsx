@@ -146,13 +146,12 @@ const Verify = () => {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`w-[50px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md border-2 outline-none transition-all bg-white/70 mx-auto ${
-                error
-                  ? "border-[#D32F2F]"
-                  : digit
-                    ? "border-[#1A3B47] shadow-[0_0_12px_-4px_hsl(var(--brand-orange)/0.2)]"
-                    : "border-gray-200"
-              } focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_hsl(var(--brand-orange)/0.25)]`}
+              style={{
+                borderColor: error ? "#D32F2F" : digit ? "#1A3B47" : "#d1d5db",
+                borderWidth: "2px",
+                borderStyle: "solid",
+              }}
+              className="w-[50px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md outline-none transition-all bg-white/70 mx-auto focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_hsl(var(--brand-orange)/0.25)]"
             />
           ))}
         </div>
