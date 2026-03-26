@@ -104,7 +104,7 @@ const FamilyIdentity = () => {
         >
           Your circle will know you by this name.
           <br />
-          Start your legacy here.
+          Begin your story here.
         </p>
 
         {/* First Name — frosted glass pill, matching signup phone input */}
