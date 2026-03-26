@@ -99,7 +99,7 @@ const FamilyIdentity = () => {
 
         {/* Subtitle — tight 16px below title */}
         <p
-          className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed"
+          className="text-center text-base font-medium mb-6 max-w-xs mx-auto leading-relaxed"
           style={{ color: "#1A1A1A" }}
         >
           Your circle will know you by this name.
