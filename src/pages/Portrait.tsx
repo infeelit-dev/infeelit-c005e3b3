@@ -11,6 +11,13 @@ const GENERATIONS = [
   { label: "Gen Alpha", range: "2013+" },
 ];
 
+const TEASER_BUBBLES = [
+  { size: 72, top: "12%", left: "18%", delay: "0s", color: "hsl(var(--accent) / 0.25)" },
+  { size: 56, top: "8%", left: "55%", delay: "2s", color: "hsl(var(--primary) / 0.18)" },
+  { size: 48, top: "28%", left: "40%", delay: "4s", color: "hsl(var(--accent) / 0.20)" },
+  { size: 64, top: "18%", left: "72%", delay: "1s", color: "hsl(var(--primary) / 0.15)" },
+];
+
 const Portrait = () => {
   const navigate = useNavigate();
   const [generation, setGeneration] = useState("");
@@ -43,38 +50,83 @@ const Portrait = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-canvas flex flex-col items-center px-6 pt-20 pb-10 relative overflow-hidden">
-      {/* Floating clouds — subtle & numerous */}
-      <div className="absolute top-[-80px] left-[-50px] w-60 h-60 rounded-full bg-white/8 blur-3xl animate-bokeh pointer-events-none" />
-      <div className="absolute top-[10%] right-[-60px] w-36 h-36 rounded-full bg-white/6 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "2s" }} />
-      <div className="absolute top-[35%] left-[10%] w-28 h-28 rounded-full bg-accent/5 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "5s" }} />
-      <div className="absolute top-[55%] right-[5%] w-32 h-32 rounded-full bg-white/6 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "7s" }} />
-      <div className="absolute bottom-[15%] left-[-40px] w-44 h-44 rounded-full bg-white/5 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "9s" }} />
-      <div className="absolute bottom-[-30px] right-[20%] w-24 h-24 rounded-full bg-accent/4 blur-3xl animate-bokeh pointer-events-none" style={{ animationDelay: "11s" }} />
+    <div className="min-h-screen gradient-canvas flex flex-col items-center relative overflow-hidden">
+      {/* Ambient clouds */}
+      {[
+        { w: 56, h: 56, t: "-70px", l: "-40px", o: 0.07, d: "0s" },
+        { w: 32, h: 32, t: "12%", r: "-30px", o: 0.05, d: "3s" },
+        { w: 24, h: 24, t: "40%", l: "8%", o: 0.04, d: "6s" },
+        { w: 28, h: 28, t: "60%", r: "5%", o: 0.05, d: "8s" },
+        { w: 40, h: 40, b: "10%", l: "-20px", o: 0.06, d: "10s" },
+        { w: 20, h: 20, b: "5%", r: "15%", o: 0.04, d: "12s" },
+      ].map((c, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full bg-white blur-3xl animate-bokeh pointer-events-none"
+          style={{
+            width: `${c.w * 4}px`,
+            height: `${c.h * 4}px`,
+            top: c.t,
+            left: c.l,
+            right: c.r,
+            bottom: c.b,
+            opacity: c.o,
+            animationDelay: c.d,
+          }}
+        />
+      ))}
 
-      {/* Title only */}
-      <h1 className="text-[1.75rem] font-semibold text-primary text-center mb-16 relative z-10">
+      {/* ── Teaser: floating photo bubbles (blurred peek of dashboard) ── */}
+      <div className="relative w-full h-[160px] mt-6 mb-2">
+        {TEASER_BUBBLES.map((b, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full animate-bokeh"
+            style={{
+              width: b.size,
+              height: b.size,
+              top: b.top,
+              left: b.left,
+              animationDelay: b.delay,
+              background: `radial-gradient(circle at 35% 35%, ${b.color}, transparent 70%)`,
+              backdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              filter: "blur(1.5px)",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* ── Title ── */}
+      <h1 className="text-[1.85rem] font-semibold text-primary text-center mb-10 relative z-10 px-6">
         A little bit about you
       </h1>
 
-      {/* 3x2 Generation grid */}
-      <div className="grid grid-cols-3 gap-3 w-full max-w-[320px] mb-16 relative z-10">
+      {/* ── 3×2 Generation grid ── */}
+      <div className="grid grid-cols-3 gap-2.5 w-full max-w-[300px] px-2 mb-12 relative z-10">
         {GENERATIONS.map((gen) => {
           const isSelected = generation === gen.label;
           return (
             <button
               key={gen.label}
               onClick={() => setGeneration(gen.label)}
-              className={`flex flex-col items-center justify-center py-4 rounded-2xl backdrop-blur-md border transition-all duration-300 ${
-                isSelected
-                  ? "bg-white/20 border-accent/70 shadow-[0_0_20px_4px_hsl(var(--accent)/0.35)]"
-                  : "bg-white/8 border-white/20 hover:bg-white/14 hover:border-white/40"
-              }`}
+              className="flex flex-col items-center justify-center py-3.5 rounded-2xl backdrop-blur-md border transition-all duration-300"
+              style={{
+                background: isSelected ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.06)",
+                borderColor: isSelected ? "hsl(var(--accent) / 0.7)" : "rgba(255,255,255,0.15)",
+                boxShadow: isSelected ? "0 0 18px 3px hsl(var(--accent) / 0.3)" : "none",
+              }}
             >
-              <span className={`text-xs font-semibold ${isSelected ? "text-foreground" : "text-foreground/65"}`}>
+              <span
+                className="text-[11px] font-semibold"
+                style={{ color: isSelected ? "hsl(var(--foreground))" : "hsl(var(--foreground) / 0.55)" }}
+              >
                 {gen.label}
               </span>
-              <span className={`text-[10px] mt-0.5 ${isSelected ? "text-foreground/70" : "text-foreground/40"}`}>
+              <span
+                className="text-[9px] mt-0.5"
+                style={{ color: isSelected ? "hsl(var(--foreground) / 0.6)" : "hsl(var(--foreground) / 0.3)" }}
+              >
                 {gen.range}
               </span>
             </button>
@@ -82,8 +134,8 @@ const Portrait = () => {
         })}
       </div>
 
-      {/* Family circle — two minimal pills */}
-      <div className="flex gap-5 mb-6 relative z-10">
+      {/* ── Family circle ── */}
+      <div className="flex gap-8 mb-3 relative z-10">
         {[
           { label: "Yes", value: true },
           { label: "No", value: false },
@@ -93,30 +145,41 @@ const Portrait = () => {
             <button
               key={opt.label}
               onClick={() => setHasFamily(opt.value)}
-              className={`w-20 h-20 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-300 ${
-                isSelected
-                  ? "bg-white/20 border-accent/70 shadow-[0_0_20px_4px_hsl(var(--accent)/0.35)]"
-                  : "bg-white/8 border-white/20 hover:bg-white/14 hover:border-white/40"
-              }`}
+              className="w-[72px] h-[72px] rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-300"
+              style={{
+                background: isSelected ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.06)",
+                borderColor: isSelected ? "hsl(var(--accent) / 0.7)" : "rgba(255,255,255,0.15)",
+                boxShadow: isSelected ? "0 0 18px 3px hsl(var(--accent) / 0.3)" : "none",
+              }}
             >
-              <span className={`text-sm font-semibold ${isSelected ? "text-foreground" : "text-foreground/60"}`}>
+              <span
+                className="text-sm font-semibold"
+                style={{ color: isSelected ? "hsl(var(--foreground))" : "hsl(var(--foreground) / 0.5)" }}
+              >
                 {opt.label}
               </span>
             </button>
           );
         })}
       </div>
-      <p className="text-[11px] text-foreground/40 mb-auto relative z-10">Family circle</p>
+      <p className="text-[10px] tracking-wide uppercase relative z-10" style={{ color: "hsl(var(--foreground) / 0.3)" }}>
+        Family circle
+      </p>
 
-      {/* CTA */}
-      <button
-        onClick={handleFinish}
-        disabled={!canContinue || loading}
-        className="w-full max-w-[300px] py-4 rounded-full gradient-orange font-bold text-base transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 relative z-10"
-        style={{ color: "#1A1A1A" }}
-      >
-        {loading ? "Saving..." : "Create my story"}
-      </button>
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* ── CTA ── */}
+      <div className="w-full px-8 pb-10 relative z-10">
+        <button
+          onClick={handleFinish}
+          disabled={!canContinue || loading}
+          className="w-full py-4 rounded-full gradient-orange font-bold text-base transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40"
+          style={{ color: "#1A1A1A" }}
+        >
+          {loading ? "Saving..." : "Create my story"}
+        </button>
+      </div>
     </div>
   );
 };
