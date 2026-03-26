@@ -11,15 +11,19 @@ const Verify = () => {
   const phone = (location.state as { phone?: string })?.phone || "";
 
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
-  const [error, setError] = useState("");
+  const [error, setError] = useState("Invalid code. Please try again.");
   const [loading, setLoading] = useState(false);
-  const [shake, setShake] = useState(false);
+  const [shake, setShake] = useState(true);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // TODO: Re-enable redirect after UI tweaks
-  // useEffect(() => {
-  //   if (!phone) navigate("/signup", { replace: true });
-  // }, [phone, navigate]);
+  // DEBUG: repeat shake every 3s
+  useState(() => {
+    const interval = setInterval(() => {
+      setShake(false);
+      setTimeout(() => setShake(true), 50);
+    }, 3000);
+    return () => clearInterval(interval);
+  });
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -155,20 +159,20 @@ const Verify = () => {
 
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-1.5 mt-4 mb-4 justify-center w-full">
+          <div className="flex items-center gap-1.5 mt-3 justify-center w-full">
             <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
             <span className="text-xs font-medium" style={{ color: "#1A1A1A" }}>{error}</span>
           </div>
         )}
 
         {/* Wrong number link */}
-        <button onClick={() => navigate("/signup")} className="text-xs text-muted-foreground text-center mt-1">
+        <button onClick={() => navigate("/signup")} className="text-xs text-muted-foreground text-center mt-3">
           Wrong number?{" "}
           <span className="font-medium text-foreground underline underline-offset-2">Edit</span>
         </button>
 
         {/* Resend */}
-        <button onClick={handleResend} className="text-xs text-muted-foreground text-center mt-4 mb-4">
+        <button onClick={handleResend} className="text-xs text-muted-foreground text-center mt-3 mb-4">
           Haven't received a code?{" "}
           <span className="font-medium text-foreground underline underline-offset-2">Send again</span>
         </button>
