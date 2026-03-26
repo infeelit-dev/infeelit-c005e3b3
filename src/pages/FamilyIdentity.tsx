@@ -95,7 +95,7 @@ const FamilyIdentity = () => {
 
         {/* Sub-heading */}
         <p
-          className="text-center text-base font-medium mb-6 max-w-xs mx-auto leading-relaxed"
+          className="text-center text-lg font-bold mb-6 max-w-xs mx-auto leading-relaxed"
           style={{ color: "#1A1A1A" }}
         >
           Your circle will know you by this name. Start your legacy here.
