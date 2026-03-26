@@ -12,6 +12,7 @@ const Verify = () => {
 
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState("Invalid code. Please try again.");
+  const [isError, setIsError] = useState(true);
   const [loading, setLoading] = useState(false);
   const [shake, setShake] = useState(true);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -30,7 +31,8 @@ const Verify = () => {
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
-    setError("");
+    setError("Invalid code. Please try again.");
+    setIsError(true);
     if (value && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -60,6 +62,7 @@ const Verify = () => {
     // TODO: TESTING ONLY – always trigger error state
     setTimeout(() => {
       setError("Invalid code. Please try again.");
+      setIsError(true);
       setShake(true);
       setTimeout(() => setShake(false), 500);
       setLoading(false);
@@ -147,19 +150,27 @@ const Verify = () => {
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
               style={{
-                borderColor: error ? "#D32F2F" : digit ? "#1A3B47" : "#d1d5db",
-                borderWidth: "2px",
-                borderStyle: "solid",
+                border: isError ? "2px solid #FF0000" : digit ? "2px solid #1A3B47" : "2px solid #d1d5db",
               }}
-              className="w-[50px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md outline-none transition-all bg-white/70 mx-auto focus:border-[#1A3B47] focus:shadow-[0_0_16px_-2px_hsl(var(--brand-orange)/0.25)]"
+              className="w-[50px] h-[84px] text-center text-2xl font-bold rounded-full backdrop-blur-md outline-none transition-all bg-white/70 mx-auto focus:shadow-[0_0_16px_-2px_hsl(var(--brand-orange)/0.25)]"
             />
           ))}
         </div>
 
         {/* Error */}
-        {error && (
-          <p className="text-sm font-bold text-center mt-3 w-full" style={{ color: "#D32F2F" }}>
-            {error}
+        {isError && (
+          <p
+            style={{
+              marginTop: "12px",
+              width: "100%",
+              textAlign: "center",
+              color: "#FF0000",
+              fontWeight: 700,
+              fontSize: "14px",
+              lineHeight: "20px",
+            }}
+          >
+            Invalid code. Please try again.
           </p>
         )}
 
