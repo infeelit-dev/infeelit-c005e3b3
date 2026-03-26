@@ -126,8 +126,8 @@ const FamilyIdentity = () => {
           <button
             onClick={handleContinue}
             disabled={!canContinue || loading}
-            className="w-[80%] px-5 py-4 rounded-full gradient-orange font-bold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
-            style={{ color: "#1A1A1A" }}
+            className="w-[80%] px-5 py-4 rounded-full font-bold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50"
+            style={{ backgroundColor: "#FF5722", color: "#1A1A1A", mixBlendMode: "multiply" }}
           >
             {loading ? "Saving..." : "Continue my story"}
           </button>
