@@ -47,7 +47,13 @@ const Signup = () => {
     if (!selectedCountry) { setError("Please select your country."); return; }
     if (!phone.trim()) { setError("Phone number is required."); return; }
 
-    const fullPhone = `${selectedCountry.code}${phone.replace(/\s/g, "")}`;
+    const digits = phone.replace(/\s/g, "").replace(/[^\d]/g, "");
+    if (digits.length < 6 || digits.length > 15) {
+      setError("Please enter a valid phone number.");
+      return;
+    }
+
+    const fullPhone = `${selectedCountry.code}${digits}`;
     setLoading(true);
     try {
       const { error: authError } = await supabase.auth.signInWithOtp({ phone: fullPhone });
