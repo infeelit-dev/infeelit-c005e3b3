@@ -11,12 +11,7 @@ const GENERATIONS = [
   { label: "Gen Alpha", range: "2013+" },
 ];
 
-const TEASER_BUBBLES = [
-  { size: 72, top: "12%", left: "18%", delay: "0s", color: "hsl(var(--accent) / 0.25)" },
-  { size: 56, top: "8%", left: "55%", delay: "2s", color: "hsl(var(--primary) / 0.18)" },
-  { size: 48, top: "28%", left: "40%", delay: "4s", color: "hsl(var(--accent) / 0.20)" },
-  { size: 64, top: "18%", left: "72%", delay: "1s", color: "hsl(var(--primary) / 0.15)" },
-];
+
 
 const Portrait = () => {
   const navigate = useNavigate();
