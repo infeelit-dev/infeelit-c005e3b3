@@ -71,46 +71,78 @@ const Portrait = () => {
         />
       ))}
 
-      {/* ── Teaser: real photo bubbles ── */}
-      <div className="relative w-full h-[160px] mt-4 mb-2 flex items-center justify-center">
+      {/* ── Teaser: high-visibility photo bubbles ── */}
+      <div className="relative z-10 w-full h-[170px] mt-4 mb-2 flex items-center justify-center overflow-hidden">
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
-            width: 88, height: 88,
-            top: "10%", left: "15%",
+            width: 96,
+            height: 96,
+            top: "8%",
+            left: "13%",
+            opacity: 1,
             filter: "blur(2px)",
-            border: "2px solid rgba(255,255,255,0.35)",
-            boxShadow: "0 6px 24px rgba(0,0,0,0.15), 0 0 16px rgba(255,255,255,0.1)",
+            border: "2px solid hsl(0 0% 100% / 0.5)",
+            boxShadow:
+              "0 0 18px hsl(0 0% 100% / 0.8), 0 10px 28px hsl(0 0% 0% / 0.25)",
+            background: "hsl(var(--accent) / 0.25)",
             animationDelay: "0s",
           }}
         >
-          <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&h=200&fit=crop" alt="" className="w-full h-full object-cover rounded-full" />
+          <img
+            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&h=200&fit=crop&auto=format"
+            alt="Memory teaser bubble one"
+            className="w-full h-full object-cover rounded-full"
+            style={{ opacity: 1 }}
+          />
         </div>
+
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
-            width: 72, height: 72,
-            top: "5%", left: "48%",
+            width: 78,
+            height: 78,
+            top: "4%",
+            left: "49%",
+            opacity: 1,
             filter: "blur(2px)",
-            border: "2px solid rgba(255,255,255,0.3)",
-            boxShadow: "0 6px 24px rgba(0,0,0,0.12), 0 0 14px rgba(255,255,255,0.08)",
+            border: "2px solid hsl(0 0% 100% / 0.5)",
+            boxShadow:
+              "0 0 18px hsl(0 0% 100% / 0.8), 0 10px 26px hsl(0 0% 0% / 0.22)",
+            background: "hsl(var(--primary) / 0.25)",
             animationDelay: "2.5s",
           }}
         >
-          <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=200&h=200&fit=crop" alt="" className="w-full h-full object-cover rounded-full" />
+          <img
+            src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=200&h=200&fit=crop&auto=format"
+            alt="Memory teaser bubble two"
+            className="w-full h-full object-cover rounded-full"
+            style={{ opacity: 1 }}
+          />
         </div>
+
         <div
           className="absolute rounded-full animate-bokeh overflow-hidden"
           style={{
-            width: 60, height: 60,
-            top: "42%", left: "38%",
+            width: 66,
+            height: 66,
+            top: "40%",
+            left: "36%",
+            opacity: 1,
             filter: "blur(2px)",
-            border: "2px solid rgba(255,255,255,0.3)",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.12), 0 0 12px rgba(255,255,255,0.08)",
+            border: "2px solid hsl(0 0% 100% / 0.5)",
+            boxShadow:
+              "0 0 15px hsl(0 0% 100% / 0.8), 0 8px 22px hsl(0 0% 0% / 0.2)",
+            background: "hsl(var(--accent) / 0.2)",
             animationDelay: "5s",
           }}
         >
-          <img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200&h=200&fit=crop" alt="" className="w-full h-full object-cover rounded-full" />
+          <img
+            src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=200&h=200&fit=crop&auto=format"
+            alt="Memory teaser bubble three"
+            className="w-full h-full object-cover rounded-full"
+            style={{ opacity: 1 }}
+          />
         </div>
       </div>
 
