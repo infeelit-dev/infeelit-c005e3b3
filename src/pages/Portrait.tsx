@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,18 +11,18 @@ const GENERATIONS = [
   "Generation Alpha",
 ];
 
-// Sources d'images durcies (Unsplash Source ID - Plus stable)
+// Sources d'images PEXELS (Plus fiables que Unsplash sur Lovable)
 const LIFE_IMAGES = [
-  "https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=400&q=80",
-  "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=400&q=80",
-  "https://images.unsplash.com/photo-1544333346-64041d6365f6?w=400&q=80",
-  "https://images.unsplash.com/photo-1506863530036-1efeddceb993?w=400&q=80",
-  "https://images.unsplash.com/photo-1529391409740-59f2dea08bc6?w=400&q=80",
-  "https://images.unsplash.com/photo-1464998857633-50e59fbf2fe6?w=400&q=80",
-  "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80",
-  "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=400&q=80",
-  "https://images.unsplash.com/photo-1536640712247-c45474d61b31?w=400&q=80",
-  "https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=400&q=80",
+  "https://images.pexels.com/photos/1128318/pexels-photo-1128318.jpeg?auto=compress&cs=tinysrgb&w=200", // Famille
+  "https://images.pexels.com/photos/1015568/pexels-photo-1015568.jpeg?auto=compress&cs=tinysrgb&w=200", // Enfants jouent
+  "https://images.pexels.com/photos/1468370/pexels-photo-1468370.jpeg?auto=compress&cs=tinysrgb&w=200", // Grand-parent
+  "https://images.pexels.com/photos/931007/pexels-photo-931007.jpeg?auto=compress&cs=tinysrgb&w=200", // Repas de famille
+  "https://images.pexels.com/photos/1000445/pexels-photo-1000445.jpeg?auto=compress&cs=tinysrgb&w=200", // Jardin
+  "https://images.pexels.com/photos/1131975/pexels-photo-1131975.jpeg?auto=compress&cs=tinysrgb&w=200", // Couple
+  "https://images.pexels.com/photos/1684151/pexels-photo-1684151.jpeg?auto=compress&cs=tinysrgb&w=200", // Lecture
+  "https://images.pexels.com/photos/1310166/pexels-photo-1310166.jpeg?auto=compress&cs=tinysrgb&w=200", // Bébé
+  "https://images.pexels.com/photos/1105191/pexels-photo-1105191.jpeg?auto=compress&cs=tinysrgb&w=200", // Pique-nique
+  "https://images.pexels.com/photos/1645634/pexels-photo-1645634.jpeg?auto=compress&cs=tinysrgb&w=200", // Mains
 ];
 
 const Portrait = () => {
@@ -31,53 +31,107 @@ const Portrait = () => {
   const [hasChildren, setHasChildren] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Moteur d'animation JavaScript pour l'indépendance totale
+  const bubbleRefs = useRef<HTMLDivElement[]>([]);
+
+  useEffect(() => {
+    // Initialisation des positions et trajectoires aléatoires
+    const bubbles = bubbleRefs.current.filter(Boolean);
+    const bubbleStates = bubbles.map(() => ({
+      x: (Math.random() - 0.5) * 40, // Offset horizontal de départ
+      y: (Math.random() - 0.5) * 30, // Offset vertical de départ
+      vx: (Math.random() - 0.5) * 0.1, // Vitesse horizontale unique
+      vy: (Math.random() - 0.5) * 0.1, // Vitesse verticale unique
+      size: 40 + Math.random() * 40, // Taille unique
+    }));
+
+    // Boucle d'animation haute performance
+    let animationFrameId: number;
+    const animate = () => {
+      bubbles.forEach((bubble, i) => {
+        const state = bubbleStates[i];
+
+        // Mise à jour de la position
+        state.x += state.vx;
+        state.y += state.vy;
+
+        // Limites de mouvement (pour ne pas qu'elles s'échappent)
+        if (state.x > 80 || state.x < -80) state.vx *= -1;
+        if (state.y > 60 || state.y < -60) state.vy *= -1;
+
+        // Application douce de la transformation
+        bubble.style.transform = `translate(${state.x}px, ${state.y}px)`;
+      });
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    // Attribution des tailles et positions initiales
+    bubbles.forEach((bubble, i) => {
+      const state = bubbleStates[i];
+      bubble.style.width = `${state.size}px`;
+      bubble.style.height = `${state.size}px`;
+      bubble.style.left = `${5 + i * 9.5}%`;
+      bubble.style.top = `${20 + Math.random() * 50}%`;
+    });
+
+    animate();
+
+    // Nettoyage de l'animation
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  const handleFinish = async () => {
+    if (!generation || hasChildren === null) return;
+    setLoading(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from("profiles")
+          .update({
+            generation,
+            has_children: hasChildren,
+            onboarding_completed: true,
+          })
+          .eq("user_id", user.id);
+      }
+      navigate("/");
+    } catch {
+      navigate("/");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-canvas flex flex-col overflow-hidden relative bg-[#FDFCFB]">
-      <style>{`
-        @keyframes wide-orbit {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          33% { transform: translate(60px, -40px) rotate(2deg); }
-          66% { transform: translate(-50px, -70px) rotate(-2deg); }
-          100% { transform: translate(0, 0) rotate(0deg); }
-        }
-        .bubble-vibrant { 
-          animation: wide-orbit linear infinite;
-          background-color: #E2E8F0; /* Couleur de secours si l'image saute */
-        }
-      `}</style>
-
-      {/* ZONE DE MOUVEMENT ESPACÉE (Haut d'écran) */}
-      <div className="relative h-[45vh] w-full pt-4">
-        {LIFE_IMAGES.map((img, i) => {
-          const size = `clamp(50px, ${9 + i}vw, 115px)`;
-          return (
-            <div
-              key={i}
-              className="absolute rounded-full border-2 border-white shadow-2xl overflow-hidden bubble-vibrant"
-              style={{
-                width: size,
-                height: size,
-                // Espacement forcé : i * 11% pour bien répartir sur toute la largeur
-                top: `${10 + Math.random() * 45}%`,
-                left: `${2 + i * 10.5}%`,
-                animationDuration: `${14 + i * 2.5}s`,
-                animationDelay: `${i * -3.5}s`,
-                zIndex: 10 + i,
+      {/* ZONE DE MOUVEMENT TOTALEMENT INDÉPENDANT (Haut d'écran) */}
+      <div className="relative h-[38vh] w-full pt-4">
+        {LIFE_IMAGES.map((img, i) => (
+          <div
+            key={i}
+            ref={(el) => (bubbleRefs.current[i] = el!)}
+            className="absolute rounded-full border-2 border-white/80 shadow-2xl overflow-hidden bg-[#E2E8F0] will-change-transform"
+            style={{
+              zIndex: 10 + i,
+            }}
+          >
+            <img
+              src={img}
+              className="w-full h-full object-cover"
+              alt="legacy moment"
+              loading="lazy"
+              onError={(e) => {
+                // Secours ultime : couleurs Infeelit Teal/Orange
+                e.currentTarget.style.display = "none";
+                e.currentTarget.parentElement!.style.backgroundColor = i % 2 === 0 ? "#1A4D4D" : "#F97316";
               }}
-            >
-              <img
-                src={img}
-                className="w-full h-full object-cover"
-                alt=""
-                onError={(e) => {
-                  // Si l'image bug encore, on met un fond de couleur Infeelit
-                  e.currentTarget.style.display = "none";
-                  e.currentTarget.parentElement!.style.backgroundColor = i % 2 === 0 ? "#1A4D4D" : "#F97316";
-                }}
-              />
-            </div>
-          );
-        })}
+            />
+          </div>
+        ))}
+        {/* Voile de fusion élégant */}
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/95 to-transparent z-10 pointer-events-none" />
       </div>
 
@@ -87,6 +141,7 @@ const Portrait = () => {
           Personalizing your legacy
         </p>
 
+        {/* Grille de générations */}
         <div className="grid grid-cols-2 gap-3 mb-8">
           {GENERATIONS.map((gen) => (
             <button
@@ -103,6 +158,7 @@ const Portrait = () => {
           ))}
         </div>
 
+        {/* Question Famille */}
         <div className="mb-8 text-center">
           <p className="text-[#1A4D4D] text-[10px] font-black mb-4 uppercase tracking-[0.3em] opacity-40">
             Family Circle
@@ -118,7 +174,7 @@ const Portrait = () => {
                 className={`w-14 h-14 rounded-full flex items-center justify-center text-xs font-black border-2 transition-all ${
                   hasChildren === opt.value
                     ? "bg-[#F97316] border-[#F97316] text-white shadow-lg scale-110"
-                    : "bg-white/40 border-white/50 text-[#1A4D4D]/60"
+                    : "bg-white/40 border-white/50 text-[#1A4D4D]/60 shadow-sm"
                 }`}
               >
                 {opt.label}
@@ -130,11 +186,11 @@ const Portrait = () => {
         <div className="flex-1" />
 
         <button
-          onClick={() => navigate("/")}
-          disabled={!generation || hasChildren === null}
+          onClick={handleFinish}
+          disabled={!generation || hasChildren === null || loading}
           className="w-full py-5 rounded-full bg-[#F97316] text-white font-black text-lg shadow-2xl mb-10 active:scale-95 transition-all disabled:opacity-20"
         >
-          Create my story
+          {loading ? "Creating..." : "Create my story"}
         </button>
       </div>
     </div>
