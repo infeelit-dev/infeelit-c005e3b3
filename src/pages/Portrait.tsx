@@ -11,18 +11,18 @@ const GENERATIONS = [
   "Generation Alpha",
 ];
 
-// URLs ULTRA-FIABLES (Scènes de vie authentiques)
+// Sources d'images durcies (Unsplash Source ID - Plus stable)
 const LIFE_IMAGES = [
-  "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1542037104857-ffbb0b9155fb?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1484662020986-75935d2ebc66?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1536640712247-c45474d61b31?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?auto=format&fit=crop&w=300",
-  "https://images.unsplash.com/photo-1508847154043-be5407fcaa5a?auto=format&fit=crop&w=300",
+  "https://images.unsplash.com/photo-1484981138541-3d074aa97716?w=400&q=80",
+  "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=400&q=80",
+  "https://images.unsplash.com/photo-1544333346-64041d6365f6?w=400&q=80",
+  "https://images.unsplash.com/photo-1506863530036-1efeddceb993?w=400&q=80",
+  "https://images.unsplash.com/photo-1529391409740-59f2dea08bc6?w=400&q=80",
+  "https://images.unsplash.com/photo-1464998857633-50e59fbf2fe6?w=400&q=80",
+  "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80",
+  "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=400&q=80",
+  "https://images.unsplash.com/photo-1536640712247-c45474d61b31?w=400&q=80",
+  "https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=400&q=80",
 ];
 
 const Portrait = () => {
@@ -31,78 +31,62 @@ const Portrait = () => {
   const [hasChildren, setHasChildren] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleFinish = async () => {
-    if (!generation || hasChildren === null) return;
-    setLoading(true);
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        await supabase
-          .from("profiles")
-          .update({
-            generation,
-            has_children: hasChildren,
-            onboarding_completed: true,
-          })
-          .eq("user_id", user.id);
-      }
-      navigate("/");
-    } catch {
-      navigate("/");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen gradient-canvas flex flex-col overflow-hidden relative bg-[#FDFCFB]">
       <style>{`
-        @keyframes orbit {
-          0% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(40px, -50px) scale(1.1); }
-          50% { transform: translate(-30px, -80px) scale(0.9); }
-          75% { transform: translate(-50px, -20px) scale(1.05); }
-          100% { transform: translate(0, 0) scale(1); }
+        @keyframes wide-orbit {
+          0% { transform: translate(0, 0) rotate(0deg); }
+          33% { transform: translate(60px, -40px) rotate(2deg); }
+          66% { transform: translate(-50px, -70px) rotate(-2deg); }
+          100% { transform: translate(0, 0) rotate(0deg); }
         }
-        .bubble-active { animation: orbit linear infinite; }
+        .bubble-vibrant { 
+          animation: wide-orbit linear infinite;
+          background-color: #E2E8F0; /* Couleur de secours si l'image saute */
+        }
       `}</style>
 
-      {/* ZONE DE MOUVEMENT TOTAL (Haut d'écran rempli) */}
-      <div className="relative h-[48vh] w-full pt-6">
+      {/* ZONE DE MOUVEMENT ESPACÉE (Haut d'écran) */}
+      <div className="relative h-[45vh] w-full pt-4">
         {LIFE_IMAGES.map((img, i) => {
-          // Taille dynamique pour l'effet de profondeur
-          const size = `clamp(55px, ${12 + i}vw, 120px)`;
+          const size = `clamp(50px, ${9 + i}vw, 115px)`;
           return (
             <div
               key={i}
-              className="absolute rounded-full border-2 border-white/80 shadow-2xl overflow-hidden bubble-active"
+              className="absolute rounded-full border-2 border-white shadow-2xl overflow-hidden bubble-vibrant"
               style={{
                 width: size,
                 height: size,
-                top: `${15 + Math.random() * 50}%`,
-                left: `${5 + i * 9}%`,
-                animationDuration: `${18 + i * 2}s`,
-                animationDelay: `${i * -4}s`,
+                // Espacement forcé : i * 11% pour bien répartir sur toute la largeur
+                top: `${10 + Math.random() * 45}%`,
+                left: `${2 + i * 10.5}%`,
+                animationDuration: `${14 + i * 2.5}s`,
+                animationDelay: `${i * -3.5}s`,
                 zIndex: 10 + i,
               }}
             >
-              <img src={img} className="w-full h-full object-cover shadow-inner" alt="" loading="eager" />
+              <img
+                src={img}
+                className="w-full h-full object-cover"
+                alt=""
+                onError={(e) => {
+                  // Si l'image bug encore, on met un fond de couleur Infeelit
+                  e.currentTarget.style.display = "none";
+                  e.currentTarget.parentElement!.style.backgroundColor = i % 2 === 0 ? "#1A4D4D" : "#F97316";
+                }}
+              />
             </div>
           );
         })}
-        {/* Voile de fusion élégant */}
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/90 to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/95 to-transparent z-10 pointer-events-none" />
       </div>
 
-      <div className="px-6 flex flex-col flex-1 z-20 -mt-12 bg-[#FDFCFB]/80 backdrop-blur-md pt-6 rounded-t-[40px] shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
-        <h1 className="text-3xl font-black text-center text-[#1A4D4D] mb-1 tracking-tight">A little bit about you</h1>
-        <p className="text-center text-[#4A5568] text-[11px] mb-8 font-bold uppercase tracking-widest opacity-50">
+      <div className="px-6 flex flex-col flex-1 z-20 -mt-10 bg-[#FDFCFB]/85 backdrop-blur-xl pt-8 rounded-t-[45px] shadow-2xl">
+        <h1 className="text-3xl font-black text-center text-[#1A4D4D] mb-1 tracking-tighter">A little bit about you</h1>
+        <p className="text-center text-[#4A5568] text-[10px] mb-8 font-bold uppercase tracking-widest opacity-50">
           Personalizing your legacy
         </p>
 
-        {/* Grille de générations */}
         <div className="grid grid-cols-2 gap-3 mb-8">
           {GENERATIONS.map((gen) => (
             <button
@@ -119,7 +103,6 @@ const Portrait = () => {
           ))}
         </div>
 
-        {/* Question Famille */}
         <div className="mb-8 text-center">
           <p className="text-[#1A4D4D] text-[10px] font-black mb-4 uppercase tracking-[0.3em] opacity-40">
             Family Circle
@@ -147,11 +130,11 @@ const Portrait = () => {
         <div className="flex-1" />
 
         <button
-          onClick={handleFinish}
-          disabled={!generation || hasChildren === null || loading}
-          className="w-full py-5 rounded-full bg-[#F97316] text-white font-black text-lg shadow-2xl mb-10 active:scale-95 disabled:opacity-20 transition-all"
+          onClick={() => navigate("/")}
+          disabled={!generation || hasChildren === null}
+          className="w-full py-5 rounded-full bg-[#F97316] text-white font-black text-lg shadow-2xl mb-10 active:scale-95 transition-all disabled:opacity-20"
         >
-          {loading ? "Creating..." : "Create my story"}
+          Create my story
         </button>
       </div>
     </div>
