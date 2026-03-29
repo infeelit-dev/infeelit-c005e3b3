@@ -12,48 +12,55 @@ const GENERATIONS = [
   "Generation Alpha",
 ];
 
-// Sélection Nostalgique : Noir & Blanc, Vintage, Mémoire
-const NOSTALGIA_IMAGES = [
-  "https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=150", // Vieille voiture
-  "https://images.unsplash.com/photo-1526666923127-b2970f64b422?w=150", // Appareil photo ancien
-  "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=150", // Art abstrait doux
-  "https://images.unsplash.com/flagged/photo-1572392640988-ba48d1a74457?w=150", // Peinture classique
-  "https://images.unsplash.com/photo-1582559930335-515456f9324e?w=150", // Paysage Noir & Blanc
-  "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=150", // Polaroid vintage
-  "https://images.unsplash.com/photo-1520182205149-1e5e4e7329b4?w=150", // Jouet en bois ancien
-  "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=150", // Famille vintage
-];
-
 const Portrait = () => {
   const navigate = useNavigate();
   const [generation, setGeneration] = useState("");
   const [hasChildren, setHasChildren] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const handleFinish = async () => {
+    if (!generation || hasChildren === null) return;
+    setLoading(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from("profiles")
+          .update({
+            generation,
+            has_children: hasChildren,
+            onboarding_completed: true,
+          })
+          .eq("user_id", user.id);
+      }
+      navigate("/");
+    } catch {
+      navigate("/");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-canvas flex flex-col overflow-hidden relative">
-      {/* MOTEUR DE BULLES NOSTALGIQUES */}
-      <div className="relative h-[38vh] w-full">
-        {/* On injecte des styles CSS pour booster la vitesse de BubbleCanvas uniquement ici */}
-        <style>{`
-          .portrait-canvas canvas {
-            filter: contrast(1.1) saturate(0.8); /* Look un peu plus argentique */
-          }
-          /* Animation de pulsation douce pour les bulles */
-          @keyframes subtle-pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-          }
-          .bubble-portrait { animation: subtle-pulse 4s ease-in-out infinite; }
-        `}</style>
+      <style>{`
+        .portrait-canvas canvas {
+          filter: contrast(1.1) saturate(0.8);
+        }
+        @keyframes subtle-pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        .bubble-portrait { animation: subtle-pulse 4s ease-in-out infinite; }
+      `}</style>
 
+      <div className="relative h-[38vh] w-full">
         <div className="portrait-canvas h-full w-full">
-          {/* Note: Si BubbleCanvas accepte des images en props, on les passe ici. 
-              Sinon, on utilise le rendu par défaut mais avec le style booster */}
           <BubbleCanvas onBubbleClick={() => {}} />
         </div>
-
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#FDFCFB] pointer-events-none" />
       </div>
 
@@ -61,7 +68,6 @@ const Portrait = () => {
         <h1 className="text-3xl font-black text-center text-[#1A4D4D] mb-1 tracking-tight">A little bit about you</h1>
         <p className="text-center text-[#4A5568] text-xs mb-8 opacity-80">Personalizing your time capsule...</p>
 
-        {/* Grille de générations épurée */}
         <div className="grid grid-cols-2 gap-3 mb-8">
           {GENERATIONS.map((gen) => (
             <button
@@ -78,7 +84,6 @@ const Portrait = () => {
           ))}
         </div>
 
-        {/* Question Famille */}
         <div className="mb-8 text-center">
           <p className="text-[#1A4D4D] text-sm font-black mb-4 uppercase tracking-widest opacity-70">Family Circle</p>
           <div className="flex gap-10 justify-center">
@@ -104,15 +109,16 @@ const Portrait = () => {
         <div className="flex-1" />
 
         <button
-          onClick={() => navigate("/")}
-          disabled={!generation || hasChildren === null}
-          className="w-full py-4 rounded-full gradient-orange text-white font-black text-lg shadow-2xl mb-10 transform transition-all active:scale-95 disabled:opacity-20"
+          onClick={handleFinish}
+          disabled={!generation || hasChildren === null || loading}
+          className="w-full py-4 rounded-full bg-[#F97316] text-white font-black text-lg shadow-2xl mb-10 transform transition-all active:scale-95 disabled:opacity-20"
         >
-          Create my story
+          {loading ? "Creating..." : "Create my story"}
         </button>
       </div>
     </div>
   );
 };
 
+// LA LIGNE MANQUANTE ÉTAIT ICI :
 export default Portrait;
