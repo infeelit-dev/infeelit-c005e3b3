@@ -2,16 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-// IMPORT DES IMAGES QUI MARCHENT (Récupérées de ton BubbleCanvas)
-import bokehWarmWindow from "@/assets/bokeh-warm-window.jpg";
-import bokehOldTree from "@/assets/bokeh-old-tree.jpg";
-import bokehSunset from "@/assets/bokeh-sunset.jpg";
-import bokehFamily from "@/assets/bokeh-family.jpg";
-import bokehMusic from "@/assets/bokeh-music.jpg";
-import bokehHorizon from "@/assets/bokeh-horizon.jpg";
-import bokehGarden from "@/assets/bokeh-garden.jpg";
-import bokehRain from "@/assets/bokeh-rain.jpg";
-
 const GENERATIONS = [
   "Silent Generation",
   "Baby Boomers",
@@ -21,18 +11,18 @@ const GENERATIONS = [
   "Generation Alpha",
 ];
 
-// On crée une liste de 10 bulles en utilisant tes images sûres
-const SAFE_IMAGES = [
-  bokehFamily,
-  bokehMusic,
-  bokehWarmWindow,
-  bokehSunset,
-  bokehOldTree,
-  bokehHorizon,
-  bokehGarden,
-  bokehRain,
-  bokehFamily,
-  bokehSunset, // On répète les deux plus belles pour arriver à 10
+// 10 IMAGES ULTRA-RÉALISTES ET FIABLES (Zéro flou, Zéro coucher de soleil)
+const LIFE_IMAGES = [
+  "https://cdn.pixabay.com/photo/2016/11/29/03/36/baby-1867104_1280.jpg", // Pieds de bébé
+  "https://cdn.pixabay.com/photo/2017/08/02/00/49/people-2569234_1280.jpg", // Mains qui se tiennent
+  "https://cdn.pixabay.com/photo/2015/03/15/13/59/grave-674443_1280.jpg", // Enfant rit aux éclats
+  "https://cdn.pixabay.com/photo/2016/11/23/18/12/couple-1854148_1280.jpg", // Vieux couple
+  "https://cdn.pixabay.com/photo/2014/11/26/15/20/girl-546419_1280.jpg", // Enfant lit
+  "https://cdn.pixabay.com/photo/2017/09/26/22/02/family-2790246_1280.jpg", // Repas de famille
+  "https://cdn.pixabay.com/photo/2015/07/31/15/07/people-869213_1280.jpg", // Groupe d'amis
+  "https://cdn.pixabay.com/photo/2016/11/29/05/03/adult-1867451_1280.jpg", // Personne âgée
+  "https://cdn.pixabay.com/photo/2017/08/07/20/12/children-2607361_1280.jpg", // Enfants jouent
+  "https://cdn.pixabay.com/photo/2014/11/02/21/53/father-and-son-514518_1280.jpg", // Père et fils
 ];
 
 const Portrait = () => {
@@ -68,19 +58,19 @@ const Portrait = () => {
         .o-10 { animation: orbit-10 20s ease-in-out infinite; }
       `}</style>
 
-      {/* ZONE DE NUÉE AVEC TES IMAGES SÛRES */}
-      <div className="relative h-[46vh] w-full pt-4">
-        {SAFE_IMAGES.map((img, i) => {
-          const size = `clamp(55px, ${10 + i}vw, 115px)`;
+      {/* ZONE DE NUÉE AVEC DE LA VRAIE VIE */}
+      <div className="relative h-[48vh] w-full pt-4">
+        {LIFE_IMAGES.map((img, i) => {
+          const size = `clamp(55px, ${11 + i}vw, 120px)`;
           return (
             <div
               key={i}
-              className={`absolute rounded-full border-2 border-white/90 shadow-2xl overflow-hidden o-${i + 1}`}
+              className={`absolute rounded-full border border-white/80 shadow-2xl overflow-hidden o-${i + 1} bg-[#F1F5F9]`}
               style={{
                 width: size,
                 height: size,
-                top: `${12 + Math.random() * 48}%`,
-                left: `${2 + i * 10}%`, // Espacement horizontal parfait
+                top: `${10 + Math.random() * 55}%`,
+                left: `${2 + i * 10.5}%`,
                 zIndex: 10 + i,
               }}
             >
@@ -88,10 +78,10 @@ const Portrait = () => {
             </div>
           );
         })}
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/95 to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/95 to-transparent z-10 pointer-events-none" />
       </div>
 
-      <div className="px-6 flex flex-col flex-1 z-20 -mt-10 bg-[#FDFCFB]/85 backdrop-blur-xl pt-10 rounded-t-[50px] shadow-2xl">
+      <div className="px-6 flex flex-col flex-1 z-20 -mt-12 bg-[#FDFCFB]/85 backdrop-blur-xl pt-10 rounded-t-[50px] shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
         <h1 className="text-3xl font-black text-center text-[#1A4D4D] mb-1 tracking-tighter">A little bit about you</h1>
         <p className="text-center text-[#4A5568] text-[10px] mb-8 font-bold uppercase tracking-widest opacity-60">
           Personalizing your legacy journey...
@@ -102,9 +92,9 @@ const Portrait = () => {
             <button
               key={gen}
               onClick={() => setGeneration(gen)}
-              className={`px-3 py-4 rounded-2xl transition-all text-[11px] font-bold border ${
+              className={`px-3 py-4 rounded-2xl transition-all text-[11px] font-bold borderbackdrop-blur-md ${
                 generation === gen
-                  ? "bg-white border-[#F97316] text-[#F97316] shadow-xl"
+                  ? "bg-white border-[#F97316] text-[#F97316] shadow-xl scale-[1.02]"
                   : "bg-white/40 border-white/40 text-[#1A4D4D]/70 hover:bg-white/60"
               }`}
             >
@@ -125,7 +115,7 @@ const Portrait = () => {
               <button
                 key={opt.label}
                 onClick={() => setHasChildren(opt.value)}
-                className={`w-14 h-14 rounded-full flex items-center justify-center text-xs font-black border-2 transition-all ${
+                className={`w-14 h-14 rounded-full flex items-center justify-center text-xs font-black border-2 transition-all backdrop-blur-lg ${
                   hasChildren === opt.value
                     ? "bg-[#F97316] border-[#F97316] text-white shadow-lg scale-110"
                     : "bg-white/40 border-white/50 text-[#1A4D4D]/60 shadow-sm"
