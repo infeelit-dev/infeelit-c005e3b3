@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-// IMPORTS DES 10 IMAGES RÉELLES (Stockées dans tes assets)
+// IMPORTS DE TES 10 IMAGES RÉELLES DANS ASSETS
 import imgRelax from "@/assets/relax.jpg";
 import imgTravel from "@/assets/travel.jpg";
 import imgPicnic from "@/assets/picnic.jpg";
@@ -14,16 +14,6 @@ import imgGraduate from "@/assets/graduate.jpg";
 import imgChild from "@/assets/child.jpg";
 import imgBirth from "@/assets/birth.jpg";
 
-const GENERATIONS = [
-  "Silent Generation",
-  "Baby Boomers",
-  "Generation X",
-  "Millennials",
-  "Generation Z",
-  "Generation Alpha",
-];
-
-// Création de la liste des 10 sources d'images réelles
 const LIFE_IMAGES = [
   imgBirth,
   imgChild,
@@ -37,117 +27,157 @@ const LIFE_IMAGES = [
   imgRelax,
 ];
 
+const STEPS = [
+  {
+    id: "era",
+    title: "When did your story begin?",
+    options: [
+      { label: "Silent Generation", sub: "The keepers of unseen memories." },
+      { label: "Baby Boomers", sub: "Witnesses of the great transformation." },
+      { label: "Generation X", sub: "The bridge between two eras." },
+      { label: "Millennials", sub: "Architects of a changing world." },
+      { label: "Gen Z", sub: "Digital souls, infinite voices." },
+      { label: "Gen Alpha", sub: "The first page of a new book." },
+    ],
+  },
+  {
+    id: "audience",
+    title: "Who are you writing for?",
+    options: [
+      { label: "To those who follow", sub: "My children & the ones carrying my name." },
+      { label: "To those who came before", sub: "My parents & the voices I want to find again." },
+      { label: "To my own soul", sub: "I need to understand my path." },
+      { label: "To everyone I love", sub: "My story belongs to the world." },
+    ],
+  },
+  {
+    id: "priority",
+    title: "What is your heart's priority?",
+    options: [
+      { label: "A voice I'm afraid to lose", sub: "Capture a story before it fades." },
+      { label: "A legacy already gone", sub: "Bring back the ones who live inside me." },
+      { label: "My own truth", sub: "Decipher who I am and where I come from." },
+      { label: "A lesson to pass on", sub: "I know something that must survive me." },
+    ],
+  },
+];
+
 const Portrait = () => {
   const navigate = useNavigate();
-  const [generation, setGeneration] = useState("");
-  const [hasChildren, setHasChildren] = useState<boolean | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const handleSelect = async (value: string) => {
+    const newAnswers = { ...answers, [STEPS[currentStep].id]: value };
+    setAnswers(newAnswers);
+
+    if (currentStep < STEPS.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      setLoading(true);
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          await supabase
+            .from("profiles")
+            .update({
+              generation: newAnswers.era,
+              onboarding_completed: true,
+              // On pourra ajouter d'autres colonnes dans Supabase pour audience et priority si besoin
+            })
+            .eq("user_id", user.id);
+        }
+        navigate("/feed");
+      } catch (error) {
+        navigate("/feed");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen gradient-canvas flex flex-col overflow-hidden relative bg-[#FDFCFB]">
-      <style>{`
-        /* TES 10 ANIMATIONS ORBITALES PARFAITES (ON NE TOUCHE RIEN) */
-        @keyframes orbit-1 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(50px, -70px); } }
-        @keyframes orbit-2 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-60px, -40px); } }
-        @keyframes orbit-3 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(40px, -90px); } }
-        @keyframes orbit-4 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-30px, -50px); } }
-        @keyframes orbit-5 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(70px, -30px); } }
-        @keyframes orbit-6 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-45px, -80px); } }
-        @keyframes orbit-7 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(25px, -65px); } }
-        @keyframes orbit-8 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-55px, -25px); } }
-        @keyframes orbit-10 { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-10px, -75px); } }
-
-        .o-1 { animation: orbit-1 15s ease-in-out infinite; }
-        .o-2 { animation: orbit-2 18s ease-in-out infinite; }
-        .o-3 { animation: orbit-3 14s ease-in-out infinite; }
-        .o-4 { animation: orbit-4 21s ease-in-out infinite; }
-        .o-5 { animation: orbit-5 16s ease-in-out infinite; }
-        .o-6 { animation: orbit-6 19s ease-in-out infinite; }
-        .o-7 { animation: orbit-7 13s ease-in-out infinite; }
-        .o-8 { animation: orbit-8 22s ease-in-out infinite; }
-        .o-10 { animation: orbit-10 20s ease-in-out infinite; }
-      `}</style>
-
-      {/* ZONE DE NUÉE AVEC TES IMAGES RÉELLES (Positions et tailles d'origine) */}
-      <div className="relative h-[48vh] w-full pt-4">
-        {LIFE_IMAGES.map((img, i) => {
-          const size = `clamp(55px, ${10 + i}vw, 115px)`;
-          return (
-            <div
-              key={i}
-              className={`absolute rounded-full border-2 border-white/90 shadow-2xl overflow-hidden o-${i + 1} bg-[#F1F5F9]`}
-              style={{
-                width: size,
-                height: size,
-                top: `${12 + Math.random() * 48}%`,
-                left: `${2 + i * 10}%`, // Espacement horizontal parfait (10%)
-                zIndex: 10 + i,
-              }}
-            >
-              <img src={img} className="w-full h-full object-cover shadow-inner grayscale-[5%]" alt="" />
-            </div>
-          );
-        })}
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/95 to-transparent z-10 pointer-events-none" />
+      {/* 1. ZONE DES BULLES (Mouvement orbital indépendant préservé) */}
+      <div className="relative h-[32vh] w-full pt-4 opacity-70 pointer-events-none">
+        <style>{`
+          @keyframes orbit-float { 
+            0%, 100% { transform: translate(0,0); } 
+            50% { transform: translate(30px, -50px); } 
+          }
+          .o-bubble { animation: orbit-float 20s ease-in-out infinite; }
+        `}</style>
+        {LIFE_IMAGES.map((img, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full border-2 border-white/80 shadow-2xl overflow-hidden o-bubble bg-[#F1F5F9]"
+            style={{
+              width: `clamp(55px, ${10 + i}vw, 100px)`,
+              height: `clamp(55px, ${10 + i}vw, 100px)`,
+              top: `${10 + Math.random() * 45}%`,
+              left: `${2 + i * 10}%`,
+              animationDelay: `${i * -3}s`,
+              zIndex: 10 + i,
+            }}
+          >
+            <img src={img} className="w-full h-full object-cover grayscale-[5%]" alt="" />
+          </div>
+        ))}
       </div>
 
-      <div className="px-6 flex flex-col flex-1 z-20 -mt-10 bg-[#FDFCFB]/85 backdrop-blur-xl pt-10 rounded-t-[50px] shadow-2xl">
-        <h1 className="text-3xl font-black text-center text-[#1A4D4D] mb-1 tracking-tighter">A little bit about you</h1>
-        <p className="text-center text-[#4A5568] text-[10px] mb-8 font-bold uppercase tracking-widest opacity-60">
-          Personalizing your legacy journey...
-        </p>
+      {/* 2. LE QUESTIONNAIRE ÉMOTIONNEL */}
+      <div className="px-6 flex flex-col flex-1 z-20 -mt-6 bg-[#FDFCFB]/90 backdrop-blur-3xl pt-8 rounded-t-[50px] shadow-[0_-15px_40px_-15px_rgba(0,0,0,0.1)]">
+        <h2 className="text-[10px] font-black text-center text-[#F97316] uppercase tracking-[0.4em] mb-2 opacity-60">
+          Infeelit Journey
+        </h2>
+        <h1 className="text-3xl font-black text-center text-[#1A4D4D] mb-6 tracking-tight">Who is speaking today?</h1>
 
-        {/* Grille de générations (D'origine) */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
-          {GENERATIONS.map((gen) => (
-            <button
-              key={gen}
-              onClick={() => setGeneration(gen)}
-              className={`px-3 py-4 rounded-2xl transition-all text-[11px] font-bold border ${
-                generation === gen
-                  ? "bg-white border-[#F97316] text-[#F97316] shadow-xl scale-[1.02]"
-                  : "bg-white/40 border-white/40 text-[#1A4D4D]/70 hover:bg-white/60"
+        {/* Barre de progression */}
+        <div className="flex gap-2 justify-center mb-8">
+          {STEPS.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                i === currentStep ? "w-12 bg-[#F97316]" : "w-3 bg-[#1A4D4D]/10"
               }`}
-            >
-              {gen}
-            </button>
+            />
           ))}
         </div>
 
-        {/* Question Famille (D'origine) */}
-        <div className="mb-8 text-center">
-          <p className="text-[#1A4D4D] text-[10px] font-black mb-4 uppercase tracking-[0.3em] opacity-50">
-            Family Circle
-          </p>
-          <div className="flex gap-12 justify-center">
-            {[
-              { label: "Yes", value: true },
-              { label: "No", value: false },
-            ].map((opt) => (
+        {/* Question et Options */}
+        <div className="flex flex-col flex-1 max-w-md mx-auto w-full">
+          <p className="text-[#1A4D4D] text-lg font-bold text-center mb-8 px-4">{STEPS[currentStep].title}</p>
+
+          <div className="space-y-3 pb-8">
+            {STEPS[currentStep].options.map((opt) => (
               <button
                 key={opt.label}
-                onClick={() => setHasChildren(opt.value)}
-                className={`w-14 h-14 rounded-full flex items-center justify-center text-xs font-black border-2 transition-all ${
-                  hasChildren === opt.value
-                    ? "bg-[#F97316] border-[#F97316] text-white shadow-lg scale-110"
-                    : "bg-white/40 border-white/50 text-[#1A4D4D]/60 shadow-sm"
-                }`}
+                onClick={() => handleSelect(opt.label)}
+                disabled={loading}
+                className="w-full p-5 rounded-[24px] bg-white border border-white/60 shadow-sm hover:shadow-md hover:border-[#F97316]/40 hover:bg-white transition-all text-left group active:scale-[0.98] disabled:opacity-50"
               >
-                {opt.label}
+                <div className="text-[12px] font-black text-[#1A4D4D] group-hover:text-[#F97316] transition-colors uppercase tracking-widest">
+                  {opt.label}
+                </div>
+                <div className="text-[10px] text-[#4A5568] opacity-60 font-medium italic mt-1">{opt.sub}</div>
               </button>
             ))}
           </div>
+
+          <div className="mt-auto pb-8 flex justify-center">
+            {currentStep > 0 && (
+              <button
+                onClick={() => setCurrentStep(currentStep - 1)}
+                className="text-[10px] font-black text-[#1A4D4D]/30 uppercase tracking-[0.3em] hover:text-[#1A4D4D] transition-colors"
+              >
+                ← Previous
+              </button>
+            )}
+          </div>
         </div>
-
-        <div className="flex-1" />
-
-        <button
-          onClick={() => navigate("/")}
-          disabled={!generation || hasChildren === null}
-          className="w-full py-5 rounded-full bg-[#F97316] text-white font-black text-lg shadow-2xl mb-10 active:scale-95 transition-all disabled:opacity-20"
-        >
-          Create my story
-        </button>
       </div>
     </div>
   );
