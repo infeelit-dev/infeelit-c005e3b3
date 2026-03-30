@@ -72,10 +72,18 @@ const Portrait = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  const handleNext = async () => {
-    if (!selectedOption) return;
+  const handleSelect = (value: string) => {
+    setSelectedOption(value); // Feedback visuel instantané (Violet/Orange)
 
-    const newAnswers = { ...answers, [STEPS[currentStep].id]: selectedOption };
+    // Délai de 400ms pour que l'utilisateur voie sa sélection avant de passer au step suivant
+    setTimeout(() => {
+      handleNext(value);
+    }, 400);
+  };
+
+  const handleNext = async (value: string) => {
+    if (!value) return;
+    const newAnswers = { ...answers, [STEPS[currentStep].id]: value };
     setAnswers(newAnswers);
     setSelectedOption(null);
 
@@ -107,8 +115,8 @@ const Portrait = () => {
 
   return (
     <div className="min-h-screen gradient-canvas flex flex-col overflow-hidden relative bg-[#FDFCFB]">
-      {/* 1. ZONE DES BULLES COMPACTE (20vh) */}
-      <div className="relative h-[18vh] w-full pt-1 opacity-40 pointer-events-none">
+      {/* 1. ZONE DES BULLES (Hauteur optimisée pour éviter le scroll) */}
+      <div className="relative h-[22vh] w-full pt-1 opacity-50 pointer-events-none">
         <style>{`
           @keyframes orbit-float { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(15px, -20px); } }
           .o-bubble { animation: orbit-float 22s ease-in-out infinite; }
@@ -116,24 +124,24 @@ const Portrait = () => {
         {LIFE_IMAGES.map((img, i) => (
           <div
             key={i}
-            className="absolute rounded-full border border-white/40 shadow-sm overflow-hidden o-bubble bg-[#F1F5F9]"
+            className="absolute rounded-full border border-white/60 shadow-lg overflow-hidden o-bubble bg-[#F1F5F9]"
             style={{
-              width: `clamp(40px, ${7 + i}vw, 70px)`,
-              height: `clamp(40px, ${7 + i}vw, 70px)`,
-              top: `${2 + Math.random() * 20}%`,
+              width: `clamp(40px, ${7 + i}vw, 75px)`,
+              height: `clamp(40px, ${7 + i}vw, 75px)`,
+              top: `${5 + Math.random() * 25}%`,
               left: `${2 + i * 10}%`,
               animationDelay: `${i * -3.5}s`,
               zIndex: 10 + i,
             }}
           >
-            <img src={img} className="w-full h-full object-cover grayscale-[15%]" alt="" />
+            <img src={img} className="w-full h-full object-cover grayscale-[5%]" alt="" />
           </div>
         ))}
       </div>
 
       {/* 2. LE QUESTIONNAIRE COMPACT */}
-      <div className="px-6 flex flex-col flex-1 z-20 -mt-4 bg-[#FDFCFB]/98 backdrop-blur-3xl pt-5 rounded-t-[40px] shadow-2xl relative">
-        <p className="text-[9px] font-black text-center text-[#F97316] uppercase tracking-[0.3em] mb-1">
+      <div className="px-6 flex flex-col flex-1 z-20 -mt-4 bg-[#FDFCFB]/95 backdrop-blur-3xl pt-6 rounded-t-[45px] shadow-[0_-15px_40px_-15px_rgba(0,0,0,0.1)] relative">
+        <p className="text-[10px] font-black text-center text-[#F97316] uppercase tracking-[0.3em] mb-1">
           {STEPS[currentStep].stepLabel} — Step {currentStep + 1} of 3
         </p>
 
@@ -141,40 +149,40 @@ const Portrait = () => {
           Who is speaking today?
         </h1>
 
-        {/* Barre de progression */}
-        <div className="flex gap-1 justify-center mb-4">
+        {/* Barre de progression resserrée */}
+        <div className="flex gap-1.5 justify-center mb-6">
           {STEPS.map((_, i) => (
             <div
               key={i}
-              className={`h-1 rounded-full transition-all duration-500 ${i === currentStep ? "w-8 bg-[#F97316]" : "w-2 bg-[#1A4D4D]/10"}`}
+              className={`h-1 rounded-full transition-all duration-500 ${i === currentStep ? "w-10 bg-[#F97316]" : "w-2 bg-[#1A4D4D]/10"}`}
             />
           ))}
         </div>
 
         <div className="flex flex-col flex-1 w-full max-w-sm mx-auto">
-          <p className="text-[#1A4D4D] text-[15px] font-bold text-center mb-4 opacity-80 leading-tight">
+          <p className="text-[#1A4D4D] text-md font-bold text-center mb-5 px-4 opacity-90 leading-tight">
             {STEPS[currentStep].title}
           </p>
 
-          {/* Liste des options (Padding 12px / État Violet & Orange) */}
-          <div className="space-y-1.5 pb-32">
+          {/* Liste des options (Feedback Instantané Violet & Orange) */}
+          <div className="space-y-2 pb-28">
             {STEPS[currentStep].options.map((opt) => (
               <button
                 key={opt.label}
-                onClick={() => setSelectedOption(opt.label)}
-                className={`w-full p-3 px-4 rounded-[16px] transition-all text-left border-l-[4px] border-y border-r ${
+                onClick={() => handleSelect(opt.label)}
+                className={`w-full p-3.5 rounded-[20px] transition-all text-left border-l-[3px] border-y border-r shadow-sm ${
                   selectedOption === opt.label
-                    ? "bg-[#6B4E9B] border-l-[#F97316] border-[#6B4E9B] shadow-lg translate-x-1"
-                    : "bg-white border-white/60 border-l-transparent shadow-sm"
+                    ? "bg-[#F5F0FF] border-l-[#F97316] border-y-[#F5F0FF] border-r-[#F5F0FF] scale-[1.01]"
+                    : "bg-white border-white/60 hover:border-[#F97316]/30"
                 }`}
               >
                 <div
-                  className={`text-[11px] font-black uppercase tracking-wider ${selectedOption === opt.label ? "text-white" : "text-[#1A4D4D]"}`}
+                  className={`text-[11px] font-black uppercase tracking-wider ${selectedOption === opt.label ? "text-[#6B4E9B]" : "text-[#1A4D4D]"}`}
                 >
                   {opt.label}
                 </div>
                 <div
-                  className={`text-[9px] font-medium italic ${selectedOption === opt.label ? "text-white/70" : "text-[#4A5568] opacity-60"}`}
+                  className={`text-[9px] font-medium italic mt-0.5 ${selectedOption === opt.label ? "text-[#6B4E9B]/80" : "text-[#4A5568] opacity-60"}`}
                 >
                   {opt.sub}
                 </div>
@@ -182,15 +190,15 @@ const Portrait = () => {
             ))}
           </div>
 
-          {/* BOUTON FIXE CONTINUE */}
+          {/* BOUTON FIXE CONTINUE (Amélioré Gris Foncé vs Orange) */}
           <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB] to-transparent pt-10 flex flex-col items-center">
             <button
-              onClick={handleNext}
+              onClick={() => handleNext(selectedOption!)}
               disabled={!selectedOption || loading}
               className={`w-full py-4 rounded-full font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 ${
                 selectedOption
                   ? "bg-[#F97316] text-white opacity-100"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                  : "bg-gray-300 text-white cursor-not-allowed shadow-none"
               }`}
             >
               {loading ? "Saving..." : "Continue →"}
@@ -202,9 +210,9 @@ const Portrait = () => {
                   setCurrentStep(currentStep - 1);
                   setSelectedOption(null);
                 }}
-                className="mt-4 text-[9px] font-black text-[#1A4D4D]/30 uppercase tracking-[0.2em] hover:text-[#1A4D4D]"
+                className="mt-4 text-[9px] font-black text-[#1A4D4D]/30 uppercase tracking-[0.3em] hover:text-[#F97316] transition-colors"
               >
-                ← Previous step
+                ← Back
               </button>
             )}
           </div>
