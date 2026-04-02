@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check } from "lucide-react"; // Import pour la coche de validation
+import { Check } from "lucide-react";
 
-// Tes 10 images réelles
+// Assets
 import imgRelax from "@/assets/relax.jpg";
 import imgTravel from "@/assets/travel.jpg";
 import imgPicnic from "@/assets/picnic.jpg";
@@ -75,6 +75,7 @@ const Portrait = () => {
 
   const handleNext = async () => {
     if (!selectedOption) return;
+
     const newAnswers = { ...answers, [STEPS[currentStep].id]: selectedOption };
     setAnswers(newAnswers);
     setSelectedOption(null);
@@ -96,9 +97,11 @@ const Portrait = () => {
             })
             .eq("user_id", user.id);
         }
-        navigate("/feed");
-      } catch {
-        navigate("/feed");
+        // REDIRECTION VERS LA PAGE LOADING
+        navigate("/loading");
+      } catch (error) {
+        console.error("Error saving profile:", error);
+        navigate("/loading");
       } finally {
         setLoading(false);
       }
@@ -144,7 +147,6 @@ const Portrait = () => {
           Who is speaking today?
         </h1>
 
-        {/* Indicateur de progression (Points 10px / Orange Actif) */}
         <div className="flex gap-2 justify-center mb-5">
           {STEPS.map((_, i) => (
             <div
@@ -155,12 +157,10 @@ const Portrait = () => {
         </div>
 
         <div className="flex flex-col flex-1 w-full max-w-sm mx-auto">
-          {/* Sous-titre #6B7280 pour lisibilité solaire */}
           <p className="text-[#6B7280] text-[15px] font-bold text-center mb-5 leading-tight">
             {STEPS[currentStep].title}
           </p>
 
-          {/* Liste des options (Hauteur 60px / État Sélectionné Violet & Orange + Coche) */}
           <div className="space-y-2 pb-32">
             {STEPS[currentStep].options.map((opt) => (
               <button
@@ -169,7 +169,7 @@ const Portrait = () => {
                 className={`w-full min-h-[60px] px-5 py-3 rounded-[20px] transition-all text-left border-l-[4px] border-y border-r flex items-center justify-between ${
                   selectedOption === opt.label
                     ? "bg-[#F0EBF8] border-l-[#E8742A] border-y-[#F0EBF8] border-r-[#F0EBF8] shadow-md translate-x-1"
-                    : "bg-white border-white/80 border-l-transparent shadow-sm"
+                    : "bg-white border-white/80 border-l-transparent shadow-sm active:bg-gray-50"
                 }`}
               >
                 <div>
@@ -189,7 +189,6 @@ const Portrait = () => {
             ))}
           </div>
 
-          {/* BOUTON FIXE CONTINUE (Gris #9CA3AF vs Orange #E8742A) */}
           <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB] to-transparent pt-10 flex flex-col items-center">
             <button
               onClick={handleNext}
