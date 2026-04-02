@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Check } from "lucide-react"; // Import pour la coche de validation
 
 // Tes 10 images réelles
 import imgRelax from "@/assets/relax.jpg";
@@ -46,8 +47,8 @@ const STEPS = [
     stepLabel: "Audience",
     title: "Who are you writing for?",
     options: [
-      { label: "To those who follow", sub: "My children & the ones carrying my name." },
-      { label: "To those who came before", sub: "My parents & the voices I want to find again." },
+      { label: "To those who follow", sub: "My children & those carrying my name." },
+      { label: "To those who came before", sub: "My parents & the voices I want to find." },
       { label: "To my own soul", sub: "I need to understand my path." },
       { label: "To everyone I love", sub: "My story belongs to the world." },
     ],
@@ -72,18 +73,9 @@ const Portrait = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  const handleSelect = (value: string) => {
-    setSelectedOption(value); // Feedback visuel instantané (Violet/Orange)
-
-    // Délai de 400ms pour que l'utilisateur voie sa sélection avant de passer au step suivant
-    setTimeout(() => {
-      handleNext(value);
-    }, 400);
-  };
-
-  const handleNext = async (value: string) => {
-    if (!value) return;
-    const newAnswers = { ...answers, [STEPS[currentStep].id]: value };
+  const handleNext = async () => {
+    if (!selectedOption) return;
+    const newAnswers = { ...answers, [STEPS[currentStep].id]: selectedOption };
     setAnswers(newAnswers);
     setSelectedOption(null);
 
@@ -115,33 +107,36 @@ const Portrait = () => {
 
   return (
     <div className="min-h-screen gradient-canvas flex flex-col overflow-hidden relative bg-[#FDFCFB]">
-      {/* 1. ZONE DES BULLES (Hauteur optimisée pour éviter le scroll) */}
-      <div className="relative h-[22vh] w-full pt-1 opacity-50 pointer-events-none">
-        <style>{`
-          @keyframes orbit-float { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(15px, -20px); } }
-          .o-bubble { animation: orbit-float 22s ease-in-out infinite; }
-        `}</style>
+      <style>{`
+        @keyframes orbit-float { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(15px, -20px); } }
+        .o-bubble { animation: orbit-float 22s ease-in-out infinite; }
+        @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(232, 116, 42, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(232, 116, 42, 0); } 100% { box-shadow: 0 0 0 0 rgba(232, 116, 42, 0); } }
+        .pulse-active { animation: pulse-orange 2s infinite; }
+      `}</style>
+
+      {/* 1. ZONE DES BULLES COMPACTE */}
+      <div className="relative h-[18vh] w-full pt-1 opacity-40 pointer-events-none">
         {LIFE_IMAGES.map((img, i) => (
           <div
             key={i}
-            className="absolute rounded-full border border-white/60 shadow-lg overflow-hidden o-bubble bg-[#F1F5F9]"
+            className="absolute rounded-full border border-white/60 shadow-sm overflow-hidden o-bubble bg-[#F1F5F9]"
             style={{
-              width: `clamp(40px, ${7 + i}vw, 75px)`,
-              height: `clamp(40px, ${7 + i}vw, 75px)`,
-              top: `${5 + Math.random() * 25}%`,
+              width: `clamp(40px, ${7 + i}vw, 70px)`,
+              height: `clamp(40px, ${7 + i}vw, 70px)`,
+              top: `${2 + Math.random() * 20}%`,
               left: `${2 + i * 10}%`,
               animationDelay: `${i * -3.5}s`,
               zIndex: 10 + i,
             }}
           >
-            <img src={img} className="w-full h-full object-cover grayscale-[5%]" alt="" />
+            <img src={img} className="w-full h-full object-cover grayscale-[15%]" alt="" />
           </div>
         ))}
       </div>
 
-      {/* 2. LE QUESTIONNAIRE COMPACT */}
-      <div className="px-6 flex flex-col flex-1 z-20 -mt-4 bg-[#FDFCFB]/95 backdrop-blur-3xl pt-6 rounded-t-[45px] shadow-[0_-15px_40px_-15px_rgba(0,0,0,0.1)] relative">
-        <p className="text-[10px] font-black text-center text-[#F97316] uppercase tracking-[0.3em] mb-1">
+      {/* 2. LE QUESTIONNAIRE RÉACTIF */}
+      <div className="px-6 flex flex-col flex-1 z-20 -mt-4 bg-[#FDFCFB]/98 backdrop-blur-3xl pt-5 rounded-t-[40px] shadow-2xl relative">
+        <p className="text-[10px] font-black text-center text-[#E8742A] uppercase tracking-[0.3em] mb-1">
           {STEPS[currentStep].stepLabel} — Step {currentStep + 1} of 3
         </p>
 
@@ -149,56 +144,60 @@ const Portrait = () => {
           Who is speaking today?
         </h1>
 
-        {/* Barre de progression resserrée */}
-        <div className="flex gap-1.5 justify-center mb-6">
+        {/* Indicateur de progression (Points 10px / Orange Actif) */}
+        <div className="flex gap-2 justify-center mb-5">
           {STEPS.map((_, i) => (
             <div
               key={i}
-              className={`h-1 rounded-full transition-all duration-500 ${i === currentStep ? "w-10 bg-[#F97316]" : "w-2 bg-[#1A4D4D]/10"}`}
+              className={`h-[10px] rounded-full transition-all duration-500 ${i === currentStep ? "w-10 bg-[#E8742A]" : "w-[10px] bg-[#9CA3AF]/30"}`}
             />
           ))}
         </div>
 
         <div className="flex flex-col flex-1 w-full max-w-sm mx-auto">
-          <p className="text-[#1A4D4D] text-md font-bold text-center mb-5 px-4 opacity-90 leading-tight">
+          {/* Sous-titre #6B7280 pour lisibilité solaire */}
+          <p className="text-[#6B7280] text-[15px] font-bold text-center mb-5 leading-tight">
             {STEPS[currentStep].title}
           </p>
 
-          {/* Liste des options (Feedback Instantané Violet & Orange) */}
-          <div className="space-y-2 pb-28">
+          {/* Liste des options (Hauteur 60px / État Sélectionné Violet & Orange + Coche) */}
+          <div className="space-y-2 pb-32">
             {STEPS[currentStep].options.map((opt) => (
               <button
                 key={opt.label}
-                onClick={() => handleSelect(opt.label)}
-                className={`w-full p-3.5 rounded-[20px] transition-all text-left border-l-[3px] border-y border-r shadow-sm ${
+                onClick={() => setSelectedOption(opt.label)}
+                className={`w-full min-h-[60px] px-5 py-3 rounded-[20px] transition-all text-left border-l-[4px] border-y border-r flex items-center justify-between ${
                   selectedOption === opt.label
-                    ? "bg-[#F5F0FF] border-l-[#F97316] border-y-[#F5F0FF] border-r-[#F5F0FF] scale-[1.01]"
-                    : "bg-white border-white/60 hover:border-[#F97316]/30"
+                    ? "bg-[#F0EBF8] border-l-[#E8742A] border-y-[#F0EBF8] border-r-[#F0EBF8] shadow-md translate-x-1"
+                    : "bg-white border-white/80 border-l-transparent shadow-sm"
                 }`}
               >
-                <div
-                  className={`text-[11px] font-black uppercase tracking-wider ${selectedOption === opt.label ? "text-[#6B4E9B]" : "text-[#1A4D4D]"}`}
-                >
-                  {opt.label}
+                <div>
+                  <div
+                    className={`text-[11px] font-black uppercase tracking-wider ${selectedOption === opt.label ? "text-[#4A2D7A]" : "text-[#1A4D4D]"}`}
+                  >
+                    {opt.label}
+                  </div>
+                  <div
+                    className={`text-[9px] font-medium italic ${selectedOption === opt.label ? "text-[#4A2D7A]/70" : "text-[#4A5568] opacity-60"}`}
+                  >
+                    {opt.sub}
+                  </div>
                 </div>
-                <div
-                  className={`text-[9px] font-medium italic mt-0.5 ${selectedOption === opt.label ? "text-[#6B4E9B]/80" : "text-[#4A5568] opacity-60"}`}
-                >
-                  {opt.sub}
-                </div>
+                {selectedOption === opt.label && <Check className="w-5 h-5 text-[#E8742A]" />}
               </button>
             ))}
           </div>
 
-          {/* BOUTON FIXE CONTINUE (Amélioré Gris Foncé vs Orange) */}
+          {/* BOUTON FIXE CONTINUE (Gris #9CA3AF vs Orange #E8742A) */}
           <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB] to-transparent pt-10 flex flex-col items-center">
             <button
-              onClick={() => handleNext(selectedOption!)}
+              onClick={handleNext}
               disabled={!selectedOption || loading}
               className={`w-full py-4 rounded-full font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 ${
                 selectedOption
-                  ? "bg-[#F97316] text-white opacity-100"
-                  : "bg-gray-300 text-white cursor-not-allowed shadow-none"
+                  ? "bg-[#E8742A] text-white opacity-100 pulse-active"
+                  : "bg-[#9CA3AF] text-white cursor-not-allowed opacity-80"
               }`}
             >
               {loading ? "Saving..." : "Continue →"}
@@ -210,7 +209,7 @@ const Portrait = () => {
                   setCurrentStep(currentStep - 1);
                   setSelectedOption(null);
                 }}
-                className="mt-4 text-[9px] font-black text-[#1A4D4D]/30 uppercase tracking-[0.3em] hover:text-[#F97316] transition-colors"
+                className="mt-4 text-[9px] font-black text-[#1A4D4D]/40 uppercase tracking-[0.2em] hover:text-[#1A4D4D]"
               >
                 ← Back
               </button>
