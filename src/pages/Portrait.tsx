@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Check } from "lucide-react";
 
-// Assets
+// Tes 10 images réelles
 import imgRelax from "@/assets/relax.jpg";
 import imgTravel from "@/assets/travel.jpg";
 import imgPicnic from "@/assets/picnic.jpg";
@@ -64,6 +64,17 @@ const STEPS = [
       { label: "A lesson to pass on", sub: "I know something that must survive me." },
     ],
   },
+  {
+    id: "topics",
+    stepLabel: "Themes",
+    title: "Which part of your life glows brightest?",
+    options: [
+      { label: "Roots & Family", sub: "Ancestors, childhood homes, and traditions." },
+      { label: "Love & Bonds", sub: "Friendships, romance, and shared secrets." },
+      { label: "Work & Wisdom", sub: "Lessons learned through effort and career." },
+      { label: "Dreams & Travels", sub: "The places seen and the goals yet to reach." },
+    ],
+  },
 ];
 
 const Portrait = () => {
@@ -89,19 +100,21 @@ const Portrait = () => {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
+          // Sauvegarde des infos importantes dans Supabase
           await supabase
             .from("profiles")
             .update({
               generation: newAnswers.era,
               onboarding_completed: true,
+              // On pourrait aussi sauver 'topics' ou 'priority' ici si ta table le permet
             })
             .eq("user_id", user.id);
         }
-        // REDIRECTION VERS LA PAGE LOADING
+        // REDIRECTION VERS LA PAGE LOADING (Magie !)
         navigate("/loading");
       } catch (error) {
         console.error("Error saving profile:", error);
-        navigate("/loading");
+        navigate("/loading"); // On redirige quand même pour ne pas bloquer l'utilisateur
       } finally {
         setLoading(false);
       }
@@ -140,7 +153,7 @@ const Portrait = () => {
       {/* 2. LE QUESTIONNAIRE RÉACTIF */}
       <div className="px-6 flex flex-col flex-1 z-20 -mt-4 bg-[#FDFCFB]/98 backdrop-blur-3xl pt-5 rounded-t-[40px] shadow-2xl relative">
         <p className="text-[10px] font-black text-center text-[#E8742A] uppercase tracking-[0.3em] mb-1">
-          {STEPS[currentStep].stepLabel} — Step {currentStep + 1} of 3
+          {STEPS[currentStep].stepLabel} — Step {currentStep + 1} of {STEPS.length}
         </p>
 
         <h1 className="text-2xl font-black text-center text-[#1A4D4D] mb-4 tracking-tight leading-none">
@@ -157,7 +170,7 @@ const Portrait = () => {
         </div>
 
         <div className="flex flex-col flex-1 w-full max-w-sm mx-auto">
-          <p className="text-[#6B7280] text-[15px] font-bold text-center mb-5 leading-tight">
+          <p className="text-[#6B7280] text-[15px] font-bold text-center mb-5 leading-tight px-4">
             {STEPS[currentStep].title}
           </p>
 
@@ -169,7 +182,7 @@ const Portrait = () => {
                 className={`w-full min-h-[60px] px-5 py-3 rounded-[20px] transition-all text-left border-l-[4px] border-y border-r flex items-center justify-between ${
                   selectedOption === opt.label
                     ? "bg-[#F0EBF8] border-l-[#E8742A] border-y-[#F0EBF8] border-r-[#F0EBF8] shadow-md translate-x-1"
-                    : "bg-white border-white/80 border-l-transparent shadow-sm active:bg-gray-50"
+                    : "bg-white border-white/80 border-l-transparent shadow-sm active:bg-gray-50 hover:border-[#E8742A]/20"
                 }`}
               >
                 <div>
@@ -208,7 +221,7 @@ const Portrait = () => {
                   setCurrentStep(currentStep - 1);
                   setSelectedOption(null);
                 }}
-                className="mt-4 text-[9px] font-black text-[#1A4D4D]/40 uppercase tracking-[0.2em] hover:text-[#1A4D4D]"
+                className="mt-4 text-[9px] font-black text-[#1A4D4D]/40 uppercase tracking-[0.2em] hover:text-[#E8742A]"
               >
                 ← Back
               </button>
