@@ -40,6 +40,7 @@ const App = () => (
           {/* Nouvelles routes Infeelit */}
           <Route path="/loading" element={<Loading />} />
           <Route path="/about" element={<About />} />
+          <Route path="/record" element={<Record />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
