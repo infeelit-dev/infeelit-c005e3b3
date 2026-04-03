@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 // Nouvelles pages ajoutées
 import Loading from "./pages/Loading";
 import About from "./pages/About";
+import Record from "./pages/Record";
 
 const queryClient = new QueryClient();
 
