@@ -18,11 +18,13 @@ const FamilyIdentity = () => {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        // TODO: Re-enable redirect after UI tweaks
-        // if (!user) {
-        //   navigate("/welcome", { replace: true });
-        //   return;
-        // }
+
+        // Sécurité — redirect si non connecté
+        if (!user) {
+          navigate("/welcome", { replace: true });
+          return;
+        }
+
         const meta = user?.user_metadata ?? {};
         if (meta.full_name) {
           const parts = meta.full_name.split(" ");
@@ -45,17 +47,16 @@ const FamilyIdentity = () => {
     if (!canContinue) return;
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const displayName = `${firstName.trim()} ${lastName.trim()}`;
-        await supabase
-          .from("profiles")
-          .update({ display_name: displayName })
-          .eq("user_id", user.id);
+        await supabase.from("profiles").update({ display_name: displayName }).eq("user_id", user.id);
       }
-      navigate("/dashboard", { replace: true });
+      navigate("/portrait", { replace: true });
     } catch {
-      navigate("/dashboard", { replace: true });
+      navigate("/portrait", { replace: true });
     } finally {
       setLoading(false);
     }
@@ -73,33 +74,34 @@ const FamilyIdentity = () => {
   const hasLast = lastName.length > 0;
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden" style={{ backgroundColor: "#FAF8F6" }}>
-      {/* Ethereal corner clouds — matching signup */}
+    <div
+      className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden"
+      style={{ backgroundColor: "#FAF8F6" }}
+    >
+      {/* Background blurs */}
       <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
-        {/* Logo — large, centered, 40px top padding */}
-        <div className="pt-10 w-full flex justify-center">
-          <img
-            src={infeelit}
-            alt="Infeelit"
-            className="w-[350px] h-auto object-contain"
-            style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
-          />
-        </div>
+        {/* Logo — taille corrigée */}
+        <img
+          src={infeelit}
+          alt="Infeelit"
+          className="w-[220px] h-auto object-contain mx-auto mb-8"
+          style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
+        />
 
-        {/* Title — 32px below logo */}
+        {/* Title */}
         <h1
-          className="text-4xl font-semibold text-center mt-8 mb-1"
+          className="text-3xl font-semibold text-center mb-2"
           style={{ fontFamily: "'Inter', sans-serif", color: "#1A3B47" }}
         >
           Tell us your name
         </h1>
 
-        {/* Subtitle — tight 16px below title */}
+        {/* Subtitle */}
         <p
-          className="text-center text-base font-medium mb-6 max-w-xs mx-auto leading-relaxed"
+          className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed"
           style={{ color: "#1A1A1A" }}
         >
           Your circle will know you by this name.
@@ -107,7 +109,7 @@ const FamilyIdentity = () => {
           Begin your story here.
         </p>
 
-        {/* First Name — frosted glass pill, matching signup phone input */}
+        {/* First Name */}
         <div
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center mb-3 ${
             firstFocused
@@ -115,11 +117,13 @@ const FamilyIdentity = () => {
               : "border-white/40 bg-white/80"
           }`}
         >
-          <span className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
-            hasFirst || firstFocused
-              ? "top-1.5 text-[10px] font-bold text-secondary"
-              : "top-4 text-base text-muted-foreground"
-          }`}>
+          <span
+            className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
+              hasFirst || firstFocused
+                ? "top-1.5 text-[10px] font-bold text-secondary"
+                : "top-4 text-base text-muted-foreground"
+            }`}
+          >
             First Name
           </span>
           <input
@@ -128,11 +132,13 @@ const FamilyIdentity = () => {
             onFocus={() => setFirstFocused(true)}
             onBlur={() => setFirstFocused(false)}
             onChange={(e) => setFirstName(e.target.value)}
-            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${hasFirst || firstFocused ? "pt-3" : "pt-0"}`}
+            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${
+              hasFirst || firstFocused ? "pt-3" : "pt-0"
+            }`}
           />
         </div>
 
-        {/* Last Name — frosted glass pill, matching signup phone input */}
+        {/* Last Name */}
         <div
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
             lastFocused
@@ -140,11 +146,13 @@ const FamilyIdentity = () => {
               : "border-white/40 bg-white/80"
           }`}
         >
-          <span className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
-            hasLast || lastFocused
-              ? "top-1.5 text-[10px] font-bold text-secondary"
-              : "top-4 text-base text-muted-foreground"
-          }`}>
+          <span
+            className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
+              hasLast || lastFocused
+                ? "top-1.5 text-[10px] font-bold text-secondary"
+                : "top-4 text-base text-muted-foreground"
+            }`}
+          >
             Last Name
           </span>
           <input
@@ -153,17 +161,19 @@ const FamilyIdentity = () => {
             onFocus={() => setLastFocused(true)}
             onBlur={() => setLastFocused(false)}
             onChange={(e) => setLastName(e.target.value)}
-            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${hasLast || lastFocused ? "pt-3" : "pt-0"}`}
+            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${
+              hasLast || lastFocused ? "pt-3" : "pt-0"
+            }`}
           />
         </div>
 
-        {/* CTA button — vibrant orange pill, matching signup */}
+        {/* CTA button — texte blanc */}
         <div className="flex justify-center mt-10 mb-4 w-full">
           <button
             onClick={handleContinue}
             disabled={!canContinue || loading}
-            className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
-            style={{ color: "#1A1A1A" }}
+            className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-lg text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)]"
+            style={{ color: "#FFFFFF" }}
           >
             {loading ? "Saving..." : "Continue my story"}
           </button>
