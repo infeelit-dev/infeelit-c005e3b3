@@ -111,9 +111,9 @@ const Login = () => {
           Welcome Back
         </h1>
 
-        {/* Sub-heading — Option 3 */}
+        {/* Sub-heading — sans répétition */}
         <p className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed text-foreground/80">
-          Welcome back. Your memories are waiting.
+          Your memories are waiting.
         </p>
 
         {/* Country selector */}
