@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import Header, { Timeline } from "@/components/Header";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import type { BubbleCategory } from "@/components/MemoryBubble";
-
-export type Timeline = "memories" | "instant" | "forever";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -32,6 +30,13 @@ const Index = () => {
       className="relative w-full h-screen overflow-hidden transition-all duration-700"
       style={{ background: getBackground() }}
     >
+      <style>{`
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.5); }
+        }
+      `}</style>
+
       {/* Nuages flous */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl animate-bokeh" />
@@ -44,34 +49,24 @@ const Index = () => {
           style={{ animationDelay: "8s" }}
         />
 
-        {/* Étoiles uniquement pour Forever */}
-        {activeTimeline === "forever" && (
-          <>
-            {[...Array(30)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full bg-white"
-                style={{
-                  width: Math.random() * 2 + 1 + "px",
-                  height: Math.random() * 2 + 1 + "px",
-                  left: Math.random() * 100 + "%",
-                  top: Math.random() * 70 + "%",
-                  opacity: Math.random() * 0.7 + 0.3,
-                  animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-                  animationDelay: Math.random() * 3 + "s",
-                }}
-              />
-            ))}
-          </>
-        )}
+        {/* Étoiles pour Forever */}
+        {activeTimeline === "forever" &&
+          [...Array(30)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white"
+              style={{
+                width: Math.random() * 2 + 1 + "px",
+                height: Math.random() * 2 + 1 + "px",
+                left: Math.random() * 100 + "%",
+                top: Math.random() * 70 + "%",
+                opacity: Math.random() * 0.7 + 0.3,
+                animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
+                animationDelay: Math.random() * 3 + "s",
+              }}
+            />
+          ))}
       </div>
-
-      <style>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.5); }
-        }
-      `}</style>
 
       <Header activeTimeline={activeTimeline} onTimelineChange={setActiveTimeline} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
