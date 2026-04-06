@@ -233,7 +233,7 @@ const Portrait = () => {
           className={`w-full py-4 rounded-full font-bold text-lg transition-all shadow-xl flex items-center justify-center ${
             isStepValid() && !loading ? "gradient-orange" : "bg-gray-300 opacity-50 cursor-not-allowed shadow-none"
           }`}
-          style={isStepValid() && !loading ? { color: "#FFFFFF" } : { color: "#FFFFFF" }}
+          style={{ color: "#FFFFFF" }}
         >
           {loading ? (
             <>
