@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// On réutilise tes 10 images pour la continuité visuelle
+import infeelit from "@/assets/infeelit-logo.png";
 import imgRelax from "@/assets/relax.jpg";
 import imgTravel from "@/assets/travel.jpg";
 import imgPicnic from "@/assets/picnic.jpg";
@@ -32,12 +31,12 @@ const Loading = () => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // 1. Animation des images (Fondu toutes les 800ms)
+    // 1. Animation des images toutes les 800ms
     const imgInterval = setInterval(() => {
       setCurrentImgIndex((prev) => (prev + 1) % IMAGES.length);
     }, 800);
 
-    // 2. Barre de progression (Simulée sur 4 secondes)
+    // 2. Barre de progression sur 4 secondes
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 100;
@@ -45,7 +44,7 @@ const Loading = () => {
       });
     }, 40);
 
-    // 3. Redirection automatique vers le Feed après 4.5 secondes
+    // 3. Redirection vers le feed après 4.5 secondes
     const timeout = setTimeout(() => {
       navigate("/feed");
     }, 4500);
@@ -67,22 +66,29 @@ const Loading = () => {
         .fade-in-out { animation: slow-zoom 1.2s ease-in-out infinite alternate; }
       `}</style>
 
-      {/* Cercle central avec images qui défilent */}
+      {/* Logo en haut */}
+      <img
+        src={infeelit}
+        alt="Infeelit"
+        className="w-[140px] h-auto object-contain mb-12"
+        style={{ mixBlendMode: "multiply" }}
+      />
+
+      {/* Cercle central avec images en noir et blanc sépia */}
       <div className="relative w-48 h-48 mb-12">
         <div className="absolute inset-0 rounded-full border-4 border-[#F97316]/20 animate-ping" />
         <div className="absolute inset-0 rounded-full border-2 border-[#F97316]/10 animate-pulse" />
-
         <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white shadow-2xl">
           <img
             src={IMAGES[currentImgIndex]}
-            className="w-full h-full object-cover transition-all duration-1000 ease-in-out grayscale-[10%]"
+            className="w-full h-full object-cover transition-all duration-1000 ease-in-out grayscale sepia"
             alt="Memories"
           />
           <div className="absolute inset-0 bg-[#6B4E9B]/10 mix-blend-overlay" />
         </div>
       </div>
 
-      {/* Texte d'attente poétique */}
+      {/* Texte poétique */}
       <div className="text-center space-y-3 max-w-xs">
         <h2 className="text-[#1A4D4D] text-xl font-black uppercase tracking-tighter">Weaving your eras...</h2>
         <p className="text-[#6B7280] text-sm font-medium italic opacity-80 leading-relaxed">
@@ -90,7 +96,7 @@ const Loading = () => {
         </p>
       </div>
 
-      {/* Barre de progression fine (Style iOS) */}
+      {/* Barre de progression */}
       <div className="w-full max-w-[200px] mt-16 bg-gray-100 h-1 rounded-full overflow-hidden">
         <div className="h-full bg-[#F97316] transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
       </div>
