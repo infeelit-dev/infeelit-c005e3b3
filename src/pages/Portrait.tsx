@@ -8,6 +8,8 @@ import imgChild from "@/assets/child.jpg";
 import imgMarry from "@/assets/marry.jpg";
 import imgRelax from "@/assets/relax.jpg";
 import imgBirth from "@/assets/birth.jpg";
+import imgLove from "@/assets/love.jpg";
+import imgHouse from "@/assets/house.jpg";
 
 const Portrait = () => {
   const navigate = useNavigate();
@@ -91,60 +93,120 @@ const Portrait = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF8F6] flex flex-col font-sans relative overflow-hidden">
-      {/* Animations CSS pour le flottement */}
       <style>{`
-        @keyframes float1 {
-          0%, 100% { transform: translateY(0px) rotate(-12deg); }
-          50% { transform: translateY(-12px) rotate(-8deg); }
+        @keyframes drift1 {
+          0%   { transform: translate(0px, 0px) rotate(-12deg) scale(1); }
+          25%  { transform: translate(18px, -20px) rotate(-5deg) scale(1.05); }
+          50%  { transform: translate(8px, -35px) rotate(5deg) scale(0.97); }
+          75%  { transform: translate(-15px, -15px) rotate(-8deg) scale(1.03); }
+          100% { transform: translate(0px, 0px) rotate(-12deg) scale(1); }
         }
-        @keyframes float2 {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-18px) rotate(3deg); }
+        @keyframes drift2 {
+          0%   { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+          25%  { transform: translate(-20px, -25px) rotate(8deg) scale(1.06); }
+          50%  { transform: translate(-35px, -10px) rotate(-5deg) scale(0.95); }
+          75%  { transform: translate(-10px, 15px) rotate(10deg) scale(1.04); }
+          100% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
         }
-        @keyframes float3 {
-          0%, 100% { transform: translateY(0px) rotate(6deg); }
-          50% { transform: translateY(-10px) rotate(10deg); }
+        @keyframes drift3 {
+          0%   { transform: translate(0px, 0px) rotate(6deg) scale(1); }
+          25%  { transform: translate(25px, 20px) rotate(15deg) scale(0.96); }
+          50%  { transform: translate(15px, -25px) rotate(-3deg) scale(1.07); }
+          75%  { transform: translate(-20px, -10px) rotate(8deg) scale(0.98); }
+          100% { transform: translate(0px, 0px) rotate(6deg) scale(1); }
         }
-        @keyframes float4 {
-          0%, 100% { transform: translateY(0px) rotate(-3deg); }
-          50% { transform: translateY(-14px) rotate(-6deg); }
+        @keyframes drift4 {
+          0%   { transform: translate(0px, 0px) rotate(-3deg) scale(1); }
+          25%  { transform: translate(-25px, 18px) rotate(-12deg) scale(1.04); }
+          50%  { transform: translate(10px, 30px) rotate(5deg) scale(0.96); }
+          75%  { transform: translate(22px, -12px) rotate(-7deg) scale(1.05); }
+          100% { transform: translate(0px, 0px) rotate(-3deg) scale(1); }
         }
-        @keyframes float5 {
-          0%, 100% { transform: translateY(0px) rotate(12deg); }
-          50% { transform: translateY(-8px) rotate(16deg); }
+        @keyframes drift5 {
+          0%   { transform: translate(0px, 0px) rotate(12deg) scale(1); }
+          25%  { transform: translate(15px, -30px) rotate(20deg) scale(0.94); }
+          50%  { transform: translate(-18px, -20px) rotate(8deg) scale(1.08); }
+          75%  { transform: translate(-25px, 10px) rotate(15deg) scale(0.97); }
+          100% { transform: translate(0px, 0px) rotate(12deg) scale(1); }
         }
-        .bubble-1 { animation: float1 4s ease-in-out infinite; }
-        .bubble-2 { animation: float2 5.5s ease-in-out infinite; }
-        .bubble-3 { animation: float3 4.8s ease-in-out infinite; }
-        .bubble-4 { animation: float4 6s ease-in-out infinite; }
-        .bubble-5 { animation: float5 3.8s ease-in-out infinite; }
+        @keyframes drift6 {
+          0%   { transform: translate(0px, 0px) rotate(-8deg) scale(1); }
+          25%  { transform: translate(30px, 15px) rotate(-2deg) scale(1.05); }
+          50%  { transform: translate(20px, -28px) rotate(-15deg) scale(0.95); }
+          75%  { transform: translate(-12px, -18px) rotate(-5deg) scale(1.03); }
+          100% { transform: translate(0px, 0px) rotate(-8deg) scale(1); }
+        }
+        @keyframes drift7 {
+          0%   { transform: translate(0px, 0px) rotate(4deg) scale(1); }
+          25%  { transform: translate(-22px, -22px) rotate(-3deg) scale(1.06); }
+          50%  { transform: translate(-30px, 15px) rotate(10deg) scale(0.96); }
+          75%  { transform: translate(10px, 25px) rotate(6deg) scale(1.04); }
+          100% { transform: translate(0px, 0px) rotate(4deg) scale(1); }
+        }
+        .bubble-1 { animation: drift1 6s ease-in-out infinite; }
+        .bubble-2 { animation: drift2 8s ease-in-out infinite; }
+        .bubble-3 { animation: drift3 7s ease-in-out infinite; }
+        .bubble-4 { animation: drift4 9s ease-in-out infinite; }
+        .bubble-5 { animation: drift5 5.5s ease-in-out infinite; }
+        .bubble-6 { animation: drift6 7.5s ease-in-out infinite; }
+        .bubble-7 { animation: drift7 6.5s ease-in-out infinite; }
       `}</style>
 
-      {/* Header bulles flottantes */}
-      <div className="h-40 relative flex items-center justify-center gap-4 px-6 pt-6">
+      {/* Header bulles qui bougent dans toutes les directions */}
+      <div className="h-44 relative flex items-center justify-center pt-6">
+        {/* Bulle gauche haute */}
         <img
           src={imgBirth}
-          className="bubble-1 w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-1 absolute w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-60"
+          style={{ left: "8%", top: "10px" }}
           alt=""
         />
+
+        {/* Bulle gauche basse */}
+        <img
+          src={imgHouse}
+          className="bubble-6 absolute w-8 h-8 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-50"
+          style={{ left: "18%", top: "70px" }}
+          alt=""
+        />
+
+        {/* Bulle centre gauche */}
         <img
           src={imgChild}
-          className="bubble-2 w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-2 absolute w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
+          style={{ left: "28%", top: "20px" }}
           alt=""
         />
+
+        {/* Bulle centre */}
         <img
           src={imgGrandfather}
-          className="bubble-3 w-14 h-14 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-3 absolute w-18 h-18 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-75"
+          style={{ left: "42%", top: "5px", width: "72px", height: "72px" }}
           alt=""
         />
+
+        {/* Bulle centre droite */}
         <img
           src={imgMarry}
-          className="bubble-4 w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-4 absolute w-14 h-14 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-65"
+          style={{ left: "62%", top: "25px" }}
           alt=""
         />
+
+        {/* Bulle droite haute */}
+        <img
+          src={imgLove}
+          className="bubble-7 absolute w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-55"
+          style={{ left: "78%", top: "8px" }}
+          alt=""
+        />
+
+        {/* Bulle droite basse */}
         <img
           src={imgRelax}
-          className="bubble-5 w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-5 absolute w-8 h-8 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-50"
+          style={{ left: "88%", top: "65px" }}
           alt=""
         />
       </div>
