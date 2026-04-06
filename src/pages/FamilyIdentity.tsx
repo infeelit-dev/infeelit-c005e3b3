@@ -18,21 +18,21 @@ const FamilyIdentity = () => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-
-        if (!session) {
-          navigate("/welcome", { replace: true });
-          return;
-        }
-
-        const user = session.user;
-        const meta = user?.user_metadata ?? {};
-        if (meta.full_name) {
-          const parts = meta.full_name.split(" ");
-          setFirstName(parts[0] || "");
-          setLastName(parts.slice(1).join(" ") || "");
-        } else {
-          setFirstName(meta.first_name || meta.given_name || "");
-          setLastName(meta.last_name || meta.family_name || "");
+        // SÉCURITÉ DÉSACTIVÉE EN DEV — à réactiver avant production
+        // if (!session) {
+        //   navigate("/welcome", { replace: true });
+        //   return;
+        // }
+        if (session?.user) {
+          const meta = session.user.user_metadata ?? {};
+          if (meta.full_name) {
+            const parts = meta.full_name.split(" ");
+            setFirstName(parts[0] || "");
+            setLastName(parts.slice(1).join(" ") || "");
+          } else {
+            setFirstName(meta.first_name || meta.given_name || "");
+            setLastName(meta.last_name || meta.family_name || "");
+          }
         }
       } finally {
         setInitialLoading(false);
