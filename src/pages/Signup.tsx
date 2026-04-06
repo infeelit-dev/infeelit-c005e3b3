@@ -4,22 +4,33 @@ import { supabase } from "@/integrations/supabase/client";
 import infeelit from "@/assets/infeelit-logo.png";
 
 const COUNTRIES = [
+  { name: "United Arab Emirates", flag: "🇦🇪", code: "+971" },
   { name: "France", flag: "🇫🇷", code: "+33" },
+  { name: "Algeria", flag: "🇩🇿", code: "+213" },
+  { name: "Morocco", flag: "🇲🇦", code: "+212" },
+  { name: "Tunisia", flag: "🇹🇳", code: "+216" },
+  { name: "Senegal", flag: "🇸🇳", code: "+221" },
+  { name: "Lebanon", flag: "🇱🇧", code: "+961" },
+  { name: "Saudi Arabia", flag: "🇸🇦", code: "+966" },
+  { name: "Egypt", flag: "🇪🇬", code: "+20" },
+  { name: "India", flag: "🇮🇳", code: "+91" },
+  { name: "Philippines", flag: "🇵🇭", code: "+63" },
+  { name: "Pakistan", flag: "🇵🇰", code: "+92" },
+  { name: "United Kingdom", flag: "🇬🇧", code: "+44" },
+  { name: "United States", flag: "🇺🇸", code: "+1" },
+  { name: "Canada", flag: "🇨🇦", code: "+1" },
+  { name: "Belgium", flag: "🇧🇪", code: "+32" },
+  { name: "Switzerland", flag: "🇨🇭", code: "+41" },
+  { name: "Germany", flag: "🇩🇪", code: "+49" },
   { name: "Ghana", flag: "🇬🇭", code: "+233" },
   { name: "Cameroon", flag: "🇨🇲", code: "+237" },
   { name: "Niger", flag: "🇳🇪", code: "+227" },
   { name: "Ukraine", flag: "🇺🇦", code: "+380" },
-  { name: "United States", flag: "🇺🇸", code: "+1" },
-  { name: "Canada", flag: "🇨🇦", code: "+1" },
-  { name: "Germany", flag: "🇩🇪", code: "+49" },
-  { name: "United Kingdom", flag: "🇬🇧", code: "+44" },
-  { name: "Belgium", flag: "🇧🇪", code: "+32" },
-  { name: "Switzerland", flag: "🇨🇭", code: "+41" },
 ];
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [selectedCountry, setSelectedCountry] = useState<typeof COUNTRIES[0] | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<(typeof COUNTRIES)[0] | null>(null);
   const [phone, setPhone] = useState("");
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [error, setError] = useState("");
@@ -44,8 +55,14 @@ const Signup = () => {
 
   const handleNext = async () => {
     setError("");
-    if (!selectedCountry) { setError("Please select your country."); return; }
-    if (!phone.trim()) { setError("Phone number is required."); return; }
+    if (!selectedCountry) {
+      setError("Please select your country.");
+      return;
+    }
+    if (!phone.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
 
     const digits = phone.replace(/\s/g, "").replace(/[^\d]/g, "");
     if (digits.length < 6 || digits.length > 15) {
@@ -69,47 +86,51 @@ const Signup = () => {
   const hasPhoneValue = phone.length > 0;
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden" style={{ backgroundColor: "#FAF8F6" }}>
-      {/* Ethereal corner clouds */}
+    <div
+      className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden"
+      style={{ backgroundColor: "#FAF8F6" }}
+    >
+      {/* Background blurs */}
       <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
-        {/* Logo */}
+        {/* Logo — taille réduite */}
         <img
           src={infeelit}
           alt="Infeelit"
-          className="w-[350px] h-auto object-contain mx-auto mb-8"
+          className="w-[220px] h-auto object-contain mx-auto mb-6"
           style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
 
         {/* Title */}
         <h1
-          className="text-4xl font-semibold text-center mt-4 mb-1"
-          style={{ fontFamily: "'Inter', sans-serif", color: '#1A3B47' }}
+          className="text-3xl font-semibold text-center mb-1"
+          style={{ fontFamily: "'Inter', sans-serif", color: "#1A3B47" }}
         >
           Create Your Account
         </h1>
 
-        {/* Sub-heading */}
-        <p className="text-center text-base font-medium mb-10 max-w-xs mx-auto leading-relaxed" style={{ color: '#1A1A1A' }}>
-          Start your journey today.
-          <br />
-          Your circle is waiting.
+        {/* Sub-heading — plus Infeelit */}
+        <p
+          className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed"
+          style={{ color: "#1A1A1A" }}
+        >
+          Your first memory is one voice away.
         </p>
 
         {/* Country selector */}
         <button
           onClick={() => setShowCountryPicker(!showCountryPicker)}
           className={`w-full text-center rounded-full px-5 py-4 mb-3 backdrop-blur-md bg-white/80 transition-all border focus:outline-none ${
-            error && !selectedCountry
-              ? "border-destructive/40"
-              : "border-white/40 hover:bg-white/90 focus:border-white/50 focus:shadow-[0_0_20px_-4px_hsl(var(--brand-orange)/0.2)]"
+            error && !selectedCountry ? "border-destructive/40" : "border-white/40 hover:bg-white/90"
           }`}
         >
           {selectedCountry ? (
             <div className="flex items-center gap-3">
-              <span className="text-xl w-8 h-8 flex items-center justify-center rounded-full bg-gray-100/80">{selectedCountry.flag}</span>
+              <span className="text-xl w-8 h-8 flex items-center justify-center rounded-full bg-gray-100/80">
+                {selectedCountry.flag}
+              </span>
               <span className="text-foreground font-semibold text-base">{selectedCountry.name}</span>
               <span className="text-muted-foreground text-sm ml-auto">{selectedCountry.code}</span>
             </div>
@@ -118,17 +139,24 @@ const Signup = () => {
           )}
         </button>
 
+        {/* Country picker dropdown */}
         {showCountryPicker && (
           <div className="mb-3 w-full rounded-2xl overflow-hidden bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg max-h-64 overflow-y-auto">
             {COUNTRIES.map((country) => (
               <button
                 key={country.name}
-                onClick={() => { setSelectedCountry(country); setShowCountryPicker(false); setError(""); }}
+                onClick={() => {
+                  setSelectedCountry(country);
+                  setShowCountryPicker(false);
+                  setError("");
+                }}
                 className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-gray-50 ${
                   selectedCountry?.name === country.name ? "bg-secondary/10" : ""
                 }`}
               >
-                <span className="text-lg w-7 h-7 flex items-center justify-center rounded-full bg-gray-100/80">{country.flag}</span>
+                <span className="text-lg w-7 h-7 flex items-center justify-center rounded-full bg-gray-100/80">
+                  {country.flag}
+                </span>
                 <span className="text-foreground font-medium text-sm">{country.name}</span>
                 <span className="text-muted-foreground text-xs ml-auto">{country.code}</span>
               </button>
@@ -138,7 +166,7 @@ const Signup = () => {
 
         {/* Phone input */}
         <div
-          className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
+          className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border ${
             phoneFocused
               ? "border-white/50 bg-white/80 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
               : error
@@ -146,11 +174,13 @@ const Signup = () => {
                 : "border-white/40 bg-white/80"
           }`}
         >
-          <span className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
-            hasPhoneValue || phoneFocused
-              ? "top-1.5 text-[10px] font-bold text-secondary"
-              : "top-4 text-base text-muted-foreground"
-          }`}>
+          <span
+            className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
+              hasPhoneValue || phoneFocused
+                ? "top-1.5 text-[10px] font-bold text-secondary"
+                : "top-4 text-base text-muted-foreground"
+            }`}
+          >
             Phone number
           </span>
           <input
@@ -158,32 +188,46 @@ const Signup = () => {
             value={phone}
             onFocus={() => setPhoneFocused(true)}
             onBlur={() => setPhoneFocused(false)}
-            onChange={(e) => { setPhone(e.target.value); setError(""); }}
-            className={`w-full bg-transparent outline-none text-foreground text-base ${hasPhoneValue || phoneFocused ? "pt-3" : "pt-0"}`}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              setError("");
+            }}
+            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${
+              hasPhoneValue || phoneFocused ? "pt-3" : "pt-0"
+            }`}
           />
         </div>
 
+        {/* Error message */}
         {error && (
           <div className="flex items-center gap-1.5 mt-3 pl-2 self-start">
-            <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">!</span>
+            <span className="w-4 h-4 rounded-full bg-destructive text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">
+              !
+            </span>
             <span className="text-destructive text-xs">{error}</span>
           </div>
         )}
 
-        {/* Create account button */}
-        <div className="flex justify-center mt-10 mb-4 w-full">
+        {/* CTA Button — texte blanc */}
+        <div className="flex justify-center mt-8 mb-4 w-full">
           <button
             onClick={handleNext}
             disabled={loading}
-            className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-2xl text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)] hover:shadow-[0_0_36px_0px_hsl(var(--brand-orange)/0.6)]"
-            style={{ color: '#1A1A1A' }}
+            className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-lg text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)]"
+            style={{ color: "#FFFFFF" }}
           >
-            {loading ? "Sending..." : "Create my account"}
+            {loading ? "Sending code..." : "Create my account"}
           </button>
         </div>
 
-        {/* Footer */}
-        <div className="mt-10 flex items-center justify-center gap-1.5">
+        {/* Terms — obligatoire légalement */}
+        <p className="text-center text-[10px] text-muted-foreground/60 px-4 mb-6">
+          By continuing, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and{" "}
+          <span className="underline cursor-pointer">Privacy Policy</span>.
+        </p>
+
+        {/* Sign in link */}
+        <div className="flex items-center justify-center gap-1.5">
           <span className="text-muted-foreground text-sm">Already have an account?</span>
           <button
             onClick={() => navigate("/login")}
