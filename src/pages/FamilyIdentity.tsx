@@ -16,15 +16,15 @@ const FamilyIdentity = () => {
     const prefill = async () => {
       try {
         const {
-          data: { user },
-        } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
 
-        // Sécurité — redirect si non connecté
-        if (!user) {
+        if (!session) {
           navigate("/welcome", { replace: true });
           return;
         }
 
+        const user = session.user;
         const meta = user?.user_metadata ?? {};
         if (meta.full_name) {
           const parts = meta.full_name.split(" ");
@@ -48,11 +48,11 @@ const FamilyIdentity = () => {
     setLoading(true);
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user) {
         const displayName = `${firstName.trim()} ${lastName.trim()}`;
-        await supabase.from("profiles").update({ display_name: displayName }).eq("user_id", user.id);
+        await supabase.from("profiles").update({ display_name: displayName }).eq("user_id", session.user.id);
       }
       navigate("/portrait", { replace: true });
     } catch {
@@ -78,12 +78,10 @@ const FamilyIdentity = () => {
       className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden"
       style={{ backgroundColor: "#FAF8F6" }}
     >
-      {/* Background blurs */}
       <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-[hsl(187_40%_82%)] opacity-[0.06] blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] rounded-full bg-[hsl(25_90%_65%)] opacity-[0.08] blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
-        {/* Logo — taille corrigée */}
         <img
           src={infeelit}
           alt="Infeelit"
@@ -91,7 +89,6 @@ const FamilyIdentity = () => {
           style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
 
-        {/* Title */}
         <h1
           className="text-3xl font-semibold text-center mb-2"
           style={{ fontFamily: "'Inter', sans-serif", color: "#1A3B47" }}
@@ -99,7 +96,6 @@ const FamilyIdentity = () => {
           Tell us your name
         </h1>
 
-        {/* Subtitle */}
         <p
           className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed"
           style={{ color: "#1A1A1A" }}
@@ -109,7 +105,6 @@ const FamilyIdentity = () => {
           Begin your story here.
         </p>
 
-        {/* First Name */}
         <div
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center mb-3 ${
             firstFocused
@@ -138,7 +133,6 @@ const FamilyIdentity = () => {
           />
         </div>
 
-        {/* Last Name */}
         <div
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
             lastFocused
@@ -167,7 +161,6 @@ const FamilyIdentity = () => {
           />
         </div>
 
-        {/* CTA button — texte blanc */}
         <div className="flex justify-center mt-10 mb-4 w-full">
           <button
             onClick={handleContinue}
