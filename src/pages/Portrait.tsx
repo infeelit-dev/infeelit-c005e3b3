@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import imgGrandfather from "@/assets/grandfather.jpg";
+import imgChild from "@/assets/child.jpg";
+import imgMarry from "@/assets/marry.jpg";
+import imgRelax from "@/assets/relax.jpg";
+import imgBirth from "@/assets/birth.jpg";
 
 const Portrait = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // User selections state
   const [selections, setSelections] = useState({
     generation: "",
     audience: "",
@@ -45,14 +50,14 @@ const Portrait = () => {
           audience: selections.audience,
           spark: selections.spark,
         })
-        .eq("id", user.id);
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
       navigate("/loading");
     } catch (err) {
       console.error(err);
-      toast.error("Error saving your portrait selections.");
+      toast.error("Error saving your profile. Please try again.");
       setLoading(false);
     }
   };
@@ -72,7 +77,7 @@ const Portrait = () => {
     return (
       <button
         onClick={() => setSelections({ ...selections, [type]: id })}
-        className={`w-full p-4 rounded-xl text-left transition-all border-l-4 mb-3 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
+        className={`w-full p-4 rounded-xl text-left transition-all border-l-4 mb-3 ${
           isSelected
             ? "bg-[#6B4E9B]/10 border-[#E8742A] shadow-md"
             : "bg-white border-transparent shadow-sm hover:border-gray-200"
@@ -86,53 +91,65 @@ const Portrait = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF8F6] flex flex-col font-sans relative overflow-hidden">
-      {/* DECORATIVE HEADER: Noir & Blanc / Sepia Portrait Bubbles */}
-      <div className="h-40 relative flex items-center justify-center gap-4 px-6 pt-8 opacity-40 grayscale">
+      {/* Header bubbles — local assets en noir et blanc sépia */}
+      <div className="h-36 relative flex items-center justify-center gap-4 px-6 pt-6">
         <img
-          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120"
-          className="w-12 h-12 rounded-full object-cover -rotate-12 border-2 border-white shadow-lg"
+          src={imgBirth}
+          className="w-12 h-12 rounded-full object-cover -rotate-12 border-2 border-white shadow-lg grayscale sepia opacity-70"
           alt=""
         />
         <img
-          src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&h=150"
-          className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg"
+          src={imgChild}
+          className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
           alt=""
         />
         <img
-          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=130&h=130"
-          className="w-14 h-14 rounded-full object-cover rotate-6 border-2 border-white shadow-lg"
+          src={imgGrandfather}
+          className="w-14 h-14 rounded-full object-cover rotate-6 border-2 border-white shadow-lg grayscale sepia opacity-70"
+          alt=""
+        />
+        <img
+          src={imgMarry}
+          className="w-12 h-12 rounded-full object-cover -rotate-3 border-2 border-white shadow-lg grayscale sepia opacity-70"
+          alt=""
+        />
+        <img
+          src={imgRelax}
+          className="w-10 h-10 rounded-full object-cover rotate-12 border-2 border-white shadow-lg grayscale sepia opacity-70"
           alt=""
         />
       </div>
 
-      {/* TITLES & PROGRESS */}
-      <div className="px-8 mt-4 text-center">
+      {/* Progress + Title */}
+      <div className="px-8 mt-2 text-center">
         <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
-          Portrait Step {step} of 3
+          {step === 1 && "Origin — Step 1 of 3"}
+          {step === 2 && "Audience — Step 2 of 3"}
+          {step === 3 && "Spark — Step 3 of 3"}
         </p>
 
         {step === 1 && (
-          <div className="animate-in fade-in duration-500">
+          <div>
             <h1 className="text-2xl font-bold text-[#1A3B47]">Who is speaking today?</h1>
             <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"When did your story begin?"</p>
           </div>
         )}
         {step === 2 && (
-          <div className="animate-in fade-in duration-500">
+          <div>
             <h1 className="text-2xl font-bold text-[#1A3B47]">Whose heart are you speaking to?</h1>
             <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"Your message needs a destination."</p>
           </div>
         )}
         {step === 3 && (
-          <div className="animate-in fade-in duration-500">
+          <div>
             <h1 className="text-2xl font-bold text-[#1A3B47]">What brought your voice here?</h1>
             <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"The spark that lit the fire."</p>
           </div>
         )}
       </div>
 
-      {/* SELECTION LIST */}
-      <div className="flex-1 px-8 pt-8 overflow-y-auto pb-32">
+      {/* Cards */}
+      <div className="flex-1 px-8 pt-6 overflow-y-auto pb-32">
         {step === 1 && (
           <div className="flex flex-col">
             <Card type="generation" id="Silent" title="Silent Generation" subtitle="The keepers of unseen memories." />
@@ -208,25 +225,25 @@ const Portrait = () => {
         )}
       </div>
 
-      {/* BOTTOM ACTION BUTTON */}
+      {/* Bottom button */}
       <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FAF8F6] via-[#FAF8F6] to-transparent z-30">
         <button
           disabled={!isStepValid() || loading}
           onClick={handleNext}
           className={`w-full py-4 rounded-full font-bold text-lg transition-all shadow-xl flex items-center justify-center ${
-            isStepValid() && !loading
-              ? "gradient-orange scale-100 opacity-100"
-              : "bg-gray-300 text-white scale-95 opacity-50 cursor-not-allowed shadow-none"
+            isStepValid() && !loading ? "gradient-orange" : "bg-gray-300 opacity-50 cursor-not-allowed shadow-none"
           }`}
-          style={isStepValid() && !loading ? { color: "#FFFFFF" } : {}}
+          style={isStepValid() && !loading ? { color: "#FFFFFF" } : { color: "#FFFFFF" }}
         >
           {loading ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Preparing your journey...
             </>
-          ) : (
+          ) : step < 3 ? (
             "Continue"
+          ) : (
+            "Begin my story"
           )}
         </button>
       </div>
