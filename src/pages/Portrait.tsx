@@ -152,57 +152,44 @@ const Portrait = () => {
         .bubble-7 { animation: drift7 6.5s ease-in-out infinite; }
       `}</style>
 
-      {/* Header bulles qui bougent dans toutes les directions */}
+      {/* Header bulles flottantes */}
       <div className="h-44 relative flex items-center justify-center pt-6">
-        {/* Bulle gauche haute */}
         <img
           src={imgBirth}
           className="bubble-1 absolute w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-60"
           style={{ left: "8%", top: "10px" }}
           alt=""
         />
-
-        {/* Bulle gauche basse */}
         <img
           src={imgHouse}
           className="bubble-6 absolute w-8 h-8 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-50"
           style={{ left: "18%", top: "70px" }}
           alt=""
         />
-
-        {/* Bulle centre gauche */}
         <img
           src={imgChild}
           className="bubble-2 absolute w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
           style={{ left: "28%", top: "20px" }}
           alt=""
         />
-
-        {/* Bulle centre */}
         <img
           src={imgGrandfather}
-          className="bubble-3 absolute w-18 h-18 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-75"
+          className="bubble-3 absolute rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-75"
           style={{ left: "42%", top: "5px", width: "72px", height: "72px" }}
           alt=""
         />
-
-        {/* Bulle centre droite */}
         <img
           src={imgMarry}
           className="bubble-4 absolute w-14 h-14 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-65"
           style={{ left: "62%", top: "25px" }}
           alt=""
         />
-
-        {/* Bulle droite haute */}
         <img
           src={imgLove}
           className="bubble-7 absolute w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-55"
           style={{ left: "78%", top: "8px" }}
           alt=""
         />
-
-        {/* Bulle droite basse */}
         <img
           src={imgRelax}
           className="bubble-5 absolute w-8 h-8 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-50"
@@ -211,7 +198,7 @@ const Portrait = () => {
         />
       </div>
 
-      {/* Progress + Title */}
+      {/* Progress + Title — text-xl corrigé */}
       <div className="px-8 mt-2 text-center">
         <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
           {step === 1 && "Origin — Step 1 of 3"}
@@ -221,19 +208,19 @@ const Portrait = () => {
 
         {step === 1 && (
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3B47]">Who is speaking today?</h1>
+            <h1 className="text-xl font-bold text-[#1A3B47]">Who is speaking today?</h1>
             <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"When did your story begin?"</p>
           </div>
         )}
         {step === 2 && (
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3B47]">Whose heart are you speaking to?</h1>
+            <h1 className="text-xl font-bold text-[#1A3B47]">Whose heart are you speaking to?</h1>
             <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"Your message needs a destination."</p>
           </div>
         )}
         {step === 3 && (
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3B47]">What brought your voice here?</h1>
+            <h1 className="text-xl font-bold text-[#1A3B47]">What brought your voice here?</h1>
             <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"The spark that lit the fire."</p>
           </div>
         )}
