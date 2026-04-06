@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Timeline } from "@/pages/Index";
+import type { Timeline } from "@/types/timeline";
 
 export type BubbleCategory = "past" | "future" | "family";
 
@@ -68,13 +68,11 @@ const MemoryBubble = ({
     setExpanded(false);
   };
 
-  // Style selon la timeline
   const getStyle = () => {
     if (timeline === "forever") {
       return {
         border: "1.5px solid rgba(56,189,248,0.7)",
-        boxShadow:
-          "0 0 25px rgba(56,189,248,0.4), 0 0 50px rgba(56,189,248,0.1), inset 0 2px 8px rgba(255,255,255,0.15)",
+        boxShadow: "0 0 25px rgba(56,189,248,0.4), inset 0 2px 8px rgba(255,255,255,0.15)",
         overlay: "rgba(2,8,24,0.4)",
         miniBubbleColor: "rgba(56,189,248,0.8)",
         icon: "✦",
@@ -141,8 +139,8 @@ const MemoryBubble = ({
           100% { transform: scale(1); opacity: 1; }
         }
         @keyframes sealPulse {
-          0%, 100% { box-shadow: 0 0 25px rgba(56,189,248,0.4), 0 0 50px rgba(56,189,248,0.1); }
-          50%       { box-shadow: 0 0 40px rgba(56,189,248,0.7), 0 0 80px rgba(56,189,248,0.2); }
+          0%, 100% { box-shadow: 0 0 25px rgba(56,189,248,0.4); }
+          50%       { box-shadow: 0 0 40px rgba(56,189,248,0.7); }
         }
         .animate-float-slow   { animation: wander1 18s ease-in-out infinite; }
         .animate-float-medium { animation: wander2 14s ease-in-out infinite; }
@@ -152,7 +150,6 @@ const MemoryBubble = ({
         .seal-pulse  { animation: sealPulse 3s ease-in-out infinite; }
       `}</style>
 
-      {/* Overlay expandé */}
       {expanded && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
@@ -170,7 +167,7 @@ const MemoryBubble = ({
               src={image}
               alt=""
               className={`absolute inset-0 w-full h-full object-cover ${
-                timeline === "memories" ? "grayscale sepia" : ""
+                timeline === "memories" ? "grayscale sepia" : timeline === "forever" ? "grayscale opacity-60" : ""
               }`}
             />
             <div
@@ -198,13 +195,11 @@ const MemoryBubble = ({
         </div>
       )}
 
-      {/* Bulle principale */}
       <div
         className={`absolute ${!bursting ? animationClass : ""} ${question ? "cursor-pointer" : "pointer-events-none"}`}
         style={{ left: `${x}%`, top: `${y}%`, animationDelay: delay }}
         onClick={handleClick}
       >
-        {/* Petites bulles burst */}
         {bursting &&
           MINI_BUBBLES.map((mini, i) => {
             const rad = (mini.angle * Math.PI) / 180;
@@ -230,7 +225,6 @@ const MemoryBubble = ({
             );
           })}
 
-        {/* Corps */}
         <div
           className={`rounded-full overflow-hidden relative transition-all duration-300 hover:scale-105 ${
             bursting ? "burst-main" : ""
@@ -250,27 +244,15 @@ const MemoryBubble = ({
               timeline === "memories" ? "grayscale sepia" : timeline === "forever" ? "grayscale opacity-60" : ""
             }`}
           />
-
-          {/* Overlay */}
           <div className="absolute inset-0 rounded-full" style={{ background: style.overlay }} />
-
-          {/* Reflet glass */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 55%)",
-            }}
+            style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 55%)" }}
           />
-
-          {/* Ombre intérieure */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              boxShadow: "inset 0 2px 10px rgba(255,255,255,0.3)",
-            }}
+            style={{ boxShadow: "inset 0 2px 10px rgba(255,255,255,0.3)" }}
           />
-
-          {/* Icône */}
           {question && (
             <div className="absolute inset-0 flex items-center justify-center">
               <span
