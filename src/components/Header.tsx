@@ -27,10 +27,11 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             </button>
           </div>
 
+          {/* Logo h-14 */}
           <img
             src={logo}
             alt="Infeelit"
-            className="h-12 opacity-95 drop-shadow-sm"
+            className="h-14 opacity-95 drop-shadow-sm"
             style={{ imageRendering: "-webkit-optimize-contrast" as any }}
           />
 
