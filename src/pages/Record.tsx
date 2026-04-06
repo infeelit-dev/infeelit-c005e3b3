@@ -1,26 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { X, StopCircle, Video, Loader2 } from "lucide-react";
+import { X, StopCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Record = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
-  // États pour l'enregistrement
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
 
-  // La question (le Hook) passée par le Feed
-  const question = location.state?.question || "Racontez un souvenir qui a changé votre regard sur la vie.";
+  const question = location.state?.question || "Tell me about a memory that changed the way you see life.";
 
-  // 1. Allumer la caméra dès l'arrivée sur la page
   useEffect(() => {
     async function startCamera() {
       try {
@@ -31,29 +28,35 @@ const Record = () => {
         setStream(s);
         if (videoRef.current) videoRef.current.srcObject = s;
 
-        // Préparation du magnétophone (Recorder)
-        const recorder = new MediaRecorder(s, { mimeType: "video/webm" });
+        const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+          ? "video/webm;codecs=vp9"
+          : "video/webm";
+
+        const recorder = new MediaRecorder(s, { mimeType });
         recorder.ondataavailable = (e) => {
-          if (e.data.size > 0) setRecordedChunks((prev) => [...prev, e.data]);
+          if (e.data.size > 0) {
+            recordedChunksRef.current.push(e.data);
+          }
         };
         setMediaRecorder(recorder);
       } catch (err) {
-        toast.error("Caméra non accessible. Vérifiez les permissions.");
+        toast.error("Camera not accessible. Please check your permissions.");
       }
     }
     startCamera();
-    return () => stream?.getTracks().forEach((t) => t.stop());
+    return () => {
+      stream?.getTracks().forEach((t) => t.stop());
+    };
   }, []);
 
-  // 2. Le flux : Décompte 3-2-1 puis Enregistrement
   const handleStartFlow = () => {
+    recordedChunksRef.current = [];
     setCountdown(3);
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev === 1) {
           clearInterval(timer);
-          setRecordedChunks([]); // On vide les anciens morceaux
-          mediaRecorder?.start();
+          mediaRecorder?.start(100);
           setIsRecording(true);
           return null;
         }
@@ -62,43 +65,57 @@ const Record = () => {
     }, 1000);
   };
 
-  // 3. Arrêt et envoi vers le Cloud (Supabase Storage)
   const handleStopAndUpload = async () => {
     if (!mediaRecorder) return;
+    setIsRecording(false);
+
+    mediaRecorder.requestData();
 
     mediaRecorder.onstop = async () => {
       setIsUploading(true);
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
-      const fileName = `${Date.now()}_memory.webm`;
-
       try {
+        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+
+        if (blob.size === 0) {
+          toast.error("No video recorded. Please try again.");
+          setIsUploading(false);
+          return;
+        }
+
+        const fileName = `${Date.now()}_memory.webm`;
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (!user) throw new Error("Connectez-vous pour sauvegarder.");
 
-        // Envoi vers le bucket 'memories'
-        const { error } = await supabase.storage.from("memories").upload(`${user.id}/${fileName}`, blob);
+        if (!user) {
+          toast.error("Please log in to save your memory.");
+          setIsUploading(false);
+          return;
+        }
+
+        const { error } = await supabase.storage.from("memories").upload(`${user.id}/${fileName}`, blob, {
+          contentType: "video/webm",
+          upsert: false,
+        });
 
         if (error) throw error;
 
-        toast.success("Souvenir tissé avec succès !");
+        toast.success("Memory saved successfully.");
+        stream?.getTracks().forEach((t) => t.stop());
         navigate("/feed");
       } catch (err) {
         console.error(err);
-        toast.error("Erreur lors de la sauvegarde.");
-      } finally {
+        toast.error("Error saving your memory. Please try again.");
         setIsUploading(false);
       }
     };
 
     mediaRecorder.stop();
-    setIsRecording(false);
   };
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans">
-      {/* RETOUR CAMÉRA PLEIN ÉCRAN */}
+      {/* Caméra plein écran */}
       <video
         ref={videoRef}
         autoPlay
@@ -107,34 +124,38 @@ const Record = () => {
         className="absolute inset-0 w-full h-full object-cover opacity-80"
       />
 
-      {/* GRADIENT POUR LISIBILITÉ */}
+      {/* Gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-      {/* HEADER */}
+      {/* Header */}
       <div className="relative z-10 p-6 flex justify-between items-center">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            stream?.getTracks().forEach((t) => t.stop());
+            navigate(-1);
+          }}
           className="p-3 bg-white/10 backdrop-blur-xl rounded-full text-white border border-white/20"
         >
           <X size={24} />
         </button>
+
         {isRecording && (
           <div className="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full border border-red-400 animate-pulse">
             <div className="w-2 h-2 bg-white rounded-full" />
-            <span className="text-[10px] text-white font-black uppercase tracking-widest">Enregistrement</span>
+            <span className="text-[10px] text-white font-black uppercase tracking-widest">Recording</span>
           </div>
         )}
       </div>
 
-      {/* LA QUESTION (LE HOOK) */}
+      {/* Question */}
       <div className="mt-auto relative z-20 px-10 pb-12 text-center">
-        <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-4">Votre Histoire</p>
+        <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-4">Your Story</p>
         <h2 className="text-white text-2xl font-bold leading-tight drop-shadow-2xl italic px-4">"{question}"</h2>
       </div>
 
-      {/* CONTRÔLES D'ACTION */}
+      {/* Contrôles */}
       <div className="relative z-20 pb-20 flex justify-center items-center h-32">
-        {/* État : Prêt à filmer */}
+        {/* Prêt à filmer */}
         {!isRecording && countdown === null && !isUploading && (
           <button
             onClick={handleStartFlow}
@@ -144,24 +165,24 @@ const Record = () => {
           </button>
         )}
 
-        {/* État : Décompte */}
+        {/* Décompte 3-2-1 */}
         {countdown !== null && <div className="text-white text-9xl font-black animate-pulse">{countdown}</div>}
 
-        {/* État : En cours de filmage */}
+        {/* En cours de filmage */}
         {isRecording && (
           <button
             onClick={handleStopAndUpload}
-            className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl animate-pulse"
+            className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
           >
             <StopCircle size={48} className="text-red-600" />
           </button>
         )}
 
-        {/* État : Sauvegarde sur le serveur */}
+        {/* Sauvegarde */}
         {isUploading && (
           <div className="flex flex-col items-center gap-4">
             <Loader2 size={48} className="text-[#E8742A] animate-spin" />
-            <p className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Sauvegarde en cours...</p>
+            <p className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Weaving your memory...</p>
           </div>
         )}
       </div>
