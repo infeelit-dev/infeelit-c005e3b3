@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import imgGrandfather from "@/assets/grandfather.jpg";
+import infeeilitTexte from "@/assets/infeelit_texte_logo.png";
 
 const About = () => {
   const navigate = useNavigate();
@@ -20,7 +21,8 @@ const About = () => {
 
       {/* Contenu */}
       <div className="px-8 -mt-10 relative z-10 pb-12">
-        <h1 className="text-4xl font-black text-[#1A4D4D] mb-6 tracking-tighter">Infeelit.</h1>
+        {/* Logo texte Infeelit avec le double e infini — fond transparent */}
+        <img src={infeeilitTexte} alt="Infeelit" className="w-[220px] h-auto object-contain mb-6" />
 
         <div className="space-y-6 text-[#4A5568] leading-relaxed font-medium">
           <p>
@@ -37,11 +39,10 @@ const About = () => {
             and emotional AI experience.
           </p>
 
-          {/* Phrase ajoutée — cohérente avec la mission */}
           <p>Don't write your story. Live it out loud.</p>
         </div>
 
-        {/* Bouton CTA — orange cohérent avec la charte */}
+        {/* Bouton CTA orange */}
         <button
           onClick={() => navigate("/")}
           className="mt-12 w-full py-4 rounded-full gradient-orange font-black uppercase tracking-widest text-sm shadow-xl"
