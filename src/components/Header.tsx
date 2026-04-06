@@ -1,7 +1,6 @@
 import { Search } from "lucide-react";
 import logo from "@/assets/infeelit-logo.png";
-
-export type Timeline = "memories" | "instant" | "forever";
+import type { Timeline } from "@/types/timeline";
 
 interface HeaderProps {
   activeTimeline: Timeline;
