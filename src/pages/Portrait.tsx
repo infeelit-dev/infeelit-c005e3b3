@@ -1,233 +1,234 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Check } from "lucide-react";
-
-// Tes 10 images réelles
-import imgRelax from "@/assets/relax.jpg";
-import imgTravel from "@/assets/travel.jpg";
-import imgPicnic from "@/assets/picnic.jpg";
-import imgGrandfather from "@/assets/grandfather.jpg";
-import imgHouse from "@/assets/house.jpg";
-import imgMarry from "@/assets/marry.jpg";
-import imgLove from "@/assets/love.jpg";
-import imgGraduate from "@/assets/graduate.jpg";
-import imgChild from "@/assets/child.jpg";
-import imgBirth from "@/assets/birth.jpg";
-
-const LIFE_IMAGES = [
-  imgBirth,
-  imgChild,
-  imgGraduate,
-  imgMarry,
-  imgHouse,
-  imgLove,
-  imgGrandfather,
-  imgPicnic,
-  imgTravel,
-  imgRelax,
-];
-
-const STEPS = [
-  {
-    id: "era",
-    stepLabel: "Origin",
-    title: "When did your story begin?",
-    options: [
-      { label: "Silent Generation", sub: "The keepers of unseen memories." },
-      { label: "Baby Boomers", sub: "Witnesses of the great transformation." },
-      { label: "Generation X", sub: "The bridge between two eras." },
-      { label: "Millennials", sub: "Architects of a changing world." },
-      { label: "Gen Z", sub: "Digital souls, infinite voices." },
-      { label: "Gen Alpha", sub: "The first page of a new book." },
-    ],
-  },
-  {
-    id: "audience",
-    stepLabel: "Audience",
-    title: "Who are you writing for?",
-    options: [
-      { label: "To those who follow", sub: "My children & those carrying my name." },
-      { label: "To those who came before", sub: "My parents & the voices I want to find." },
-      { label: "To my own soul", sub: "I need to understand my path." },
-      { label: "To everyone I love", sub: "My story belongs to the world." },
-    ],
-  },
-  {
-    id: "priority",
-    stepLabel: "Priority",
-    title: "What is your heart's priority?",
-    options: [
-      { label: "A voice I'm afraid to lose", sub: "Capture a story before it fades." },
-      { label: "A legacy already gone", sub: "Bring back the ones who live inside me." },
-      { label: "My own truth", sub: "Decipher who I am and where I come from." },
-      { label: "A lesson to pass on", sub: "I know something that must survive me." },
-    ],
-  },
-  {
-    id: "topics",
-    stepLabel: "Themes",
-    title: "Which part of your life glows brightest?",
-    options: [
-      { label: "Roots & Family", sub: "Ancestors, childhood homes, and traditions." },
-      { label: "Love & Bonds", sub: "Friendships, romance, and shared secrets." },
-      { label: "Work & Wisdom", sub: "Lessons learned through effort and career." },
-      { label: "Dreams & Travels", sub: "The places seen and the goals yet to reach." },
-    ],
-  },
-];
+import { toast } from "sonner";
 
 const Portrait = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  // User selections state
+  const [selections, setSelections] = useState({
+    generation: "",
+    audience: "",
+    spark: "",
+  });
+
+  const isStepValid = () => {
+    if (step === 1) return selections.generation !== "";
+    if (step === 2) return selections.audience !== "";
+    if (step === 3) return selections.spark !== "";
+    return false;
+  };
+
   const handleNext = async () => {
-    if (!selectedOption) return;
-
-    const newAnswers = { ...answers, [STEPS[currentStep].id]: selectedOption };
-    setAnswers(newAnswers);
-    setSelectedOption(null);
-
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
+    if (step < 3) {
+      setStep(step + 1);
     } else {
-      setLoading(true);
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          // Sauvegarde des infos importantes dans Supabase
-          await supabase
-            .from("profiles")
-            .update({
-              generation: newAnswers.era,
-              onboarding_completed: true,
-              // On pourrait aussi sauver 'topics' ou 'priority' ici si ta table le permet
-            })
-            .eq("user_id", user.id);
-        }
-        // REDIRECTION VERS LA PAGE LOADING (Magie !)
-        navigate("/loading");
-      } catch (error) {
-        console.error("Error saving profile:", error);
-        navigate("/loading"); // On redirige quand même pour ne pas bloquer l'utilisateur
-      } finally {
-        setLoading(false);
-      }
+      saveAndNavigate();
     }
   };
 
-  return (
-    <div className="min-h-screen gradient-canvas flex flex-col overflow-hidden relative bg-[#FDFCFB]">
-      <style>{`
-        @keyframes orbit-float { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(15px, -20px); } }
-        .o-bubble { animation: orbit-float 22s ease-in-out infinite; }
-        @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(232, 116, 42, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(232, 116, 42, 0); } 100% { box-shadow: 0 0 0 0 rgba(232, 116, 42, 0); } }
-        .pulse-active { animation: pulse-orange 2s infinite; }
-      `}</style>
+  const saveAndNavigate = async () => {
+    setLoading(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
 
-      {/* 1. ZONE DES BULLES COMPACTE */}
-      <div className="relative h-[18vh] w-full pt-1 opacity-40 pointer-events-none">
-        {LIFE_IMAGES.map((img, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full border border-white/60 shadow-sm overflow-hidden o-bubble bg-[#F1F5F9]"
-            style={{
-              width: `clamp(40px, ${7 + i}vw, 70px)`,
-              height: `clamp(40px, ${7 + i}vw, 70px)`,
-              top: `${2 + Math.random() * 20}%`,
-              left: `${2 + i * 10}%`,
-              animationDelay: `${i * -3.5}s`,
-              zIndex: 10 + i,
-            }}
-          >
-            <img src={img} className="w-full h-full object-cover grayscale-[15%]" alt="" />
-          </div>
-        ))}
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          generation: selections.generation,
+          audience: selections.audience,
+          spark: selections.spark,
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      navigate("/loading");
+    } catch (err) {
+      console.error(err);
+      toast.error("Error saving your portrait selections.");
+      setLoading(false);
+    }
+  };
+
+  const Card = ({
+    id,
+    title,
+    subtitle,
+    type,
+  }: {
+    id: string;
+    title: string;
+    subtitle: string;
+    type: keyof typeof selections;
+  }) => {
+    const isSelected = selections[type] === id;
+    return (
+      <button
+        onClick={() => setSelections({ ...selections, [type]: id })}
+        className={`w-full p-4 rounded-xl text-left transition-all border-l-4 mb-3 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
+          isSelected
+            ? "bg-[#6B4E9B]/10 border-[#E8742A] shadow-md"
+            : "bg-white border-transparent shadow-sm hover:border-gray-200"
+        }`}
+      >
+        <p className={`font-bold text-sm ${isSelected ? "text-[#E8742A]" : "text-[#1A3B47]"}`}>{title}</p>
+        <p className="text-[11px] text-[#1A3B47]/60 leading-tight mt-1 italic">"{subtitle}"</p>
+      </button>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAF8F6] flex flex-col font-sans relative overflow-hidden">
+      {/* DECORATIVE HEADER: Noir & Blanc / Sepia Portrait Bubbles */}
+      <div className="h-40 relative flex items-center justify-center gap-4 px-6 pt-8 opacity-40 grayscale">
+        <img
+          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120"
+          className="w-12 h-12 rounded-full object-cover -rotate-12 border-2 border-white shadow-lg"
+          alt=""
+        />
+        <img
+          src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&h=150"
+          className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg"
+          alt=""
+        />
+        <img
+          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=130&h=130"
+          className="w-14 h-14 rounded-full object-cover rotate-6 border-2 border-white shadow-lg"
+          alt=""
+        />
       </div>
 
-      {/* 2. LE QUESTIONNAIRE RÉACTIF */}
-      <div className="px-6 flex flex-col flex-1 z-20 -mt-4 bg-[#FDFCFB]/98 backdrop-blur-3xl pt-5 rounded-t-[40px] shadow-2xl relative">
-        <p className="text-[10px] font-black text-center text-[#E8742A] uppercase tracking-[0.3em] mb-1">
-          {STEPS[currentStep].stepLabel} — Step {currentStep + 1} of {STEPS.length}
+      {/* TITLES & PROGRESS */}
+      <div className="px-8 mt-4 text-center">
+        <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
+          Portrait Step {step} of 3
         </p>
 
-        <h1 className="text-2xl font-black text-center text-[#1A4D4D] mb-4 tracking-tight leading-none">
-          Who is speaking today?
-        </h1>
+        {step === 1 && (
+          <div className="animate-in fade-in duration-500">
+            <h1 className="text-2xl font-bold text-[#1A3B47]">Who is speaking today?</h1>
+            <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"When did your story begin?"</p>
+          </div>
+        )}
+        {step === 2 && (
+          <div className="animate-in fade-in duration-500">
+            <h1 className="text-2xl font-bold text-[#1A3B47]">Whose heart are you speaking to?</h1>
+            <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"Your message needs a destination."</p>
+          </div>
+        )}
+        {step === 3 && (
+          <div className="animate-in fade-in duration-500">
+            <h1 className="text-2xl font-bold text-[#1A3B47]">What brought your voice here?</h1>
+            <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"The spark that lit the fire."</p>
+          </div>
+        )}
+      </div>
 
-        <div className="flex gap-2 justify-center mb-5">
-          {STEPS.map((_, i) => (
-            <div
-              key={i}
-              className={`h-[10px] rounded-full transition-all duration-500 ${i === currentStep ? "w-10 bg-[#E8742A]" : "w-[10px] bg-[#9CA3AF]/30"}`}
+      {/* SELECTION LIST */}
+      <div className="flex-1 px-8 pt-8 overflow-y-auto pb-32">
+        {step === 1 && (
+          <div className="flex flex-col">
+            <Card type="generation" id="Silent" title="Silent Generation" subtitle="The keepers of unseen memories." />
+            <Card
+              type="generation"
+              id="Boomer"
+              title="Baby Boomers"
+              subtitle="Witnesses of the great transformation."
             />
-          ))}
-        </div>
-
-        <div className="flex flex-col flex-1 w-full max-w-sm mx-auto">
-          <p className="text-[#6B7280] text-[15px] font-bold text-center mb-5 leading-tight px-4">
-            {STEPS[currentStep].title}
-          </p>
-
-          <div className="space-y-2 pb-32">
-            {STEPS[currentStep].options.map((opt) => (
-              <button
-                key={opt.label}
-                onClick={() => setSelectedOption(opt.label)}
-                className={`w-full min-h-[60px] px-5 py-3 rounded-[20px] transition-all text-left border-l-[4px] border-y border-r flex items-center justify-between ${
-                  selectedOption === opt.label
-                    ? "bg-[#F0EBF8] border-l-[#E8742A] border-y-[#F0EBF8] border-r-[#F0EBF8] shadow-md translate-x-1"
-                    : "bg-white border-white/80 border-l-transparent shadow-sm active:bg-gray-50 hover:border-[#E8742A]/20"
-                }`}
-              >
-                <div>
-                  <div
-                    className={`text-[11px] font-black uppercase tracking-wider ${selectedOption === opt.label ? "text-[#4A2D7A]" : "text-[#1A4D4D]"}`}
-                  >
-                    {opt.label}
-                  </div>
-                  <div
-                    className={`text-[9px] font-medium italic ${selectedOption === opt.label ? "text-[#4A2D7A]/70" : "text-[#4A5568] opacity-60"}`}
-                  >
-                    {opt.sub}
-                  </div>
-                </div>
-                {selectedOption === opt.label && <Check className="w-5 h-5 text-[#E8742A]" />}
-              </button>
-            ))}
+            <Card type="generation" id="GenX" title="Generation X" subtitle="The bridge between two eras." />
+            <Card type="generation" id="Millennial" title="Millennials" subtitle="Architects of a changing world." />
+            <Card type="generation" id="GenZ" title="Gen Z" subtitle="Digital souls, infinite voices." />
+            <Card type="generation" id="GenAlpha" title="Gen Alpha" subtitle="The first page of a new book." />
           </div>
+        )}
 
-          <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB] to-transparent pt-10 flex flex-col items-center">
-            <button
-              onClick={handleNext}
-              disabled={!selectedOption || loading}
-              className={`w-full py-4 rounded-full font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 ${
-                selectedOption
-                  ? "bg-[#E8742A] text-white opacity-100 pulse-active"
-                  : "bg-[#9CA3AF] text-white cursor-not-allowed opacity-80"
-              }`}
-            >
-              {loading ? "Saving..." : "Continue →"}
-            </button>
-
-            {currentStep > 0 && !loading && (
-              <button
-                onClick={() => {
-                  setCurrentStep(currentStep - 1);
-                  setSelectedOption(null);
-                }}
-                className="mt-4 text-[9px] font-black text-[#1A4D4D]/40 uppercase tracking-[0.2em] hover:text-[#E8742A]"
-              >
-                ← Back
-              </button>
-            )}
+        {step === 2 && (
+          <div className="flex flex-col">
+            <Card
+              type="audience"
+              id="Children"
+              title="To those who follow"
+              subtitle="My children. The ones who carry my voice forward."
+            />
+            <Card
+              type="audience"
+              id="Parents"
+              title="To those who came before"
+              subtitle="My parents. The voices I still want to hear."
+            />
+            <Card
+              type="audience"
+              id="Self"
+              title="To my own soul"
+              subtitle="I need to speak my truth before I share it."
+            />
+            <Card
+              type="audience"
+              id="All"
+              title="To everyone I love"
+              subtitle="Some voices are too important to keep to one heart."
+            />
           </div>
-        </div>
+        )}
+
+        {step === 3 && (
+          <div className="flex flex-col">
+            <Card
+              type="spark"
+              id="Afraid"
+              title="A voice I'm afraid to lose"
+              subtitle="Someone I love is still here. Their story must never fade."
+            />
+            <Card
+              type="spark"
+              id="Presence"
+              title="A presence that lives on"
+              subtitle="They're gone. But their voice still lives inside me."
+            />
+            <Card
+              type="spark"
+              id="Truth"
+              title="My own truth"
+              subtitle="I need to hear myself speak to understand who I am."
+            />
+            <Card
+              type="spark"
+              id="Lesson"
+              title="A lesson that must survive me"
+              subtitle="I know something important. It deserves to be heard forever."
+            />
+          </div>
+        )}
+      </div>
+
+      {/* BOTTOM ACTION BUTTON */}
+      <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FAF8F6] via-[#FAF8F6] to-transparent z-30">
+        <button
+          disabled={!isStepValid() || loading}
+          onClick={handleNext}
+          className={`w-full py-4 rounded-full font-bold text-lg transition-all shadow-xl flex items-center justify-center ${
+            isStepValid() && !loading
+              ? "gradient-orange scale-100 opacity-100"
+              : "bg-gray-300 text-white scale-95 opacity-50 cursor-not-allowed shadow-none"
+          }`}
+          style={isStepValid() && !loading ? { color: "#FFFFFF" } : {}}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Preparing your journey...
+            </>
+          ) : (
+            "Continue"
+          )}
+        </button>
       </div>
     </div>
   );
