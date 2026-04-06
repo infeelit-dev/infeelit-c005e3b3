@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header, { Timeline } from "@/components/Header";
+import Header from "@/components/Header";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
+import type { Timeline } from "@/types/timeline";
 import type { BubbleCategory } from "@/components/MemoryBubble";
 
 const Index = () => {
@@ -37,7 +38,6 @@ const Index = () => {
         }
       `}</style>
 
-      {/* Nuages flous */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl animate-bokeh" />
         <div
@@ -48,8 +48,6 @@ const Index = () => {
           className="absolute bottom-1/3 -left-10 w-56 h-56 rounded-full bg-white/5 blur-3xl animate-bokeh"
           style={{ animationDelay: "8s" }}
         />
-
-        {/* Étoiles pour Forever */}
         {activeTimeline === "forever" &&
           [...Array(30)].map((_, i) => (
             <div
