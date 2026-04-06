@@ -15,7 +15,7 @@ const Index = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden gradient-canvas">
-      {/* Floating cloud shapes */}
+      {/* Nuages flous en arrière plan */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl animate-bokeh" />
         <div
@@ -37,13 +37,6 @@ const Index = () => {
       </div>
 
       <Header />
-
-      {/* Centre émotionnel */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-[5] px-8 pointer-events-none">
-        <h1 className="text-2xl font-extrabold text-primary text-center">Welcome home</h1>
-        <p className="mt-2 text-sm font-medium text-[#1A1A1A] text-center">Your most precious moments are safe here.</p>
-      </div>
-
       <BubbleCanvas onBubbleClick={handleBubbleClick} />
       <CurvedBottomNav />
     </div>
