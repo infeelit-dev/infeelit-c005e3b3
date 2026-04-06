@@ -91,31 +91,60 @@ const Portrait = () => {
 
   return (
     <div className="min-h-screen bg-[#FAF8F6] flex flex-col font-sans relative overflow-hidden">
-      {/* Header bubbles — local assets en noir et blanc sépia */}
-      <div className="h-36 relative flex items-center justify-center gap-4 px-6 pt-6">
+      {/* Animations CSS pour le flottement */}
+      <style>{`
+        @keyframes float1 {
+          0%, 100% { transform: translateY(0px) rotate(-12deg); }
+          50% { transform: translateY(-12px) rotate(-8deg); }
+        }
+        @keyframes float2 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-18px) rotate(3deg); }
+        }
+        @keyframes float3 {
+          0%, 100% { transform: translateY(0px) rotate(6deg); }
+          50% { transform: translateY(-10px) rotate(10deg); }
+        }
+        @keyframes float4 {
+          0%, 100% { transform: translateY(0px) rotate(-3deg); }
+          50% { transform: translateY(-14px) rotate(-6deg); }
+        }
+        @keyframes float5 {
+          0%, 100% { transform: translateY(0px) rotate(12deg); }
+          50% { transform: translateY(-8px) rotate(16deg); }
+        }
+        .bubble-1 { animation: float1 4s ease-in-out infinite; }
+        .bubble-2 { animation: float2 5.5s ease-in-out infinite; }
+        .bubble-3 { animation: float3 4.8s ease-in-out infinite; }
+        .bubble-4 { animation: float4 6s ease-in-out infinite; }
+        .bubble-5 { animation: float5 3.8s ease-in-out infinite; }
+      `}</style>
+
+      {/* Header bulles flottantes */}
+      <div className="h-40 relative flex items-center justify-center gap-4 px-6 pt-6">
         <img
           src={imgBirth}
-          className="w-12 h-12 rounded-full object-cover -rotate-12 border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-1 w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
           alt=""
         />
         <img
           src={imgChild}
-          className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-2 w-16 h-16 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
           alt=""
         />
         <img
           src={imgGrandfather}
-          className="w-14 h-14 rounded-full object-cover rotate-6 border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-3 w-14 h-14 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
           alt=""
         />
         <img
           src={imgMarry}
-          className="w-12 h-12 rounded-full object-cover -rotate-3 border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-4 w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
           alt=""
         />
         <img
           src={imgRelax}
-          className="w-10 h-10 rounded-full object-cover rotate-12 border-2 border-white shadow-lg grayscale sepia opacity-70"
+          className="bubble-5 w-10 h-10 rounded-full object-cover border-2 border-white shadow-lg grayscale sepia opacity-70"
           alt=""
         />
       </div>
