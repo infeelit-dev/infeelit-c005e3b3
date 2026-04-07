@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
+import imgMarry from "@/assets/marry.jpg";
 import type { Timeline } from "@/types/timeline";
 import type { BubbleCategory } from "@/components/MemoryBubble";
 
@@ -29,6 +30,7 @@ const Index = () => {
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
 
+  // Trigger 3 — Bannière pill après 60 secondes
   useEffect(() => {
     const timer = setTimeout(async () => {
       const {
@@ -148,12 +150,12 @@ const Index = () => {
           100% { transform: translate(0px, 0px); }
         }
         @keyframes pulseViolet {
-          0%, 100% { box-shadow: 0 0 15px rgba(107,78,155,0.5); }
-          50% { box-shadow: 0 0 30px rgba(107,78,155,0.9); }
+          0%, 100% { box-shadow: 0 0 15px rgba(107,78,155,0.6), 0 0 30px rgba(107,78,155,0.3); }
+          50%       { box-shadow: 0 0 30px rgba(107,78,155,1), 0 0 60px rgba(107,78,155,0.5); }
         }
         @keyframes pulseGold {
           0%, 100% { box-shadow: 0 0 15px rgba(232,116,42,0.5); }
-          50% { box-shadow: 0 0 30px rgba(232,116,42,0.9); }
+          50%       { box-shadow: 0 0 30px rgba(232,116,42,0.9); }
         }
         .fade-in-up { animation: fadeInUp 0.4s ease forwards; }
         .slide-up { animation: slideUp 0.4s ease forwards; }
@@ -167,13 +169,13 @@ const Index = () => {
 
       {/* Fond animé */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl animate-bokeh" />
+        <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl" />
         <div
-          className="absolute top-1/4 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl animate-bokeh"
+          className="absolute top-1/4 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl"
           style={{ animationDelay: "4s" }}
         />
         <div
-          className="absolute bottom-1/3 -left-10 w-56 h-56 rounded-full bg-white/5 blur-3xl animate-bokeh"
+          className="absolute bottom-1/3 -left-10 w-56 h-56 rounded-full bg-white/5 blur-3xl"
           style={{ animationDelay: "8s" }}
         />
         {activeTimeline === "forever" &&
@@ -197,52 +199,83 @@ const Index = () => {
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
-      {/* Bulle ambassadrice Forever dans Memories */}
+      {/* Bulle ambassadrice Forever dans Memories — avec marry.jpg */}
       {activeTimeline === "memories" && (
         <button
           onClick={() => handleDemoBubbleClick("forever-in-memories")}
           className="absolute z-[2] cursor-pointer bubble-demo-violet"
           style={{
-            width: "75px",
-            height: "75px",
-            left: "75%",
-            top: "62%",
+            width: "85px",
+            height: "85px",
+            left: "68%",
+            top: "58%",
             borderRadius: "50%",
+            overflow: "hidden",
             border: "2px solid rgba(107,78,155,0.9)",
-            background: "radial-gradient(circle at 35% 35%, rgba(107,78,155,0.8), rgba(2,8,40,0.9))",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "3px",
-            padding: "8px",
           }}
         >
-          <span
+          <img
+            src={imgMarry}
+            alt=""
             style={{
-              fontSize: "6px",
-              color: "#FFFFFF",
-              fontWeight: 900,
-              letterSpacing: "0.05em",
-              backgroundColor: "rgba(107,78,155,0.9)",
-              padding: "1px 5px",
-              borderRadius: "999px",
-              whiteSpace: "nowrap",
-              lineHeight: 1.5,
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "grayscale(20%) sepia(30%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(160deg, rgba(107,78,155,0.65), rgba(2,8,40,0.45))",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "4px",
             }}
           >
-            FOR 2045
-          </span>
-          <span
-            style={{
-              fontSize: "20px",
-              color: "rgba(180,140,255,1)",
-              textShadow: "0 0 15px rgba(107,78,155,0.9)",
-              lineHeight: 1,
-            }}
-          >
-            ✦
-          </span>
+            <span
+              style={{
+                fontSize: "6px",
+                color: "#FFFFFF",
+                fontWeight: 900,
+                backgroundColor: "rgba(107,78,155,0.9)",
+                padding: "2px 6px",
+                borderRadius: "999px",
+                whiteSpace: "nowrap",
+                letterSpacing: "0.05em",
+              }}
+            >
+              FOR 2045
+            </span>
+            <span
+              style={{
+                fontSize: "20px",
+                color: "rgba(200,160,255,1)",
+                textShadow: "0 0 15px rgba(107,78,155,1)",
+                lineHeight: 1,
+              }}
+            >
+              ✦
+            </span>
+          </div>
         </button>
       )}
 
@@ -272,7 +305,6 @@ const Index = () => {
               fontSize: "7px",
               color: "#FFFFFF",
               fontWeight: 900,
-              letterSpacing: "0.05em",
               backgroundColor: "rgba(232,116,42,0.9)",
               padding: "1px 5px",
               borderRadius: "999px",
@@ -306,6 +338,7 @@ const Index = () => {
             left: "50%",
             transform: "translateX(-50%)",
             width: "max-content",
+            maxWidth: "90vw",
           }}
         >
           <div
