@@ -24,7 +24,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        paddingTop: "40px",
+        paddingTop: "12px",
         paddingBottom: "8px",
       }}
     >
@@ -37,7 +37,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           maxWidth: "260px",
           minWidth: "160px",
           opacity: 1,
-          marginBottom: "14px",
+          marginBottom: "10px",
           filter: "drop-shadow(0 2px 16px rgba(0,0,0,0.9)) brightness(1.3) contrast(1.2)",
           display: "block",
         }}
