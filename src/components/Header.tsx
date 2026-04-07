@@ -15,31 +15,40 @@ const tabs: { id: Timeline; label: string }[] = [
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   return (
     <header className="absolute top-0 left-0 right-0 z-10 flex flex-col items-center pt-10 pb-2">
-      {/* Logo centré */}
+      {/* Logo centré — taille fixe en pixels pour éviter tout problème */}
       <img
         src={logo}
         alt="Infeelit"
-        className="h-12 opacity-95 drop-shadow-lg mb-3"
-        style={{ imageRendering: "-webkit-optimize-contrast" as any }}
+        style={{
+          height: "52px",
+          width: "auto",
+          opacity: 0.95,
+          marginBottom: "12px",
+          filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.3))",
+          imageRendering: "-webkit-optimize-contrast",
+        }}
       />
 
-      {/* Tabs flottants */}
+      {/* Tabs flottants sans fond */}
       <nav className="flex justify-center gap-8">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTimelineChange(tab.id)}
-            className={`relative transition-all duration-300 pb-1.5 ${
-              activeTimeline === tab.id
-                ? "text-white font-black text-sm scale-105"
-                : "text-white/45 font-semibold text-xs hover:text-white/70"
-            }`}
+            className="relative transition-all duration-300 pb-1.5"
+            style={{
+              color: activeTimeline === tab.id ? "#FFFFFF" : "rgba(255,255,255,0.45)",
+              fontWeight: activeTimeline === tab.id ? 900 : 600,
+              fontSize: activeTimeline === tab.id ? "14px" : "12px",
+              transform: activeTimeline === tab.id ? "scale(1.05)" : "scale(1)",
+            }}
           >
             {tab.label}
             {activeTimeline === tab.id && (
               <div
-                className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                className="absolute bottom-0 left-0 right-0 rounded-full"
                 style={{
+                  height: "2px",
                   backgroundColor: tab.id === "forever" ? "#38bdf8" : tab.id === "instant" ? "#E8742A" : "#ffffff",
                   boxShadow:
                     tab.id === "forever"
