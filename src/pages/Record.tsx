@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { X, StopCircle, Loader2, Share2, Video, Mic } from "lucide-react";
 import { toast } from "sonner";
 
-const MAX_DURATION_SECONDS = 180; // Hard cap 3 minutes
+const MAX_DURATION_SECONDS = 180;
 
 const FOLLOWUP_QUESTIONS: Record<string, string[]> = {
   childhood: [
@@ -65,7 +65,6 @@ const uploadToR2 = async (blob: Blob, fileName: string): Promise<string> => {
   return url;
 };
 
-// Capture poster frame depuis le flux vidéo
 const capturePosterFrame = (videoElement: HTMLVideoElement): Promise<Blob | null> => {
   return new Promise((resolve) => {
     try {
@@ -177,7 +176,6 @@ const Record = () => {
     };
   }, [stream]);
 
-  // Onde sonore canvas
   useEffect(() => {
     if (!audioMode || stage !== "recording") return;
     const canvas = canvasRef.current;
@@ -231,12 +229,10 @@ const Record = () => {
           setStage("recording");
           setElapsed(0);
 
-          // Compteur de temps
           elapsedTimerRef.current = setInterval(() => {
             setElapsed((e) => e + 1);
           }, 1000);
 
-          // Hard cap 3 minutes
           hardCapTimerRef.current = setTimeout(() => {
             toast("3 minute limit reached. Saving your memory...", { icon: "⏱️" });
             handleStop();
@@ -251,15 +247,12 @@ const Record = () => {
 
   const handleStop = async () => {
     if (!mediaRecorder) return;
-
     if (hardCapTimerRef.current) clearTimeout(hardCapTimerRef.current);
     if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
     cancelAnimationFrame(animFrameRef.current);
-
     setStage("uploading");
     mediaRecorder.requestData();
 
-    // Capture poster frame avant d'arrêter
     let posterBlob: Blob | null = null;
     if (!audioMode && videoRef.current) {
       posterBlob = await capturePosterFrame(videoRef.current);
@@ -284,7 +277,6 @@ const Record = () => {
         const fileName = `${userId}/${timestamp}_memory.webm`;
         const posterName = `${userId}/${timestamp}_poster.jpg`;
 
-        // Upload vidéo
         try {
           await uploadToR2(blob, fileName);
         } catch {
@@ -293,7 +285,6 @@ const Record = () => {
           }
         }
 
-        // Upload poster frame si disponible
         if (posterBlob) {
           try {
             await uploadToR2(posterBlob, posterName);
@@ -341,14 +332,12 @@ const Record = () => {
     navigate(-1);
   };
 
-  // Format timer mm:ss
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
-  // Couleur timer selon urgence
   const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
   return (
@@ -384,13 +373,11 @@ const Record = () => {
         </button>
 
         <div className="flex items-center gap-3">
-          {/* Timer visible pendant recording */}
           {stage === "recording" && (
             <span className="font-black text-lg tabular-nums" style={{ color: timerColor }}>
               {formatTime(elapsed)} / 3:00
             </span>
           )}
-
           {(stage === "recording" || stage === "countdown") && (
             <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
               {audioMode ? (
@@ -406,7 +393,7 @@ const Record = () => {
         </div>
       </div>
 
-      {/* STAGE 1 — QUESTION + CHOIX DU MODE */}
+      {/* STAGE 1 — QUESTION */}
       {stage === "question" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">Your Story</p>
@@ -415,7 +402,8 @@ const Record = () => {
 
           {!stream ? (
             <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
-              <p className="text-white/40 text-xs uppercase tracking-widest text-center">How do you want to share?</p>
+              {/* Texte corrigé — text-white/70 au lieu de text-white/40 */}
+              <p className="text-white/70 text-xs uppercase tracking-widest text-center">How do you want to share?</p>
               <button
                 onClick={() => handleSelectMode("video")}
                 className="w-full py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-3"
@@ -424,9 +412,10 @@ const Record = () => {
                 <Video size={20} />
                 Video — Show your face
               </button>
+              {/* Bouton Voice only corrigé — bordure plus visible */}
               <button
                 onClick={() => handleSelectMode("audio")}
-                className="w-full py-4 rounded-full bg-white/10 border border-white/20 text-white font-bold text-base flex items-center justify-center gap-3"
+                className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base flex items-center justify-center gap-3"
               >
                 <Mic size={20} />
                 Voice only — Just your voice
@@ -520,7 +509,7 @@ const Record = () => {
             </button>
             <button
               onClick={handleNextFollowup}
-              className="w-full py-4 rounded-full bg-white/10 border border-white/20 text-white font-bold text-base"
+              className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base"
             >
               {followupIndex < followups.length - 1 ? "Next question" : "See my memory"}
             </button>
@@ -572,7 +561,7 @@ const Record = () => {
           </button>
           <button
             onClick={() => handleShare("private")}
-            className="w-full max-w-xs py-4 rounded-full bg-white/10 border border-white/20 text-white font-bold text-base"
+            className="w-full max-w-xs py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base"
           >
             🔐 Keep it private
           </button>
