@@ -50,6 +50,37 @@ const getTheme = (question: string): string => {
   return "default";
 };
 
+// Upload vers Cloudflare R2
+const uploadToR2 = async (blob: Blob, fileName: string): Promise<string> => {
+  const endpoint = import.meta.env.VITE_R2_ENDPOINT;
+  const accessKeyId = import.meta.env.VITE_R2_ACCESS_KEY_ID;
+  const secretAccessKey = import.meta.env.VITE_R2_SECRET_ACCESS_KEY;
+  const bucketName = import.meta.env.VITE_R2_BUCKET_NAME || "infeelit-memories";
+
+  const url = `${endpoint}/${bucketName}/${fileName}`;
+
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+  const timeStr = now.toISOString().slice(11, 19).replace(/:/g, "");
+  const datetime = `${dateStr}T${timeStr}Z`;
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "video/webm",
+      "X-Amz-Date": datetime,
+      Authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${dateStr}/auto/s3/aws4_request`,
+    },
+    body: blob,
+  });
+
+  if (!response.ok) {
+    throw new Error(`R2 upload failed: ${response.status}`);
+  }
+
+  return url;
+};
+
 type Stage = "question" | "countdown" | "recording" | "uploading" | "followup" | "title" | "share";
 
 const Record = () => {
@@ -64,14 +95,13 @@ const Record = () => {
   const [countdown, setCountdown] = useState(3);
   const [followupIndex, setFollowupIndex] = useState(0);
   const [memoryTitle, setMemoryTitle] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
 
   const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
 
   const theme = getTheme(question);
   const followups = FOLLOWUP_QUESTIONS[theme];
 
-  // Démarrer la caméra dès l'arrivée
   useEffect(() => {
     async function startCamera() {
       try {
@@ -101,7 +131,6 @@ const Record = () => {
     };
   }, []);
 
-  // Décompte 3-2-1 puis enregistrement
   const startCountdown = () => {
     setStage("countdown");
     setCountdown(3);
@@ -119,11 +148,9 @@ const Record = () => {
     }, 1000);
   };
 
-  // Stop + upload invisible en arrière-plan
   const handleStop = async () => {
     if (!mediaRecorder) return;
     setStage("uploading");
-    setIsUploading(true);
 
     mediaRecorder.requestData();
 
@@ -134,38 +161,61 @@ const Record = () => {
         if (blob.size === 0) {
           toast.error("No video recorded. Please try again.");
           setStage("recording");
-          setIsUploading(false);
           return;
         }
 
-        const fileName = `${Date.now()}_memory.webm`;
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        const userId = user?.id || "anonymous";
+        const fileName = `${userId}/${Date.now()}_memory.webm`;
 
-        if (user) {
-          await supabase.storage.from("memories").upload(`${user.id}/${fileName}`, blob, {
-            contentType: "video/webm",
-            upsert: false,
+        let uploadedUrl = "";
+
+        try {
+          // Upload vers Cloudflare R2 en priorité
+          uploadedUrl = await uploadToR2(blob, fileName);
+          toast.success("Memory saved to your cloud.");
+        } catch (r2Error) {
+          console.warn("R2 failed, falling back to Supabase:", r2Error);
+          // Fallback vers Supabase si R2 échoue
+          if (user) {
+            const { data } = await supabase.storage
+              .from("memories")
+              .upload(fileName, blob, { contentType: "video/webm" });
+            if (data) {
+              const { data: urlData } = supabase.storage.from("memories").getPublicUrl(fileName);
+              uploadedUrl = urlData.publicUrl;
+            }
+          }
+        }
+
+        // Sauvegarde l'URL dans Supabase database
+        if (user && uploadedUrl) {
+          await supabase.from("memories").insert({
+            user_id: user.id,
+            video_url: uploadedUrl,
+            question: question,
+            title: "",
+            storage: uploadedUrl.includes("cloudflare") ? "r2" : "supabase",
           });
         }
 
-        // Générer le titre poétique
+        setVideoUrl(uploadedUrl);
+
         const titles = POETIC_TITLES[theme];
         setMemoryTitle(titles[Math.floor(Math.random() * titles.length)]);
-        setIsUploading(false);
         setStage("followup");
-      } catch {
+      } catch (err) {
+        console.error(err);
         toast.error("Error saving your memory. Please try again.");
         setStage("recording");
-        setIsUploading(false);
       }
     };
 
     mediaRecorder.stop();
   };
 
-  // Relance suivante ou titre
   const handleNextFollowup = () => {
     if (followupIndex < followups.length - 1) {
       setFollowupIndex((prev) => prev + 1);
@@ -174,7 +224,6 @@ const Record = () => {
     }
   };
 
-  // Partage final
   const handleShare = (type: "circle" | "public" | "private") => {
     stream?.getTracks().forEach((t) => t.stop());
     if (type === "circle") toast.success("Shared with your family circle.");
@@ -183,7 +232,6 @@ const Record = () => {
     navigate("/feed");
   };
 
-  // Quitter
   const stopAndLeave = () => {
     stream?.getTracks().forEach((t) => t.stop());
     navigate(-1);
@@ -191,7 +239,6 @@ const Record = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans">
-      {/* Caméra en fond */}
       <video
         ref={videoRef}
         autoPlay
@@ -202,10 +249,8 @@ const Record = () => {
         }`}
       />
 
-      {/* Gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-      {/* Bouton retour */}
       <div className="relative z-10 p-6">
         <button
           onClick={stopAndLeave}
@@ -215,9 +260,7 @@ const Record = () => {
         </button>
       </div>
 
-      {/* ═══════════════════════
-          ÉTAT 1 — QUESTION
-      ═══════════════════════ */}
+      {/* STAGE 1 — QUESTION */}
       {stage === "question" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">Your Story</p>
@@ -233,18 +276,14 @@ const Record = () => {
         </div>
       )}
 
-      {/* ═══════════════════════
-          ÉTAT 2 — DÉCOMPTE
-      ═══════════════════════ */}
+      {/* STAGE 2 — COUNTDOWN */}
       {stage === "countdown" && (
         <div className="relative z-20 flex-1 flex items-center justify-center">
           <div className="text-white text-9xl font-black animate-pulse">{countdown}</div>
         </div>
       )}
 
-      {/* ═══════════════════════
-          ÉTAT 3 — ENREGISTREMENT
-      ═══════════════════════ */}
+      {/* STAGE 3 — RECORDING */}
       {stage === "recording" && (
         <>
           <div className="relative z-10 flex justify-end px-6 -mt-16">
@@ -267,9 +306,7 @@ const Record = () => {
         </>
       )}
 
-      {/* ═══════════════════════
-          ÉTAT 4 — SAUVEGARDE
-      ═══════════════════════ */}
+      {/* STAGE 4 — UPLOADING */}
       {stage === "uploading" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center gap-6">
           <Loader2 size={48} className="text-[#E8742A] animate-spin" />
@@ -277,9 +314,7 @@ const Record = () => {
         </div>
       )}
 
-      {/* ═══════════════════════
-          ÉTAT 5 — RELANCE IA
-      ═══════════════════════ */}
+      {/* STAGE 5 — AI FOLLOWUP */}
       {stage === "followup" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">One more question</p>
@@ -305,9 +340,7 @@ const Record = () => {
         </div>
       )}
 
-      {/* ═══════════════════════
-          ÉTAT 6 — TITRE
-      ═══════════════════════ */}
+      {/* STAGE 6 — TITLE */}
       {stage === "title" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">Your memory is ready</p>
@@ -330,9 +363,7 @@ const Record = () => {
         </div>
       )}
 
-      {/* ═══════════════════════
-          ÉTAT 7 — PARTAGE
-      ═══════════════════════ */}
+      {/* STAGE 7 — SHARE */}
       {stage === "share" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-5">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">Who should hear this?</p>
