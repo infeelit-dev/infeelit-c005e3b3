@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { X, StopCircle, Loader2, Share2 } from "lucide-react";
+import { X, StopCircle, Loader2, Share2, Video, Mic } from "lucide-react";
 import { toast } from "sonner";
 
 const FOLLOWUP_QUESTIONS: Record<string, string[]> = {
@@ -54,19 +54,12 @@ const uploadToR2 = async (blob: Blob, fileName: string): Promise<string> => {
   const endpoint = import.meta.env.VITE_R2_ENDPOINT;
   const bucketName = import.meta.env.VITE_R2_BUCKET_NAME || "infeelit-memories";
   const url = `${endpoint}/${bucketName}/${fileName}`;
-
   const response = await fetch(url, {
     method: "PUT",
-    headers: {
-      "Content-Type": "video/webm",
-    },
+    headers: { "Content-Type": "video/webm" },
     body: blob,
   });
-
-  if (!response.ok) {
-    throw new Error(`R2 upload failed: ${response.status}`);
-  }
-
+  if (!response.ok) throw new Error(`R2 upload failed: ${response.status}`);
   return url;
 };
 
@@ -76,6 +69,9 @@ const Record = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animFrameRef = useRef<number>(0);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
   const [stage, setStage] = useState<Stage>("question");
@@ -84,40 +80,104 @@ const Record = () => {
   const [countdown, setCountdown] = useState(3);
   const [followupIndex, setFollowupIndex] = useState(0);
   const [memoryTitle, setMemoryTitle] = useState("");
+  const [audioMode, setAudioMode] = useState(false);
 
   const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
 
   const theme = getTheme(question);
   const followups = FOLLOWUP_QUESTIONS[theme];
 
-  useEffect(() => {
-    async function startCamera() {
-      try {
-        const s = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: 1280, height: 720 },
-          audio: true,
-        });
-        setStream(s);
-        if (videoRef.current) videoRef.current.srcObject = s;
+  // Démarrer caméra ou micro selon le mode
+  const startMedia = async (audioOnly: boolean) => {
+    try {
+      const constraints = audioOnly
+        ? { audio: true }
+        : { video: { facingMode: "user", width: 1280, height: 720 }, audio: true };
 
-        const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-          ? "video/webm;codecs=vp9"
-          : "video/webm";
+      const s = await navigator.mediaDevices.getUserMedia(constraints);
+      setStream(s);
 
-        const recorder = new MediaRecorder(s, { mimeType });
-        recorder.ondataavailable = (e) => {
-          if (e.data.size > 0) recordedChunksRef.current.push(e.data);
-        };
-        setMediaRecorder(recorder);
-      } catch {
-        toast.error("Camera not accessible. Please check your permissions.");
+      if (!audioOnly && videoRef.current) {
+        videoRef.current.srcObject = s;
       }
+
+      if (audioOnly) {
+        const audioCtx = new AudioContext();
+        const source = audioCtx.createMediaStreamSource(s);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+        analyserRef.current = analyser;
+      }
+
+      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm";
+
+      const recorder = new MediaRecorder(s, { mimeType: audioOnly ? "audio/webm" : mimeType });
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunksRef.current.push(e.data);
+      };
+      setMediaRecorder(recorder);
+    } catch {
+      toast.error("Microphone not accessible. Please check your permissions.");
     }
-    startCamera();
+  };
+
+  useEffect(() => {
     return () => {
       stream?.getTracks().forEach((t) => t.stop());
+      cancelAnimationFrame(animFrameRef.current);
     };
-  }, []);
+  }, [stream]);
+
+  // Animation onde sonore sur le canvas
+  useEffect(() => {
+    if (!audioMode || stage !== "recording") return;
+
+    const canvas = canvasRef.current;
+    const analyser = analyserRef.current;
+    if (!canvas || !analyser) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const draw = () => {
+      animFrameRef.current = requestAnimationFrame(draw);
+      analyser.getByteTimeDomainData(dataArray);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#E8742A";
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#E8742A";
+      ctx.beginPath();
+
+      const sliceWidth = canvas.width / bufferLength;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * canvas.height) / 2;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        x += sliceWidth;
+      }
+
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
+    };
+
+    draw();
+    return () => cancelAnimationFrame(animFrameRef.current);
+  }, [audioMode, stage]);
+
+  const handleSelectMode = async (mode: "video" | "audio") => {
+    const isAudio = mode === "audio";
+    setAudioMode(isAudio);
+    await startMedia(isAudio);
+  };
 
   const startCountdown = () => {
     setStage("countdown");
@@ -139,15 +199,16 @@ const Record = () => {
   const handleStop = async () => {
     if (!mediaRecorder) return;
     setStage("uploading");
-
+    cancelAnimationFrame(animFrameRef.current);
     mediaRecorder.requestData();
 
     mediaRecorder.onstop = async () => {
       try {
-        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+        const type = audioMode ? "audio/webm" : "video/webm";
+        const blob = new Blob(recordedChunksRef.current, { type });
 
         if (blob.size === 0) {
-          toast.error("No video recorded. Please try again.");
+          toast.error("Nothing recorded. Please try again.");
           setStage("recording");
           return;
         }
@@ -156,15 +217,14 @@ const Record = () => {
           data: { user },
         } = await supabase.auth.getUser();
         const userId = user?.id || "anonymous";
-        const fileName = `${userId}/${Date.now()}_memory.webm`;
+        const ext = audioMode ? "webm" : "webm";
+        const fileName = `${userId}/${Date.now()}_memory.${ext}`;
 
         try {
           await uploadToR2(blob, fileName);
-          toast.success("Memory saved.");
-        } catch (r2Error) {
-          console.warn("R2 failed, falling back to Supabase:", r2Error);
+        } catch {
           if (user) {
-            await supabase.storage.from("memories").upload(fileName, blob, { contentType: "video/webm" });
+            await supabase.storage.from("memories").upload(fileName, blob, { contentType: type });
           }
         }
 
@@ -173,7 +233,7 @@ const Record = () => {
         setStage("followup");
       } catch (err) {
         console.error(err);
-        toast.error("Error saving your memory. Please try again.");
+        toast.error("Error saving. Please try again.");
         setStage("recording");
       }
     };
@@ -199,45 +259,93 @@ const Record = () => {
 
   const stopAndLeave = () => {
     stream?.getTracks().forEach((t) => t.stop());
+    cancelAnimationFrame(animFrameRef.current);
     navigate(-1);
   };
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans">
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        playsInline
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-          stage === "recording" ? "opacity-80" : "opacity-20"
-        }`}
-      />
+      {/* Caméra — cachée en mode audio */}
+      {!audioMode && (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+            stage === "recording" ? "opacity-80" : "opacity-20"
+          }`}
+        />
+      )}
+
+      {/* Fond audio mode — gradient sombre */}
+      {audioMode && (
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(180deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)",
+          }}
+        />
+      )}
 
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-      <div className="relative z-10 p-6">
+      {/* Header */}
+      <div className="relative z-10 p-6 flex justify-between items-center">
         <button
           onClick={stopAndLeave}
           className="p-3 bg-white/10 backdrop-blur-xl rounded-full text-white border border-white/20"
         >
           <X size={24} />
         </button>
+
+        {/* Indicateur du mode actif */}
+        {(stage === "recording" || stage === "countdown") && (
+          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
+            {audioMode ? <Mic size={14} className="text-[#E8742A]" /> : <Video size={14} className="text-[#E8742A]" />}
+            <span className="text-[10px] text-white/70 font-bold uppercase tracking-widest">
+              {audioMode ? "Voice only" : "Video"}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* STAGE 1 — QUESTION */}
+      {/* STAGE 1 — QUESTION + CHOIX DU MODE */}
       {stage === "question" && (
-        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">Your Story</p>
           <h2 className="text-white text-2xl font-bold leading-tight italic">"{question}"</h2>
           <p className="text-white/50 text-sm">Take a breath. Speak from the heart.</p>
-          <button
-            onClick={startCountdown}
-            className="mt-4 px-10 py-4 rounded-full gradient-orange font-bold text-lg"
-            style={{ color: "#FFFFFF" }}
-          >
-            I'm ready
-          </button>
+
+          {/* Choix du mode */}
+          {!stream ? (
+            <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
+              <p className="text-white/40 text-xs uppercase tracking-widest text-center">How do you want to share?</p>
+              <button
+                onClick={() => handleSelectMode("video")}
+                className="w-full py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-3"
+                style={{ color: "#FFFFFF" }}
+              >
+                <Video size={20} />
+                Video — Show your face
+              </button>
+              <button
+                onClick={() => handleSelectMode("audio")}
+                className="w-full py-4 rounded-full bg-white/10 border border-white/20 text-white font-bold text-base flex items-center justify-center gap-3"
+              >
+                <Mic size={20} />
+                Voice only — Just your voice
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={startCountdown}
+              className="mt-2 px-10 py-4 rounded-full gradient-orange font-bold text-lg"
+              style={{ color: "#FFFFFF" }}
+            >
+              I'm ready
+            </button>
+          )}
         </div>
       )}
 
@@ -254,12 +362,33 @@ const Record = () => {
           <div className="relative z-10 flex justify-end px-6 -mt-16">
             <div className="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full animate-pulse">
               <div className="w-2 h-2 bg-white rounded-full" />
-              <span className="text-[10px] text-white font-black uppercase tracking-widest">Recording</span>
+              <span className="text-[10px] text-white font-black uppercase tracking-widest">
+                {audioMode ? "Listening..." : "Recording"}
+              </span>
             </div>
           </div>
+
+          {/* Onde sonore en mode audio */}
+          {audioMode && (
+            <div className="flex-1 flex flex-col items-center justify-center gap-8">
+              <div
+                className="w-32 h-32 rounded-full flex items-center justify-center"
+                style={{
+                  background: "radial-gradient(circle, rgba(107,78,155,0.4) 0%, rgba(232,116,42,0.2) 100%)",
+                  boxShadow: "0 0 40px rgba(232,116,42,0.3)",
+                }}
+              >
+                <Mic size={48} className="text-[#E8742A]" />
+              </div>
+              <canvas ref={canvasRef} width={300} height={80} className="opacity-90" />
+              <p className="text-white/50 text-sm italic">Your voice is being recorded...</p>
+            </div>
+          )}
+
           <div className="mt-auto relative z-20 px-10 pb-8 text-center">
             <h2 className="text-white text-lg font-bold leading-tight italic opacity-60">"{question}"</h2>
           </div>
+
           <div className="relative z-20 pb-20 flex justify-center">
             <button
               onClick={handleStop}
