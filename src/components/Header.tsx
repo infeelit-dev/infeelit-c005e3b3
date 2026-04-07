@@ -28,21 +28,21 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         paddingBottom: "8px",
       }}
     >
-      {/* Logo centré — taille forcée */}
       <img
         src={logo}
         alt="Infeelit"
         style={{
-          height: "60px",
+          height: "72px",
           width: "auto",
+          maxWidth: "260px",
+          minWidth: "160px",
           opacity: 1,
           marginBottom: "14px",
-          filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.5)) brightness(1.1)",
+          filter: "drop-shadow(0 2px 16px rgba(0,0,0,0.9)) brightness(1.3) contrast(1.2)",
           display: "block",
         }}
       />
 
-      {/* Tabs */}
       <nav
         style={{
           display: "flex",
@@ -61,15 +61,16 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               style={{
                 position: "relative",
                 paddingBottom: "6px",
-                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.7)",
+                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.75)",
                 fontWeight: isActive ? 900 : 700,
-                fontSize: isActive ? "15px" : "13px",
+                fontSize: isActive ? "16px" : "13px",
                 letterSpacing: "0.02em",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                textShadow: isActive ? "0 1px 8px rgba(0,0,0,0.8)" : "0 1px 6px rgba(0,0,0,0.6)",
+                textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                 transition: "all 0.2s ease",
+                whiteSpace: "nowrap",
               }}
             >
               {tab.label}
