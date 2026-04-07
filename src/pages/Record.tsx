@@ -50,26 +50,15 @@ const getTheme = (question: string): string => {
   return "default";
 };
 
-// Upload vers Cloudflare R2
 const uploadToR2 = async (blob: Blob, fileName: string): Promise<string> => {
   const endpoint = import.meta.env.VITE_R2_ENDPOINT;
-  const accessKeyId = import.meta.env.VITE_R2_ACCESS_KEY_ID;
-  const secretAccessKey = import.meta.env.VITE_R2_SECRET_ACCESS_KEY;
   const bucketName = import.meta.env.VITE_R2_BUCKET_NAME || "infeelit-memories";
-
   const url = `${endpoint}/${bucketName}/${fileName}`;
-
-  const now = new Date();
-  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
-  const timeStr = now.toISOString().slice(11, 19).replace(/:/g, "");
-  const datetime = `${dateStr}T${timeStr}Z`;
 
   const response = await fetch(url, {
     method: "PUT",
     headers: {
       "Content-Type": "video/webm",
-      "X-Amz-Date": datetime,
-      Authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${dateStr}/auto/s3/aws4_request`,
     },
     body: blob,
   });
@@ -95,7 +84,6 @@ const Record = () => {
   const [countdown, setCountdown] = useState(3);
   const [followupIndex, setFollowupIndex] = useState(0);
   const [memoryTitle, setMemoryTitle] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
 
   const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
 
@@ -170,38 +158,15 @@ const Record = () => {
         const userId = user?.id || "anonymous";
         const fileName = `${userId}/${Date.now()}_memory.webm`;
 
-        let uploadedUrl = "";
-
         try {
-          // Upload vers Cloudflare R2 en priorité
-          uploadedUrl = await uploadToR2(blob, fileName);
-          toast.success("Memory saved to your cloud.");
+          await uploadToR2(blob, fileName);
+          toast.success("Memory saved.");
         } catch (r2Error) {
           console.warn("R2 failed, falling back to Supabase:", r2Error);
-          // Fallback vers Supabase si R2 échoue
           if (user) {
-            const { data } = await supabase.storage
-              .from("memories")
-              .upload(fileName, blob, { contentType: "video/webm" });
-            if (data) {
-              const { data: urlData } = supabase.storage.from("memories").getPublicUrl(fileName);
-              uploadedUrl = urlData.publicUrl;
-            }
+            await supabase.storage.from("memories").upload(fileName, blob, { contentType: "video/webm" });
           }
         }
-
-        // Sauvegarde l'URL dans Supabase database
-        if (user && uploadedUrl) {
-          await supabase.from("memories").insert({
-            user_id: user.id,
-            video_url: uploadedUrl,
-            question: question,
-            title: "",
-            storage: uploadedUrl.includes("cloudflare") ? "r2" : "supabase",
-          });
-        }
-
-        setVideoUrl(uploadedUrl);
 
         const titles = POETIC_TITLES[theme];
         setMemoryTitle(titles[Math.floor(Math.random() * titles.length)]);
