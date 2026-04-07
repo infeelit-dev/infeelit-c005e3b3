@@ -56,13 +56,11 @@ const Portrait = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
+      const updateData = { generation, audience, spark };
+
       const { error } = await supabase
         .from("profiles")
-        .update({
-          generation,
-          audience,
-          spark,
-        } as Record<string, string>)
+        .update(updateData as any)
         .eq("user_id", user.id);
 
       if (error) throw error;
@@ -152,7 +150,6 @@ const Portrait = () => {
         .bubble-7 { animation: drift7 6.5s ease-in-out infinite; }
       `}</style>
 
-      {/* Bulles flottantes */}
       <div className="h-44 relative flex items-center justify-center pt-6">
         <img
           src={imgBirth}
@@ -198,7 +195,6 @@ const Portrait = () => {
         />
       </div>
 
-      {/* Progress + Title */}
       <div className="px-8 mt-2 text-center">
         <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
           {step === 1 && "Origin — Step 1 of 3"}
@@ -225,7 +221,6 @@ const Portrait = () => {
         )}
       </div>
 
-      {/* Cards */}
       <div className="flex-1 px-8 pt-6 overflow-y-auto pb-32">
         {step === 1 && (
           <div className="flex flex-col">
@@ -300,7 +295,6 @@ const Portrait = () => {
         )}
       </div>
 
-      {/* Bottom button */}
       <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FAF8F6] via-[#FAF8F6] to-transparent z-30">
         <button
           disabled={!isStepValid() || loading}
