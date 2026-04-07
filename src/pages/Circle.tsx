@@ -7,24 +7,21 @@ import { toast } from "sonner";
 const Circle = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState("demo-user-123");
   const [copied, setCopied] = useState(false);
-  const [membersCount] = useState(Math.floor(Math.random() * 8) + 2);
+  const [membersCount] = useState(3);
 
   useEffect(() => {
     const init = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/welcome");
-        return;
+
+      if (session) {
+        setUserId(session.user.id);
+        const { data } = await supabase.from("profiles").select("display_name").eq("user_id", session.user.id).single();
+        if (data?.display_name) setUserName(data.display_name);
       }
-      setUserId(session.user.id);
-
-      const { data } = await supabase.from("profiles").select("display_name").eq("user_id", session.user.id).single();
-
-      if (data?.display_name) setUserName(data.display_name);
     };
     init();
   }, []);
@@ -80,7 +77,10 @@ const Circle = () => {
         </div>
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-          style={{ backgroundColor: "rgba(107,78,155,0.2)", border: "1px solid rgba(107,78,155,0.4)" }}
+          style={{
+            backgroundColor: "rgba(107,78,155,0.2)",
+            border: "1px solid rgba(107,78,155,0.4)",
+          }}
         >
           <Lock size={12} style={{ color: "#6B4E9B" }} />
           <span className="text-xs font-bold" style={{ color: "#6B4E9B" }}>
@@ -90,7 +90,7 @@ const Circle = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-32">
-        {/* Section membres */}
+        {/* Membres */}
         <div className="px-6 pt-6 fade-up">
           <div className="flex items-center justify-between mb-4">
             <p className="text-white/50 text-xs uppercase tracking-widest font-bold">Members · {membersCount}</p>
@@ -106,7 +106,6 @@ const Circle = () => {
             </button>
           </div>
 
-          {/* Liste membres */}
           <div className="flex flex-col gap-3">
             {DEMO_MEMBERS.map((member, i) => (
               <div
@@ -140,12 +139,17 @@ const Circle = () => {
                   </div>
                   <p className="text-white/30 text-xs mt-0.5">{member.role}</p>
                 </div>
-                <Heart size={16} style={{ color: member.isYou ? "#E8742A" : "rgba(255,255,255,0.2)" }} />
+                <Heart
+                  size={16}
+                  style={{
+                    color: member.isYou ? "#E8742A" : "rgba(255,255,255,0.2)",
+                  }}
+                />
               </div>
             ))}
 
             {/* Slots vides */}
-            {[...Array(Math.max(0, 12 - DEMO_MEMBERS.length))].slice(0, 3).map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <button
                 key={`empty-${i}`}
                 onClick={handleWhatsApp}
@@ -170,11 +174,10 @@ const Circle = () => {
         {/* Divider */}
         <div className="mx-6 my-6" style={{ height: "1px", backgroundColor: "rgba(255,255,255,0.06)" }} />
 
-        {/* Section invitation */}
+        {/* Invitation */}
         <div className="px-6 fade-up">
           <p className="text-white/50 text-xs uppercase tracking-widest font-bold mb-4">Invite your family</p>
 
-          {/* Message émotionnel */}
           <div
             className="p-5 rounded-2xl mb-5 text-center"
             style={{
@@ -190,7 +193,7 @@ const Circle = () => {
             </p>
           </div>
 
-          {/* Lien d'invitation */}
+          {/* Lien */}
           <div
             className="flex items-center gap-3 p-4 rounded-2xl mb-4"
             style={{
@@ -214,10 +217,10 @@ const Circle = () => {
             </button>
           </div>
 
-          {/* Bouton WhatsApp */}
+          {/* WhatsApp */}
           <button
             onClick={handleWhatsApp}
-            className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all hover:opacity-90 active:scale-98"
+            className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all hover:opacity-90"
             style={{
               background: "linear-gradient(135deg, #25D366, #128C7E)",
               color: "#FFFFFF",
@@ -232,10 +235,9 @@ const Circle = () => {
           </p>
         </div>
 
-        {/* Section souvenirs du cercle */}
+        {/* Souvenirs du cercle */}
         <div className="px-6 mt-6 fade-up">
           <p className="text-white/50 text-xs uppercase tracking-widest font-bold mb-4">Circle memories</p>
-
           <div
             className="p-6 rounded-2xl text-center"
             style={{
@@ -260,7 +262,7 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* Bottom CTA fixe */}
+      {/* Bottom CTA */}
       <div
         className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4"
         style={{
