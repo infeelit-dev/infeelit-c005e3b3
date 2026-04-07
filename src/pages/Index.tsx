@@ -10,7 +10,7 @@ import type { BubbleCategory } from "@/components/MemoryBubble";
 const DEMO_BUBBLES = {
   foreverInMemories: {
     question: "On the day you get married, I want you to know that I am proud of every step you took to get there.",
-    badge: "MESSAGE FOR 2045",
+    badge: "FOR 2045",
     type: "forever-in-memories" as const,
   },
   legacyInForever: {
@@ -29,7 +29,6 @@ const Index = () => {
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
 
-  // Trigger 3 — Bannière pill après 60 secondes
   useEffect(() => {
     const timer = setTimeout(async () => {
       const {
@@ -74,7 +73,6 @@ const Index = () => {
     } = await supabase.auth.getSession();
     const q =
       type === "forever-in-memories" ? DEMO_BUBBLES.foreverInMemories.question : DEMO_BUBBLES.legacyInForever.question;
-
     if (session) {
       navigate("/record", { state: { question: q } });
       return;
@@ -131,8 +129,23 @@ const Index = () => {
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(60px); opacity: 0; }
+          from { transform: translateY(60px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes wander1 {
+          0%   { transform: translate(0px, 0px); }
+          20%  { transform: translate(50px, -60px); }
+          40%  { transform: translate(90px, -20px); }
+          60%  { transform: translate(60px, 55px); }
+          80%  { transform: translate(-30px, 40px); }
+          100% { transform: translate(0px, 0px); }
+        }
+        @keyframes wander3 {
+          0%   { transform: translate(0px, 0px); }
+          25%  { transform: translate(70px, 55px); }
+          50%  { transform: translate(30px, -70px); }
+          75%  { transform: translate(-55px, -40px); }
+          100% { transform: translate(0px, 0px); }
         }
         @keyframes pulseViolet {
           0%, 100% { box-shadow: 0 0 15px rgba(107,78,155,0.5); }
@@ -144,8 +157,12 @@ const Index = () => {
         }
         .fade-in-up { animation: fadeInUp 0.4s ease forwards; }
         .slide-up { animation: slideUp 0.4s ease forwards; }
-        .pulse-violet { animation: pulseViolet 2.5s ease-in-out infinite; }
-        .pulse-gold { animation: pulseGold 2.5s ease-in-out infinite; }
+        .bubble-demo-violet {
+          animation: wander3 10s ease-in-out infinite, pulseViolet 2.5s ease-in-out infinite;
+        }
+        .bubble-demo-gold {
+          animation: wander1 14s ease-in-out infinite, pulseGold 2.5s ease-in-out infinite;
+        }
       `}</style>
 
       {/* Fond animé */}
@@ -180,94 +197,116 @@ const Index = () => {
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
-      {/* Bulle ambassadrice Forever dans Memories — 75px */}
+      {/* Bulle ambassadrice Forever dans Memories */}
       {activeTimeline === "memories" && (
         <button
           onClick={() => handleDemoBubbleClick("forever-in-memories")}
-          className="absolute z-[2] pulse-violet cursor-pointer rounded-full"
+          className="absolute z-[2] cursor-pointer bubble-demo-violet"
           style={{
             width: "75px",
             height: "75px",
             left: "75%",
             top: "62%",
+            borderRadius: "50%",
             border: "2px solid rgba(107,78,155,0.9)",
             background: "radial-gradient(circle at 35% 35%, rgba(107,78,155,0.8), rgba(2,8,40,0.9))",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "3px",
+            padding: "8px",
           }}
         >
-          <div className="absolute top-1.5 left-0 right-0 flex justify-center">
-            <span
-              className="text-white font-black px-1.5 py-0.5 rounded-full"
-              style={{
-                fontSize: "6px",
-                backgroundColor: "rgba(107,78,155,0.9)",
-                letterSpacing: "0.05em",
-                whiteSpace: "nowrap",
-              }}
-            >
-              FOR 2045
-            </span>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span
-              style={{
-                fontSize: "18px",
-                color: "rgba(107,78,155,1)",
-                textShadow: "0 0 15px rgba(107,78,155,0.9)",
-              }}
-            >
-              ✦
-            </span>
-          </div>
+          <span
+            style={{
+              fontSize: "6px",
+              color: "#FFFFFF",
+              fontWeight: 900,
+              letterSpacing: "0.05em",
+              backgroundColor: "rgba(107,78,155,0.9)",
+              padding: "1px 5px",
+              borderRadius: "999px",
+              whiteSpace: "nowrap",
+              lineHeight: 1.5,
+            }}
+          >
+            FOR 2045
+          </span>
+          <span
+            style={{
+              fontSize: "20px",
+              color: "rgba(180,140,255,1)",
+              textShadow: "0 0 15px rgba(107,78,155,0.9)",
+              lineHeight: 1,
+            }}
+          >
+            ✦
+          </span>
         </button>
       )}
 
-      {/* Bulle ambassadrice Legacy dans Forever — 75px */}
+      {/* Bulle ambassadrice Legacy dans Forever */}
       {activeTimeline === "forever" && (
         <button
           onClick={() => handleDemoBubbleClick("legacy-in-forever")}
-          className="absolute z-[2] pulse-gold cursor-pointer rounded-full"
+          className="absolute z-[2] cursor-pointer bubble-demo-gold"
           style={{
             width: "75px",
             height: "75px",
             left: "12%",
             top: "58%",
+            borderRadius: "50%",
             border: "2px solid rgba(232,116,42,0.9)",
             background: "radial-gradient(circle at 35% 35%, rgba(232,116,42,0.4), rgba(20,10,5,0.9))",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "3px",
+            padding: "8px",
           }}
         >
-          <div className="absolute top-1.5 left-0 right-0 flex justify-center">
-            <span
-              className="text-white font-black px-1.5 py-0.5 rounded-full"
-              style={{
-                fontSize: "7px",
-                backgroundColor: "rgba(232,116,42,0.9)",
-                letterSpacing: "0.05em",
-              }}
-            >
-              LEGACY
-            </span>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span
-              style={{
-                fontSize: "18px",
-                color: "rgba(232,116,42,1)",
-                textShadow: "0 0 15px rgba(232,116,42,0.9)",
-              }}
-            >
-              ?
-            </span>
-          </div>
+          <span
+            style={{
+              fontSize: "7px",
+              color: "#FFFFFF",
+              fontWeight: 900,
+              letterSpacing: "0.05em",
+              backgroundColor: "rgba(232,116,42,0.9)",
+              padding: "1px 5px",
+              borderRadius: "999px",
+              whiteSpace: "nowrap",
+              lineHeight: 1.5,
+            }}
+          >
+            LEGACY
+          </span>
+          <span
+            style={{
+              fontSize: "20px",
+              color: "rgba(232,116,42,1)",
+              textShadow: "0 0 15px rgba(232,116,42,0.9)",
+              lineHeight: 1,
+            }}
+          >
+            ?
+          </span>
         </button>
       )}
 
       <CurvedBottomNav />
 
-      {/* Trigger 3 — Bannière pill après 60 secondes */}
+      {/* Bannière pill après 60 secondes */}
       {showBanner && !showInterstitial && !showForeverOverlay && (
         <div
           className="absolute z-30 slide-up"
-          style={{ bottom: "90px", left: "50%", transform: "translateX(-50%)", width: "max-content" }}
+          style={{
+            bottom: "90px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "max-content",
+          }}
         >
           <div
             className="flex items-center gap-3 px-5 py-3 rounded-full"
@@ -295,7 +334,7 @@ const Index = () => {
         </div>
       )}
 
-      {/* Trigger 2 — Overlay Forever */}
+      {/* Overlay Forever */}
       {showForeverOverlay && (
         <div
           className="absolute inset-0 z-50 flex items-center justify-center"
@@ -353,7 +392,7 @@ const Index = () => {
         </div>
       )}
 
-      {/* Trigger 1 — Interstitiel principal */}
+      {/* Interstitiel principal */}
       {showInterstitial && (
         <div
           className="absolute inset-0 z-50 flex items-end justify-center pb-12"
