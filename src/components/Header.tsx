@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import logo from "@/assets/infeelit-logo.png";
 import type { Timeline } from "@/types/timeline";
 
@@ -15,38 +14,25 @@ const tabs: { id: Timeline; label: string }[] = [
 
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   return (
-    <header className="absolute top-0 left-0 right-0 z-10">
-      <div className="px-4 pt-10 pb-2 flex items-center justify-between">
-        {/* Logo discret à gauche */}
-        <img
-          src={logo}
-          alt="Infeelit"
-          className="h-8 opacity-90 drop-shadow-sm"
-          style={{ imageRendering: "-webkit-optimize-contrast" as any }}
-        />
+    <header className="absolute top-0 left-0 right-0 z-10 flex flex-col items-center pt-10 pb-2">
+      {/* Logo centré */}
+      <img
+        src={logo}
+        alt="Infeelit"
+        className="h-12 opacity-95 drop-shadow-lg mb-3"
+        style={{ imageRendering: "-webkit-optimize-contrast" as any }}
+      />
 
-        {/* Badges droite */}
-        <div className="flex items-center gap-1.5">
-          <span className="bg-white/15 backdrop-blur border border-white/30 rounded-full px-2 py-0.5 text-[9px] font-bold text-primary-foreground tracking-wider flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-            LIVE
-          </span>
-          <span className="gradient-orange rounded-full px-2 py-0.5 text-[9px] font-bold text-primary-foreground tracking-wider">
-            Pro
-          </span>
-        </div>
-      </div>
-
-      {/* Tabs fins flottants — sans fond */}
-      <nav className="flex justify-center gap-8 px-6 pb-2">
+      {/* Tabs flottants */}
+      <nav className="flex justify-center gap-8">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTimelineChange(tab.id)}
             className={`relative transition-all duration-300 pb-1.5 ${
               activeTimeline === tab.id
-                ? "text-primary-foreground font-extrabold text-sm"
-                : "text-white/50 font-semibold text-xs hover:text-white/80"
+                ? "text-white font-black text-sm scale-105"
+                : "text-white/45 font-semibold text-xs hover:text-white/70"
             }`}
           >
             {tab.label}
@@ -55,6 +41,12 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
                 style={{
                   backgroundColor: tab.id === "forever" ? "#38bdf8" : tab.id === "instant" ? "#E8742A" : "#ffffff",
+                  boxShadow:
+                    tab.id === "forever"
+                      ? "0 0 8px rgba(56,189,248,0.8)"
+                      : tab.id === "instant"
+                        ? "0 0 8px rgba(232,116,42,0.8)"
+                        : "0 0 8px rgba(255,255,255,0.6)",
                 }}
               />
             )}
