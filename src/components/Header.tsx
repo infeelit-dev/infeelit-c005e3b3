@@ -14,53 +14,82 @@ const tabs: { id: Timeline; label: string }[] = [
 
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   return (
-    <header className="absolute top-0 left-0 right-0 z-10 flex flex-col items-center pt-10 pb-2">
-      {/* Logo centré — taille fixe en pixels pour éviter tout problème */}
+    <header
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        paddingTop: "40px",
+        paddingBottom: "8px",
+      }}
+    >
+      {/* Logo centré — taille forcée */}
       <img
         src={logo}
         alt="Infeelit"
         style={{
-          height: "52px",
+          height: "60px",
           width: "auto",
-          opacity: 0.95,
-          marginBottom: "12px",
-          filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.3))",
-          imageRendering: "-webkit-optimize-contrast",
+          opacity: 1,
+          marginBottom: "14px",
+          filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.5)) brightness(1.1)",
+          display: "block",
         }}
       />
 
-      {/* Tabs flottants sans fond */}
-      <nav className="flex justify-center gap-8">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTimelineChange(tab.id)}
-            className="relative transition-all duration-300 pb-1.5"
-            style={{
-              color: activeTimeline === tab.id ? "#FFFFFF" : "rgba(255,255,255,0.45)",
-              fontWeight: activeTimeline === tab.id ? 900 : 600,
-              fontSize: activeTimeline === tab.id ? "14px" : "12px",
-              transform: activeTimeline === tab.id ? "scale(1.05)" : "scale(1)",
-            }}
-          >
-            {tab.label}
-            {activeTimeline === tab.id && (
-              <div
-                className="absolute bottom-0 left-0 right-0 rounded-full"
-                style={{
-                  height: "2px",
-                  backgroundColor: tab.id === "forever" ? "#38bdf8" : tab.id === "instant" ? "#E8742A" : "#ffffff",
-                  boxShadow:
-                    tab.id === "forever"
-                      ? "0 0 8px rgba(56,189,248,0.8)"
-                      : tab.id === "instant"
-                        ? "0 0 8px rgba(232,116,42,0.8)"
-                        : "0 0 8px rgba(255,255,255,0.6)",
-                }}
-              />
-            )}
-          </button>
-        ))}
+      {/* Tabs */}
+      <nav
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "32px",
+        }}
+      >
+        {tabs.map((tab) => {
+          const isActive = activeTimeline === tab.id;
+          const underlineColor = tab.id === "forever" ? "#38bdf8" : tab.id === "instant" ? "#E8742A" : "#ffffff";
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTimelineChange(tab.id)}
+              style={{
+                position: "relative",
+                paddingBottom: "6px",
+                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.7)",
+                fontWeight: isActive ? 900 : 700,
+                fontSize: isActive ? "15px" : "13px",
+                letterSpacing: "0.02em",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textShadow: isActive ? "0 1px 8px rgba(0,0,0,0.8)" : "0 1px 6px rgba(0,0,0,0.6)",
+                transition: "all 0.2s ease",
+              }}
+            >
+              {tab.label}
+              {isActive && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: "2.5px",
+                    borderRadius: "999px",
+                    backgroundColor: underlineColor,
+                    boxShadow: `0 0 10px ${underlineColor}`,
+                  }}
+                />
+              )}
+            </button>
+          );
+        })}
       </nav>
     </header>
   );
