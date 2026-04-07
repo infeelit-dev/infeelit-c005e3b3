@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { X, StopCircle, Loader2, Share2, Video, Mic } from "lucide-react";
 import { toast } from "sonner";
 
+const MAX_DURATION_SECONDS = 180; // Hard cap 3 minutes
+
 const FOLLOWUP_QUESTIONS: Record<string, string[]> = {
   childhood: [
     "Who made that moment feel safe?",
@@ -56,11 +58,31 @@ const uploadToR2 = async (blob: Blob, fileName: string): Promise<string> => {
   const url = `${endpoint}/${bucketName}/${fileName}`;
   const response = await fetch(url, {
     method: "PUT",
-    headers: { "Content-Type": "video/webm" },
+    headers: { "Content-Type": blob.type },
     body: blob,
   });
   if (!response.ok) throw new Error(`R2 upload failed: ${response.status}`);
   return url;
+};
+
+// Capture poster frame depuis le flux vidéo
+const capturePosterFrame = (videoElement: HTMLVideoElement): Promise<Blob | null> => {
+  return new Promise((resolve) => {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 320;
+      canvas.height = 180;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(null);
+        return;
+      }
+      ctx.drawImage(videoElement, 0, 0, 320, 180);
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.7);
+    } catch {
+      resolve(null);
+    }
+  });
 };
 
 type Stage = "question" | "countdown" | "recording" | "uploading" | "followup" | "title" | "share";
@@ -73,6 +95,8 @@ const Record = () => {
   const animFrameRef = useRef<number>(0);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const hardCapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [stage, setStage] = useState<Stage>("question");
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
@@ -81,18 +105,30 @@ const Record = () => {
   const [followupIndex, setFollowupIndex] = useState(0);
   const [memoryTitle, setMemoryTitle] = useState("");
   const [audioMode, setAudioMode] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
 
   const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
 
   const theme = getTheme(question);
   const followups = FOLLOWUP_QUESTIONS[theme];
 
-  // Démarrer caméra ou micro selon le mode
   const startMedia = async (audioOnly: boolean) => {
     try {
       const constraints = audioOnly
-        ? { audio: true }
-        : { video: { facingMode: "user", width: 1280, height: 720 }, audio: true };
+        ? { audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } }
+        : {
+            video: {
+              facingMode: "user",
+              width: { ideal: 720, max: 1280 },
+              height: { ideal: 480, max: 720 },
+              frameRate: { ideal: 24, max: 30 },
+            },
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              sampleRate: 44100,
+            },
+          };
 
       const s = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(s);
@@ -110,12 +146,22 @@ const Record = () => {
         analyserRef.current = analyser;
       }
 
-      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9" : "video/webm";
+      const mimeType = audioOnly
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+          ? "video/webm;codecs=vp9"
+          : "video/webm";
 
-      const recorder = new MediaRecorder(s, { mimeType: audioOnly ? "audio/webm" : mimeType });
+      const recorder = new MediaRecorder(s, {
+        mimeType,
+        videoBitsPerSecond: audioOnly ? undefined : 500_000,
+        audioBitsPerSecond: 64_000,
+      });
+
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) recordedChunksRef.current.push(e.data);
       };
+
       setMediaRecorder(recorder);
     } catch {
       toast.error("Microphone not accessible. Please check your permissions.");
@@ -126,37 +172,33 @@ const Record = () => {
     return () => {
       stream?.getTracks().forEach((t) => t.stop());
       cancelAnimationFrame(animFrameRef.current);
+      if (hardCapTimerRef.current) clearTimeout(hardCapTimerRef.current);
+      if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
     };
   }, [stream]);
 
-  // Animation onde sonore sur le canvas
+  // Onde sonore canvas
   useEffect(() => {
     if (!audioMode || stage !== "recording") return;
-
     const canvas = canvasRef.current;
     const analyser = analyserRef.current;
     if (!canvas || !analyser) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
     const draw = () => {
       animFrameRef.current = requestAnimationFrame(draw);
       analyser.getByteTimeDomainData(dataArray);
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = 3;
       ctx.strokeStyle = "#E8742A";
       ctx.shadowBlur = 15;
       ctx.shadowColor = "#E8742A";
       ctx.beginPath();
-
       const sliceWidth = canvas.width / bufferLength;
       let x = 0;
-
       for (let i = 0; i < bufferLength; i++) {
         const v = dataArray[i] / 128.0;
         const y = (v * canvas.height) / 2;
@@ -164,11 +206,9 @@ const Record = () => {
         else ctx.lineTo(x, y);
         x += sliceWidth;
       }
-
       ctx.lineTo(canvas.width, canvas.height / 2);
       ctx.stroke();
     };
-
     draw();
     return () => cancelAnimationFrame(animFrameRef.current);
   }, [audioMode, stage]);
@@ -189,6 +229,19 @@ const Record = () => {
           recordedChunksRef.current = [];
           mediaRecorder?.start(100);
           setStage("recording");
+          setElapsed(0);
+
+          // Compteur de temps
+          elapsedTimerRef.current = setInterval(() => {
+            setElapsed((e) => e + 1);
+          }, 1000);
+
+          // Hard cap 3 minutes
+          hardCapTimerRef.current = setTimeout(() => {
+            toast("3 minute limit reached. Saving your memory...", { icon: "⏱️" });
+            handleStop();
+          }, MAX_DURATION_SECONDS * 1000);
+
           return 3;
         }
         return prev - 1;
@@ -198,9 +251,19 @@ const Record = () => {
 
   const handleStop = async () => {
     if (!mediaRecorder) return;
-    setStage("uploading");
+
+    if (hardCapTimerRef.current) clearTimeout(hardCapTimerRef.current);
+    if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
     cancelAnimationFrame(animFrameRef.current);
+
+    setStage("uploading");
     mediaRecorder.requestData();
+
+    // Capture poster frame avant d'arrêter
+    let posterBlob: Blob | null = null;
+    if (!audioMode && videoRef.current) {
+      posterBlob = await capturePosterFrame(videoRef.current);
+    }
 
     mediaRecorder.onstop = async () => {
       try {
@@ -217,14 +280,27 @@ const Record = () => {
           data: { user },
         } = await supabase.auth.getUser();
         const userId = user?.id || "anonymous";
-        const ext = audioMode ? "webm" : "webm";
-        const fileName = `${userId}/${Date.now()}_memory.${ext}`;
+        const timestamp = Date.now();
+        const fileName = `${userId}/${timestamp}_memory.webm`;
+        const posterName = `${userId}/${timestamp}_poster.jpg`;
 
+        // Upload vidéo
         try {
           await uploadToR2(blob, fileName);
         } catch {
           if (user) {
             await supabase.storage.from("memories").upload(fileName, blob, { contentType: type });
+          }
+        }
+
+        // Upload poster frame si disponible
+        if (posterBlob) {
+          try {
+            await uploadToR2(posterBlob, posterName);
+          } catch {
+            if (user) {
+              await supabase.storage.from("memories").upload(posterName, posterBlob, { contentType: "image/jpeg" });
+            }
           }
         }
 
@@ -260,12 +336,23 @@ const Record = () => {
   const stopAndLeave = () => {
     stream?.getTracks().forEach((t) => t.stop());
     cancelAnimationFrame(animFrameRef.current);
+    if (hardCapTimerRef.current) clearTimeout(hardCapTimerRef.current);
+    if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
     navigate(-1);
   };
 
+  // Format timer mm:ss
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  // Couleur timer selon urgence
+  const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
+
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans">
-      {/* Caméra — cachée en mode audio */}
       {!audioMode && (
         <video
           ref={videoRef}
@@ -278,13 +365,10 @@ const Record = () => {
         />
       )}
 
-      {/* Fond audio mode — gradient sombre */}
       {audioMode && (
         <div
           className="absolute inset-0"
-          style={{
-            background: "linear-gradient(180deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)",
-          }}
+          style={{ background: "linear-gradient(180deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)" }}
         />
       )}
 
@@ -299,15 +383,27 @@ const Record = () => {
           <X size={24} />
         </button>
 
-        {/* Indicateur du mode actif */}
-        {(stage === "recording" || stage === "countdown") && (
-          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
-            {audioMode ? <Mic size={14} className="text-[#E8742A]" /> : <Video size={14} className="text-[#E8742A]" />}
-            <span className="text-[10px] text-white/70 font-bold uppercase tracking-widest">
-              {audioMode ? "Voice only" : "Video"}
+        <div className="flex items-center gap-3">
+          {/* Timer visible pendant recording */}
+          {stage === "recording" && (
+            <span className="font-black text-lg tabular-nums" style={{ color: timerColor }}>
+              {formatTime(elapsed)} / 3:00
             </span>
-          </div>
-        )}
+          )}
+
+          {(stage === "recording" || stage === "countdown") && (
+            <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
+              {audioMode ? (
+                <Mic size={14} className="text-[#E8742A]" />
+              ) : (
+                <Video size={14} className="text-[#E8742A]" />
+              )}
+              <span className="text-[10px] text-white/70 font-bold uppercase tracking-widest">
+                {audioMode ? "Voice only" : "Video"}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* STAGE 1 — QUESTION + CHOIX DU MODE */}
@@ -317,7 +413,6 @@ const Record = () => {
           <h2 className="text-white text-2xl font-bold leading-tight italic">"{question}"</h2>
           <p className="text-white/50 text-sm">Take a breath. Speak from the heart.</p>
 
-          {/* Choix du mode */}
           {!stream ? (
             <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
               <p className="text-white/40 text-xs uppercase tracking-widest text-center">How do you want to share?</p>
@@ -368,7 +463,6 @@ const Record = () => {
             </div>
           </div>
 
-          {/* Onde sonore en mode audio */}
           {audioMode && (
             <div className="flex-1 flex flex-col items-center justify-center gap-8">
               <div
