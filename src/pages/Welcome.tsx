@@ -5,6 +5,26 @@ const Welcome = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const incomingQuestion = location.state?.question as string | undefined;
+  const context = location.state?.context as string | undefined;
+
+  const getTitle = () => {
+    if (context === "forever") return "You wanted to create a legacy";
+    if (incomingQuestion) return "You wanted to answer";
+    return "Some memories deserve to be felt again.";
+  };
+
+  const getSubtitle = () => {
+    if (context === "forever")
+      return "Create your account to send a message to the future. It will reach its destination at the right moment.";
+    if (incomingQuestion) return "Create your account to record this memory and share it with your family circle.";
+    return "Don't write your story. Live it out loud.";
+  };
+
+  const getCTA = () => {
+    if (context === "forever") return "Create my legacy — it's free";
+    if (incomingQuestion) return "Record this memory";
+    return "Create my account";
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gradient-canvas px-6">
@@ -16,37 +36,53 @@ const Welcome = () => {
           style={{ imageRendering: "-webkit-optimize-contrast" as any }}
         />
 
-        {/* Question contextuelle si l'utilisateur vient d'une bulle */}
-        {incomingQuestion ? (
-          <div className="text-center max-w-sm space-y-3">
-            <p className="text-[10px] text-[#E8742A] font-black uppercase tracking-[0.3em]">You wanted to answer</p>
+        {/* Contexte émotionnel selon la bulle cliquée */}
+        <div className="text-center max-w-sm space-y-3 px-4">
+          {/* Badge contextuel */}
+          {(incomingQuestion || context === "forever") && (
+            <p
+              className="text-[10px] font-black uppercase tracking-[0.3em]"
+              style={{ color: context === "forever" ? "rgba(107,78,155,1)" : "#E8742A" }}
+            >
+              {getTitle()}
+            </p>
+          )}
+
+          {/* Question ou tagline */}
+          {incomingQuestion ? (
             <p className="text-lg font-bold leading-snug italic" style={{ color: "#1A3B47" }}>
               "{incomingQuestion}"
             </p>
-            <p className="text-sm text-[#1A1A1A]/60 pt-2">Create your account to record this memory.</p>
-          </div>
-        ) : (
-          <div className="text-center max-w-sm space-y-3">
+          ) : (
             <p
               className="text-xl text-primary leading-relaxed"
               style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
             >
               Some memories deserve to be felt again.
             </p>
-            <p className="text-sm font-medium tracking-wide py-4" style={{ color: "#1A1A1A" }}>
-              Don't write your story. Live it out loud.
-            </p>
-          </div>
-        )}
+          )}
+
+          {/* Sous-titre */}
+          <p className="text-sm font-medium leading-relaxed pt-2" style={{ color: "#1A1A1A" }}>
+            {getSubtitle()}
+          </p>
+        </div>
       </div>
 
       <div className="w-full max-w-sm pb-12 space-y-6">
+        {/* CTA principal — couleur selon contexte */}
         <button
           onClick={() => navigate("/signup", { state: location.state })}
-          className="w-[85%] mx-auto block py-4 rounded-full gradient-orange text-primary-foreground font-bold text-base tracking-wide transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
-          style={{ color: "#FFFFFF" }}
+          className="w-[85%] mx-auto block py-4 rounded-full font-bold text-base tracking-wide transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+          style={{
+            background:
+              context === "forever"
+                ? "linear-gradient(135deg, #38bdf8, #6B4E9B)"
+                : "linear-gradient(135deg, #E8742A, #D4621A)",
+            color: "#FFFFFF",
+          }}
         >
-          {incomingQuestion ? "Record this memory" : "Create my account"}
+          {getCTA()}
         </button>
 
         <p className="text-center text-[10px] text-muted-foreground/60 px-4">
