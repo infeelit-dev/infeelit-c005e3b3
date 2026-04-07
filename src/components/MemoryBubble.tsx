@@ -33,9 +33,17 @@ const MINI_BUBBLES = [
 ];
 
 const MemoryBubble = ({
-  question, size, x, y, category, animationClass,
-  delay = "0s", image, timeline = "memories",
-  colorMode = "sepia", onClick,
+  question,
+  size,
+  x,
+  y,
+  category,
+  animationClass,
+  delay = "0s",
+  image,
+  timeline = "memories",
+  colorMode = "sepia",
+  onClick,
 }: MemoryBubbleProps) => {
   const [bursting, setBursting] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -43,7 +51,10 @@ const MemoryBubble = ({
   const handleClick = () => {
     if (!question) return;
     setBursting(true);
-    setTimeout(() => { setBursting(false); setExpanded(true); }, 600);
+    setTimeout(() => {
+      setBursting(false);
+      setExpanded(true);
+    }, 600);
   };
 
   const handleAnswer = (e: React.MouseEvent) => {
@@ -91,12 +102,11 @@ const MemoryBubble = ({
       };
     }
     return {
-      border: colorMode === "color"
-        ? "1.5px solid rgba(255,255,255,0.6)"
-        : "1px solid rgba(255,255,255,0.4)",
-      boxShadow: colorMode === "color"
-        ? "0 0 25px rgba(255,255,255,0.2), inset 0 2px 8px rgba(255,255,255,0.3)"
-        : "0 0 20px rgba(255,255,255,0.1), inset 0 2px 8px rgba(255,255,255,0.2)",
+      border: colorMode === "color" ? "1.5px solid rgba(255,255,255,0.6)" : "1px solid rgba(255,255,255,0.4)",
+      boxShadow:
+        colorMode === "color"
+          ? "0 0 25px rgba(255,255,255,0.2), inset 0 2px 8px rgba(255,255,255,0.3)"
+          : "0 0 20px rgba(255,255,255,0.1), inset 0 2px 8px rgba(255,255,255,0.2)",
       overlay: colorMode === "color" ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.05)",
       miniBubbleColor: "rgba(255,255,255,0.7)",
       iconColor: "rgba(255,255,255,0.9)",
@@ -110,7 +120,7 @@ const MemoryBubble = ({
   const style = getStyle();
 
   return (
-    <>
+    <div>
       <style>{`
         @keyframes miniBubbleFloat {
           0%   { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 1; }
@@ -145,12 +155,118 @@ const MemoryBubble = ({
             style={{
               width: Math.min(300, size * 2.4),
               height: Math.min(300, size * 2.4),
-              border: timeline === "forever"
-                ? "2px solid rgba(56,189,248,0.8)"
-                : "2px solid rgba(255,255,255,0.6)",
+              border: timeline === "forever" ? "2px solid rgba(56,189,248,0.8)" : "2px solid rgba(255,255,255,0.6)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={image}
-              alt=""
+            <img src={image} alt="" className={`absolute inset-0 w-full h-full object-cover ${getImageFilter()}`} />
+            <div className="absolute inset-0" style={{ background: style.expandBg }} />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center gap-4">
+              {timeline === "forever" && (
+                <span
+                  className="text-2xl font-black mb-1"
+                  style={{
+                    color: "rgba(56,189,248,1)",
+                    textShadow: "0 0 20px rgba(56,189,248,0.9)",
+                  }}
+                >
+                  ✦
+                </span>
+              )}
+              <p className="text-white font-bold text-sm leading-snug">{question}</p>
+              {timeline === "forever" && (
+                <p className="text-xs italic mb-1" style={{ color: "rgba(56,189,248,0.7)" }}>
+                  Record your own version of this message.
+                </p>
+              )}
+              <button
+                onClick={handleAnswer}
+                className="px-6 py-2 rounded-full gradient-orange text-white text-xs font-bold tracking-wider uppercase"
+              >
+                {style.answerLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div
+        className={`absolute ${!bursting ? animationClass : ""} ${question ? "cursor-pointer" : "pointer-events-none"}`}
+        style={{ left: `${x}%`, top: `${y}%`, animationDelay: delay }}
+        onClick={handleClick}
+      >
+        {bursting &&
+          MINI_BUBBLES.map((mini, i) => {
+            const rad = (mini.angle * Math.PI) / 180;
+            const tx = Math.cos(rad) * mini.distance;
+            const ty = Math.sin(rad) * mini.distance;
+            return (
+              <div
+                key={i}
+                className="absolute rounded-full"
+                style={
+                  {
+                    width: mini.size,
+                    height: mini.size,
+                    left: size / 2 - mini.size / 2,
+                    top: size / 2 - mini.size / 2,
+                    background: style.miniBubbleColor,
+                    animation: `miniBubbleFloat 0.6s ease-out ${mini.delay}s forwards`,
+                    "--tx": `${tx}px`,
+                    "--ty": `${ty}px`,
+                  } as React.CSSProperties
+                }
+              />
+            );
+          })}
+
+        <div
+          className={`rounded-full overflow-hidden relative transition-all duration-300 hover:scale-105 ${
+            bursting ? "burst-main" : ""
+          } ${timeline === "forever" ? "forever-pulse" : ""}`}
+          style={{
+            width: `${size}px`,
+            height: `${size}px`,
+            border: style.border,
+            boxShadow: style.boxShadow,
+          }}
+        >
+          <img
+            src={image}
+            alt=""
+            loading="lazy"
+            className={`absolute inset-0 w-full h-full object-cover ${getImageFilter()}`}
+          />
+          <div className="absolute inset-0 rounded-full" style={{ background: style.overlay }} />
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 55%)",
+            }}
+          />
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{ boxShadow: "inset 0 2px 10px rgba(255,255,255,0.3)" }}
+          />
+          {question && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span
+                className="font-black"
+                style={{
+                  fontSize: size > 100 ? "22px" : "14px",
+                  color: style.iconColor,
+                  textShadow: style.iconGlow,
+                }}
+              >
+                {style.icon}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MemoryBubble;
