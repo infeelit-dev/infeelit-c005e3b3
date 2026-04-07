@@ -13,27 +13,30 @@ import imgHouse from "@/assets/house.jpg";
 
 type SelectionKey = "generation" | "audience" | "spark";
 
-interface Selections {
-  generation: string;
-  audience: string;
-  spark: string;
-}
-
 const Portrait = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [generation, setGeneration] = useState("");
+  const [audience, setAudience] = useState("");
+  const [spark, setSpark] = useState("");
 
-  const [selections, setSelections] = useState<Selections>({
-    generation: "",
-    audience: "",
-    spark: "",
-  });
+  const getSelection = (key: SelectionKey): string => {
+    if (key === "generation") return generation;
+    if (key === "audience") return audience;
+    return spark;
+  };
+
+  const setSelection = (key: SelectionKey, value: string) => {
+    if (key === "generation") setGeneration(value);
+    else if (key === "audience") setAudience(value);
+    else setSpark(value);
+  };
 
   const isStepValid = () => {
-    if (step === 1) return selections.generation !== "";
-    if (step === 2) return selections.audience !== "";
-    if (step === 3) return selections.spark !== "";
+    if (step === 1) return generation !== "";
+    if (step === 2) return audience !== "";
+    if (step === 3) return spark !== "";
     return false;
   };
 
@@ -56,14 +59,13 @@ const Portrait = () => {
       const { error } = await supabase
         .from("profiles")
         .update({
-          generation: selections.generation,
-          audience: selections.audience,
-          spark: selections.spark,
+          generation: generation,
+          audience: audience,
+          spark: spark,
         })
         .eq("user_id", user.id);
 
       if (error) throw error;
-
       navigate("/loading");
     } catch (err) {
       console.error(err);
@@ -73,10 +75,10 @@ const Portrait = () => {
   };
 
   const Card = ({ id, title, subtitle, type }: { id: string; title: string; subtitle: string; type: SelectionKey }) => {
-    const isSelected = selections[type] === id;
+    const isSelected = getSelection(type) === id;
     return (
       <button
-        onClick={() => setSelections((prev) => ({ ...prev, [type]: id }))}
+        onClick={() => setSelection(type, id)}
         className={`w-full p-4 rounded-xl text-left transition-all border-l-4 mb-3 ${
           isSelected
             ? "bg-[#6B4E9B]/10 border-[#E8742A] shadow-md"
@@ -150,7 +152,6 @@ const Portrait = () => {
         .bubble-7 { animation: drift7 6.5s ease-in-out infinite; }
       `}</style>
 
-      {/* Header bulles flottantes */}
       <div className="h-44 relative flex items-center justify-center pt-6">
         <img
           src={imgBirth}
@@ -196,14 +197,12 @@ const Portrait = () => {
         />
       </div>
 
-      {/* Progress + Title */}
       <div className="px-8 mt-2 text-center">
         <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
           {step === 1 && "Origin — Step 1 of 3"}
           {step === 2 && "Audience — Step 2 of 3"}
           {step === 3 && "Spark — Step 3 of 3"}
         </p>
-
         {step === 1 && (
           <div>
             <h1 className="text-xl font-bold text-[#1A3B47]">Who is speaking today?</h1>
@@ -224,7 +223,6 @@ const Portrait = () => {
         )}
       </div>
 
-      {/* Cards */}
       <div className="flex-1 px-8 pt-6 overflow-y-auto pb-32">
         {step === 1 && (
           <div className="flex flex-col">
@@ -241,7 +239,6 @@ const Portrait = () => {
             <Card type="generation" id="GenAlpha" title="Gen Alpha" subtitle="The first page of a new book." />
           </div>
         )}
-
         {step === 2 && (
           <div className="flex flex-col">
             <Card
@@ -270,7 +267,6 @@ const Portrait = () => {
             />
           </div>
         )}
-
         {step === 3 && (
           <div className="flex flex-col">
             <Card
@@ -301,7 +297,6 @@ const Portrait = () => {
         )}
       </div>
 
-      {/* Bottom button */}
       <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FAF8F6] via-[#FAF8F6] to-transparent z-30">
         <button
           disabled={!isStepValid() || loading}
