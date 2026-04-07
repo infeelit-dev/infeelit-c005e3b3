@@ -21,11 +21,12 @@ interface QuestionBubble {
   delay: string;
   image: string;
   timeline: Timeline;
+  colorMode: "sepia" | "color";
 }
 
 const bubbles: QuestionBubble[] = [
   // ═══════════════════════════════════
-  // MEMORIES — passé sépia
+  // MEMORIES — 3 bulles couleur sur 9
   // ═══════════════════════════════════
   {
     question: "What was the smell of your childhood home?",
@@ -37,6 +38,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0s",
     image: imgGrandfather,
     timeline: "memories",
+    colorMode: "sepia",
   },
   {
     question: "A lesson your father taught you without words.",
@@ -48,6 +50,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1.2s",
     image: imgChild,
     timeline: "memories",
+    colorMode: "color", // Bulle couleur 1
   },
   {
     question: "The most beautiful thing your mother ever told you.",
@@ -59,6 +62,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0.5s",
     image: imgMarry,
     timeline: "memories",
+    colorMode: "sepia",
   },
   {
     question: "Your grandmother's best advice that still guides you.",
@@ -70,6 +74,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0.8s",
     image: imgPicnic,
     timeline: "memories",
+    colorMode: "color", // Bulle couleur 2
   },
   {
     question: "What moment changed everything in your family?",
@@ -81,6 +86,7 @@ const bubbles: QuestionBubble[] = [
     delay: "2s",
     image: imgLove,
     timeline: "memories",
+    colorMode: "sepia",
   },
   {
     question: "What did home feel like when you were a child?",
@@ -92,6 +98,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1.8s",
     image: imgTravel,
     timeline: "memories",
+    colorMode: "sepia",
   },
   {
     question: "Who made you feel safe without saying a word?",
@@ -103,6 +110,7 @@ const bubbles: QuestionBubble[] = [
     delay: "2.8s",
     image: imgRelax,
     timeline: "memories",
+    colorMode: "color", // Bulle couleur 3
   },
   {
     question: "",
@@ -114,6 +122,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1.5s",
     image: imgBirth,
     timeline: "memories",
+    colorMode: "sepia",
   },
   {
     question: "",
@@ -125,10 +134,11 @@ const bubbles: QuestionBubble[] = [
     delay: "2.5s",
     image: imgGraduate,
     timeline: "memories",
+    colorMode: "sepia",
   },
 
   // ═══════════════════════════════════
-  // INSTANT — présent vivant
+  // INSTANT — mix couleur vivante
   // ═══════════════════════════════════
   {
     question: "Record a 30-second story for someone you love right now.",
@@ -140,6 +150,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0s",
     image: imgLove,
     timeline: "instant",
+    colorMode: "color",
   },
   {
     question: "What are you most grateful for at this moment?",
@@ -151,6 +162,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1s",
     image: imgChild,
     timeline: "instant",
+    colorMode: "color",
   },
   {
     question: "What would you say to your 10-year-old self today?",
@@ -162,6 +174,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1.5s",
     image: imgPicnic,
     timeline: "instant",
+    colorMode: "sepia",
   },
   {
     question: "What is the most important lesson you learned this year?",
@@ -173,6 +186,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0.5s",
     image: imgTravel,
     timeline: "instant",
+    colorMode: "color",
   },
   {
     question: "Who deserves to hear I love you from you today?",
@@ -184,6 +198,7 @@ const bubbles: QuestionBubble[] = [
     delay: "2s",
     image: imgMarry,
     timeline: "instant",
+    colorMode: "color",
   },
   {
     question: "",
@@ -195,6 +210,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0.8s",
     image: imgRelax,
     timeline: "instant",
+    colorMode: "sepia",
   },
   {
     question: "",
@@ -206,12 +222,11 @@ const bubbles: QuestionBubble[] = [
     delay: "3s",
     image: imgHouse,
     timeline: "instant",
+    colorMode: "color",
   },
 
   // ═══════════════════════════════════
-  // FOREVER — messages futurs inspirants
-  // Situations précises de la vie future
-  // Visibles par tous — inspire à créer
+  // FOREVER — messages futurs
   // ═══════════════════════════════════
   {
     question: "What would you tell your daughter the day she gets her diploma?",
@@ -223,6 +238,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0s",
     image: imgGraduate,
     timeline: "forever",
+    colorMode: "color",
   },
   {
     question: "Your son just launched his first business. What do you say to him?",
@@ -234,6 +250,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1s",
     image: imgHouse,
     timeline: "forever",
+    colorMode: "sepia",
   },
   {
     question: "Your brother just lost his job. What do you want him to hear from you?",
@@ -245,6 +262,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0.5s",
     image: imgRelax,
     timeline: "forever",
+    colorMode: "color",
   },
   {
     question: "Your child is about to get married. What is the one thing they must know?",
@@ -256,6 +274,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1.8s",
     image: imgMarry,
     timeline: "forever",
+    colorMode: "color",
   },
   {
     question: "Your daughter just had her first heartbreak. What would you tell her?",
@@ -267,6 +286,7 @@ const bubbles: QuestionBubble[] = [
     delay: "2s",
     image: imgLove,
     timeline: "forever",
+    colorMode: "sepia",
   },
   {
     question: "Your grandson is born. What do you want him to know about you?",
@@ -278,6 +298,7 @@ const bubbles: QuestionBubble[] = [
     delay: "2.5s",
     image: imgBirth,
     timeline: "forever",
+    colorMode: "color",
   },
   {
     question: "Your parents are growing old. What do you want to say before it's too late?",
@@ -289,6 +310,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1.3s",
     image: imgGrandfather,
     timeline: "forever",
+    colorMode: "sepia",
   },
   {
     question: "Your best friend is going through a divorce. What would you tell them?",
@@ -300,6 +322,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0.7s",
     image: imgPicnic,
     timeline: "forever",
+    colorMode: "sepia",
   },
   {
     question: "",
@@ -311,6 +334,7 @@ const bubbles: QuestionBubble[] = [
     delay: "1.5s",
     image: imgTravel,
     timeline: "forever",
+    colorMode: "color",
   },
   {
     question: "",
@@ -322,6 +346,7 @@ const bubbles: QuestionBubble[] = [
     delay: "0.8s",
     image: imgChild,
     timeline: "forever",
+    colorMode: "sepia",
   },
 ];
 
@@ -335,6 +360,35 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   return (
     <div className="absolute inset-0 z-[1] overflow-hidden">
+      <style>{`
+        @keyframes float-slow {
+          0%   { transform: translate(0px, 0px); }
+          20%  { transform: translate(50px, -60px); }
+          40%  { transform: translate(90px, -20px); }
+          60%  { transform: translate(60px, 55px); }
+          80%  { transform: translate(-30px, 40px); }
+          100% { transform: translate(0px, 0px); }
+        }
+        @keyframes float-medium {
+          0%   { transform: translate(0px, 0px); }
+          20%  { transform: translate(-60px, -50px); }
+          40%  { transform: translate(-90px, 30px); }
+          60%  { transform: translate(-45px, 80px); }
+          80%  { transform: translate(40px, 50px); }
+          100% { transform: translate(0px, 0px); }
+        }
+        @keyframes float-fast {
+          0%   { transform: translate(0px, 0px); }
+          25%  { transform: translate(70px, 55px); }
+          50%  { transform: translate(30px, -70px); }
+          75%  { transform: translate(-55px, -40px); }
+          100% { transform: translate(0px, 0px); }
+        }
+        .animate-float-slow   { animation: float-slow 18s ease-in-out infinite; }
+        .animate-float-medium { animation: float-medium 14s ease-in-out infinite; }
+        .animate-float-fast   { animation: float-fast 10s ease-in-out infinite; }
+      `}</style>
+
       {filtered.map((b, i) => (
         <MemoryBubble
           key={`${activeTimeline}-${i}`}
@@ -347,6 +401,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           delay={b.delay}
           image={b.image}
           timeline={activeTimeline}
+          colorMode={b.colorMode}
           onClick={() => b.question && onBubbleClick(b.question, b.category)}
         />
       ))}
