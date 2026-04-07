@@ -13,6 +13,7 @@ interface MemoryBubbleProps {
   delay?: string;
   image: string;
   timeline?: Timeline;
+  colorMode?: "sepia" | "color";
   onClick?: () => void;
 }
 
@@ -41,6 +42,7 @@ const MemoryBubble = ({
   delay = "0s",
   image,
   timeline = "memories",
+  colorMode = "sepia",
   onClick,
 }: MemoryBubbleProps) => {
   const [bursting, setBursting] = useState(false);
@@ -66,6 +68,13 @@ const MemoryBubble = ({
     setExpanded(false);
   };
 
+  // Filtre image selon colorMode et timeline
+  const getImageFilter = () => {
+    if (timeline === "forever") return "opacity-70";
+    if (colorMode === "color") return "";
+    return "grayscale sepia";
+  };
+
   const getStyle = () => {
     if (timeline === "forever") {
       return {
@@ -85,7 +94,7 @@ const MemoryBubble = ({
       return {
         border: "1.5px solid rgba(232,116,42,0.7)",
         boxShadow: "0 0 20px rgba(232,116,42,0.35), inset 0 2px 8px rgba(255,255,255,0.2)",
-        overlay: "rgba(232,116,42,0.1)",
+        overlay: "rgba(232,116,42,0.05)",
         miniBubbleColor: "rgba(232,116,42,0.8)",
         iconColor: "rgba(255,255,255,0.9)",
         iconGlow: "0 0 12px rgba(0,0,0,0.6)",
@@ -95,11 +104,14 @@ const MemoryBubble = ({
       };
     }
     return {
-      border: "1px solid rgba(255,255,255,0.4)",
-      boxShadow: "0 0 20px rgba(255,255,255,0.1), inset 0 2px 8px rgba(255,255,255,0.2)",
-      overlay: "rgba(0,0,0,0.05)",
+      border: colorMode === "color" ? "1.5px solid rgba(255,255,255,0.6)" : "1px solid rgba(255,255,255,0.4)",
+      boxShadow:
+        colorMode === "color"
+          ? "0 0 25px rgba(255,255,255,0.2), inset 0 2px 8px rgba(255,255,255,0.3)"
+          : "0 0 20px rgba(255,255,255,0.1), inset 0 2px 8px rgba(255,255,255,0.2)",
+      overlay: colorMode === "color" ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.05)",
       miniBubbleColor: "rgba(255,255,255,0.7)",
-      iconColor: "rgba(255,255,255,0.8)",
+      iconColor: "rgba(255,255,255,0.9)",
       iconGlow: "0 0 12px rgba(0,0,0,0.6)",
       icon: "?",
       answerLabel: "Answer",
@@ -112,29 +124,6 @@ const MemoryBubble = ({
   return (
     <>
       <style>{`
-        @keyframes wander1 {
-          0%   { transform: translate(0px, 0px); }
-          20%  { transform: translate(50px, -60px); }
-          40%  { transform: translate(90px, -20px); }
-          60%  { transform: translate(60px, 55px); }
-          80%  { transform: translate(-30px, 40px); }
-          100% { transform: translate(0px, 0px); }
-        }
-        @keyframes wander2 {
-          0%   { transform: translate(0px, 0px); }
-          20%  { transform: translate(-60px, -50px); }
-          40%  { transform: translate(-90px, 30px); }
-          60%  { transform: translate(-45px, 80px); }
-          80%  { transform: translate(40px, 50px); }
-          100% { transform: translate(0px, 0px); }
-        }
-        @keyframes wander3 {
-          0%   { transform: translate(0px, 0px); }
-          25%  { transform: translate(70px, 55px); }
-          50%  { transform: translate(30px, -70px); }
-          75%  { transform: translate(-55px, -40px); }
-          100% { transform: translate(0px, 0px); }
-        }
         @keyframes miniBubbleFloat {
           0%   { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 1; }
           100% { transform: translate(calc(var(--tx) * 2.5), calc(var(--ty) * 2.5)) scale(0); opacity: 0; }
@@ -153,9 +142,6 @@ const MemoryBubble = ({
           0%, 100% { box-shadow: 0 0 30px rgba(56,189,248,0.5), 0 0 60px rgba(56,189,248,0.15); }
           50%       { box-shadow: 0 0 50px rgba(56,189,248,0.8), 0 0 90px rgba(56,189,248,0.25); }
         }
-        .animate-float-slow   { animation: wander1 18s ease-in-out infinite; }
-        .animate-float-medium { animation: wander2 14s ease-in-out infinite; }
-        .animate-float-fast   { animation: wander3 10s ease-in-out infinite; }
         .burst-main      { animation: mainBurstOut 0.6s ease-out forwards; }
         .reveal-in       { animation: revealIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .forever-pulse   { animation: foreverPulse 2.5s ease-in-out infinite; }
@@ -176,18 +162,11 @@ const MemoryBubble = ({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={image}
-              alt=""
-              className={`absolute inset-0 w-full h-full object-cover ${
-                timeline === "memories" ? "grayscale sepia" : timeline === "forever" ? "opacity-50" : ""
-              }`}
-            />
+            <img src={image} alt="" className={`absolute inset-0 w-full h-full object-cover ${getImageFilter()}`} />
             <div className="absolute inset-0" style={{ background: style.expandBg }} />
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent" />
 
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center gap-4">
-              {/* Icône selon timeline */}
               {timeline === "forever" && (
                 <span
                   className="text-2xl font-black mb-1"
@@ -219,7 +198,7 @@ const MemoryBubble = ({
         style={{ left: `${x}%`, top: `${y}%`, animationDelay: delay }}
         onClick={handleClick}
       >
-        {/* Petites bulles burst */}
+        {/* Mini bulles burst */}
         {bursting &&
           MINI_BUBBLES.map((mini, i) => {
             const rad = (mini.angle * Math.PI) / 180;
@@ -261,27 +240,21 @@ const MemoryBubble = ({
             src={image}
             alt=""
             loading="lazy"
-            className={`absolute inset-0 w-full h-full object-cover ${
-              timeline === "memories" ? "grayscale sepia" : timeline === "forever" ? "opacity-70" : ""
-            }`}
+            className={`absolute inset-0 w-full h-full object-cover ${getImageFilter()}`}
           />
 
-          {/* Overlay selon timeline */}
           <div className="absolute inset-0 rounded-full" style={{ background: style.overlay }} />
 
-          {/* Reflet glass */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 55%)" }}
           />
 
-          {/* Ombre intérieure */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{ boxShadow: "inset 0 2px 10px rgba(255,255,255,0.3)" }}
           />
 
-          {/* Icône */}
           {question && (
             <div className="absolute inset-0 flex items-center justify-center">
               <span
