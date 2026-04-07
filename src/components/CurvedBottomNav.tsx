@@ -15,16 +15,22 @@ const CurvedBottomNav = () => {
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-20">
-      <svg viewBox="0 0 390 80" className="w-full" style={{ marginBottom: "-2px" }} preserveAspectRatio="none">
-        <path
-          d="M0,0 L145,0 Q165,0 175,15 Q185,30 195,30 Q205,30 215,15 Q225,0 245,0 L390,0 L390,80 L0,80 Z"
-          fill="rgba(10,10,10,0.92)"
-        />
-      </svg>
-
+      {/* Dégradé transparent au-dessus de la nav */}
       <div
-        className="absolute bottom-0 left-0 right-0 flex items-end justify-around px-2 pb-6 pt-0"
-        style={{ backgroundColor: "rgba(10,10,10,0.92)" }}
+        className="h-16 w-full pointer-events-none"
+        style={{
+          background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))",
+        }}
+      />
+
+      {/* Barre navigation glassmorphism */}
+      <div
+        className="flex items-center justify-around px-4 pb-8 pt-3"
+        style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7))",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        }}
       >
         {NAV_ITEMS.map((item, index) => {
           if (index === 2) {
@@ -32,9 +38,10 @@ const CurvedBottomNav = () => {
               <button
                 key="record"
                 onClick={() => navigate("/record")}
-                className="relative -top-8 w-16 h-16 rounded-full gradient-orange flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
+                className="relative -top-6 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
                 style={{
-                  boxShadow: "0 0 30px rgba(232,116,42,0.5)",
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  boxShadow: "0 0 30px rgba(232,116,42,0.6), 0 8px 20px rgba(0,0,0,0.4)",
                 }}
               >
                 <Plus size={28} className="text-white" strokeWidth={2.5} />
@@ -49,24 +56,25 @@ const CurvedBottomNav = () => {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className="flex flex-col items-center gap-1 min-w-[60px] transition-all duration-200"
+              className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
             >
               {Icon && (
                 <Icon
                   size={22}
-                  className="transition-all duration-200"
                   style={{
-                    color: isActive ? "#E8742A" : "rgba(255,255,255,0.45)",
-                    filter: isActive ? "drop-shadow(0 0 6px rgba(232,116,42,0.6))" : "none",
+                    color: isActive ? "#E8742A" : "rgba(255,255,255,0.5)",
+                    filter: isActive ? "drop-shadow(0 0 6px rgba(232,116,42,0.7))" : "none",
+                    transition: "all 0.2s ease",
                   }}
                 />
               )}
               <span
-                className="font-bold uppercase tracking-widest"
                 style={{
                   fontSize: "8px",
-                  color: isActive ? "#E8742A" : "rgba(255,255,255,0.35)",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
                   letterSpacing: "0.12em",
+                  color: isActive ? "#E8742A" : "rgba(255,255,255,0.35)",
                 }}
               >
                 {item.label}
