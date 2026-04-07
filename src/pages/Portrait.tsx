@@ -11,12 +11,20 @@ import imgBirth from "@/assets/birth.jpg";
 import imgLove from "@/assets/love.jpg";
 import imgHouse from "@/assets/house.jpg";
 
+type SelectionKey = "generation" | "audience" | "spark";
+
+interface Selections {
+  generation: string;
+  audience: string;
+  spark: string;
+}
+
 const Portrait = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const [selections, setSelections] = useState({
+  const [selections, setSelections] = useState<Selections>({
     generation: "",
     audience: "",
     spark: "",
@@ -64,21 +72,11 @@ const Portrait = () => {
     }
   };
 
-  const Card = ({
-    id,
-    title,
-    subtitle,
-    type,
-  }: {
-    id: string;
-    title: string;
-    subtitle: string;
-    type: keyof typeof selections;
-  }) => {
+  const Card = ({ id, title, subtitle, type }: { id: string; title: string; subtitle: string; type: SelectionKey }) => {
     const isSelected = selections[type] === id;
     return (
       <button
-        onClick={() => setSelections({ ...selections, [type]: id })}
+        onClick={() => setSelections((prev) => ({ ...prev, [type]: id }))}
         className={`w-full p-4 rounded-xl text-left transition-all border-l-4 mb-3 ${
           isSelected
             ? "bg-[#6B4E9B]/10 border-[#E8742A] shadow-md"
@@ -198,7 +196,7 @@ const Portrait = () => {
         />
       </div>
 
-      {/* Progress + Title — text-xl corrigé */}
+      {/* Progress + Title */}
       <div className="px-8 mt-2 text-center">
         <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
           {step === 1 && "Origin — Step 1 of 3"}
