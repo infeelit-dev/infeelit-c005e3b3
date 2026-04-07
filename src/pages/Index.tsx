@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
@@ -9,11 +10,31 @@ import type { BubbleCategory } from "@/components/MemoryBubble";
 const Index = () => {
   const navigate = useNavigate();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
+  const [showInterstitial, setShowInterstitial] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState("");
+  const [pendingCategory, setPendingCategory] = useState<BubbleCategory>("past");
 
-  const handleBubbleClick = (question: string, category: BubbleCategory) => {
-    if (question) {
+  const handleBubbleClick = async (question: string, category: BubbleCategory) => {
+    if (!question) return;
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
       navigate("/record", { state: { question, category } });
+    } else {
+      setPendingQuestion(question);
+      setPendingCategory(category);
+      setShowInterstitial(true);
     }
+  };
+
+  const handleJoin = () => {
+    setShowInterstitial(false);
+    navigate("/welcome", {
+      state: { question: pendingQuestion, category: pendingCategory },
+    });
   };
 
   const getBackground = () => {
@@ -36,6 +57,11 @@ const Index = () => {
           0%, 100% { opacity: 0.3; transform: scale(1); }
           50% { opacity: 1; transform: scale(1.5); }
         }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up { animation: fadeInUp 0.4s ease forwards; }
       `}</style>
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -69,6 +95,46 @@ const Index = () => {
       <Header activeTimeline={activeTimeline} onTimelineChange={setActiveTimeline} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
       <CurvedBottomNav />
+
+      {/* Interstitiel — apparaît quand non connecté */}
+      {showInterstitial && (
+        <div
+          className="absolute inset-0 z-50 flex items-end justify-center pb-12"
+          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+          onClick={() => setShowInterstitial(false)}
+        >
+          <div
+            className="fade-in-up w-full max-w-sm mx-6 rounded-3xl px-8 py-8 text-center"
+            style={{ backgroundColor: "#0f0f0f", border: "1px solid rgba(255,255,255,0.1)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Question qui a motivé l'utilisateur */}
+            <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-3">
+              You wanted to answer
+            </p>
+            <p className="text-white font-bold text-base italic leading-snug mb-6">"{pendingQuestion}"</p>
+
+            <p className="text-white/50 text-sm mb-6 leading-relaxed">
+              Join 2,400 families preserving their voices on Infeelit. Your memory deserves to be heard.
+            </p>
+
+            <button
+              onClick={handleJoin}
+              className="w-full py-4 rounded-full gradient-orange font-bold text-base mb-3"
+              style={{ color: "#FFFFFF" }}
+            >
+              Create my account — it's free
+            </button>
+
+            <button
+              onClick={() => setShowInterstitial(false)}
+              className="w-full py-3 text-white/40 text-sm font-medium"
+            >
+              Continue exploring
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
