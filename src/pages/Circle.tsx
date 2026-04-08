@@ -35,10 +35,10 @@ const Circle = () => {
   const animRef = useRef<number>(0);
   const anglesRef = useRef<number[]>([0, 72, 144, 216, 288]);
 
-  const DEMO_MEMBERS: Member[] = [
+  const getDemoMembers = (name: string): Member[] => [
     {
-      initial: userName?.[0]?.toUpperCase() || "M",
-      name: userName || "You",
+      initial: name?.[0]?.toUpperCase() || "M",
+      name: name || "You",
       color: "#E8742A",
       orbitRadius: 115,
       speed: 0.25,
@@ -67,8 +67,7 @@ const Circle = () => {
 
         if (profile?.display_name) setUserName(profile.display_name);
 
-        // Charger les vrais souvenirs
-        const { data: mems } = await supabase
+        const { data: mems } = await (supabase as any)
           .from("memories")
           .select("*")
           .eq("user_id", session.user.id)
@@ -76,14 +75,13 @@ const Circle = () => {
           .limit(10);
 
         if (mems && mems.length > 0) {
-          setMemories(mems);
-          setLatestMemory(mems[0]);
+          setMemories(mems as Memory[]);
+          setLatestMemory(mems[0] as Memory);
         }
       }
     };
     init();
 
-    // Animation orbites
     const speeds = [0.25, 0.18, 0.22, 0.2, 0.28];
     const animate = () => {
       anglesRef.current = anglesRef.current.map((a, i) => (a + speeds[i]) % 360);
@@ -120,6 +118,8 @@ const Circle = () => {
       y: cy + Math.sin(rad) * member.orbitRadius - member.size / 2,
     };
   };
+
+  const members = getDemoMembers(userName);
 
   return (
     <div
@@ -192,7 +192,7 @@ const Circle = () => {
 
       {/* Canvas constellation */}
       <div className="relative mx-auto" style={{ width: "370px", height: "440px" }}>
-        {/* Anneaux d'orbite */}
+        {/* Anneaux */}
         {[105, 120, 132].map((r, i) => (
           <div
             key={i}
@@ -260,8 +260,6 @@ const Circle = () => {
               </span>
             </div>
           )}
-
-          {/* Reflet */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{
@@ -270,7 +268,7 @@ const Circle = () => {
           />
         </div>
 
-        {/* Nombre de souvenirs sur la sphère */}
+        {/* Compteur souvenirs */}
         {memories.length > 0 && (
           <div
             className="absolute z-10 rounded-full flex items-center justify-center font-bold text-white"
@@ -281,7 +279,7 @@ const Circle = () => {
               top: cy - 55 + "px",
               backgroundColor: "#E8742A",
               fontSize: "10px",
-              border: "2px solid rgba(10,17,40,1)",
+              border: "2px solid #0A1128",
             }}
           >
             {memories.length}
@@ -289,7 +287,7 @@ const Circle = () => {
         )}
 
         {/* Membres orbitaux */}
-        {DEMO_MEMBERS.map((member, i) => {
+        {members.map((member, i) => {
           const pos = getMemberPos(member, angles[i] || 0);
           return (
             <div
@@ -304,7 +302,7 @@ const Circle = () => {
               }}
             >
               <div
-                className="w-full h-full rounded-full flex items-center justify-center font-bold text-white cursor-pointer relative overflow-hidden"
+                className="w-full h-full rounded-full flex items-center justify-center font-bold text-white relative overflow-hidden"
                 style={{
                   backgroundColor: member.color,
                   border: member.isYou ? "2.5px solid rgba(255,255,255,0.8)" : "2px solid rgba(255,255,255,0.25)",
@@ -322,10 +320,7 @@ const Circle = () => {
               </div>
               <p
                 className="text-white text-center mt-0.5 font-medium"
-                style={{
-                  fontSize: "9px",
-                  textShadow: "0 1px 4px rgba(0,0,0,0.9)",
-                }}
+                style={{ fontSize: "9px", textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}
               >
                 {member.isYou ? "You" : member.name}
               </p>
@@ -333,7 +328,7 @@ const Circle = () => {
           );
         })}
 
-        {/* Bouton + inviter */}
+        {/* Bouton + */}
         <button
           onClick={handleWhatsApp}
           className="absolute z-10 rounded-full flex items-center justify-center"
@@ -351,7 +346,7 @@ const Circle = () => {
         </button>
       </div>
 
-      {/* Derniers souvenirs du cercle */}
+      {/* Galerie souvenirs */}
       {memories.length > 0 && (
         <div className="px-6 mb-4 fade-up">
           <p className="text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "rgba(255,255,255,0.35)" }}>
@@ -379,9 +374,7 @@ const Circle = () => {
                 )}
                 <div
                   className="absolute inset-0"
-                  style={{
-                    background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)",
-                  }}
+                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)" }}
                 />
                 <p
                   className="absolute bottom-1 left-1 right-1 text-white font-bold truncate"
@@ -395,7 +388,7 @@ const Circle = () => {
         </div>
       )}
 
-      {/* Section invitation */}
+      {/* Invitation */}
       <div className="px-6 pb-32 fade-up">
         <div
           className="flex items-center gap-3 p-4 rounded-2xl mb-3"
@@ -425,10 +418,7 @@ const Circle = () => {
         <button
           onClick={handleWhatsApp}
           className="w-full py-3.5 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
-          style={{
-            background: "linear-gradient(135deg, #25D366, #128C7E)",
-            color: "#FFFFFF",
-          }}
+          style={{ background: "linear-gradient(135deg, #25D366, #128C7E)", color: "#FFFFFF" }}
         >
           <span className="text-lg">💬</span>
           Invite your family on WhatsApp
@@ -442,9 +432,7 @@ const Circle = () => {
       {/* CTA fixe */}
       <div
         className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4"
-        style={{
-          background: "linear-gradient(to top, rgba(2,8,16,1) 60%, transparent)",
-        }}
+        style={{ background: "linear-gradient(to top, rgba(2,8,16,1) 60%, transparent)" }}
       >
         <button
           onClick={() => navigate("/record")}
