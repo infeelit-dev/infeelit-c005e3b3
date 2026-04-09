@@ -15,8 +15,6 @@ import childImg from "@/assets/child.jpg";
 import houseImg from "@/assets/house.jpg";
 import graduateImg from "@/assets/graduate.jpg";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface Memory {
   id: string;
   title: string | null;
@@ -43,28 +41,6 @@ interface DemoMember {
   isPet?: boolean;
 }
 
-interface DeceasedMember {
-  id: string;
-  name: string;
-  subtitle: string;
-  photo: string;
-  voices: number;
-  left: number;
-  top: number;
-  size: number;
-  isPet?: boolean;
-}
-
-interface BgBubble {
-  photo: string;
-  size: number;
-  x: number;
-  y: number;
-  anim: string;
-  delay: string;
-  opacity: number;
-}
-
 interface ShelfCard {
   id: string;
   memberName: string;
@@ -76,11 +52,8 @@ interface ShelfCard {
   timeAgo: string;
 }
 
-// ─── Static data ──────────────────────────────────────────────────────────────
-
 const AI_QUESTION = "What is the most beautiful lesson of courage your father ever gave you?";
 
-// Living members — each has a unique float animation + delay
 const DEMO_MEMBERS: DemoMember[] = [
   {
     id: "fatima",
@@ -89,9 +62,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: marryImg,
     hasNew: true,
     left: 16,
-    top: 22,
+    top: 30,
     size: 76,
-    floatAnim: "member-float-a",
+    floatAnim: "mf-a",
     floatDelay: "0s",
   },
   {
@@ -100,11 +73,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "28 · 8 voices",
     photo: loveImg,
     hasNew: true,
-    left: 246,
-    top: 14,
+    left: 248,
+    top: 18,
     size: 72,
-    floatAnim: "member-float-b",
-    floatDelay: "1.3s",
+    floatAnim: "mf-b",
+    floatDelay: "1.4s",
   },
   {
     id: "mother",
@@ -112,11 +85,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "60 · 8 moments",
     photo: relaxImg,
     hasNew: true,
-    left: 302,
-    top: 132,
+    left: 304,
+    top: 136,
     size: 68,
-    floatAnim: "member-float-c",
-    floatDelay: "0.6s",
+    floatAnim: "mf-c",
+    floatDelay: "0.7s",
   },
   {
     id: "father",
@@ -125,10 +98,10 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: houseImg,
     hasNew: false,
     left: 4,
-    top: 138,
+    top: 142,
     size: 66,
-    floatAnim: "member-float-a",
-    floatDelay: "2.1s",
+    floatAnim: "mf-a",
+    floatDelay: "2.2s",
   },
   {
     id: "nadia",
@@ -136,11 +109,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "5 moments",
     photo: birthImg,
     hasNew: false,
-    left: 288,
-    top: 258,
+    left: 290,
+    top: 262,
     size: 62,
-    floatAnim: "member-float-b",
-    floatDelay: "0.9s",
+    floatAnim: "mf-b",
+    floatDelay: "1s",
   },
   {
     id: "hassan",
@@ -149,10 +122,10 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: picnicImg,
     hasNew: false,
     left: 8,
-    top: 262,
+    top: 268,
     size: 60,
-    floatAnim: "member-float-c",
-    floatDelay: "1.8s",
+    floatAnim: "mf-c",
+    floatDelay: "1.9s",
   },
   {
     id: "sara",
@@ -160,11 +133,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "22 · 6 moments",
     photo: graduateImg,
     hasNew: true,
-    left: 148,
-    top: 4,
+    left: 150,
+    top: 6,
     size: 62,
-    floatAnim: "member-float-a",
-    floatDelay: "3s",
+    floatAnim: "mf-a",
+    floatDelay: "3.1s",
   },
   {
     id: "adam",
@@ -172,11 +145,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "19 · 4 voices",
     photo: travelImg,
     hasNew: false,
-    left: 292,
+    left: 294,
     top: 358,
     size: 58,
-    floatAnim: "member-float-b",
-    floatDelay: "2.4s",
+    floatAnim: "mf-b",
+    floatDelay: "2.5s",
   },
   {
     id: "sultan",
@@ -184,59 +157,13 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "3 moments",
     photo: childImg,
     hasNew: false,
-    left: 194,
-    top: 368,
-    size: 60,
-    floatAnim: "member-float-c",
-    floatDelay: "0.4s",
-    isPet: true,
-  },
-];
-
-// Deceased — fixed, no animation
-const DECEASED: DeceasedMember[] = [
-  {
-    id: "grandfather",
-    name: "Grandfather",
-    subtitle: "1942–2018",
-    photo: grandfatherImg,
-    voices: 4,
-    left: 14,
-    top: 458,
-    size: 68,
-  },
-  {
-    id: "grandmother",
-    name: "Grandmother",
-    subtitle: "1948–2021",
-    photo: marryImg,
-    voices: 2,
-    left: 104,
-    top: 468,
-    size: 62,
-  },
-  {
-    id: "rex",
-    name: "Rex",
-    subtitle: "2008–2020",
-    photo: childImg,
-    voices: 1,
     left: 196,
-    top: 472,
-    size: 56,
+    top: 362,
+    size: 60,
+    floatAnim: "mf-c",
+    floatDelay: "0.5s",
     isPet: true,
   },
-];
-
-const BG_BUBBLES: BgBubble[] = [
-  { photo: grandfatherImg, size: 66, x: 2, y: 5, anim: "bg-float-slow", delay: "0s", opacity: 0.16 },
-  { photo: loveImg, size: 50, x: 78, y: 8, anim: "bg-float-med", delay: "1.5s", opacity: 0.13 },
-  { photo: relaxImg, size: 42, x: 88, y: 56, anim: "bg-float-slow", delay: "3s", opacity: 0.12 },
-  { photo: travelImg, size: 36, x: 4, y: 72, anim: "bg-float-med", delay: "0.8s", opacity: 0.11 },
-  { photo: graduateImg, size: 54, x: 60, y: 82, anim: "bg-float-slow", delay: "2s", opacity: 0.14 },
-  { photo: picnicImg, size: 32, x: 82, y: 28, anim: "bg-float-med", delay: "4s", opacity: 0.1 },
-  { photo: houseImg, size: 28, x: 42, y: 94, anim: "bg-float-slow", delay: "1.2s", opacity: 0.09 },
-  { photo: childImg, size: 44, x: 10, y: 44, anim: "bg-float-med", delay: "2.8s", opacity: 0.12 },
 ];
 
 const DEMO_SHELF: ShelfCard[] = [
@@ -289,7 +216,8 @@ const FILTERS: { id: FilterType; label: string }[] = [
   { id: "chronicles", label: "📖 Chronicles" },
 ];
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── CSS noise texture as data URI (subtle grain) ─────────────────────────────
+const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`;
 
 const Circle = () => {
   const navigate = useNavigate();
@@ -363,150 +291,99 @@ const Circle = () => {
     <div
       className="min-h-screen flex flex-col relative overflow-x-hidden"
       style={{
-        background: [
-          "radial-gradient(ellipse at 50% 34%, rgba(255,210,120,0.5) 0%, transparent 52%)",
-          "linear-gradient(175deg, #F7EDD4 0%, #EDD9A3 25%, #D4B478 52%, #9E7538 76%, #2C4A52 100%)",
-        ].join(", "),
-        backgroundColor: "#F0E4C4",
+        // Radial gradient — warm parchment center, darker edges
+        background: `
+          radial-gradient(ellipse at 50% 40%, #F5E6CC 0%, #D2B48C 100%)
+        `,
+        backgroundColor: "#D2B48C",
       }}
     >
+      {/* Noise texture overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          backgroundImage: NOISE_SVG,
+          backgroundRepeat: "repeat",
+          backgroundSize: "256px 256px",
+          opacity: 1,
+          mixBlendMode: "multiply",
+        }}
+      />
+
       <style>{`
 
-        /* ── Background bubbles ── */
-        @keyframes bgFloatSlow {
-          0%   { transform: translate(0px,0px); }
-          25%  { transform: translate(28px,-38px); }
-          50%  { transform: translate(52px,12px); }
-          75%  { transform: translate(18px,46px); }
-          100% { transform: translate(0px,0px); }
+        /* ─── Member float animations ─── */
+        @keyframes mfA {
+          0%,100% { transform: translate(0px,  0px); }
+          25%      { transform: translate(8px, -12px); }
+          50%      { transform: translate(14px, -3px); }
+          75%      { transform: translate(5px,  10px); }
         }
-        @keyframes bgFloatMed {
-          0%   { transform: translate(0px,0px); }
-          25%  { transform: translate(-38px,-28px); }
-          50%  { transform: translate(-56px,22px); }
-          75%  { transform: translate(-22px,52px); }
-          100% { transform: translate(0px,0px); }
+        @keyframes mfB {
+          0%,100% { transform: translate(0px,   0px); }
+          25%      { transform: translate(-10px,-9px); }
+          50%      { transform: translate(-13px, 7px); }
+          75%      { transform: translate(-4px, 13px); }
         }
-        .bg-float-slow { animation: bgFloatSlow 22s ease-in-out infinite; }
-        .bg-float-med  { animation: bgFloatMed  16s ease-in-out infinite; }
+        @keyframes mfC {
+          0%,100% { transform: translate(0px,  0px); }
+          25%      { transform: translate(11px,  8px); }
+          50%      { transform: translate(4px, -13px); }
+          75%      { transform: translate(-9px, -6px); }
+        }
+        .mf-a { animation: mfA  9s ease-in-out infinite; }
+        .mf-b { animation: mfB 11s ease-in-out infinite; }
+        .mf-c { animation: mfC 13s ease-in-out infinite; }
 
-        /* ── Living member floats — 3 distinct paths ── */
-        @keyframes memberFloatA {
-          0%   { transform: translate(0px,0px); }
-          20%  { transform: translate(10px,-14px); }
-          40%  { transform: translate(18px,-4px); }
-          60%  { transform: translate(12px,12px); }
-          80%  { transform: translate(-6px,8px); }
-          100% { transform: translate(0px,0px); }
-        }
-        @keyframes memberFloatB {
-          0%   { transform: translate(0px,0px); }
-          20%  { transform: translate(-12px,-10px); }
-          40%  { transform: translate(-16px,8px); }
-          60%  { transform: translate(-8px,16px); }
-          80%  { transform: translate(8px,10px); }
-          100% { transform: translate(0px,0px); }
-        }
-        @keyframes memberFloatC {
-          0%   { transform: translate(0px,0px); }
-          25%  { transform: translate(14px,10px); }
-          50%  { transform: translate(6px,-16px); }
-          75%  { transform: translate(-10px,-8px); }
-          100% { transform: translate(0px,0px); }
-        }
-        .member-float-a { animation: memberFloatA 9s  ease-in-out infinite; }
-        .member-float-b { animation: memberFloatB 11s ease-in-out infinite; }
-        .member-float-c { animation: memberFloatC 13s ease-in-out infinite; }
-
-        /* ── Sphere ── */
-        @keyframes spherePulse {
-          0%,100% { box-shadow: 0 0 40px rgba(255,185,60,.6),  0 0 80px  rgba(232,116,42,.3); }
-          50%      { box-shadow: 0 0 72px rgba(255,210,80,.88), 0 0 130px rgba(232,116,42,.5); }
-        }
-        .sphere-glow { animation: spherePulse 3s ease-in-out infinite; }
-
-        /* ── Gold ring on new members ── */
+        /* ─── Gold ring on new members ─── */
         @keyframes goldRing {
-          0%,100% { box-shadow: 0 0 0 3px rgba(255,200,50,.95), 0 0 18px rgba(255,170,0,.7); }
-          50%      { box-shadow: 0 0 0 4px rgba(255,225,80,1),   0 0 28px rgba(255,200,0,.9); }
+          0%,100% { box-shadow: 0 0 0 3px rgba(255,200,50,.95), 0 0 16px rgba(255,170,0,.65); }
+          50%      { box-shadow: 0 0 0 4px rgba(255,225,80,1),   0 0 26px rgba(255,200,0,.9); }
         }
         .gold-ring { animation: goldRing 2s ease-in-out infinite; }
 
-        /* ── Deceased — golden frame glow (STATIC — no position change) ── */
-        @keyframes sepiaGlow {
-          0%,100% { box-shadow: 0 0 0 3px rgba(212,175,55,.75), 0 0 14px rgba(212,175,55,.35); }
-          50%      { box-shadow: 0 0 0 3px rgba(255,210,80,.95), 0 0 22px rgba(212,175,55,.6); }
+        /* ─── Sphere pulse ─── */
+        @keyframes spherePulse {
+          0%,100% { box-shadow: 0 0 38px rgba(255,185,60,.55), 0 0 75px rgba(232,116,42,.28); }
+          50%      { box-shadow: 0 0 68px rgba(255,210,80,.85), 0 0 120px rgba(232,116,42,.48); }
         }
-        .sepia-glow { animation: sepiaGlow 4s ease-in-out infinite; }
+        .sphere-glow { animation: spherePulse 3s ease-in-out infinite; }
 
-        /* ── Candle ── */
-        @keyframes flicker {
-          0%   { transform: scaleX(1)    scaleY(1)    translateY(0px);   opacity:1; }
-          20%  { transform: scaleX(.90)  scaleY(1.10) translateY(-1px);  opacity:.86; }
-          40%  { transform: scaleX(1.08) scaleY(.92)  translateY(.5px);  opacity:1; }
-          60%  { transform: scaleX(.94)  scaleY(1.08) translateY(-1.5px);opacity:.90; }
-          80%  { transform: scaleX(1.05) scaleY(.95)  translateY(0px);   opacity:.97; }
-          100% { transform: scaleX(1)    scaleY(1)    translateY(0px);   opacity:1; }
+        /* ─── Frame halo (only glow, no position change) ─── */
+        @keyframes frameHalo {
+          0%,100% { box-shadow: 0 0 14px rgba(251,191,36,.35), 0 0 28px rgba(251,191,36,.18); }
+          50%      { box-shadow: 0 0 22px rgba(251,191,36,.6),  0 0 44px rgba(251,191,36,.3); }
+        }
+        .frame-halo { animation: frameHalo 4s ease-in-out infinite; }
+
+        /* ─── Candle flame: pulse brightness + skew ─── */
+        @keyframes flamePulse {
+          0%   { transform: scaleX(1)    scaleY(1)    skewX(0deg)   translateY(0px);    opacity: 1; }
+          15%  { transform: scaleX(.88)  scaleY(1.12) skewX(-3deg)  translateY(-1.5px); opacity: .85; }
+          30%  { transform: scaleX(1.1)  scaleY(.90)  skewX(2deg)   translateY(.5px);   opacity: 1; }
+          50%  { transform: scaleX(.92)  scaleY(1.08) skewX(-2deg)  translateY(-2px);   opacity: .9; }
+          70%  { transform: scaleX(1.06) scaleY(.94)  skewX(3deg)   translateY(.5px);   opacity: .95; }
+          85%  { transform: scaleX(.95)  scaleY(1.05) skewX(-1deg)  translateY(-1px);   opacity: .88; }
+          100% { transform: scaleX(1)    scaleY(1)    skewX(0deg)   translateY(0px);    opacity: 1; }
         }
         @keyframes candleGlow {
-          0%,100% { box-shadow: 0 0 10px rgba(255,140,0,.65), 0 0 22px rgba(255,100,0,.3); }
-          50%      { box-shadow: 0 0 20px rgba(255,165,0,.9),  0 0 38px rgba(255,120,0,.5); }
+          0%,100% { box-shadow: 0 -4px 12px rgba(255,140,0,.6), 0 0 24px rgba(255,100,0,.3); }
+          50%      { box-shadow: 0 -4px 20px rgba(255,165,0,.9), 0 0 40px rgba(255,130,0,.5); }
         }
-        .flame       { animation: flicker    1.9s ease-in-out infinite; }
+        .flame       { animation: flamePulse 1.7s ease-in-out infinite; }
         .candle-body { animation: candleGlow 2.2s ease-in-out infinite; }
 
-        /* ── Misc ── */
+        /* ─── Misc ─── */
         @keyframes fadeUp {
           from { opacity:0; transform:translateY(14px); }
           to   { opacity:1; transform:translateY(0); }
         }
         .fade-up     { animation: fadeUp .5s ease forwards; }
-        .hide-scroll { scrollbar-width:none; }
-        .hide-scroll::-webkit-scrollbar { display:none; }
+        .hide-scroll { scrollbar-width: none; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {/* ── Background floating bubbles ── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {BG_BUBBLES.map((b, i) => (
-          <div
-            key={i}
-            className={`absolute ${b.anim}`}
-            style={{ left: `${b.x}%`, top: `${b.y}%`, animationDelay: b.delay }}
-          >
-            <div
-              style={{
-                width: `${b.size}px`,
-                height: `${b.size}px`,
-                borderRadius: "50%",
-                overflow: "hidden",
-                border: "1px solid rgba(212,175,55,.22)",
-                opacity: b.opacity,
-              }}
-            >
-              <img
-                src={b.photo}
-                alt=""
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  filter: "sepia(.85) brightness(.82) contrast(.88)",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg,rgba(255,220,140,.15) 0%,transparent 55%)",
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Header ── */}
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex items-center justify-between px-5 pt-14 pb-2">
         <button
           onClick={() => navigate(-1)}
@@ -517,7 +394,10 @@ const Circle = () => {
         </button>
 
         <div className="text-center">
-          <h1 className="font-bold text-lg" style={{ color: "#3D2B1A", fontFamily: "Georgia,serif" }}>
+          <h1
+            className="font-bold text-lg"
+            style={{ color: "#3D2B1A", fontFamily: "Georgia,serif", letterSpacing: ".02em" }}
+          >
             Al-Fassi Family
           </h1>
           <p className="text-xs" style={{ color: "rgba(61,43,26,.45)" }}>
@@ -527,15 +407,19 @@ const Circle = () => {
 
         <div
           className="px-3 py-1 rounded-full text-xs font-bold"
-          style={{ backgroundColor: "rgba(107,78,155,.15)", border: "1px solid rgba(107,78,155,.4)", color: "#6B4E9B" }}
+          style={{
+            backgroundColor: "rgba(107,78,155,.14)",
+            border: "1px solid rgba(107,78,155,.38)",
+            color: "#6B4E9B",
+          }}
         >
           🔒 Private
         </div>
       </div>
 
-      {/* ── Constellation ── */}
-      <div className="relative mx-auto z-10" style={{ width: "370px", height: "600px" }}>
-        {/* Orbit rings */}
+      {/* ── Constellation zone ─────────────────────────────────────────────── */}
+      <div className="relative mx-auto z-10" style={{ width: "370px", height: "480px" }}>
+        {/* Orbit rings — subtle on warm bg */}
         {[108, 132, 156].map((r, i) => (
           <div
             key={i}
@@ -545,12 +429,12 @@ const Circle = () => {
               height: r * 2 + "px",
               left: 185 - r + "px",
               top: 188 - r + "px",
-              border: `1px solid rgba(61,43,26,${0.05 + i * 0.03})`,
+              border: `1px solid rgba(139,90,43,${0.1 + i * 0.04})`,
             }}
           />
         ))}
 
-        {/* ── Central sphere ── */}
+        {/* Central sphere */}
         <div
           className="absolute sphere-glow"
           style={{
@@ -609,7 +493,7 @@ const Circle = () => {
           />
         </div>
 
-        {/* ── Living members — they float ── */}
+        {/* Living members — they float */}
         {DEMO_MEMBERS.map((m) => {
           const isNew = m.hasNew && !seenMembers.has(m.id);
           return (
@@ -634,7 +518,8 @@ const Circle = () => {
                   borderRadius: "50%",
                   overflow: "hidden",
                   position: "relative",
-                  border: isNew ? "none" : "2.5px solid rgba(255,255,255,.55)",
+                  border: isNew ? "none" : "2.5px solid rgba(255,255,255,.6)",
+                  boxShadow: isNew ? undefined : "0 4px 14px rgba(0,0,0,.18)",
                 }}
               >
                 <img src={m.photo} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -649,7 +534,7 @@ const Circle = () => {
                       width: "20px",
                       height: "20px",
                       backgroundColor: "#E8742A",
-                      border: "2px solid #F5E8C8",
+                      border: "2px solid #F5E6CC",
                       fontSize: "10px",
                     }}
                   >
@@ -663,7 +548,7 @@ const Circle = () => {
                       width: "10px",
                       height: "10px",
                       backgroundColor: "#FFD700",
-                      border: "2px solid #F5E8C8",
+                      border: "2px solid #F5E6CC",
                       boxShadow: "0 0 6px rgba(255,210,0,.85)",
                     }}
                   />
@@ -676,149 +561,268 @@ const Circle = () => {
                   color: "#3D2B1A",
                   textAlign: "center",
                   marginTop: "3px",
-                  textShadow: "0 1px 3px rgba(255,255,255,.85)",
+                  textShadow: "0 1px 2px rgba(255,255,255,.7)",
                 }}
               >
                 {m.name}
               </p>
-              <p style={{ fontSize: "7px", color: "rgba(61,43,26,.5)", textAlign: "center", lineHeight: 1.1 }}>
+              <p style={{ fontSize: "7px", color: "rgba(61,43,26,.52)", textAlign: "center", lineHeight: 1.1 }}>
                 {m.subtitle}
               </p>
             </div>
           );
         })}
+      </div>
+      {/* end constellation */}
 
-        {/* ── Deceased — FIXED, no movement, dark circular photos ── */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          BEDSIDE TABLE — absolute, bottom-left, completely static
+          Contains: wooden surface + 2 rectangular framed photos + candle
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="absolute z-10" style={{ left: 0, bottom: "96px", width: "220px" }}>
+        {/* Photos row — above the table surface */}
         <div
-          className="absolute"
-          style={{ left: "10px", top: "466px", zIndex: 6, display: "flex", alignItems: "flex-end", gap: "8px" }}
+          style={{ display: "flex", alignItems: "flex-end", gap: "10px", paddingLeft: "16px", paddingBottom: "0px" }}
         >
-          {DECEASED.map((d) => (
-            <div key={d.id} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          {/* Frame 1 — Grandfather */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div
+              className="frame-halo"
+              style={{
+                width: "72px",
+                height: "88px",
+                // Rectangular golden frame with bevel effect
+                border: "4px solid",
+                borderColor: "rgba(205,160,40,.9)",
+                borderRadius: "3px",
+                boxShadow: `
+                inset 0 0 0 2px rgba(255,220,80,.5),
+                inset 0 0 0 4px rgba(160,110,20,.4),
+                0 0 20px rgba(251,191,36,.4)
+              `,
+                overflow: "hidden",
+                cursor: "pointer",
+                position: "relative",
+                backgroundColor: "#5C3D11",
+                flexShrink: 0,
+              }}
+              onClick={() => toast.info("Grandfather's voice — coming soon")}
+            >
+              <img
+                src={grandfatherImg}
+                alt="Grandfather"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  // Old photo effect: grayscale + slight sepia
+                  filter: "grayscale(1) sepia(.5) contrast(1.2) brightness(.88)",
+                }}
+              />
+              {/* Vignette */}
               <div
-                className="sepia-glow"
                 style={{
-                  width: `${d.size}px`,
-                  height: `${d.size}px`,
-                  borderRadius: "50%",
-                  overflow: "hidden",
-                  border: "2.5px solid rgba(212,175,55,.85)",
-                  cursor: "pointer",
-                  flexShrink: 0,
+                  position: "absolute",
+                  inset: 0,
+                  background: "radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,.45) 100%)",
                 }}
-                onClick={() => toast.info(`${d.name}'s voice — coming soon`)}
-              >
-                <img
-                  src={d.photo}
-                  alt={d.name}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    // Deceased: very dark sepia, somber
-                    filter: d.isPet
-                      ? "sepia(1) brightness(.5) contrast(1.1) saturate(.6)"
-                      : "sepia(1) brightness(.42) contrast(1.15) saturate(.5)",
-                  }}
-                />
-                {/* Dark vignette overlay */}
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: "radial-gradient(circle, transparent 40%, rgba(0,0,0,.55) 100%)",
-                  }}
-                />
-                {/* Gloss */}
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: "linear-gradient(135deg,rgba(255,220,120,.12) 0%,transparent 50%)",
-                  }}
-                />
-                {d.isPet && (
-                  <div
-                    className="absolute bottom-0.5 right-0.5 rounded-full flex items-center justify-center"
-                    style={{
-                      width: "18px",
-                      height: "18px",
-                      backgroundColor: "rgba(90,60,20,.8)",
-                      border: "1.5px solid rgba(212,175,55,.7)",
-                      fontSize: "9px",
-                    }}
-                  >
-                    🐾
-                  </div>
-                )}
-              </div>
-              <p
-                style={{
-                  fontSize: "8px",
-                  fontWeight: 700,
-                  color: "rgba(61,43,26,.7)",
-                  textAlign: "center",
-                  marginTop: "3px",
-                }}
-              >
-                {d.name}
-              </p>
-              <p style={{ fontSize: "6.5px", color: "rgba(61,43,26,.38)", textAlign: "center" }}>{d.subtitle}</p>
+              />
             </div>
-          ))}
+            <p
+              style={{
+                fontSize: "8px",
+                fontWeight: 700,
+                color: "rgba(61,43,26,.75)",
+                textAlign: "center",
+                marginTop: "4px",
+                fontFamily: "Georgia,serif",
+                fontStyle: "italic",
+              }}
+            >
+              Grandfather
+            </p>
+            <p style={{ fontSize: "7px", color: "rgba(61,43,26,.4)", textAlign: "center" }}>4 voices</p>
+          </div>
 
-          {/* ── CSS Candle — beside deceased group ── */}
+          {/* Frame 2 — Grandmother */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div
+              className="frame-halo"
+              style={{
+                width: "64px",
+                height: "80px",
+                border: "4px solid",
+                borderColor: "rgba(205,160,40,.85)",
+                borderRadius: "3px",
+                boxShadow: `
+                inset 0 0 0 2px rgba(255,220,80,.45),
+                inset 0 0 0 4px rgba(160,110,20,.38),
+                0 0 18px rgba(251,191,36,.35)
+              `,
+                overflow: "hidden",
+                cursor: "pointer",
+                position: "relative",
+                backgroundColor: "#5C3D11",
+                flexShrink: 0,
+              }}
+              onClick={() => toast.info("Grandmother's voice — coming soon")}
+            >
+              <img
+                src={relaxImg}
+                alt="Grandmother"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  filter: "grayscale(1) sepia(.5) contrast(1.2) brightness(.85)",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,.45) 100%)",
+                }}
+              />
+            </div>
+            <p
+              style={{
+                fontSize: "8px",
+                fontWeight: 700,
+                color: "rgba(61,43,26,.75)",
+                textAlign: "center",
+                marginTop: "4px",
+                fontFamily: "Georgia,serif",
+                fontStyle: "italic",
+              }}
+            >
+              Grandmother
+            </p>
+            <p style={{ fontSize: "7px", color: "rgba(61,43,26,.4)", textAlign: "center" }}>2 voices</p>
+          </div>
+
+          {/* Candle — beside the frames */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              marginBottom: "24px",
+              paddingBottom: "20px",
               marginLeft: "4px",
             }}
           >
-            {/* Flame */}
+            {/* Flame outer glow */}
             <div
-              className="flame"
               style={{
-                width: "10px",
-                height: "18px",
-                background: "linear-gradient(to top,#FF5500 0%,#FF9500 40%,#FFE055 80%,rgba(255,240,140,.5) 100%)",
-                borderRadius: "50% 50% 20% 20%",
-                filter: "blur(.35px)",
+                position: "relative",
+                width: "24px",
+                height: "32px",
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "center",
               }}
-            />
+            >
+              {/* Outer glow */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "4px",
+                  width: "24px",
+                  height: "28px",
+                  background: "radial-gradient(ellipse at 50% 80%, rgba(255,140,0,.4) 0%, transparent 70%)",
+                  borderRadius: "50%",
+                }}
+              />
+              {/* Flame itself */}
+              <div
+                className="flame"
+                style={{
+                  width: "12px",
+                  height: "22px",
+                  background:
+                    "linear-gradient(to top, #FF4400 0%, #FF8C00 35%, #FFD700 70%, rgba(255,245,150,.6) 100%)",
+                  borderRadius: "50% 50% 25% 25%",
+                  filter: "blur(.3px)",
+                  transformOrigin: "bottom center",
+                }}
+              />
+            </div>
+
             {/* Wick */}
-            <div style={{ width: "2px", height: "5px", backgroundColor: "#4A3728", marginTop: "-1px" }} />
-            {/* Body */}
+            <div style={{ width: "2px", height: "5px", backgroundColor: "#3A2518", marginTop: "-2px" }} />
+
+            {/* Candle body */}
             <div
               className="candle-body"
               style={{
-                width: "18px",
-                height: "52px",
+                width: "22px",
+                height: "60px",
                 background:
-                  "linear-gradient(to right,rgba(255,252,235,.92),rgba(255,242,205,.96),rgba(242,228,185,.88))",
+                  "linear-gradient(to right, rgba(255,253,240,.95) 0%, rgba(255,248,220,.98) 50%, rgba(245,230,190,.9) 100%)",
                 borderRadius: "3px 3px 2px 2px",
-                border: "1px solid rgba(212,182,125,.6)",
+                border: "1px solid rgba(210,178,118,.6)",
+                position: "relative",
+                overflow: "hidden",
               }}
-            />
-            {/* Wax drip */}
+            >
+              {/* Wax drip left */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "8px",
+                  left: "-2px",
+                  width: "6px",
+                  height: "12px",
+                  background: "rgba(255,248,220,.9)",
+                  borderRadius: "0 0 50% 50%",
+                }}
+              />
+            </div>
+
+            {/* Wax base drip */}
             <div
               style={{
-                width: "8px",
-                height: "8px",
-                backgroundColor: "rgba(255,248,225,.8)",
+                width: "10px",
+                height: "6px",
+                backgroundColor: "rgba(255,245,210,.85)",
                 borderRadius: "0 0 50% 50%",
-                marginTop: "-2px",
-                marginLeft: "-4px",
+                marginTop: "-1px",
               }}
             />
           </div>
         </div>
-        {/* end deceased group */}
+
+        {/* Wooden table surface */}
+        <div
+          style={{
+            height: "14px",
+            background: "linear-gradient(to bottom, #8B5E2A 0%, #6B4520 60%, #4A2E12 100%)",
+            borderRadius: "2px 8px 0 0",
+            boxShadow: "0 4px 16px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,180,80,.25)",
+            marginTop: "2px",
+            // Wood grain lines
+            backgroundImage: `
+            linear-gradient(to bottom, #8B5E2A 0%, #6B4520 60%, #4A2E12 100%),
+            repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(0,0,0,.06) 18px, rgba(0,0,0,.06) 19px)
+          `,
+          }}
+        />
+
+        {/* Table leg shadow */}
+        <div
+          style={{
+            height: "6px",
+            background: "linear-gradient(to bottom, rgba(0,0,0,.25), transparent)",
+            marginLeft: "8px",
+            marginRight: "8px",
+            borderRadius: "0 0 4px 4px",
+          }}
+        />
       </div>
-      {/* end constellation */}
+      {/* end bedside table */}
 
       {/* ── Shelf "This week" ── */}
-      <div className="px-5 mb-5 fade-up relative z-10">
+      <div className="px-5 mb-4 fade-up relative z-10" style={{ marginTop: "8px" }}>
         <div className="flex items-center justify-between mb-3">
           <p
             style={{
@@ -826,7 +830,7 @@ const Circle = () => {
               fontWeight: 900,
               letterSpacing: ".16em",
               textTransform: "uppercase",
-              color: "rgba(61,43,26,.4)",
+              color: "rgba(61,43,26,.38)",
             }}
           >
             This week in your circle
@@ -843,16 +847,16 @@ const Circle = () => {
               style={{
                 width: "148px",
                 height: "116px",
-                backgroundColor: "rgba(255,255,255,.42)",
-                border: "1px solid rgba(212,180,122,.48)",
-                backdropFilter: "blur(4px)",
+                backgroundColor: "rgba(255,255,255,.38)",
+                border: "1px solid rgba(180,140,80,.4)",
+                backdropFilter: "blur(6px)",
               }}
               onClick={() => navigate("/treasure")}
             >
               <img src={card.thumbnail} alt="" style={{ width: "100%", height: "70px", objectFit: "cover" }} />
               <div
                 className="absolute top-1.5 right-1.5 rounded-full px-1.5 py-0.5 flex items-center gap-1"
-                style={{ backgroundColor: "rgba(0,0,0,.52)" }}
+                style={{ backgroundColor: "rgba(0,0,0,.5)" }}
               >
                 {card.type === "audio" ? <Volume2 size={8} color="#fff" /> : <Video size={8} color="#fff" />}
                 <span style={{ fontSize: "7px", color: "#fff", fontWeight: 700 }}>{card.duration}</span>
@@ -888,99 +892,90 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* ── Filter pills ── */}
-      <div className="px-5 mb-5 relative z-10">
-        <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
+      {/* ── Glassmorphism filter bar + CTA ─────────────────────────────────── */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-20"
+        style={{
+          background: "linear-gradient(to top, rgba(210,180,140,1) 0%, rgba(210,180,140,.95) 60%, transparent 100%)",
+          paddingBottom: "24px",
+          paddingTop: "8px",
+        }}
+      >
+        {/* Filter pills in glass bar */}
+        <div
+          style={{
+            margin: "0 16px 10px",
+            padding: "8px 12px",
+            borderRadius: "20px",
+            background: "rgba(255,255,255,.28)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(255,255,255,.45)",
+            display: "flex",
+            gap: "8px",
+            overflowX: "auto",
+          }}
+          className="hide-scroll"
+        >
           {FILTERS.map((f) => (
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id)}
-              className="shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all"
+              className="shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all"
               style={
                 activeFilter === f.id
-                  ? { backgroundColor: "#E8742A", color: "#fff", boxShadow: "0 4px 14px rgba(232,116,42,.4)" }
+                  ? { backgroundColor: "#E8742A", color: "#fff", boxShadow: "0 3px 12px rgba(232,116,42,.45)" }
                   : {
-                      backgroundColor: "rgba(255,255,255,.52)",
+                      backgroundColor: "rgba(255,255,255,.45)",
                       color: "#3D2B1A",
-                      border: "1px solid rgba(212,180,122,.5)",
+                      border: "1px solid rgba(180,140,80,.4)",
                     }
               }
             >
               {f.label}
             </button>
           ))}
-        </div>
-      </div>
 
-      {/* ── Invite ── */}
-      <div className="px-5 pb-36 relative z-10">
-        <div
-          className="flex items-center gap-3 p-4 rounded-2xl mb-3"
-          style={{ backgroundColor: "rgba(255,255,255,.4)", border: "1px solid rgba(212,180,122,.4)" }}
-        >
-          <div className="flex-1 min-w-0">
-            <p
-              style={{
-                fontSize: "9px",
-                textTransform: "uppercase",
-                letterSpacing: ".1em",
-                color: "rgba(61,43,26,.38)",
-                marginBottom: "2px",
-              }}
-            >
-              Your invite link
-            </p>
-            <p className="font-mono truncate text-sm" style={{ color: "#3D2B1A" }}>
-              {inviteLink}
-            </p>
-          </div>
+          {/* Copy link inline */}
           <button
             onClick={handleCopyLink}
-            className="shrink-0 p-2.5 rounded-xl"
+            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 ml-auto"
             style={
               copied
-                ? { backgroundColor: "rgba(16,185,129,.2)", border: "1px solid rgba(16,185,129,.4)" }
-                : { backgroundColor: "rgba(255,255,255,.6)", border: "1px solid rgba(212,180,122,.4)" }
+                ? { backgroundColor: "rgba(16,185,129,.25)", color: "#065f46", border: "1px solid rgba(16,185,129,.4)" }
+                : {
+                    backgroundColor: "rgba(255,255,255,.45)",
+                    color: "#3D2B1A",
+                    border: "1px solid rgba(180,140,80,.4)",
+                  }
             }
           >
-            {copied ? (
-              <Check size={16} className="text-emerald-500" />
-            ) : (
-              <Copy size={16} style={{ color: "#3D2B1A" }} />
-            )}
+            {copied ? <Check size={11} /> : <Copy size={11} />}
+            {copied ? "Copied" : "Share"}
           </button>
         </div>
 
-        <button
-          onClick={handleWhatsApp}
-          className="w-full py-3.5 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
-          style={{ background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff" }}
-        >
-          <span className="text-lg">💬</span>
-          Invite your family on WhatsApp
-        </button>
+        {/* CTA */}
+        <div className="px-5">
+          <button
+            onClick={() => navigate("/record")}
+            className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
+            style={{
+              background: "linear-gradient(135deg,#E8742A,#D4621A)",
+              color: "#fff",
+              boxShadow: "0 0 28px rgba(232,116,42,.45)",
+            }}
+          >
+            <Mic size={20} />+ Add a voice to the circle
+          </button>
 
-        <p className="text-center text-xs mt-2" style={{ color: "rgba(61,43,26,.28)" }}>
-          Your circle is private. Only invited members can see your memories.
-        </p>
-      </div>
-
-      {/* ── Fixed CTA ── */}
-      <div
-        className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 z-20"
-        style={{ background: "linear-gradient(to top,rgba(240,228,196,1) 60%,transparent)" }}
-      >
-        <button
-          onClick={() => navigate("/record")}
-          className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
-          style={{
-            background: "linear-gradient(135deg,#E8742A,#D4621A)",
-            color: "#fff",
-            boxShadow: "0 0 30px rgba(232,116,42,.4)",
-          }}
-        >
-          <Mic size={20} />+ Add a voice to the circle
-        </button>
+          <button
+            onClick={handleWhatsApp}
+            className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 mt-2"
+            style={{ background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff" }}
+          >
+            <span>💬</span> Invite your family on WhatsApp
+          </button>
+        </div>
       </div>
     </div>
   );
