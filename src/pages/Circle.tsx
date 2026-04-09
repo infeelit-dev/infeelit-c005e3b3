@@ -35,15 +35,15 @@ interface DemoMember {
   subtitle: string;
   photo: string;
   hasNew: boolean;
-  count: number;
-  memType: string;
   left: number;
   top: number;
   size: number;
+  floatAnim: string;
+  floatDelay: string;
   isPet?: boolean;
 }
 
-interface DeceasedFrame {
+interface DeceasedMember {
   id: string;
   name: string;
   subtitle: string;
@@ -51,6 +51,8 @@ interface DeceasedFrame {
   voices: number;
   left: number;
   top: number;
+  size: number;
+  isPet?: boolean;
 }
 
 interface BgBubble {
@@ -78,6 +80,7 @@ interface ShelfCard {
 
 const AI_QUESTION = "What is the most beautiful lesson of courage your father ever gave you?";
 
+// Living members — each has a unique float animation + delay
 const DEMO_MEMBERS: DemoMember[] = [
   {
     id: "fatima",
@@ -85,11 +88,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "34 · 12 voices",
     photo: marryImg,
     hasNew: true,
-    count: 12,
-    memType: "voices",
     left: 16,
     top: 22,
     size: 76,
+    floatAnim: "member-float-a",
+    floatDelay: "0s",
   },
   {
     id: "karim",
@@ -97,11 +100,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "28 · 8 voices",
     photo: loveImg,
     hasNew: true,
-    count: 8,
-    memType: "voices",
-    left: 240,
+    left: 246,
     top: 14,
     size: 72,
+    floatAnim: "member-float-b",
+    floatDelay: "1.3s",
   },
   {
     id: "mother",
@@ -109,11 +112,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "60 · 8 moments",
     photo: relaxImg,
     hasNew: true,
-    count: 8,
-    memType: "moments",
-    left: 298,
-    top: 128,
+    left: 302,
+    top: 132,
     size: 68,
+    floatAnim: "member-float-c",
+    floatDelay: "0.6s",
   },
   {
     id: "father",
@@ -121,11 +124,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "62 · 5 moments",
     photo: houseImg,
     hasNew: false,
-    count: 5,
-    memType: "moments",
-    left: 6,
-    top: 140,
+    left: 4,
+    top: 138,
     size: 66,
+    floatAnim: "member-float-a",
+    floatDelay: "2.1s",
   },
   {
     id: "nadia",
@@ -133,11 +136,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "5 moments",
     photo: birthImg,
     hasNew: false,
-    count: 5,
-    memType: "moments",
-    left: 286,
-    top: 254,
+    left: 288,
+    top: 258,
     size: 62,
+    floatAnim: "member-float-b",
+    floatDelay: "0.9s",
   },
   {
     id: "hassan",
@@ -145,11 +148,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "3 voices",
     photo: picnicImg,
     hasNew: false,
-    count: 3,
-    memType: "voices",
-    left: 10,
+    left: 8,
     top: 262,
     size: 60,
+    floatAnim: "member-float-c",
+    floatDelay: "1.8s",
   },
   {
     id: "sara",
@@ -157,11 +160,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "22 · 6 moments",
     photo: graduateImg,
     hasNew: true,
-    count: 6,
-    memType: "moments",
-    left: 146,
-    top: 6,
+    left: 148,
+    top: 4,
     size: 62,
+    floatAnim: "member-float-a",
+    floatDelay: "3s",
   },
   {
     id: "adam",
@@ -169,11 +172,11 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "19 · 4 voices",
     photo: travelImg,
     hasNew: false,
-    count: 4,
-    memType: "voices",
-    left: 290,
+    left: 292,
     top: 358,
     size: 58,
+    floatAnim: "member-float-b",
+    floatDelay: "2.4s",
   },
   {
     id: "sultan",
@@ -181,50 +184,59 @@ const DEMO_MEMBERS: DemoMember[] = [
     subtitle: "3 moments",
     photo: childImg,
     hasNew: false,
-    count: 3,
-    memType: "moments",
-    left: 196,
-    top: 366,
+    left: 194,
+    top: 368,
     size: 60,
-    isPet: true,
-  },
-  {
-    id: "mimi",
-    name: "Mimi",
-    subtitle: "2 moments",
-    photo: birthImg,
-    hasNew: false,
-    count: 2,
-    memType: "moments",
-    left: 56,
-    top: 370,
-    size: 54,
+    floatAnim: "member-float-c",
+    floatDelay: "0.4s",
     isPet: true,
   },
 ];
 
-const DECEASED: DeceasedFrame[] = [
+// Deceased — fixed, no animation
+const DECEASED: DeceasedMember[] = [
   {
     id: "grandfather",
     name: "Grandfather",
-    subtitle: "1942 – 2018",
+    subtitle: "1942–2018",
     photo: grandfatherImg,
     voices: 4,
-    left: 28,
-    top: 448,
+    left: 14,
+    top: 458,
+    size: 68,
   },
-  { id: "grandmother", name: "Grandmother", subtitle: "1948 – 2021", photo: marryImg, voices: 2, left: 178, top: 448 },
+  {
+    id: "grandmother",
+    name: "Grandmother",
+    subtitle: "1948–2021",
+    photo: marryImg,
+    voices: 2,
+    left: 104,
+    top: 468,
+    size: 62,
+  },
+  {
+    id: "rex",
+    name: "Rex",
+    subtitle: "2008–2020",
+    photo: childImg,
+    voices: 1,
+    left: 196,
+    top: 472,
+    size: 56,
+    isPet: true,
+  },
 ];
 
 const BG_BUBBLES: BgBubble[] = [
-  { photo: grandfatherImg, size: 68, x: 2, y: 5, anim: "bg-float-slow", delay: "0s", opacity: 0.18 },
-  { photo: loveImg, size: 52, x: 78, y: 8, anim: "bg-float-medium", delay: "1.5s", opacity: 0.14 },
-  { photo: relaxImg, size: 44, x: 88, y: 55, anim: "bg-float-slow", delay: "3s", opacity: 0.13 },
-  { photo: travelImg, size: 38, x: 4, y: 72, anim: "bg-float-medium", delay: "0.8s", opacity: 0.12 },
-  { photo: graduateImg, size: 56, x: 60, y: 80, anim: "bg-float-slow", delay: "2s", opacity: 0.15 },
-  { photo: picnicImg, size: 34, x: 82, y: 28, anim: "bg-float-medium", delay: "4s", opacity: 0.11 },
-  { photo: houseImg, size: 30, x: 42, y: 92, anim: "bg-float-slow", delay: "1.2s", opacity: 0.1 },
-  { photo: childImg, size: 46, x: 12, y: 45, anim: "bg-float-medium", delay: "2.8s", opacity: 0.13 },
+  { photo: grandfatherImg, size: 66, x: 2, y: 5, anim: "bg-float-slow", delay: "0s", opacity: 0.16 },
+  { photo: loveImg, size: 50, x: 78, y: 8, anim: "bg-float-med", delay: "1.5s", opacity: 0.13 },
+  { photo: relaxImg, size: 42, x: 88, y: 56, anim: "bg-float-slow", delay: "3s", opacity: 0.12 },
+  { photo: travelImg, size: 36, x: 4, y: 72, anim: "bg-float-med", delay: "0.8s", opacity: 0.11 },
+  { photo: graduateImg, size: 54, x: 60, y: 82, anim: "bg-float-slow", delay: "2s", opacity: 0.14 },
+  { photo: picnicImg, size: 32, x: 82, y: 28, anim: "bg-float-med", delay: "4s", opacity: 0.1 },
+  { photo: houseImg, size: 28, x: 42, y: 94, anim: "bg-float-slow", delay: "1.2s", opacity: 0.09 },
+  { photo: childImg, size: 44, x: 10, y: 44, anim: "bg-float-med", delay: "2.8s", opacity: 0.12 },
 ];
 
 const DEMO_SHELF: ShelfCard[] = [
@@ -291,7 +303,6 @@ const Circle = () => {
   const [sphereMode, setSphereMode] = useState<SphereMode>("question");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       const {
@@ -316,7 +327,6 @@ const Circle = () => {
     init();
   }, []);
 
-  // ── Sphere alternation ────────────────────────────────────────────────────
   useEffect(() => {
     sphereTimerRef.current = setInterval(() => {
       setSphereMode((p) => (p === "question" ? "memory" : "question"));
@@ -326,7 +336,6 @@ const Circle = () => {
     };
   }, []);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
   const handleMemberClick = (id: string) => {
     setSeenMembers((prev) => new Set([...prev, id]));
     toast.info("Member journal — coming soon");
@@ -350,7 +359,6 @@ const Circle = () => {
   const inviteLink = `https://infeelit.com/join/${userId.slice(0, 8)}`;
   const latestMem = memories[0] ?? null;
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-x-hidden"
@@ -362,70 +370,102 @@ const Circle = () => {
         backgroundColor: "#F0E4C4",
       }}
     >
-      {/* ── Keyframes ─────────────────────────────────────────────────────── */}
       <style>{`
+
+        /* ── Background bubbles ── */
         @keyframes bgFloatSlow {
-          0%   { transform: translate(0,0); }
-          25%  { transform: translate(30px,-40px); }
-          50%  { transform: translate(55px,15px); }
-          75%  { transform: translate(20px,50px); }
-          100% { transform: translate(0,0); }
+          0%   { transform: translate(0px,0px); }
+          25%  { transform: translate(28px,-38px); }
+          50%  { transform: translate(52px,12px); }
+          75%  { transform: translate(18px,46px); }
+          100% { transform: translate(0px,0px); }
         }
         @keyframes bgFloatMed {
-          0%   { transform: translate(0,0); }
-          25%  { transform: translate(-40px,-30px); }
-          50%  { transform: translate(-60px,25px); }
-          75%  { transform: translate(-25px,55px); }
-          100% { transform: translate(0,0); }
+          0%   { transform: translate(0px,0px); }
+          25%  { transform: translate(-38px,-28px); }
+          50%  { transform: translate(-56px,22px); }
+          75%  { transform: translate(-22px,52px); }
+          100% { transform: translate(0px,0px); }
         }
+        .bg-float-slow { animation: bgFloatSlow 22s ease-in-out infinite; }
+        .bg-float-med  { animation: bgFloatMed  16s ease-in-out infinite; }
+
+        /* ── Living member floats — 3 distinct paths ── */
+        @keyframes memberFloatA {
+          0%   { transform: translate(0px,0px); }
+          20%  { transform: translate(10px,-14px); }
+          40%  { transform: translate(18px,-4px); }
+          60%  { transform: translate(12px,12px); }
+          80%  { transform: translate(-6px,8px); }
+          100% { transform: translate(0px,0px); }
+        }
+        @keyframes memberFloatB {
+          0%   { transform: translate(0px,0px); }
+          20%  { transform: translate(-12px,-10px); }
+          40%  { transform: translate(-16px,8px); }
+          60%  { transform: translate(-8px,16px); }
+          80%  { transform: translate(8px,10px); }
+          100% { transform: translate(0px,0px); }
+        }
+        @keyframes memberFloatC {
+          0%   { transform: translate(0px,0px); }
+          25%  { transform: translate(14px,10px); }
+          50%  { transform: translate(6px,-16px); }
+          75%  { transform: translate(-10px,-8px); }
+          100% { transform: translate(0px,0px); }
+        }
+        .member-float-a { animation: memberFloatA 9s  ease-in-out infinite; }
+        .member-float-b { animation: memberFloatB 11s ease-in-out infinite; }
+        .member-float-c { animation: memberFloatC 13s ease-in-out infinite; }
+
+        /* ── Sphere ── */
+        @keyframes spherePulse {
+          0%,100% { box-shadow: 0 0 40px rgba(255,185,60,.6),  0 0 80px  rgba(232,116,42,.3); }
+          50%      { box-shadow: 0 0 72px rgba(255,210,80,.88), 0 0 130px rgba(232,116,42,.5); }
+        }
+        .sphere-glow { animation: spherePulse 3s ease-in-out infinite; }
+
+        /* ── Gold ring on new members ── */
         @keyframes goldRing {
           0%,100% { box-shadow: 0 0 0 3px rgba(255,200,50,.95), 0 0 18px rgba(255,170,0,.7); }
           50%      { box-shadow: 0 0 0 4px rgba(255,225,80,1),   0 0 28px rgba(255,200,0,.9); }
         }
-        @keyframes spherePulse {
-          0%,100% { box-shadow: 0 0 40px rgba(255,185,60,.6),  0 0 80px rgba(232,116,42,.3); }
-          50%      { box-shadow: 0 0 72px rgba(255,210,80,.88), 0 0 130px rgba(232,116,42,.5); }
+        .gold-ring { animation: goldRing 2s ease-in-out infinite; }
+
+        /* ── Deceased — golden frame glow (STATIC — no position change) ── */
+        @keyframes sepiaGlow {
+          0%,100% { box-shadow: 0 0 0 3px rgba(212,175,55,.75), 0 0 14px rgba(212,175,55,.35); }
+          50%      { box-shadow: 0 0 0 3px rgba(255,210,80,.95), 0 0 22px rgba(212,175,55,.6); }
         }
-        @keyframes sphereTextSwap {
-          0%,42%  { opacity: 1; transform: translateY(0); }
-          48%     { opacity: 0; transform: translateY(-8px); }
-          52%     { opacity: 0; transform: translateY(8px); }
-          58%,100%{ opacity: 1; transform: translateY(0); }
-        }
+        .sepia-glow { animation: sepiaGlow 4s ease-in-out infinite; }
+
+        /* ── Candle ── */
         @keyframes flicker {
-          0%   { transform: scaleX(1)    scaleY(1)    translateY(0);      opacity: 1; }
-          20%  { transform: scaleX(.91)  scaleY(1.09) translateY(-1px);   opacity: .87; }
-          40%  { transform: scaleX(1.07) scaleY(.93)  translateY(.5px);   opacity: 1; }
-          60%  { transform: scaleX(.95)  scaleY(1.07) translateY(-1.5px); opacity: .91; }
-          80%  { transform: scaleX(1.04) scaleY(.96)  translateY(0);      opacity: .97; }
-          100% { transform: scaleX(1)    scaleY(1)    translateY(0);      opacity: 1; }
+          0%   { transform: scaleX(1)    scaleY(1)    translateY(0px);   opacity:1; }
+          20%  { transform: scaleX(.90)  scaleY(1.10) translateY(-1px);  opacity:.86; }
+          40%  { transform: scaleX(1.08) scaleY(.92)  translateY(.5px);  opacity:1; }
+          60%  { transform: scaleX(.94)  scaleY(1.08) translateY(-1.5px);opacity:.90; }
+          80%  { transform: scaleX(1.05) scaleY(.95)  translateY(0px);   opacity:.97; }
+          100% { transform: scaleX(1)    scaleY(1)    translateY(0px);   opacity:1; }
         }
         @keyframes candleGlow {
-          0%,100% { box-shadow: 0 0 12px rgba(255,140,0,.7), 0 0 25px rgba(255,100,0,.35); }
-          50%      { box-shadow: 0 0 22px rgba(255,165,0,.9), 0 0 42px rgba(255,120,0,.5); }
+          0%,100% { box-shadow: 0 0 10px rgba(255,140,0,.65), 0 0 22px rgba(255,100,0,.3); }
+          50%      { box-shadow: 0 0 20px rgba(255,165,0,.9),  0 0 38px rgba(255,120,0,.5); }
         }
-        @keyframes sepiaGlow {
-          0%,100% { box-shadow: 0 0 0 3px rgba(212,175,55,.8), 0 0 16px rgba(212,175,55,.4); }
-          50%      { box-shadow: 0 0 0 3px rgba(255,210,80,1),  0 0 26px rgba(212,175,55,.7); }
-        }
+        .flame       { animation: flicker    1.9s ease-in-out infinite; }
+        .candle-body { animation: candleGlow 2.2s ease-in-out infinite; }
+
+        /* ── Misc ── */
         @keyframes fadeUp {
-          from { opacity:0; transform:translateY(16px); }
+          from { opacity:0; transform:translateY(14px); }
           to   { opacity:1; transform:translateY(0); }
         }
-        .bg-float-slow   { animation: bgFloatSlow 22s ease-in-out infinite; }
-        .bg-float-medium { animation: bgFloatMed  16s ease-in-out infinite; }
-        .gold-ring       { animation: goldRing    2s  ease-in-out infinite; }
-        .sphere-glow     { animation: spherePulse 3s  ease-in-out infinite; }
-        .sphere-text     { animation: sphereTextSwap 12s ease-in-out infinite; }
-        .flame           { animation: flicker     1.8s ease-in-out infinite; }
-        .candle-body     { animation: candleGlow  2s  ease-in-out infinite; }
-        .sepia-glow      { animation: sepiaGlow   3s  ease-in-out infinite; }
-        .fade-up         { animation: fadeUp      .5s ease forwards; }
-        .hide-scroll     { scrollbar-width:none; }
+        .fade-up     { animation: fadeUp .5s ease forwards; }
+        .hide-scroll { scrollbar-width:none; }
         .hide-scroll::-webkit-scrollbar { display:none; }
       `}</style>
 
-      {/* ── Background floating bubbles ────────────────────────────────────── */}
+      {/* ── Background floating bubbles ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {BG_BUBBLES.map((b, i) => (
           <div
@@ -439,8 +479,7 @@ const Circle = () => {
                 height: `${b.size}px`,
                 borderRadius: "50%",
                 overflow: "hidden",
-                border: "1px solid rgba(212,175,55,.25)",
-                boxShadow: "inset 0 2px 8px rgba(255,255,255,.2)",
+                border: "1px solid rgba(212,175,55,.22)",
                 opacity: b.opacity,
               }}
             >
@@ -451,7 +490,7 @@ const Circle = () => {
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  filter: "sepia(.8) brightness(.85) contrast(.9)",
+                  filter: "sepia(.85) brightness(.82) contrast(.88)",
                 }}
               />
               <div
@@ -459,7 +498,7 @@ const Circle = () => {
                   position: "absolute",
                   inset: 0,
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg, rgba(255,220,140,.18) 0%, transparent 55%)",
+                  background: "linear-gradient(135deg,rgba(255,220,140,.15) 0%,transparent 55%)",
                 }}
               />
             </div>
@@ -467,7 +506,7 @@ const Circle = () => {
         ))}
       </div>
 
-      {/* ── Header ────────────────────────────────────────────────────────── */}
+      {/* ── Header ── */}
       <div className="relative z-10 flex items-center justify-between px-5 pt-14 pb-2">
         <button
           onClick={() => navigate(-1)}
@@ -478,7 +517,7 @@ const Circle = () => {
         </button>
 
         <div className="text-center">
-          <h1 className="font-bold text-lg" style={{ color: "#3D2B1A", fontFamily: "Georgia, serif" }}>
+          <h1 className="font-bold text-lg" style={{ color: "#3D2B1A", fontFamily: "Georgia,serif" }}>
             Al-Fassi Family
           </h1>
           <p className="text-xs" style={{ color: "rgba(61,43,26,.45)" }}>
@@ -494,10 +533,10 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* ── Constellation ─────────────────────────────────────────────────── */}
-      <div className="relative mx-auto z-10" style={{ width: "370px", height: "570px" }}>
+      {/* ── Constellation ── */}
+      <div className="relative mx-auto z-10" style={{ width: "370px", height: "600px" }}>
         {/* Orbit rings */}
-        {[108, 132, 155].map((r, i) => (
+        {[108, 132, 156].map((r, i) => (
           <div
             key={i}
             className="absolute rounded-full pointer-events-none"
@@ -511,7 +550,7 @@ const Circle = () => {
           />
         ))}
 
-        {/* ── Central sphere ──────────────────────────────────────────────── */}
+        {/* ── Central sphere ── */}
         <div
           className="absolute sphere-glow"
           style={{
@@ -534,53 +573,57 @@ const Circle = () => {
           }}
           onClick={() => (latestMem ? navigate("/treasure") : navigate("/record"))}
         >
-          <div className="sphere-text w-full h-full absolute inset-0 flex flex-col items-center justify-center px-3">
-            {sphereMode === "question" ? (
-              <>
-                <p
-                  style={{
-                    fontSize: "6px",
-                    fontWeight: 900,
-                    letterSpacing: ".12em",
-                    color: "rgba(255,255,255,.72)",
-                    textTransform: "uppercase",
-                    marginBottom: "5px",
-                    textAlign: "center",
-                  }}
-                >
-                  This week
-                </p>
-                <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.38, textAlign: "center" }}>
-                  {AI_QUESTION}
-                </p>
-              </>
-            ) : (
-              <>
-                <Play size={20} style={{ color: "#fff", marginBottom: "5px" }} />
-                <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.3, textAlign: "center" }}>
-                  {latestMem?.title ?? "Karim · 2h ago"}
-                </p>
-                <p style={{ fontSize: "7px", color: "rgba(255,255,255,.6)", marginTop: "3px", textAlign: "center" }}>
-                  Latest memory
-                </p>
-              </>
-            )}
-          </div>
-          {/* Gloss */}
+          {sphereMode === "question" ? (
+            <>
+              <p
+                style={{
+                  fontSize: "6px",
+                  fontWeight: 900,
+                  letterSpacing: ".12em",
+                  color: "rgba(255,255,255,.72)",
+                  textTransform: "uppercase",
+                  marginBottom: "5px",
+                  textAlign: "center",
+                }}
+              >
+                This week
+              </p>
+              <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.38, textAlign: "center" }}>
+                {AI_QUESTION}
+              </p>
+            </>
+          ) : (
+            <>
+              <Play size={20} style={{ color: "#fff", marginBottom: "5px" }} />
+              <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.3, textAlign: "center" }}>
+                {latestMem?.title ?? "Karim · 2h ago"}
+              </p>
+              <p style={{ fontSize: "7px", color: "rgba(255,255,255,.6)", marginTop: "3px", textAlign: "center" }}>
+                Latest memory
+              </p>
+            </>
+          )}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
-            style={{ background: "linear-gradient(135deg, rgba(255,255,255,.28) 0%, transparent 55%)" }}
+            style={{ background: "linear-gradient(135deg,rgba(255,255,255,.28) 0%,transparent 55%)" }}
           />
         </div>
 
-        {/* ── Living members ───────────────────────────────────────────────── */}
+        {/* ── Living members — they float ── */}
         {DEMO_MEMBERS.map((m) => {
           const isNew = m.hasNew && !seenMembers.has(m.id);
           return (
             <div
               key={m.id}
-              className="absolute"
-              style={{ left: `${m.left}px`, top: `${m.top}px`, width: `${m.size}px`, zIndex: 5, cursor: "pointer" }}
+              className={`absolute ${m.floatAnim}`}
+              style={{
+                left: `${m.left}px`,
+                top: `${m.top}px`,
+                width: `${m.size}px`,
+                zIndex: 5,
+                cursor: "pointer",
+                animationDelay: m.floatDelay,
+              }}
               onClick={() => handleMemberClick(m.id)}
             >
               <div
@@ -645,98 +688,136 @@ const Circle = () => {
           );
         })}
 
-        {/* ── Deceased frames ──────────────────────────────────────────────── */}
-        {DECEASED.map((d) => (
-          <div key={d.id} className="absolute" style={{ left: `${d.left}px`, top: `${d.top}px`, zIndex: 5 }}>
-            <div
-              className="sepia-glow"
-              style={{
-                width: "76px",
-                height: "94px",
-                borderRadius: "4px",
-                overflow: "hidden",
-                border: "3px solid rgba(212,175,55,.92)",
-                backgroundColor: "#8B6914",
-                cursor: "pointer",
-              }}
-              onClick={() => toast.info(`${d.name}'s voice — coming soon`)}
-            >
-              <img
-                src={d.photo}
-                alt={d.name}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  filter: "sepia(1) contrast(.88) brightness(.8)",
-                }}
-              />
-              {/* Frame gloss */}
-              <div
-                className="absolute inset-0"
-                style={{ background: "linear-gradient(135deg,rgba(255,210,80,.12) 0%,transparent 50%)" }}
-              />
-            </div>
-            <p style={{ fontSize: "9px", fontWeight: 700, color: "#3D2B1A", textAlign: "center", marginTop: "4px" }}>
-              {d.name}
-            </p>
-            <p style={{ fontSize: "7px", color: "rgba(61,43,26,.42)", textAlign: "center" }}>{d.voices} voices</p>
-          </div>
-        ))}
-
-        {/* ── CSS Candle — between the two frames ─────────────────────────── */}
+        {/* ── Deceased — FIXED, no movement, dark circular photos ── */}
         <div
           className="absolute"
-          style={{
-            left: "138px",
-            top: "456px",
-            zIndex: 5,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
+          style={{ left: "10px", top: "466px", zIndex: 6, display: "flex", alignItems: "flex-end", gap: "8px" }}
         >
-          {/* Flame */}
+          {DECEASED.map((d) => (
+            <div key={d.id} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div
+                className="sepia-glow"
+                style={{
+                  width: `${d.size}px`,
+                  height: `${d.size}px`,
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  border: "2.5px solid rgba(212,175,55,.85)",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+                onClick={() => toast.info(`${d.name}'s voice — coming soon`)}
+              >
+                <img
+                  src={d.photo}
+                  alt={d.name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    // Deceased: very dark sepia, somber
+                    filter: d.isPet
+                      ? "sepia(1) brightness(.5) contrast(1.1) saturate(.6)"
+                      : "sepia(1) brightness(.42) contrast(1.15) saturate(.5)",
+                  }}
+                />
+                {/* Dark vignette overlay */}
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: "radial-gradient(circle, transparent 40%, rgba(0,0,0,.55) 100%)",
+                  }}
+                />
+                {/* Gloss */}
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: "linear-gradient(135deg,rgba(255,220,120,.12) 0%,transparent 50%)",
+                  }}
+                />
+                {d.isPet && (
+                  <div
+                    className="absolute bottom-0.5 right-0.5 rounded-full flex items-center justify-center"
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      backgroundColor: "rgba(90,60,20,.8)",
+                      border: "1.5px solid rgba(212,175,55,.7)",
+                      fontSize: "9px",
+                    }}
+                  >
+                    🐾
+                  </div>
+                )}
+              </div>
+              <p
+                style={{
+                  fontSize: "8px",
+                  fontWeight: 700,
+                  color: "rgba(61,43,26,.7)",
+                  textAlign: "center",
+                  marginTop: "3px",
+                }}
+              >
+                {d.name}
+              </p>
+              <p style={{ fontSize: "6.5px", color: "rgba(61,43,26,.38)", textAlign: "center" }}>{d.subtitle}</p>
+            </div>
+          ))}
+
+          {/* ── CSS Candle — beside deceased group ── */}
           <div
-            className="flame"
             style={{
-              width: "11px",
-              height: "20px",
-              background: "linear-gradient(to top, #FF5500 0%, #FF9500 40%, #FFE055 80%, rgba(255,240,140,.5) 100%)",
-              borderRadius: "50% 50% 20% 20%",
-              filter: "blur(.35px)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              marginBottom: "24px",
+              marginLeft: "4px",
             }}
-          />
-          {/* Wick */}
-          <div style={{ width: "2px", height: "6px", backgroundColor: "#4A3728", marginTop: "-1px" }} />
-          {/* Body */}
-          <div
-            className="candle-body"
-            style={{
-              width: "20px",
-              height: "58px",
-              background:
-                "linear-gradient(to right, rgba(255,252,235,.92), rgba(255,242,205,.96), rgba(242,228,185,.88))",
-              borderRadius: "3px 3px 2px 2px",
-              border: "1px solid rgba(212,182,125,.6)",
-            }}
-          />
-          {/* Wax drip */}
-          <div
-            style={{
-              width: "9px",
-              height: "9px",
-              backgroundColor: "rgba(255,248,225,.82)",
-              borderRadius: "0 0 50% 50%",
-              marginTop: "-2px",
-              marginLeft: "-5px",
-            }}
-          />
+          >
+            {/* Flame */}
+            <div
+              className="flame"
+              style={{
+                width: "10px",
+                height: "18px",
+                background: "linear-gradient(to top,#FF5500 0%,#FF9500 40%,#FFE055 80%,rgba(255,240,140,.5) 100%)",
+                borderRadius: "50% 50% 20% 20%",
+                filter: "blur(.35px)",
+              }}
+            />
+            {/* Wick */}
+            <div style={{ width: "2px", height: "5px", backgroundColor: "#4A3728", marginTop: "-1px" }} />
+            {/* Body */}
+            <div
+              className="candle-body"
+              style={{
+                width: "18px",
+                height: "52px",
+                background:
+                  "linear-gradient(to right,rgba(255,252,235,.92),rgba(255,242,205,.96),rgba(242,228,185,.88))",
+                borderRadius: "3px 3px 2px 2px",
+                border: "1px solid rgba(212,182,125,.6)",
+              }}
+            />
+            {/* Wax drip */}
+            <div
+              style={{
+                width: "8px",
+                height: "8px",
+                backgroundColor: "rgba(255,248,225,.8)",
+                borderRadius: "0 0 50% 50%",
+                marginTop: "-2px",
+                marginLeft: "-4px",
+              }}
+            />
+          </div>
         </div>
+        {/* end deceased group */}
       </div>
       {/* end constellation */}
 
-      {/* ── Shelf "This week" ─────────────────────────────────────────────── */}
+      {/* ── Shelf "This week" ── */}
       <div className="px-5 mb-5 fade-up relative z-10">
         <div className="flex items-center justify-between mb-3">
           <p
@@ -754,7 +835,6 @@ const Circle = () => {
             See all →
           </button>
         </div>
-
         <div className="flex gap-3 overflow-x-auto pb-2 hide-scroll">
           {DEMO_SHELF.map((card) => (
             <div
@@ -770,7 +850,6 @@ const Circle = () => {
               onClick={() => navigate("/treasure")}
             >
               <img src={card.thumbnail} alt="" style={{ width: "100%", height: "70px", objectFit: "cover" }} />
-              {/* Type + duration */}
               <div
                 className="absolute top-1.5 right-1.5 rounded-full px-1.5 py-0.5 flex items-center gap-1"
                 style={{ backgroundColor: "rgba(0,0,0,.52)" }}
@@ -778,7 +857,6 @@ const Circle = () => {
                 {card.type === "audio" ? <Volume2 size={8} color="#fff" /> : <Video size={8} color="#fff" />}
                 <span style={{ fontSize: "7px", color: "#fff", fontWeight: 700 }}>{card.duration}</span>
               </div>
-              {/* Footer */}
               <div style={{ padding: "5px 8px" }}>
                 <div className="flex items-center gap-1.5">
                   <img
@@ -810,7 +888,7 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* ── Filter pills ──────────────────────────────────────────────────── */}
+      {/* ── Filter pills ── */}
       <div className="px-5 mb-5 relative z-10">
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
           {FILTERS.map((f) => (
@@ -834,7 +912,7 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* ── Invite ────────────────────────────────────────────────────────── */}
+      {/* ── Invite ── */}
       <div className="px-5 pb-36 relative z-10">
         <div
           className="flex items-center gap-3 p-4 rounded-2xl mb-3"
@@ -876,7 +954,7 @@ const Circle = () => {
         <button
           onClick={handleWhatsApp}
           className="w-full py-3.5 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
-          style={{ background: "linear-gradient(135deg, #25D366, #128C7E)", color: "#fff" }}
+          style={{ background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff" }}
         >
           <span className="text-lg">💬</span>
           Invite your family on WhatsApp
@@ -887,16 +965,16 @@ const Circle = () => {
         </p>
       </div>
 
-      {/* ── Fixed CTA ─────────────────────────────────────────────────────── */}
+      {/* ── Fixed CTA ── */}
       <div
         className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 z-20"
-        style={{ background: "linear-gradient(to top, rgba(240,228,196,1) 60%, transparent)" }}
+        style={{ background: "linear-gradient(to top,rgba(240,228,196,1) 60%,transparent)" }}
       >
         <button
           onClick={() => navigate("/record")}
           className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
           style={{
-            background: "linear-gradient(135deg, #E8742A, #D4621A)",
+            background: "linear-gradient(135deg,#E8742A,#D4621A)",
             color: "#fff",
             boxShadow: "0 0 30px rgba(232,116,42,.4)",
           }}
