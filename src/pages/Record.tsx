@@ -97,6 +97,12 @@ const Record = () => {
   const hardCapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Stockage des URLs après upload — utilisées lors du share
+  const uploadedFileUrlRef = useRef<string>("");
+  const uploadedThumbnailUrlRef = useRef<string>("");
+  const uploadedFileTypeRef = useRef<string>("video");
+  const userIdRef = useRef<string>("");
+
   const [stage, setStage] = useState<Stage>("question");
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -273,27 +279,46 @@ const Record = () => {
           data: { user },
         } = await supabase.auth.getUser();
         const userId = user?.id || "anonymous";
+        userIdRef.current = userId;
+        uploadedFileTypeRef.current = audioMode ? "audio" : "video";
+
         const timestamp = Date.now();
         const fileName = `${userId}/${timestamp}_memory.webm`;
         const posterName = `${userId}/${timestamp}_poster.jpg`;
 
+        // Upload fichier principal
+        let fileUrl = "";
         try {
-          await uploadToR2(blob, fileName);
+          fileUrl = await uploadToR2(blob, fileName);
         } catch {
           if (user) {
-            await supabase.storage.from("memories").upload(fileName, blob, { contentType: type });
-          }
-        }
-
-        if (posterBlob) {
-          try {
-            await uploadToR2(posterBlob, posterName);
-          } catch {
-            if (user) {
-              await supabase.storage.from("memories").upload(posterName, posterBlob, { contentType: "image/jpeg" });
+            const { data } = await supabase.storage.from("memories").upload(fileName, blob, { contentType: type });
+            if (data) {
+              const { data: urlData } = supabase.storage.from("memories").getPublicUrl(fileName);
+              fileUrl = urlData.publicUrl;
             }
           }
         }
+        uploadedFileUrlRef.current = fileUrl;
+
+        // Upload poster frame si disponible
+        let thumbUrl = "";
+        if (posterBlob) {
+          try {
+            thumbUrl = await uploadToR2(posterBlob, posterName);
+          } catch {
+            if (user) {
+              const { data } = await supabase.storage
+                .from("memories")
+                .upload(posterName, posterBlob, { contentType: "image/jpeg" });
+              if (data) {
+                const { data: urlData } = supabase.storage.from("memories").getPublicUrl(posterName);
+                thumbUrl = urlData.publicUrl;
+              }
+            }
+          }
+        }
+        uploadedThumbnailUrlRef.current = thumbUrl;
 
         const titles = POETIC_TITLES[theme];
         setMemoryTitle(titles[Math.floor(Math.random() * titles.length)]);
@@ -316,12 +341,45 @@ const Record = () => {
     }
   };
 
-  const handleShare = (type: "circle" | "public" | "private") => {
+  const handleShare = async (type: "circle" | "public" | "private") => {
     stream?.getTracks().forEach((t) => t.stop());
-    if (type === "circle") toast.success("Shared with your family circle.");
-    else if (type === "public") toast.success("Shared in the ocean.");
-    else toast.success("Memory kept privately.");
-    navigate("/feed");
+
+    const fileUrl = uploadedFileUrlRef.current;
+    const thumbUrl = uploadedThumbnailUrlRef.current;
+    const userId = userIdRef.current;
+    const fileType = uploadedFileTypeRef.current;
+    const isPublic = type === "public";
+
+    // Insert dans la table memories
+    if (userId && userId !== "anonymous" && fileUrl) {
+      const { error } = await (supabase as any).from("memories").insert({
+        user_id: userId,
+        title: memoryTitle || "A memory",
+        description: null,
+        file_url: fileUrl,
+        file_type: fileType,
+        thumbnail_url: thumbUrl || null,
+        timeline: "past",
+        is_public: isPublic,
+        created_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        console.error("Supabase memories insert error:", error);
+        toast.error("Memory saved locally but not indexed. Please try again.");
+      } else {
+        if (type === "circle") toast.success("Shared with your family circle.");
+        else if (type === "public") toast.success("Shared in the ocean.");
+        else toast.success("Memory kept privately.");
+      }
+    } else {
+      // Utilisateur non connecté ou URL manquante
+      if (type === "circle") toast.success("Shared with your family circle.");
+      else if (type === "public") toast.success("Shared in the ocean.");
+      else toast.success("Memory kept privately.");
+    }
+
+    navigate("/");
   };
 
   const stopAndLeave = () => {
@@ -402,7 +460,6 @@ const Record = () => {
 
           {!stream ? (
             <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
-              {/* Texte corrigé — text-white/70 au lieu de text-white/40 */}
               <p className="text-white/70 text-xs uppercase tracking-widest text-center">How do you want to share?</p>
               <button
                 onClick={() => handleSelectMode("video")}
@@ -412,7 +469,6 @@ const Record = () => {
                 <Video size={20} />
                 Video — Show your face
               </button>
-              {/* Bouton Voice only corrigé — bordure plus visible */}
               <button
                 onClick={() => handleSelectMode("audio")}
                 className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base flex items-center justify-center gap-3"
