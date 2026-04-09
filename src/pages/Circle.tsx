@@ -54,7 +54,7 @@ interface ShelfCard {
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 
-const AI_QUESTION = "Quelle est la plus belle leçon de courage que votre père vous a donnée ?";
+const AI_QUESTION = "What is the most beautiful lesson of courage your father ever gave you?";
 
 const DEMO_MEMBERS: DemoMember[] = [
   {
@@ -64,7 +64,7 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: marryImg,
     hasNew: true,
     count: 12,
-    memType: "voix",
+    memType: "voices",
     left: 32,
     top: 28,
     size: 80,
@@ -76,14 +76,14 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: loveImg,
     hasNew: true,
     count: 8,
-    memType: "voix",
+    memType: "voices",
     left: 262,
     top: 16,
     size: 75,
   },
   {
     id: "mere",
-    name: "Mère",
+    name: "Mother",
     age: 60,
     photo: relaxImg,
     hasNew: true,
@@ -95,7 +95,7 @@ const DEMO_MEMBERS: DemoMember[] = [
   },
   {
     id: "nadia",
-    name: "T. Nadia",
+    name: "A. Nadia",
     age: 0,
     photo: birthImg,
     hasNew: false,
@@ -125,7 +125,7 @@ const DEMO_SHELF: ShelfCard[] = [
     id: "s1",
     memberName: "Karim",
     memberPhoto: loveImg,
-    title: "Le jour du bac",
+    title: "The day of the exam",
     duration: "2 min",
     type: "video",
     thumbnail: travelImg,
@@ -133,9 +133,9 @@ const DEMO_SHELF: ShelfCard[] = [
   },
   {
     id: "s2",
-    memberName: "Mère",
+    memberName: "Mother",
     memberPhoto: relaxImg,
-    title: "La recette du tajine",
+    title: "The tajine recipe",
     duration: "4 min",
     type: "audio",
     thumbnail: picnicImg,
@@ -145,19 +145,19 @@ const DEMO_SHELF: ShelfCard[] = [
     id: "s3",
     memberName: "Fatima",
     memberPhoto: marryImg,
-    title: "Souvenirs d'Agadir",
+    title: "Memories of Agadir 1987",
     duration: "3 min",
     type: "video",
     thumbnail: grandfatherImg,
-    timeAgo: "1j",
+    timeAgo: "1d",
   },
 ];
 
 const FILTERS: { id: FilterType; label: string }[] = [
-  { id: "all", label: "Tout" },
-  { id: "voices", label: "🎙️ Voix" },
+  { id: "all", label: "All" },
+  { id: "voices", label: "🎙️ Voices" },
   { id: "moments", label: "🎬 Moments" },
-  { id: "chronicles", label: "📖 Chroniques" },
+  { id: "chronicles", label: "📖 Chronicles" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -214,21 +214,21 @@ const Circle = () => {
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleMemberClick = (id: string) => {
     setSeenMembers((prev) => new Set([...prev, id]));
-    toast.info("Journal du membre — bientôt disponible");
+    toast.info("Member journal — coming soon");
   };
 
   const handleCopyLink = () => {
     const link = `https://infeelit.com/join/${userId.slice(0, 8)}`;
     navigator.clipboard.writeText(link);
     setCopied(true);
-    toast.success("Lien copié !");
+    toast.success("Link copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = () => {
     const link = `https://infeelit.com/join/${userId.slice(0, 8)}`;
-    const name = userName || "quelqu'un de précieux";
-    const msg = `${name} vous invite à rejoindre notre Cercle de Vie sur Infeelit 🕯️\n\nPartageons nos voix, nos souvenirs, notre histoire.\n\n${link}`;
+    const name = userName || "someone special";
+    const msg = `${name} invites you to join our Family Circle on Infeelit 🕯️\n\nShare our voices, our memories, our story.\n\n${link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -299,24 +299,28 @@ const Circle = () => {
 
         <div className="text-center">
           <h1 className="font-bold text-lg" style={{ color: "#3D2B1A", fontFamily: "Georgia, serif" }}>
-            Famille Al-Fassi
+            Al-Fassi Family
           </h1>
           <p className="text-xs" style={{ color: "rgba(61,43,26,.45)" }}>
-            Notre Cercle de Vie
+            Our Circle of Life
           </p>
         </div>
 
         <div
           className="px-3 py-1 rounded-full text-xs font-bold"
-          style={{ backgroundColor: "rgba(107,78,155,.15)", border: "1px solid rgba(107,78,155,.4)", color: "#6B4E9B" }}
+          style={{
+            backgroundColor: "rgba(107,78,155,.15)",
+            border: "1px solid rgba(107,78,155,.4)",
+            color: "#6B4E9B",
+          }}
         >
-          🔒 Privé
+          🔒 Private
         </div>
       </div>
 
       {/* ── Constellation ─────────────────────────────────────────────────── */}
       <div className="relative mx-auto" style={{ width: "370px", height: "460px" }}>
-        {/* Orbit rings — subtle */}
+        {/* Orbit rings */}
         {[105, 128, 148].map((r, i) => (
           <div
             key={i}
@@ -367,7 +371,7 @@ const Circle = () => {
                   textAlign: "center",
                 }}
               >
-                Cette semaine
+                This week
               </p>
               <p style={{ fontSize: "9.5px", fontWeight: 700, color: "#fff", lineHeight: 1.35, textAlign: "center" }}>
                 {AI_QUESTION}
@@ -377,14 +381,14 @@ const Circle = () => {
             <>
               <Play size={22} style={{ color: "#fff", marginBottom: "4px" }} />
               <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.3, textAlign: "center" }}>
-                {latestMem?.title ?? "Karim · il y a 2h"}
+                {latestMem?.title ?? "Karim · 2h ago"}
               </p>
               <p style={{ fontSize: "7px", color: "rgba(255,255,255,.6)", marginTop: "2px", textAlign: "center" }}>
-                Dernier souvenir
+                Latest memory
               </p>
             </>
           )}
-          {/* Shine gloss */}
+          {/* Gloss */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{ background: "linear-gradient(135deg, rgba(255,255,255,.28) 0%, transparent 55%)" }}
@@ -401,7 +405,6 @@ const Circle = () => {
               style={{ left: `${m.left}px`, top: `${m.top}px`, width: `${m.size}px`, zIndex: 5, cursor: "pointer" }}
               onClick={() => handleMemberClick(m.id)}
             >
-              {/* Avatar ring */}
               <div
                 className={isNew ? "gold-ring" : ""}
                 style={{
@@ -414,12 +417,10 @@ const Circle = () => {
                 }}
               >
                 <img src={m.photo} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                {/* Gloss */}
                 <div
                   className="absolute inset-0 rounded-full"
                   style={{ background: "linear-gradient(135deg, rgba(255,255,255,.18) 0%, transparent 55%)" }}
                 />
-                {/* Pet badge */}
                 {m.isPet && (
                   <div
                     className="absolute bottom-0.5 right-0.5 rounded-full flex items-center justify-center"
@@ -434,7 +435,6 @@ const Circle = () => {
                     🐾
                   </div>
                 )}
-                {/* New dot */}
                 {isNew && (
                   <div
                     className="absolute top-0.5 right-0.5 rounded-full"
@@ -449,7 +449,6 @@ const Circle = () => {
                 )}
               </div>
 
-              {/* Label */}
               <p
                 style={{
                   fontSize: "9px",
@@ -471,7 +470,7 @@ const Circle = () => {
           );
         })}
 
-        {/* ── Papa — sepia frame ─────────────────────────────────────────── */}
+        {/* ── Father — sepia frame ─────────────────────────────────────────── */}
         <div className="absolute" style={{ left: "22px", top: "302px", zIndex: 5 }}>
           <div
             className="sepia-glow"
@@ -484,11 +483,11 @@ const Circle = () => {
               backgroundColor: "#8B6914",
               cursor: "pointer",
             }}
-            onClick={() => toast.info("Voix de Papa — bientôt disponible")}
+            onClick={() => toast.info("Father's voice — coming soon")}
           >
             <img
               src={grandfatherImg}
-              alt="Papa"
+              alt="Father"
               style={{
                 width: "100%",
                 height: "100%",
@@ -498,9 +497,9 @@ const Circle = () => {
             />
           </div>
           <p style={{ fontSize: "9px", fontWeight: 700, color: "#3D2B1A", textAlign: "center", marginTop: "3px" }}>
-            Papa
+            Father
           </p>
-          <p style={{ fontSize: "7.5px", color: "rgba(61,43,26,.45)", textAlign: "center" }}>3 voix</p>
+          <p style={{ fontSize: "7.5px", color: "rgba(61,43,26,.45)", textAlign: "center" }}>3 voices</p>
         </div>
 
         {/* ── CSS Candle ────────────────────────────────────────────────────── */}
@@ -515,7 +514,6 @@ const Circle = () => {
             alignItems: "center",
           }}
         >
-          {/* Flame */}
           <div
             className="flame"
             style={{
@@ -526,9 +524,7 @@ const Circle = () => {
               filter: "blur(.4px)",
             }}
           />
-          {/* Wick */}
           <div style={{ width: "2px", height: "6px", backgroundColor: "#4A3728", marginTop: "-1px" }} />
-          {/* Body */}
           <div
             className="candle-body"
             style={{
@@ -540,7 +536,6 @@ const Circle = () => {
               border: "1px solid rgba(212,180,120,.6)",
             }}
           />
-          {/* Wax drip */}
           <div
             style={{
               width: "8px",
@@ -555,7 +550,7 @@ const Circle = () => {
       </div>
       {/* end constellation */}
 
-      {/* ── Shelf "Cette semaine" ─────────────────────────────────────────── */}
+      {/* ── Shelf "This week" ─────────────────────────────────────────────── */}
       <div className="px-5 mb-5 fade-up">
         <div className="flex items-center justify-between mb-3">
           <p
@@ -567,10 +562,10 @@ const Circle = () => {
               color: "rgba(61,43,26,.4)",
             }}
           >
-            Cette semaine dans le cercle
+            This week in your circle
           </p>
           <button style={{ fontSize: "10px", color: "#E8742A", fontWeight: 700 }} onClick={() => navigate("/treasure")}>
-            Tout voir →
+            See all →
           </button>
         </div>
 
@@ -588,10 +583,8 @@ const Circle = () => {
               }}
               onClick={() => navigate("/treasure")}
             >
-              {/* Thumbnail */}
               <img src={card.thumbnail} alt="" style={{ width: "100%", height: "68px", objectFit: "cover" }} />
 
-              {/* Type + duration badge */}
               <div
                 className="absolute top-1.5 right-1.5 rounded-full px-1.5 py-0.5 flex items-center gap-1"
                 style={{ backgroundColor: "rgba(0,0,0,.52)" }}
@@ -600,7 +593,6 @@ const Circle = () => {
                 <span style={{ fontSize: "7px", color: "#fff", fontWeight: 700 }}>{card.duration}</span>
               </div>
 
-              {/* Card footer */}
               <div style={{ padding: "5px 8px" }}>
                 <div className="flex items-center gap-1.5">
                   <img
@@ -632,7 +624,7 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* ── Filter pills ─────────────────────────────────────────────────── */}
+      {/* ── Filter pills ──────────────────────────────────────────────────── */}
       <div className="px-5 mb-5">
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
           {FILTERS.map((f) => (
@@ -656,7 +648,7 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* ── Invite ───────────────────────────────────────────────────────── */}
+      {/* ── Invite ────────────────────────────────────────────────────────── */}
       <div className="px-5 pb-36">
         <div
           className="flex items-center gap-3 p-4 rounded-2xl mb-3"
@@ -672,7 +664,7 @@ const Circle = () => {
                 marginBottom: "2px",
               }}
             >
-              Lien d'invitation
+              Your invite link
             </p>
             <p className="font-mono truncate text-sm" style={{ color: "#3D2B1A" }}>
               {inviteLink}
@@ -701,15 +693,15 @@ const Circle = () => {
           style={{ background: "linear-gradient(135deg, #25D366, #128C7E)", color: "#fff" }}
         >
           <span className="text-lg">💬</span>
-          Inviter la famille sur WhatsApp
+          Invite your family on WhatsApp
         </button>
 
         <p className="text-center text-xs mt-2" style={{ color: "rgba(61,43,26,.28)" }}>
-          Votre cercle est privé. Seuls les membres invités peuvent voir vos souvenirs.
+          Your circle is private. Only invited members can see your memories.
         </p>
       </div>
 
-      {/* ── CTA fixe ─────────────────────────────────────────────────────── */}
+      {/* ── Fixed CTA ─────────────────────────────────────────────────────── */}
       <div
         className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4"
         style={{ background: "linear-gradient(to top, rgba(240,228,200,1) 60%, transparent)" }}
@@ -723,7 +715,7 @@ const Circle = () => {
             boxShadow: "0 0 30px rgba(232,116,42,.4)",
           }}
         >
-          <Mic size={20} />+ Ajouter une voix au cercle
+          <Mic size={20} />+ Add a voice to the circle
         </button>
       </div>
     </div>
