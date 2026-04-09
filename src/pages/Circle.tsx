@@ -1,8 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Copy, Check, Plus, Mic, Play } from "lucide-react";
+import { Copy, Check, Mic, Play, Volume2, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+import grandfatherImg from "@/assets/grandfather.jpg";
+import marryImg from "@/assets/marry.jpg";
+import loveImg from "@/assets/love.jpg";
+import relaxImg from "@/assets/relax.jpg";
+import birthImg from "@/assets/birth.jpg";
+import picnicImg from "@/assets/picnic.jpg";
+import travelImg from "@/assets/travel.jpg";
+import childImg from "@/assets/child.jpg";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Memory {
   id: string;
@@ -11,439 +22,708 @@ interface Memory {
   file_type: string | null;
   thumbnail_url: string | null;
   created_at: string;
-  user_id: string;
 }
 
-interface Member {
-  initial: string;
+type FilterType = "all" | "voices" | "moments" | "chronicles";
+type SphereMode = "question" | "memory";
+
+interface DemoMember {
+  id: string;
   name: string;
-  color: string;
-  orbitRadius: number;
-  speed: number;
+  age: number;
+  photo: string;
+  hasNew: boolean;
+  count: number;
+  memType: string;
+  left: number;
+  top: number;
   size: number;
-  isYou?: boolean;
+  isPet?: boolean;
 }
+
+interface ShelfCard {
+  id: string;
+  memberName: string;
+  memberPhoto: string;
+  title: string;
+  duration: string;
+  type: "audio" | "video";
+  thumbnail: string;
+  timeAgo: string;
+}
+
+// ─── Static data ──────────────────────────────────────────────────────────────
+
+const AI_QUESTION = "Quelle est la plus belle leçon de courage que votre père vous a donnée ?";
+
+const DEMO_MEMBERS: DemoMember[] = [
+  {
+    id: "fatima",
+    name: "Fatima",
+    age: 34,
+    photo: marryImg,
+    hasNew: true,
+    count: 12,
+    memType: "voix",
+    left: 32,
+    top: 28,
+    size: 80,
+  },
+  {
+    id: "karim",
+    name: "Karim",
+    age: 28,
+    photo: loveImg,
+    hasNew: true,
+    count: 8,
+    memType: "voix",
+    left: 262,
+    top: 16,
+    size: 75,
+  },
+  {
+    id: "mere",
+    name: "Mère",
+    age: 60,
+    photo: relaxImg,
+    hasNew: true,
+    count: 8,
+    memType: "moments",
+    left: 298,
+    top: 140,
+    size: 70,
+  },
+  {
+    id: "nadia",
+    name: "T. Nadia",
+    age: 0,
+    photo: birthImg,
+    hasNew: false,
+    count: 5,
+    memType: "moments",
+    left: 14,
+    top: 156,
+    size: 65,
+  },
+  {
+    id: "sultan",
+    name: "Sultan",
+    age: 0,
+    photo: childImg,
+    hasNew: false,
+    count: 3,
+    memType: "moments",
+    left: 278,
+    top: 268,
+    size: 62,
+    isPet: true,
+  },
+];
+
+const DEMO_SHELF: ShelfCard[] = [
+  {
+    id: "s1",
+    memberName: "Karim",
+    memberPhoto: loveImg,
+    title: "Le jour du bac",
+    duration: "2 min",
+    type: "video",
+    thumbnail: travelImg,
+    timeAgo: "2h",
+  },
+  {
+    id: "s2",
+    memberName: "Mère",
+    memberPhoto: relaxImg,
+    title: "La recette du tajine",
+    duration: "4 min",
+    type: "audio",
+    thumbnail: picnicImg,
+    timeAgo: "5h",
+  },
+  {
+    id: "s3",
+    memberName: "Fatima",
+    memberPhoto: marryImg,
+    title: "Souvenirs d'Agadir",
+    duration: "3 min",
+    type: "video",
+    thumbnail: grandfatherImg,
+    timeAgo: "1j",
+  },
+];
+
+const FILTERS: { id: FilterType; label: string }[] = [
+  { id: "all", label: "Tout" },
+  { id: "voices", label: "🎙️ Voix" },
+  { id: "moments", label: "🎬 Moments" },
+  { id: "chronicles", label: "📖 Chroniques" },
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const Circle = () => {
   const navigate = useNavigate();
+  const sphereTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const [userName, setUserName] = useState("");
-  const [userId, setUserId] = useState("demo-user-123");
+  const [userId, setUserId] = useState("demo-user");
   const [copied, setCopied] = useState(false);
   const [memories, setMemories] = useState<Memory[]>([]);
-  const [latestMemory, setLatestMemory] = useState<Memory | null>(null);
-  const [angles, setAngles] = useState<number[]>([0, 72, 144, 216, 288]);
-  const animRef = useRef<number>(0);
-  const anglesRef = useRef<number[]>([0, 72, 144, 216, 288]);
+  const [seenMembers, setSeenMembers] = useState<Set<string>>(new Set());
+  const [sphereMode, setSphereMode] = useState<SphereMode>("question");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
-  const getDemoMembers = (name: string): Member[] => [
-    {
-      initial: name?.[0]?.toUpperCase() || "M",
-      name: name || "You",
-      color: "#E8742A",
-      orbitRadius: 115,
-      speed: 0.25,
-      size: 78,
-      isYou: true,
-    },
-    { initial: "E", name: "Emma", color: "#6B4E9B", orbitRadius: 128, speed: 0.18, size: 70 },
-    { initial: "J", name: "James", color: "#38bdf8", orbitRadius: 112, speed: 0.22, size: 66 },
-    { initial: "A", name: "Aisha", color: "#10b981", orbitRadius: 124, speed: 0.2, size: 72 },
-    { initial: "C", name: "Carlos", color: "#f59e0b", orbitRadius: 118, speed: 0.28, size: 64 },
-  ];
-
+  // ── Fetch session + memories ──────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (session) {
-        setUserId(session.user.id);
+      if (!session) return;
+      setUserId(session.user.id);
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("user_id", session.user.id)
-          .single();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", session.user.id)
+        .single();
+      if (profile?.display_name) setUserName(profile.display_name);
 
-        if (profile?.display_name) setUserName(profile.display_name);
-
-        const { data: mems } = await (supabase as any)
-          .from("memories")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .order("created_at", { ascending: false })
-          .limit(10);
-
-        if (mems && mems.length > 0) {
-          setMemories(mems as Memory[]);
-          setLatestMemory(mems[0] as Memory);
-        }
-      }
+      const { data: mems } = await (supabase as any)
+        .from("memories")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (mems?.length) setMemories(mems as Memory[]);
     };
     init();
-
-    const speeds = [0.25, 0.18, 0.22, 0.2, 0.28];
-    const animate = () => {
-      anglesRef.current = anglesRef.current.map((a, i) => (a + speeds[i]) % 360);
-      setAngles([...anglesRef.current]);
-      animRef.current = requestAnimationFrame(animate);
-    };
-    animRef.current = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(animRef.current);
   }, []);
 
-  const inviteLink = `https://infeelit.com/join/${userId.slice(0, 8)}`;
+  // ── Sphere alternation every 6s ───────────────────────────────────────────
+  useEffect(() => {
+    sphereTimerRef.current = setInterval(() => {
+      setSphereMode((prev) => (prev === "question" ? "memory" : "question"));
+    }, 6000);
+    return () => {
+      if (sphereTimerRef.current) clearInterval(sphereTimerRef.current);
+    };
+  }, []);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleMemberClick = (id: string) => {
+    setSeenMembers((prev) => new Set([...prev, id]));
+    toast.info("Journal du membre — bientôt disponible");
+  };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(inviteLink);
+    const link = `https://infeelit.com/join/${userId.slice(0, 8)}`;
+    navigator.clipboard.writeText(link);
     setCopied(true);
-    toast.success("Link copied!");
+    toast.success("Lien copié !");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = () => {
-    const name = userName || "someone special";
-    const message = `${name} is preserving family memories on Infeelit 🌊\n\nJoin my family circle to share and hear our stories together.\n\n${inviteLink}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
+    const link = `https://infeelit.com/join/${userId.slice(0, 8)}`;
+    const name = userName || "quelqu'un de précieux";
+    const msg = `${name} vous invite à rejoindre notre Cercle de Vie sur Infeelit 🕯️\n\nPartageons nos voix, nos souvenirs, notre histoire.\n\n${link}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
-  const cx = 185;
-  const cy = 210;
+  const inviteLink = `https://infeelit.com/join/${userId.slice(0, 8)}`;
+  const latestMem = memories[0] ?? null;
 
-  const getMemberPos = (member: Member, angle: number) => {
-    const rad = (angle * Math.PI) / 180;
-    return {
-      x: cx + Math.cos(rad) * member.orbitRadius - member.size / 2,
-      y: cy + Math.sin(rad) * member.orbitRadius - member.size / 2,
-    };
-  };
-
-  const members = getDemoMembers(userName);
-
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden"
+      className="min-h-screen flex flex-col relative overflow-x-hidden"
       style={{
-        background:
-          "radial-gradient(ellipse at 50% 38%, rgba(184,134,11,0.2) 0%, rgba(232,116,42,0.1) 20%, rgba(10,17,40,0.97) 60%, #020810 100%)",
-        backgroundColor: "#0A1128",
+        background: [
+          "radial-gradient(ellipse at 50% 36%, rgba(255,210,120,0.45) 0%, transparent 56%)",
+          "linear-gradient(175deg, #F5E8C8 0%, #EDD9A8 28%, #D4B880 54%, #A07840 78%, #2C4A52 100%)",
+        ].join(", "),
+        backgroundColor: "#F0E4C8",
       }}
     >
+      {/* ── Keyframes ─────────────────────────────────────────────────────── */}
       <style>{`
-        @keyframes corePulse {
-          0%, 100% { box-shadow: 0 0 40px rgba(184,134,11,0.5), 0 0 80px rgba(232,116,42,0.25), 0 0 120px rgba(107,78,155,0.15); }
-          50%       { box-shadow: 0 0 70px rgba(184,134,11,0.8), 0 0 130px rgba(232,116,42,0.4), 0 0 200px rgba(107,78,155,0.25); }
+        @keyframes goldRing {
+          0%,100% { box-shadow: 0 0 0 3px rgba(255,200,50,.95), 0 0 18px rgba(255,170,0,.7); }
+          50%      { box-shadow: 0 0 0 4px rgba(255,220,80,1),   0 0 28px rgba(255,200,0,.9); }
         }
-        @keyframes starTwinkle {
-          0%, 100% { opacity: 0.15; }
-          50% { opacity: 0.7; }
+        @keyframes spherePulse {
+          0%,100% { box-shadow: 0 0 40px rgba(255,185,60,.6),  0 0 80px rgba(232,116,42,.3); }
+          50%      { box-shadow: 0 0 70px rgba(255,210,80,.85), 0 0 130px rgba(232,116,42,.5); }
         }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes flicker {
+          0%   { transform: scaleX(1)    scaleY(1)    translateY(0);      opacity: 1; }
+          20%  { transform: scaleX(.92)  scaleY(1.08) translateY(-1px);   opacity: .88; }
+          40%  { transform: scaleX(1.06) scaleY(.94)  translateY(.5px);   opacity: 1; }
+          60%  { transform: scaleX(.96)  scaleY(1.06) translateY(-1.5px); opacity: .92; }
+          80%  { transform: scaleX(1.03) scaleY(.97)  translateY(0);      opacity: .97; }
+          100% { transform: scaleX(1)    scaleY(1)    translateY(0);      opacity: 1; }
         }
-        .core-pulse { animation: corePulse 3s ease-in-out infinite; }
-        .fade-up { animation: fadeInUp 0.6s ease forwards; }
+        @keyframes candleGlow {
+          0%,100% { box-shadow: 0 0 12px rgba(255,140,0,.7), 0 0 25px rgba(255,100,0,.35); }
+          50%      { box-shadow: 0 0 20px rgba(255,160,0,.9), 0 0 40px rgba(255,120,0,.5); }
+        }
+        @keyframes sepiaGlow {
+          0%,100% { box-shadow: 0 0 0 3px rgba(212,175,55,.8), 0 0 18px rgba(212,175,55,.4); }
+          50%      { box-shadow: 0 0 0 3px rgba(255,210,80,1),  0 0 28px rgba(212,175,55,.7); }
+        }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .gold-ring   { animation: goldRing   2s   ease-in-out infinite; }
+        .sphere-glow { animation: spherePulse 3s   ease-in-out infinite; }
+        .flame       { animation: flicker     1.8s ease-in-out infinite; }
+        .candle-body { animation: candleGlow  2s   ease-in-out infinite; }
+        .sepia-glow  { animation: sepiaGlow   3s   ease-in-out infinite; }
+        .fade-up     { animation: fadeUp      .5s  ease forwards; }
+        .hide-scroll { scrollbar-width: none; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {/* Étoiles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(50)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-white"
-            style={{
-              width: Math.random() * 2 + 0.5 + "px",
-              height: Math.random() * 2 + 0.5 + "px",
-              left: Math.random() * 100 + "%",
-              top: Math.random() * 100 + "%",
-              animation: `starTwinkle ${Math.random() * 4 + 2}s ease-in-out infinite`,
-              animationDelay: Math.random() * 4 + "s",
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-6 pt-14 pb-2">
+      {/* ── Header ────────────────────────────────────────────────────────── */}
+      <div className="relative z-10 flex items-center justify-between px-5 pt-14 pb-2">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 rounded-full text-white"
-          style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+          className="p-2 rounded-full"
+          style={{ backgroundColor: "rgba(61,43,26,0.1)", color: "#3D2B1A" }}
         >
           ←
         </button>
+
         <div className="text-center">
-          <h1 className="text-white font-bold text-lg">Family Circle</h1>
-          <p className="text-white/40 text-xs">Your constellation</p>
+          <h1 className="font-bold text-lg" style={{ color: "#3D2B1A", fontFamily: "Georgia, serif" }}>
+            Famille Al-Fassi
+          </h1>
+          <p className="text-xs" style={{ color: "rgba(61,43,26,.45)" }}>
+            Notre Cercle de Vie
+          </p>
         </div>
+
         <div
-          className="px-3 py-1.5 rounded-full text-xs font-bold"
-          style={{
-            backgroundColor: "rgba(107,78,155,0.25)",
-            border: "1px solid rgba(107,78,155,0.5)",
-            color: "#a78bfa",
-          }}
+          className="px-3 py-1 rounded-full text-xs font-bold"
+          style={{ backgroundColor: "rgba(107,78,155,.15)", border: "1px solid rgba(107,78,155,.4)", color: "#6B4E9B" }}
         >
-          🔒 Private
+          🔒 Privé
         </div>
       </div>
 
-      {/* Canvas constellation */}
-      <div className="relative mx-auto" style={{ width: "370px", height: "440px" }}>
-        {/* Anneaux */}
-        {[105, 120, 132].map((r, i) => (
+      {/* ── Constellation ─────────────────────────────────────────────────── */}
+      <div className="relative mx-auto" style={{ width: "370px", height: "460px" }}>
+        {/* Orbit rings — subtle */}
+        {[105, 128, 148].map((r, i) => (
           <div
             key={i}
             className="absolute rounded-full pointer-events-none"
             style={{
               width: r * 2 + "px",
               height: r * 2 + "px",
-              left: cx - r + "px",
-              top: cy - r + "px",
-              border: `1px solid rgba(255,255,255,${0.04 + i * 0.02})`,
+              left: 185 - r + "px",
+              top: 178 - r + "px",
+              border: `1px solid rgba(61,43,26,${0.06 + i * 0.03})`,
             }}
           />
         ))}
 
-        {/* Sphère centrale */}
+        {/* ── Central sphere ──────────────────────────────────────────────── */}
         <div
-          className="absolute core-pulse"
+          className="absolute sphere-glow"
           style={{
-            width: "110px",
-            height: "110px",
-            left: cx - 55 + "px",
-            top: cy - 55 + "px",
+            width: "128px",
+            height: "128px",
+            left: "121px",
+            top: "114px",
             borderRadius: "50%",
-            background: latestMemory?.thumbnail_url
-              ? "none"
-              : "radial-gradient(circle at 35% 35%, rgba(255,210,80,0.95), rgba(232,116,42,0.75), rgba(107,78,155,0.6))",
-            border: "2px solid rgba(255,200,80,0.5)",
+            background:
+              "radial-gradient(circle at 38% 35%, rgba(255,225,110,.98), rgba(232,116,42,.88), rgba(180,95,15,.72))",
+            border: "2.5px solid rgba(255,200,70,.85)",
             cursor: "pointer",
-            zIndex: 5,
-            overflow: "hidden",
+            zIndex: 6,
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
+            padding: "12px",
+            overflow: "hidden",
           }}
-          onClick={() => (latestMemory ? navigate("/treasure") : navigate("/record"))}
+          onClick={() => (latestMem ? navigate("/treasure") : navigate("/record"))}
         >
-          {latestMemory?.thumbnail_url ? (
+          {sphereMode === "question" ? (
             <>
-              <img
-                src={latestMemory.thumbnail_url}
-                alt=""
+              <p
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  opacity: 0.7,
+                  fontSize: "6px",
+                  fontWeight: 900,
+                  letterSpacing: ".12em",
+                  color: "rgba(255,255,255,.7)",
+                  textTransform: "uppercase",
+                  marginBottom: "4px",
+                  textAlign: "center",
                 }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: "radial-gradient(circle, rgba(232,116,42,0.4), rgba(107,78,155,0.3))",
-                }}
-              />
-              <Play size={28} className="text-white relative z-10" />
+              >
+                Cette semaine
+              </p>
+              <p style={{ fontSize: "9.5px", fontWeight: 700, color: "#fff", lineHeight: 1.35, textAlign: "center" }}>
+                {AI_QUESTION}
+              </p>
             </>
           ) : (
-            <div className="flex flex-col items-center gap-1">
-              <Mic size={26} className="text-white" />
-              <span className="text-white font-black uppercase" style={{ fontSize: "7px", letterSpacing: "0.1em" }}>
-                Record
-              </span>
-            </div>
+            <>
+              <Play size={22} style={{ color: "#fff", marginBottom: "4px" }} />
+              <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.3, textAlign: "center" }}>
+                {latestMem?.title ?? "Karim · il y a 2h"}
+              </p>
+              <p style={{ fontSize: "7px", color: "rgba(255,255,255,.6)", marginTop: "2px", textAlign: "center" }}>
+                Dernier souvenir
+              </p>
+            </>
           )}
+          {/* Shine gloss */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%)",
-            }}
+            style={{ background: "linear-gradient(135deg, rgba(255,255,255,.28) 0%, transparent 55%)" }}
           />
         </div>
 
-        {/* Compteur souvenirs */}
-        {memories.length > 0 && (
-          <div
-            className="absolute z-10 rounded-full flex items-center justify-center font-bold text-white"
-            style={{
-              width: "24px",
-              height: "24px",
-              left: cx + 30 + "px",
-              top: cy - 55 + "px",
-              backgroundColor: "#E8742A",
-              fontSize: "10px",
-              border: "2px solid #0A1128",
-            }}
-          >
-            {memories.length}
-          </div>
-        )}
-
-        {/* Membres orbitaux */}
-        {members.map((member, i) => {
-          const pos = getMemberPos(member, angles[i] || 0);
+        {/* ── Live members ────────────────────────────────────────────────── */}
+        {DEMO_MEMBERS.map((m) => {
+          const isNew = m.hasNew && !seenMembers.has(m.id);
           return (
             <div
-              key={member.name}
+              key={m.id}
               className="absolute"
-              style={{
-                width: member.size + "px",
-                height: member.size + "px",
-                left: pos.x + "px",
-                top: pos.y + "px",
-                zIndex: 4,
-              }}
+              style={{ left: `${m.left}px`, top: `${m.top}px`, width: `${m.size}px`, zIndex: 5, cursor: "pointer" }}
+              onClick={() => handleMemberClick(m.id)}
             >
+              {/* Avatar ring */}
               <div
-                className="w-full h-full rounded-full flex items-center justify-center font-bold text-white relative overflow-hidden"
+                className={isNew ? "gold-ring" : ""}
                 style={{
-                  backgroundColor: member.color,
-                  border: member.isYou ? "2.5px solid rgba(255,255,255,0.8)" : "2px solid rgba(255,255,255,0.25)",
-                  boxShadow: `0 0 20px ${member.color}70`,
-                  fontSize: member.size > 70 ? "20px" : "16px",
+                  width: `${m.size}px`,
+                  height: `${m.size}px`,
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  position: "relative",
+                  border: isNew ? "none" : "2.5px solid rgba(255,255,255,.5)",
                 }}
               >
-                {member.initial}
+                <img src={m.photo} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                {/* Gloss */}
                 <div
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 50%)",
-                  }}
+                  className="absolute inset-0 rounded-full"
+                  style={{ background: "linear-gradient(135deg, rgba(255,255,255,.18) 0%, transparent 55%)" }}
                 />
+                {/* Pet badge */}
+                {m.isPet && (
+                  <div
+                    className="absolute bottom-0.5 right-0.5 rounded-full flex items-center justify-center"
+                    style={{
+                      width: "22px",
+                      height: "22px",
+                      backgroundColor: "#E8742A",
+                      border: "2px solid #F5E8C8",
+                      fontSize: "11px",
+                    }}
+                  >
+                    🐾
+                  </div>
+                )}
+                {/* New dot */}
+                {isNew && (
+                  <div
+                    className="absolute top-0.5 right-0.5 rounded-full"
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      backgroundColor: "#FFD700",
+                      border: "2px solid #F5E8C8",
+                      boxShadow: "0 0 6px rgba(255,210,0,.8)",
+                    }}
+                  />
+                )}
               </div>
+
+              {/* Label */}
               <p
-                className="text-white text-center mt-0.5 font-medium"
-                style={{ fontSize: "9px", textShadow: "0 1px 4px rgba(0,0,0,0.9)" }}
+                style={{
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  color: "#3D2B1A",
+                  textAlign: "center",
+                  marginTop: "3px",
+                  textShadow: "0 1px 3px rgba(255,255,255,.8)",
+                }}
               >
-                {member.isYou ? "You" : member.name}
+                {m.name}
               </p>
+              {m.count > 0 && (
+                <p style={{ fontSize: "7.5px", color: "rgba(61,43,26,.5)", textAlign: "center", lineHeight: 1 }}>
+                  {m.count} {m.memType}
+                </p>
+              )}
             </div>
           );
         })}
 
-        {/* Bouton + */}
-        <button
-          onClick={handleWhatsApp}
-          className="absolute z-10 rounded-full flex items-center justify-center"
+        {/* ── Papa — sepia frame ─────────────────────────────────────────── */}
+        <div className="absolute" style={{ left: "22px", top: "302px", zIndex: 5 }}>
+          <div
+            className="sepia-glow"
+            style={{
+              width: "72px",
+              height: "90px",
+              borderRadius: "4px",
+              overflow: "hidden",
+              border: "3px solid rgba(212,175,55,.9)",
+              backgroundColor: "#8B6914",
+              cursor: "pointer",
+            }}
+            onClick={() => toast.info("Voix de Papa — bientôt disponible")}
+          >
+            <img
+              src={grandfatherImg}
+              alt="Papa"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                filter: "sepia(1) contrast(.9) brightness(.82)",
+              }}
+            />
+          </div>
+          <p style={{ fontSize: "9px", fontWeight: 700, color: "#3D2B1A", textAlign: "center", marginTop: "3px" }}>
+            Papa
+          </p>
+          <p style={{ fontSize: "7.5px", color: "rgba(61,43,26,.45)", textAlign: "center" }}>3 voix</p>
+        </div>
+
+        {/* ── CSS Candle ────────────────────────────────────────────────────── */}
+        <div
+          className="absolute"
           style={{
-            width: "48px",
-            height: "48px",
-            right: "16px",
-            bottom: "30px",
-            background: "linear-gradient(135deg, #E8742A, #D4621A)",
-            boxShadow: "0 0 20px rgba(232,116,42,0.5)",
-            border: "2px solid rgba(255,255,255,0.2)",
+            left: "110px",
+            top: "310px",
+            zIndex: 5,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          <Plus size={20} className="text-white" />
-        </button>
+          {/* Flame */}
+          <div
+            className="flame"
+            style={{
+              width: "10px",
+              height: "18px",
+              background: "linear-gradient(to top, #FF6B00 0%, #FFA500 40%, #FFE066 80%, rgba(255,240,150,.55) 100%)",
+              borderRadius: "50% 50% 20% 20%",
+              filter: "blur(.4px)",
+            }}
+          />
+          {/* Wick */}
+          <div style={{ width: "2px", height: "6px", backgroundColor: "#4A3728", marginTop: "-1px" }} />
+          {/* Body */}
+          <div
+            className="candle-body"
+            style={{
+              width: "18px",
+              height: "52px",
+              background:
+                "linear-gradient(to right, rgba(255,250,230,.9), rgba(255,240,200,.95), rgba(240,225,180,.85))",
+              borderRadius: "3px 3px 2px 2px",
+              border: "1px solid rgba(212,180,120,.6)",
+            }}
+          />
+          {/* Wax drip */}
+          <div
+            style={{
+              width: "8px",
+              height: "8px",
+              backgroundColor: "rgba(255,245,220,.8)",
+              borderRadius: "0 0 50% 50%",
+              marginTop: "-2px",
+              marginLeft: "-4px",
+            }}
+          />
+        </div>
       </div>
+      {/* end constellation */}
 
-      {/* Galerie souvenirs */}
-      {memories.length > 0 && (
-        <div className="px-6 mb-4 fade-up">
-          <p className="text-xs uppercase tracking-widest font-bold mb-3" style={{ color: "rgba(255,255,255,0.35)" }}>
-            Latest memories · {memories.length}
+      {/* ── Shelf "Cette semaine" ─────────────────────────────────────────── */}
+      <div className="px-5 mb-5 fade-up">
+        <div className="flex items-center justify-between mb-3">
+          <p
+            style={{
+              fontSize: "10px",
+              fontWeight: 900,
+              letterSpacing: ".15em",
+              textTransform: "uppercase",
+              color: "rgba(61,43,26,.4)",
+            }}
+          >
+            Cette semaine dans le cercle
           </p>
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {memories.slice(0, 5).map((mem) => (
+          <button style={{ fontSize: "10px", color: "#E8742A", fontWeight: 700 }} onClick={() => navigate("/treasure")}>
+            Tout voir →
+          </button>
+        </div>
+
+        <div className="flex gap-3 overflow-x-auto pb-2 hide-scroll">
+          {DEMO_SHELF.map((card) => (
+            <div
+              key={card.id}
+              className="shrink-0 rounded-2xl overflow-hidden cursor-pointer relative"
+              style={{
+                width: "142px",
+                height: "112px",
+                backgroundColor: "rgba(255,255,255,.4)",
+                border: "1px solid rgba(212,180,120,.45)",
+                backdropFilter: "blur(4px)",
+              }}
+              onClick={() => navigate("/treasure")}
+            >
+              {/* Thumbnail */}
+              <img src={card.thumbnail} alt="" style={{ width: "100%", height: "68px", objectFit: "cover" }} />
+
+              {/* Type + duration badge */}
               <div
-                key={mem.id}
-                className="shrink-0 rounded-2xl overflow-hidden cursor-pointer relative"
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  backgroundColor: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}
-                onClick={() => navigate("/treasure")}
+                className="absolute top-1.5 right-1.5 rounded-full px-1.5 py-0.5 flex items-center gap-1"
+                style={{ backgroundColor: "rgba(0,0,0,.52)" }}
               >
-                {mem.thumbnail_url ? (
-                  <img src={mem.thumbnail_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Mic size={20} className="text-white/30" />
-                  </div>
-                )}
-                <div
-                  className="absolute inset-0"
-                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)" }}
-                />
+                {card.type === "audio" ? <Volume2 size={8} color="#fff" /> : <Video size={8} color="#fff" />}
+                <span style={{ fontSize: "7px", color: "#fff", fontWeight: 700 }}>{card.duration}</span>
+              </div>
+
+              {/* Card footer */}
+              <div style={{ padding: "5px 8px" }}>
+                <div className="flex items-center gap-1.5">
+                  <img
+                    src={card.memberPhoto}
+                    alt=""
+                    style={{ width: "16px", height: "16px", borderRadius: "50%", objectFit: "cover" }}
+                  />
+                  <p style={{ fontSize: "8px", fontWeight: 700, color: "#3D2B1A" }}>{card.memberName}</p>
+                  <span style={{ fontSize: "7px", color: "rgba(61,43,26,.4)", marginLeft: "auto" }}>
+                    {card.timeAgo}
+                  </span>
+                </div>
                 <p
-                  className="absolute bottom-1 left-1 right-1 text-white font-bold truncate"
-                  style={{ fontSize: "8px" }}
+                  style={{
+                    fontSize: "9px",
+                    fontWeight: 600,
+                    color: "#3D2B1A",
+                    marginTop: "2px",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                  }}
                 >
-                  {mem.title || "Memory"}
+                  {card.title}
                 </p>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Invitation */}
-      <div className="px-6 pb-32 fade-up">
+      {/* ── Filter pills ─────────────────────────────────────────────────── */}
+      <div className="px-5 mb-5">
+        <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setActiveFilter(f.id)}
+              className="shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all"
+              style={
+                activeFilter === f.id
+                  ? { backgroundColor: "#E8742A", color: "#fff", boxShadow: "0 4px 14px rgba(232,116,42,.4)" }
+                  : {
+                      backgroundColor: "rgba(255,255,255,.5)",
+                      color: "#3D2B1A",
+                      border: "1px solid rgba(212,180,120,.5)",
+                    }
+              }
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Invite ───────────────────────────────────────────────────────── */}
+      <div className="px-5 pb-36">
         <div
           className="flex items-center gap-3 p-4 rounded-2xl mb-3"
-          style={{
-            backgroundColor: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
+          style={{ backgroundColor: "rgba(255,255,255,.4)", border: "1px solid rgba(212,180,120,.4)" }}
         >
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>
-              Your invite link
+            <p
+              style={{
+                fontSize: "9px",
+                textTransform: "uppercase",
+                letterSpacing: ".1em",
+                color: "rgba(61,43,26,.38)",
+                marginBottom: "2px",
+              }}
+            >
+              Lien d'invitation
             </p>
-            <p className="text-white text-sm font-mono truncate">{inviteLink}</p>
+            <p className="font-mono truncate text-sm" style={{ color: "#3D2B1A" }}>
+              {inviteLink}
+            </p>
           </div>
           <button
             onClick={handleCopyLink}
             className="shrink-0 p-2.5 rounded-xl"
-            style={{
-              backgroundColor: copied ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.08)",
-              border: copied ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(255,255,255,0.12)",
-            }}
+            style={
+              copied
+                ? { backgroundColor: "rgba(16,185,129,.2)", border: "1px solid rgba(16,185,129,.4)" }
+                : { backgroundColor: "rgba(255,255,255,.6)", border: "1px solid rgba(212,180,120,.4)" }
+            }
           >
-            {copied ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} className="text-white/50" />}
+            {copied ? (
+              <Check size={16} className="text-emerald-500" />
+            ) : (
+              <Copy size={16} style={{ color: "#3D2B1A" }} />
+            )}
           </button>
         </div>
 
         <button
           onClick={handleWhatsApp}
           className="w-full py-3.5 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
-          style={{ background: "linear-gradient(135deg, #25D366, #128C7E)", color: "#FFFFFF" }}
+          style={{ background: "linear-gradient(135deg, #25D366, #128C7E)", color: "#fff" }}
         >
           <span className="text-lg">💬</span>
-          Invite your family on WhatsApp
+          Inviter la famille sur WhatsApp
         </button>
 
-        <p className="text-center text-xs mt-2" style={{ color: "rgba(255,255,255,0.18)" }}>
-          Your circle is private. Only invited members can see your memories.
+        <p className="text-center text-xs mt-2" style={{ color: "rgba(61,43,26,.28)" }}>
+          Votre cercle est privé. Seuls les membres invités peuvent voir vos souvenirs.
         </p>
       </div>
 
-      {/* CTA fixe */}
+      {/* ── CTA fixe ─────────────────────────────────────────────────────── */}
       <div
-        className="absolute bottom-0 left-0 right-0 px-6 pb-8 pt-4"
-        style={{ background: "linear-gradient(to top, rgba(2,8,16,1) 60%, transparent)" }}
+        className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4"
+        style={{ background: "linear-gradient(to top, rgba(240,228,200,1) 60%, transparent)" }}
       >
         <button
           onClick={() => navigate("/record")}
           className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
           style={{
             background: "linear-gradient(135deg, #E8742A, #D4621A)",
-            color: "#FFFFFF",
-            boxShadow: "0 0 30px rgba(232,116,42,0.3)",
+            color: "#fff",
+            boxShadow: "0 0 30px rgba(232,116,42,.4)",
           }}
         >
-          🎙️ Record a memory for your circle
+          <Mic size={20} />+ Ajouter une voix au cercle
         </button>
       </div>
     </div>
