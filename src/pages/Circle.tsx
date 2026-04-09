@@ -26,13 +26,26 @@ interface Memory {
 type FilterType = "all" | "voices" | "moments" | "chronicles";
 type SphereMode = "question" | "memory";
 
+interface DemoMember {
+  id: string;
+  name: string;
+  subtitle: string;
+  photo: string;
+  hasNew: boolean;
+  isPet: boolean;
+  left: number;
+  top: number;
+  size: number;
+  float: string;
+  delay: string;
+}
+
 const AI_QUESTION = "What is the most beautiful lesson of courage your father ever gave you?";
 
-// ── 10 living members + Sultan pet, all float ─────────────────────────────────
-const DEMO_MEMBERS = [
+const DEMO_MEMBERS: DemoMember[] = [
   {
-    id: "fatima",
-    name: "Fatima",
+    id: "sophia",
+    name: "Sophia",
     subtitle: "12 voices",
     photo: marryImg,
     hasNew: true,
@@ -44,8 +57,8 @@ const DEMO_MEMBERS = [
     delay: "0s",
   },
   {
-    id: "karim",
-    name: "Karim",
+    id: "lucas",
+    name: "Lucas",
     subtitle: "8 voices",
     photo: loveImg,
     hasNew: true,
@@ -57,8 +70,8 @@ const DEMO_MEMBERS = [
     delay: "1.3s",
   },
   {
-    id: "mother",
-    name: "Mother",
+    id: "elena",
+    name: "Elena",
     subtitle: "8 moments",
     photo: relaxImg,
     hasNew: true,
@@ -70,8 +83,8 @@ const DEMO_MEMBERS = [
     delay: "0.6s",
   },
   {
-    id: "father",
-    name: "Father",
+    id: "marco",
+    name: "Marco",
     subtitle: "5 moments",
     photo: houseImg,
     hasNew: false,
@@ -84,7 +97,7 @@ const DEMO_MEMBERS = [
   },
   {
     id: "nadia",
-    name: "A. Nadia",
+    name: "Nadia",
     subtitle: "5 moments",
     photo: birthImg,
     hasNew: false,
@@ -96,8 +109,8 @@ const DEMO_MEMBERS = [
     delay: "0.9s",
   },
   {
-    id: "hassan",
-    name: "U. Hassan",
+    id: "thomas",
+    name: "Thomas",
     subtitle: "3 voices",
     photo: picnicImg,
     hasNew: false,
@@ -135,8 +148,8 @@ const DEMO_MEMBERS = [
     delay: "2.4s",
   },
   {
-    id: "leila",
-    name: "Leila",
+    id: "lea",
+    name: "Léa",
     subtitle: "2 moments",
     photo: birthImg,
     hasNew: false,
@@ -148,8 +161,8 @@ const DEMO_MEMBERS = [
     delay: "1.1s",
   },
   {
-    id: "sultan",
-    name: "Sultan",
+    id: "max",
+    name: "Max",
     subtitle: "3 moments",
     photo: childImg,
     hasNew: false,
@@ -162,7 +175,6 @@ const DEMO_MEMBERS = [
   },
 ];
 
-// ── Background atmospheric bubbles (no interaction) ───────────────────────────
 const BG_BUBBLES = [
   { photo: grandfatherImg, size: 64, x: 2, y: 6, anim: "bg-s", delay: "0s", op: 0.13 },
   { photo: loveImg, size: 48, x: 78, y: 8, anim: "bg-m", delay: "1.5s", op: 0.11 },
@@ -171,12 +183,14 @@ const BG_BUBBLES = [
   { photo: picnicImg, size: 30, x: 82, y: 26, anim: "bg-s", delay: "4s", op: 0.09 },
   { photo: relaxImg, size: 42, x: 4, y: 70, anim: "bg-m", delay: "0.8s", op: 0.1 },
   { photo: houseImg, size: 34, x: 44, y: 90, anim: "bg-s", delay: "1.3s", op: 0.08 },
+  { photo: marryImg, size: 44, x: 66, y: 42, anim: "bg-m", delay: "2.6s", op: 0.09 },
+  { photo: childImg, size: 28, x: 18, y: 88, anim: "bg-s", delay: "3.5s", op: 0.07 },
 ];
 
 const DEMO_SHELF = [
   {
     id: "s1",
-    memberName: "Karim",
+    memberName: "Lucas",
     title: "The day of the exam",
     duration: "2 min",
     type: "video",
@@ -186,7 +200,7 @@ const DEMO_SHELF = [
   },
   {
     id: "s2",
-    memberName: "Mother",
+    memberName: "Elena",
     title: "The tajine recipe",
     duration: "4 min",
     type: "audio",
@@ -196,8 +210,8 @@ const DEMO_SHELF = [
   },
   {
     id: "s3",
-    memberName: "Fatima",
-    title: "Memories of Agadir",
+    memberName: "Sophia",
+    title: "Summer of 1987",
     duration: "3 min",
     type: "video",
     thumbnail: graduateImg,
@@ -280,76 +294,86 @@ const Circle = () => {
     >
       <style>{`
 
-        /* ── Atmospheric bg bubbles ── */
+        /* ── Background bubbles — wide lazy drift ── */
         @keyframes bgS {
-          0%,100% { transform: translate(0,0); }
-          25%      { transform: translate(22px,-30px); }
-          50%      { transform: translate(40px,8px); }
-          75%      { transform: translate(14px,36px); }
+          0%   { transform: translate(0px, 0px); }
+          20%  { transform: translate(35px, -45px); }
+          40%  { transform: translate(58px, 10px); }
+          60%  { transform: translate(40px, 55px); }
+          80%  { transform: translate(-12px, 35px); }
+          100% { transform: translate(0px, 0px); }
         }
         @keyframes bgM {
-          0%,100% { transform: translate(0,0); }
-          25%      { transform: translate(-28px,-22px); }
-          50%      { transform: translate(-42px,18px); }
-          75%      { transform: translate(-16px,40px); }
+          0%   { transform: translate(0px, 0px); }
+          20%  { transform: translate(-42px, -32px); }
+          40%  { transform: translate(-60px, 20px); }
+          60%  { transform: translate(-38px, 60px); }
+          80%  { transform: translate(10px, 42px); }
+          100% { transform: translate(0px, 0px); }
         }
-        .bg-s { animation: bgS 22s ease-in-out infinite; }
-        .bg-m { animation: bgM 16s ease-in-out infinite; }
+        .bg-s { animation: bgS 20s ease-in-out infinite; }
+        .bg-m { animation: bgM 15s ease-in-out infinite; }
 
-        /* ── Member float — 3 distinct lazy paths ── */
+        /* ── Member float — bigger, livelier movement ── */
         @keyframes mfA {
-          0%,100% { transform: translate(0px,  0px); }
-          25%      { transform: translate(7px, -12px); }
-          50%      { transform: translate(14px, -2px); }
-          75%      { transform: translate(5px,  10px); }
+          0%   { transform: translate(0px,  0px); }
+          20%  { transform: translate(12px, -18px); }
+          40%  { transform: translate(22px,  -4px); }
+          60%  { transform: translate(14px,  16px); }
+          80%  { transform: translate(-5px,  10px); }
+          100% { transform: translate(0px,  0px); }
         }
         @keyframes mfB {
-          0%,100% { transform: translate(0px,   0px); }
-          25%      { transform: translate(-10px, -8px); }
-          50%      { transform: translate(-13px,  8px); }
-          75%      { transform: translate(-4px,  13px); }
+          0%   { transform: translate(0px,   0px); }
+          20%  { transform: translate(-16px, -13px); }
+          40%  { transform: translate(-22px,  10px); }
+          60%  { transform: translate(-12px,  20px); }
+          80%  { transform: translate(6px,   14px); }
+          100% { transform: translate(0px,   0px); }
         }
         @keyframes mfC {
-          0%,100% { transform: translate(0px,  0px); }
-          25%      { transform: translate(11px,  8px); }
-          50%      { transform: translate(4px, -13px); }
-          75%      { transform: translate(-9px, -5px); }
+          0%   { transform: translate(0px,  0px); }
+          20%  { transform: translate(18px,  13px); }
+          40%  { transform: translate(8px,  -20px); }
+          60%  { transform: translate(-14px, -10px); }
+          80%  { transform: translate(-8px,   8px); }
+          100% { transform: translate(0px,  0px); }
         }
-        .mf-a { animation: mfA  9s ease-in-out infinite; }
-        .mf-b { animation: mfB 11s ease-in-out infinite; }
-        .mf-c { animation: mfC 13s ease-in-out infinite; }
+        .mf-a { animation: mfA  8s ease-in-out infinite; }
+        .mf-b { animation: mfB 10s ease-in-out infinite; }
+        .mf-c { animation: mfC 12s ease-in-out infinite; }
 
-        /* ── Gold ring on members with new content ── */
+        /* ── Gold ring ── */
         @keyframes goldRing {
           0%,100% { box-shadow: 0 0 0 3px rgba(255,200,50,.95), 0 0 14px rgba(255,170,0,.6); }
           50%      { box-shadow: 0 0 0 4px rgba(255,225,80,1),   0 0 24px rgba(255,200,0,.9); }
         }
         .gold-ring { animation: goldRing 2s ease-in-out infinite; }
 
-        /* ── Sphere pulse ── */
+        /* ── Sphere ── */
         @keyframes spherePulse {
           0%,100% { box-shadow: 0 0 36px rgba(255,185,60,.55), 0 0 70px rgba(232,116,42,.28); }
           50%      { box-shadow: 0 0 65px rgba(255,210,80,.85), 0 0 115px rgba(232,116,42,.48); }
         }
         .sphere-glow { animation: spherePulse 3s ease-in-out infinite; }
 
-        /* ── Frame halo — light only, NO position change ── */
+        /* ── Frame halo — glow only, frames NEVER move ── */
         @keyframes frameHalo {
           0%,100% { box-shadow: 0 0 16px rgba(251,191,36,.42), 0 0 32px rgba(251,191,36,.18); }
           50%      { box-shadow: 0 0 26px rgba(251,191,36,.68), 0 0 50px rgba(251,191,36,.32); }
         }
         .frame-halo { animation: frameHalo 4s ease-in-out infinite; }
 
-        /* ── Candle flame: skew + brightness, ONLY mobile element in shrine ── */
+        /* ── Candle — only moving element in shrine ── */
         @keyframes flameBurn {
-          0%   { transform: scaleX(1)    scaleY(1)    skewX(0deg)   translateY(0px);    opacity:1; }
-          14%  { transform: scaleX(.87)  scaleY(1.13) skewX(-4deg)  translateY(-2px);   opacity:.82; }
-          28%  { transform: scaleX(1.1)  scaleY(.90)  skewX(3deg)   translateY(.6px);   opacity:1; }
-          42%  { transform: scaleX(.92)  scaleY(1.08) skewX(-2.5deg)translateY(-2.5px); opacity:.87; }
-          57%  { transform: scaleX(1.07) scaleY(.93)  skewX(4deg)   translateY(.8px);   opacity:.96; }
-          71%  { transform: scaleX(.94)  scaleY(1.06) skewX(-3deg)  translateY(-1px);   opacity:.9; }
-          85%  { transform: scaleX(1.04) scaleY(.96)  skewX(1deg)   translateY(0);      opacity:.95; }
-          100% { transform: scaleX(1)    scaleY(1)    skewX(0deg)   translateY(0px);    opacity:1; }
+          0%   { transform: scaleX(1)    scaleY(1)    skewX(0deg)    translateY(0px);    opacity: 1; }
+          14%  { transform: scaleX(.87)  scaleY(1.13) skewX(-4deg)   translateY(-2px);   opacity: .82; }
+          28%  { transform: scaleX(1.10) scaleY(.90)  skewX(3deg)    translateY(.6px);   opacity: 1; }
+          42%  { transform: scaleX(.92)  scaleY(1.08) skewX(-2.5deg) translateY(-2.5px); opacity: .87; }
+          57%  { transform: scaleX(1.07) scaleY(.93)  skewX(4deg)    translateY(.8px);   opacity: .96; }
+          71%  { transform: scaleX(.94)  scaleY(1.06) skewX(-3deg)   translateY(-1px);   opacity: .9; }
+          85%  { transform: scaleX(1.04) scaleY(.96)  skewX(1deg)    translateY(0px);    opacity: .95; }
+          100% { transform: scaleX(1)    scaleY(1)    skewX(0deg)    translateY(0px);    opacity: 1; }
         }
         @keyframes candleGlow {
           0%,100% { box-shadow: 0 -5px 12px rgba(255,130,0,.55), 0 0 26px rgba(255,90,0,.25); }
@@ -362,7 +386,7 @@ const Circle = () => {
         .hide-scroll::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {/* ── Atmospheric background bubbles (z-0, no interaction) ── */}
+      {/* ── Atmospheric background bubbles ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {BG_BUBBLES.map((b, i) => (
           <div
@@ -376,7 +400,7 @@ const Circle = () => {
                 height: `${b.size}px`,
                 borderRadius: "50%",
                 overflow: "hidden",
-                border: "1px solid rgba(212,175,55,.2)",
+                border: "1px solid rgba(212,175,55,.18)",
                 opacity: b.op,
               }}
             >
@@ -388,7 +412,7 @@ const Circle = () => {
                   height: "100%",
                   objectFit: "cover",
                   objectPosition: "center top",
-                  filter: "sepia(.9) brightness(.78) contrast(.88)",
+                  filter: "sepia(.9) brightness(.76) contrast(.88)",
                 }}
               />
             </div>
@@ -408,7 +432,7 @@ const Circle = () => {
 
         <div className="text-center">
           <h1 className="font-bold text-lg font-serif" style={{ color: "#3D2B1A" }}>
-            Al-Fassi Family
+            The Morgan Family
           </h1>
           <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(61,43,26,.42)" }}>
             Our Circle of Life · 12 members
@@ -428,7 +452,7 @@ const Circle = () => {
       </div>
 
       {/* ── Constellation ── */}
-      <div className="relative mx-auto z-10" style={{ width: "370px", height: "500px" }}>
+      <div className="relative mx-auto z-10" style={{ width: "370px", height: "510px" }}>
         {/* Orbit rings */}
         {[108, 132, 156].map((r, i) => (
           <div
@@ -438,7 +462,7 @@ const Circle = () => {
               width: r * 2 + "px",
               height: r * 2 + "px",
               left: 185 - r + "px",
-              top: 195 - r + "px",
+              top: 198 - r + "px",
               border: `1px solid rgba(139,90,43,${0.08 + i * 0.04})`,
             }}
           />
@@ -451,7 +475,7 @@ const Circle = () => {
             width: "132px",
             height: "132px",
             left: "119px",
-            top: "129px",
+            top: "132px",
             borderRadius: "50%",
             background:
               "radial-gradient(circle at 38% 35%, rgba(255,228,115,.98), rgba(232,116,42,.9), rgba(175,90,10,.72))",
@@ -490,7 +514,7 @@ const Circle = () => {
             <>
               <Play size={20} style={{ color: "#fff", marginBottom: "4px" }} />
               <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.3, textAlign: "center" }}>
-                {latestMem?.title ?? "Karim · 2h ago"}
+                {latestMem?.title ?? "Lucas · 2h ago"}
               </p>
               <p style={{ fontSize: "7px", color: "rgba(255,255,255,.6)", marginTop: "3px", textAlign: "center" }}>
                 Latest memory
@@ -536,7 +560,7 @@ const Circle = () => {
                     : isNew
                       ? "none"
                       : "2.5px solid rgba(255,255,255,.62)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,.15)",
+                  boxShadow: "0 4px 14px rgba(0,0,0,.16)",
                 }}
               >
                 <img
@@ -593,39 +617,29 @@ const Circle = () => {
               >
                 {m.name}
               </p>
+              {/* Fixed: use subtitle, not m.count + m.memType */}
               <p style={{ fontSize: "7px", color: "rgba(61,43,26,.48)", textAlign: "center", lineHeight: 1.1 }}>
-                {m.count} {m.memType}
+                {m.subtitle}
               </p>
             </div>
           );
         })}
 
-        {/* ══ SHRINE — static, bottom-left, never moves ══════════════════════
-            Two rectangular portrait frames tilted toward each other + candle
-        ══════════════════════════════════════════════════════════════════════ */}
-        <div className="absolute z-8" style={{ left: "6px", bottom: "0px" }}>
-          {/* Frames row */}
-          <div style={{ display: "flex", alignItems: "flex-end", gap: "6px", paddingLeft: "6px" }}>
-            {/* Grandfather — tilted left */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                transform: "rotate(-5deg)",
-                transformOrigin: "bottom center",
-              }}
-            >
+        {/* ══ SHRINE — fully static, frames straight upright ══════════════ */}
+        <div className="absolute" style={{ left: "6px", bottom: "0px", zIndex: 7 }}>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", paddingLeft: "8px" }}>
+            {/* Grandfather frame — STRAIGHT, no rotation */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div
                 className="frame-halo"
                 style={{
-                  width: "66px",
-                  height: "86px",
+                  width: "68px",
+                  height: "88px",
                   borderRadius: "3px",
-                  border: "4px solid rgba(184,142,32,.9)",
+                  border: "4px solid rgba(184,142,32,.92)",
                   boxShadow: `
-                  inset 0 0 0 2px rgba(255,220,80,.5),
-                  inset 0 0 0 5px rgba(110,72,8,.4),
+                  inset 0 0 0 2px rgba(255,220,80,.52),
+                  inset 0 0 0 5px rgba(110,72,8,.42),
                   0 0 28px rgba(251,191,36,.5)
                 `,
                   overflow: "hidden",
@@ -642,17 +656,15 @@ const Circle = () => {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    // Face at top — key fix
                     objectPosition: "center 8%",
                     filter: "grayscale(1) sepia(.52) contrast(1.22) brightness(.82)",
                   }}
                 />
-                {/* Vignette focuses on face */}
                 <div
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background: "radial-gradient(ellipse 68% 58% at 50% 32%, transparent 28%, rgba(0,0,0,.58) 100%)",
+                    background: "radial-gradient(ellipse 68% 58% at 50% 32%, transparent 28%, rgba(0,0,0,.56) 100%)",
                   }}
                 />
               </div>
@@ -662,7 +674,7 @@ const Circle = () => {
                   fontWeight: 700,
                   fontStyle: "italic",
                   fontFamily: "Georgia,serif",
-                  color: "rgba(61,43,26,.7)",
+                  color: "rgba(61,43,26,.72)",
                   textAlign: "center",
                   marginTop: "4px",
                 }}
@@ -672,26 +684,18 @@ const Circle = () => {
               <p style={{ fontSize: "6.5px", color: "rgba(61,43,26,.38)", textAlign: "center" }}>4 voices</p>
             </div>
 
-            {/* Grandmother — tilted right */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                transform: "rotate(4deg)",
-                transformOrigin: "bottom center",
-              }}
-            >
+            {/* Grandmother frame — STRAIGHT, no rotation */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div
                 className="frame-halo"
                 style={{
-                  width: "58px",
-                  height: "76px",
+                  width: "60px",
+                  height: "78px",
                   borderRadius: "3px",
-                  border: "4px solid rgba(184,142,32,.84)",
+                  border: "4px solid rgba(184,142,32,.86)",
                   boxShadow: `
-                  inset 0 0 0 2px rgba(255,220,80,.46),
-                  inset 0 0 0 5px rgba(110,72,8,.36),
+                  inset 0 0 0 2px rgba(255,220,80,.48),
+                  inset 0 0 0 5px rgba(110,72,8,.38),
                   0 0 22px rgba(251,191,36,.42)
                 `,
                   overflow: "hidden",
@@ -716,7 +720,7 @@ const Circle = () => {
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background: "radial-gradient(ellipse 68% 58% at 50% 32%, transparent 28%, rgba(0,0,0,.58) 100%)",
+                    background: "radial-gradient(ellipse 68% 58% at 50% 32%, transparent 28%, rgba(0,0,0,.56) 100%)",
                   }}
                 />
               </div>
@@ -726,7 +730,7 @@ const Circle = () => {
                   fontWeight: 700,
                   fontStyle: "italic",
                   fontFamily: "Georgia,serif",
-                  color: "rgba(61,43,26,.7)",
+                  color: "rgba(61,43,26,.72)",
                   textAlign: "center",
                   marginTop: "4px",
                 }}
@@ -736,7 +740,7 @@ const Circle = () => {
               <p style={{ fontSize: "6.5px", color: "rgba(61,43,26,.38)", textAlign: "center" }}>2 voices</p>
             </div>
 
-            {/* Candle — the ONLY moving element in the shrine */}
+            {/* Candle — only moving element in shrine */}
             <div
               style={{
                 display: "flex",
@@ -746,7 +750,6 @@ const Circle = () => {
                 marginLeft: "4px",
               }}
             >
-              {/* Glow behind flame */}
               <div
                 style={{
                   position: "relative",
@@ -767,7 +770,6 @@ const Circle = () => {
                     borderRadius: "50%",
                   }}
                 />
-                {/* Flame */}
                 <div
                   className="flame"
                   style={{
@@ -780,9 +782,7 @@ const Circle = () => {
                   }}
                 />
               </div>
-              {/* Wick */}
               <div style={{ width: "2px", height: "5px", backgroundColor: "#352014", marginTop: "-2px" }} />
-              {/* Body */}
               <div
                 className="candle-body"
                 style={{
@@ -808,7 +808,6 @@ const Circle = () => {
                   }}
                 />
               </div>
-              {/* Base */}
               <div
                 style={{
                   width: "10px",
@@ -821,7 +820,7 @@ const Circle = () => {
             </div>
           </div>
 
-          {/* Wooden table surface */}
+          {/* Wooden table */}
           <div
             style={{
               height: "11px",
@@ -985,7 +984,6 @@ const Circle = () => {
             )}
           </button>
         </div>
-
         <button
           onClick={handleWhatsApp}
           className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2"
