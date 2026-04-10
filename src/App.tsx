@@ -15,6 +15,7 @@ import About from "./pages/About";
 import Record from "./pages/Record";
 import Profile from "./pages/Profile";
 import Circle from "./pages/Circle";
+import Treasure from "./pages/Treasure";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/circle" element={<Circle />} />
           <Route path="/about" element={<About />} />
+          <Route path="/treasure" element={<Treasure />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
