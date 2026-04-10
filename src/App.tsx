@@ -15,6 +15,7 @@ import About from "./pages/About";
 import Record from "./pages/Record";
 import Profile from "./pages/Profile";
 import Circle from "./pages/Circle";
+import Treasure from "./pages/Treasure";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
