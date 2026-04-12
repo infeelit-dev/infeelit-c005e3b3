@@ -31,13 +31,18 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Routes publiques */}
             <Route path="/" element={<Index />} />
             <Route path="/feed" element={<Index />} />
+
+            {/* Authentification & Callback */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/verify" element={<Verify />} />
+
+            {/* Onboarding & App Content */}
             <Route path="/identity" element={<FamilyIdentity />} />
             <Route path="/portrait" element={<Portrait />} />
             <Route path="/loading" element={<Loading />} />
@@ -46,6 +51,8 @@ const App = () => (
             <Route path="/circle" element={<Circle />} />
             <Route path="/about" element={<About />} />
             <Route path="/treasure" element={<Treasure />} />
+
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
