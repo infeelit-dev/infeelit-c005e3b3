@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -32,6 +33,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/feed" element={<Index />} />
 
+          {/* ── Magic Link callback — point d'entrée après email ── */}
+          <Route path="/auth/callback" element={<AuthCallback />} />
+
           {/* Onboarding */}
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/signup" element={<Signup />} />
@@ -48,7 +52,6 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/treasure" element={<Treasure />} />
 
-          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
