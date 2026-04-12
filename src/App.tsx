@@ -16,6 +16,7 @@ import Record from "./pages/Record";
 import Profile from "./pages/Profile";
 import Circle from "./pages/Circle";
 import Treasure from "./pages/Treasure";
+import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/treasure" element={<Treasure />} />
 
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
