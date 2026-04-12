@@ -140,7 +140,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     display: "flex",
                     alignItems: "center",
                     gap: "10px",
-                    // RECTIFICATION ICI : Une seule propriété backgroundColor
+                    // FIX : Une seule ligne pour backgroundColor
                     backgroundColor: lang === l ? "rgba(232,116,42,.15)" : "transparent",
                     border: "none",
                     cursor: "pointer",
