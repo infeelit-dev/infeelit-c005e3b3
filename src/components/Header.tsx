@@ -1,200 +1,92 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Globe } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Waves, MapPin, Plus, Users2, Gem } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import logo from "@/assets/infeelit-logo.png";
-import type { Timeline } from "@/types/timeline";
 
-interface HeaderProps {
-  activeTimeline: Timeline;
-  onTimelineChange: (t: Timeline) => void;
-}
-
-const tabs: { id: Timeline; label: string }[] = [
-  { id: "memories", label: "Memories" },
-  { id: "instant", label: "Instant" },
-  { id: "forever", label: "Forever" },
+const NAV_ITEMS = [
+  { icon: Waves, label: "Feels", path: "/" },
+  { icon: MapPin, label: "Places", path: "/places" },
+  { icon: null, label: "", path: "/record" },
+  { icon: Users2, label: "Connect", path: "/connect" },
+  { icon: Gem, label: "Treasure", path: "/treasure" },
 ];
 
-const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
+const CurvedBottomNav = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const location = useLocation();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
-    };
-    checkSession();
-  }, []);
+  const handleRecord = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session) {
+      navigate("/record");
+    } else {
+      navigate("/welcome");
+    }
+  };
 
   return (
-    <header
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 10,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        paddingTop: "12px",
-        paddingBottom: "8px",
-      }}
-    >
-      {/* Niveau 1 — Logo + boutons */}
+    <div className="absolute bottom-0 left-0 right-0 z-20">
       <div
+        className="flex items-center justify-around px-2 pb-6 pt-3"
         style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingLeft: "16px",
-          paddingRight: "16px",
-          marginBottom: "10px",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.65))",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
         }}
       >
-        {/* Bouton Globe — langue */}
-        <button
-          onClick={() => toast("FR / EN / AR — Coming this week 🌍")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            padding: "6px 10px",
-            borderRadius: "999px",
-            backgroundColor: "rgba(255,255,255,0.15)",
-            border: "1px solid rgba(255,255,255,0.25)",
-            cursor: "pointer",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <Globe size={13} color="#FFFFFF" />
-          <span
-            style={{
-              color: "#FFFFFF",
-              fontSize: "10px",
-              fontWeight: 700,
-              letterSpacing: "0.05em",
-            }}
-          >
-            EN
-          </span>
-        </button>
+        {NAV_ITEMS.map((item, index) => {
+          if (index === 2) {
+            return (
+              <button
+                key="record"
+                onClick={handleRecord}
+                className="relative -top-6 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
+                style={{
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  boxShadow: "0 0 30px rgba(232,116,42,0.6), 0 8px 20px rgba(0,0,0,0.4)",
+                }}
+              >
+                <Plus size={28} className="text-white" strokeWidth={2.5} />
+              </button>
+            );
+          }
 
-        {/* Logo centré */}
-        <img
-          src={logo}
-          alt="Infeelit"
-          style={{
-            height: "44px",
-            width: "auto",
-            maxWidth: "160px",
-            opacity: 1,
-            display: "block",
-            filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
-          }}
-        />
-
-        {/* Bouton Begin my story ou profil */}
-        {isLoggedIn ? (
-          <button
-            onClick={() => navigate("/treasure")}
-            style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "50%",
-              backgroundColor: "#E8742A",
-              border: "2px solid rgba(255,255,255,0.4)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "#FFFFFF",
-              fontWeight: 900,
-              fontSize: "14px",
-            }}
-          >
-            M
-          </button>
-        ) : (
-          <button
-            onClick={() => navigate("/welcome")}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "999px",
-              background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              color: "#FFFFFF",
-              fontSize: "10px",
-              fontWeight: 800,
-              letterSpacing: "0.04em",
-              border: "none",
-              cursor: "pointer",
-              boxShadow: "0 2px 12px rgba(232,116,42,0.5)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Begin my story
-          </button>
-        )}
-      </div>
-
-      {/* Niveau 2 — Tabs */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "32px",
-        }}
-      >
-        {tabs.map((tab) => {
-          const isActive = activeTimeline === tab.id;
-          const underlineColor = tab.id === "forever" ? "#38bdf8" : tab.id === "instant" ? "#E8742A" : "#ffffff";
+          const isActive = location.pathname === item.path;
+          const Icon = item.icon;
 
           return (
             <button
-              key={tab.id}
-              onClick={() => onTimelineChange(tab.id)}
-              style={{
-                position: "relative",
-                paddingBottom: "6px",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.75)",
-                fontWeight: isActive ? 900 : 700,
-                fontSize: isActive ? "16px" : "13px",
-                letterSpacing: "0.02em",
-                textShadow: "0 1px 8px rgba(0,0,0,0.9)",
-                transition: "all 0.2s ease",
-                whiteSpace: "nowrap",
-              }}
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
             >
-              {tab.label}
-              {isActive && (
-                <div
+              {Icon && (
+                <Icon
+                  size={22}
                   style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: "2.5px",
-                    borderRadius: "999px",
-                    backgroundColor: underlineColor,
-                    boxShadow: `0 0 10px ${underlineColor}`,
+                    color: isActive ? "#E8742A" : "rgba(255,255,255,0.5)",
+                    filter: isActive ? "drop-shadow(0 0 6px rgba(232,116,42,0.7))" : "none",
                   }}
                 />
               )}
+              <span
+                style={{
+                  fontSize: "8px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.12em",
+                  color: isActive ? "#E8742A" : "rgba(255,255,255,0.35)",
+                }}
+              >
+                {item.label}
+              </span>
             </button>
           );
         })}
-      </nav>
-    </header>
+      </div>
+    </div>
   );
 };
 
-export default Header;
+export default CurvedBottomNav;
