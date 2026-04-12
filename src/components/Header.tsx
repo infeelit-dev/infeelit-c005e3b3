@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Lang, langLabel } from "@/lib/i18n";
 import logo from "@/assets/infeelit-logo.png";
 import type { Timeline } from "@/types/timeline";
 
@@ -11,16 +11,14 @@ interface HeaderProps {
   onTimelineChange: (t: Timeline) => void | Promise<void>;
 }
 
-const tabs: { id: Timeline; label: string }[] = [
-  { id: "memories", label: "Memories" },
-  { id: "instant", label: "Instant" },
-  { id: "forever", label: "Forever" },
-];
+const LANGS: Lang[] = ["en", "fr", "ar"];
 
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
+  const { lang, setLang, t, rtl } = useLanguage();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("M");
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -41,6 +39,14 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
     };
     checkSession();
   }, []);
+
+  const tabs = [
+    { id: "memories" as Timeline, label: t.memories },
+    { id: "instant" as Timeline, label: t.instant },
+    { id: "forever" as Timeline, label: t.forever },
+  ];
+
+  const underlineColor = (id: Timeline) => (id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : "#ffffff");
 
   return (
     <header
@@ -68,33 +74,92 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           marginBottom: "10px",
         }}
       >
-        {/* Globe */}
-        <button
-          onClick={() => toast("FR / EN / AR — Coming this week 🌍")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            padding: "6px 14px",
-            borderRadius: "999px",
-            backgroundColor: "rgba(255,255,255,0.15)",
-            border: "1px solid rgba(255,255,255,0.25)",
-            cursor: "pointer",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <Globe size={13} color="#FFFFFF" />
-          <span
+        {/* ── Language selector ── */}
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setShowLangMenu((v) => !v)}
             style={{
-              color: "#FFFFFF",
-              fontSize: "10px",
-              fontWeight: 700,
-              letterSpacing: "0.05em",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "6px 14px",
+              borderRadius: "999px",
+              backgroundColor: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.25)",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
             }}
           >
-            EN
-          </span>
-        </button>
+            {/* Globe icon SVG inline — no lucide import needed */}
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+            <span style={{ color: "#fff", fontSize: "10px", fontWeight: 700, letterSpacing: "0.05em" }}>
+              {langLabel[lang]}
+            </span>
+          </button>
+
+          {/* Dropdown */}
+          {showLangMenu && (
+            <div
+              style={{
+                position: "absolute",
+                top: "calc(100% + 6px)",
+                left: rtl ? "auto" : 0,
+                right: rtl ? 0 : "auto",
+                backgroundColor: "rgba(10,17,40,0.95)",
+                backdropFilter: "blur(16px)",
+                borderRadius: "14px",
+                border: "1px solid rgba(255,255,255,.15)",
+                overflow: "hidden",
+                minWidth: "110px",
+                boxShadow: "0 8px 32px rgba(0,0,0,.4)",
+                zIndex: 100,
+              }}
+            >
+              {LANGS.map((l) => (
+                <button
+                  key={l}
+                  onClick={() => {
+                    setLang(l);
+                    setShowLangMenu(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 16px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    backgroundColor: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    borderBottom: l !== "ar" ? "1px solid rgba(255,255,255,.07)" : "none",
+                    backgroundColor: lang === l ? "rgba(232,116,42,.15)" : "transparent",
+                    fontFamily: l === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+                    direction: l === "ar" ? "rtl" : "ltr",
+                  }}
+                >
+                  <span style={{ fontSize: "16px" }}>{l === "en" ? "🇬🇧" : l === "fr" ? "🇫🇷" : "🇦🇪"}</span>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>
+                    {l === "en" ? "English" : l === "fr" ? "Français" : "العربية"}
+                  </span>
+                  {lang === l && <span style={{ marginLeft: "auto", color: "#E8742A", fontSize: "12px" }}>✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Logo */}
         <img
@@ -104,13 +169,11 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             height: "44px",
             width: "auto",
             maxWidth: "160px",
-            opacity: 1,
-            display: "block",
             filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
           }}
         />
 
-        {/* Begin my story ou avatar */}
+        {/* Begin my story / Avatar */}
         {isLoggedIn ? (
           <button
             onClick={() => navigate("/treasure")}
@@ -124,7 +187,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              color: "#FFFFFF",
+              color: "#fff",
               fontWeight: 900,
               fontSize: "14px",
             }}
@@ -138,7 +201,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               padding: "6px 14px",
               borderRadius: "999px",
               background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              color: "#FFFFFF",
+              color: "#fff",
               fontSize: "10px",
               fontWeight: 800,
               letterSpacing: "0.04em",
@@ -146,25 +209,18 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               cursor: "pointer",
               boxShadow: "0 2px 12px rgba(232,116,42,0.5)",
               whiteSpace: "nowrap",
+              fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
             }}
           >
-            Begin my story
+            {t.beginMyStory}
           </button>
         )}
       </div>
 
-      {/* Tabs */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "32px",
-        }}
-      >
+      {/* Timeline tabs */}
+      <nav style={{ display: "flex", justifyContent: "center", gap: "32px" }}>
         {tabs.map((tab) => {
           const isActive = activeTimeline === tab.id;
-          const underlineColor = tab.id === "forever" ? "#38bdf8" : tab.id === "instant" ? "#E8742A" : "#ffffff";
-
           return (
             <button
               key={tab.id}
@@ -175,13 +231,14 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.75)",
+                color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
                 fontWeight: isActive ? 900 : 700,
                 fontSize: isActive ? "16px" : "13px",
                 letterSpacing: "0.02em",
                 textShadow: "0 1px 8px rgba(0,0,0,0.9)",
-                transition: "all 0.2s ease",
+                transition: "all 0.2s",
                 whiteSpace: "nowrap",
+                fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
               }}
             >
               {tab.label}
@@ -194,8 +251,8 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     right: 0,
                     height: "2.5px",
                     borderRadius: "999px",
-                    backgroundColor: underlineColor,
-                    boxShadow: `0 0 10px ${underlineColor}`,
+                    backgroundColor: underlineColor(tab.id),
+                    boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
                   }}
                 />
               )}
@@ -203,6 +260,11 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           );
         })}
       </nav>
+
+      {/* Click outside to close lang menu */}
+      {showLangMenu && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setShowLangMenu(false)} />
+      )}
     </header>
   );
 };
