@@ -91,7 +91,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
             }}
           >
-            {/* Globe icon SVG inline — no lucide import needed */}
             <svg
               width="13"
               height="13"
@@ -141,11 +140,10 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     display: "flex",
                     alignItems: "center",
                     gap: "10px",
-                    backgroundColor: "transparent",
+                    backgroundColor: lang === l ? "rgba(232,116,42,.15)" : "transparent",
                     border: "none",
                     cursor: "pointer",
                     borderBottom: l !== "ar" ? "1px solid rgba(255,255,255,.07)" : "none",
-                    backgroundColor: lang === l ? "rgba(232,116,42,.15)" : "transparent",
                     fontFamily: l === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
                     direction: l === "ar" ? "rtl" : "ltr",
                   }}
