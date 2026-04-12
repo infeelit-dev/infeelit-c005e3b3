@@ -1,6 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mic, Heart, Volume2, Video, Play, ArrowLeft, Lock, Globe, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Mic,
+  Heart,
+  Volume2,
+  Video,
+  Play,
+  ArrowLeft,
+  Lock,
+  Globe,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+  Plus,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -11,6 +25,9 @@ import relaxImg from "@/assets/relax.jpg";
 import travelImg from "@/assets/travel.jpg";
 import graduateImg from "@/assets/graduate.jpg";
 import picnicImg from "@/assets/picnic.jpg";
+import birthImg from "@/assets/birth.jpg";
+import childImg from "@/assets/child.jpg";
+import houseImg from "@/assets/house.jpg";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,7 +45,35 @@ interface Memory {
 
 type ActiveTab = "all" | "memories" | "forever" | "video" | "voices";
 
-// ─── Demo fallback ────────────────────────────────────────────────────────────
+// ─── Life ages — placeholder photos representing the timeline ─────────────────
+// Each "age" has a photo, a label, and a visual treatment
+const LIFE_AGES = [
+  {
+    label: "Childhood",
+    photo: childImg,
+    filter: "grayscale(1) sepia(.4) brightness(.85)",
+    size: 62,
+    border: "rgba(232,116,42,.6)",
+  },
+  {
+    label: "Teen",
+    photo: picnicImg,
+    filter: "grayscale(1) sepia(.25) brightness(.9)",
+    size: 62,
+    border: "rgba(232,116,42,.7)",
+  },
+  {
+    label: "Young adult",
+    photo: loveImg,
+    filter: "grayscale(.4) brightness(.95)",
+    size: 68,
+    border: "rgba(232,116,42,.85)",
+  },
+  { label: "Prime", photo: relaxImg, filter: "grayscale(.15) brightness(1)", size: 68, border: "rgba(232,116,42,.9)" },
+  { label: "Today", photo: marryImg, filter: "none", size: 78, border: "rgba(232,116,42,1)" },
+];
+
+// ─── Demo memories ────────────────────────────────────────────────────────────
 
 const DEMO: Memory[] = [
   {
@@ -66,7 +111,7 @@ const DEMO: Memory[] = [
   },
   {
     id: "d4",
-    title: "What I want my daughter to know",
+    title: "A message for your wedding",
     file_url: "",
     file_type: "video",
     thumbnail_url: loveImg,
@@ -128,10 +173,10 @@ const formatDate = (iso: string) =>
 
 const tlStyle = (tl: string | null) => {
   if (tl === "forever")
-    return { icon: "✉️", text: "Forever", bg: "rgba(107,78,155,.22)", border: "rgba(107,78,155,.5)", color: "#c4b5fd" };
+    return { text: "Forever", bg: "rgba(107,78,155,.22)", border: "rgba(107,78,155,.5)", color: "#c4b5fd" };
   if (tl === "instant")
-    return { icon: "●", text: "Now", bg: "rgba(56,189,248,.18)", border: "rgba(56,189,248,.5)", color: "#7dd3fc" };
-  return { icon: "◎", text: "Past", bg: "rgba(232,116,42,.18)", border: "rgba(232,116,42,.45)", color: "#fdba74" };
+    return { text: "Now", bg: "rgba(56,189,248,.18)", border: "rgba(56,189,248,.5)", color: "#7dd3fc" };
+  return { text: "Past", bg: "rgba(232,116,42,.18)", border: "rgba(232,116,42,.45)", color: "#fdba74" };
 };
 
 const TABS: { id: ActiveTab; label: string }[] = [
@@ -189,7 +234,6 @@ const Player = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Media */}
         <div
           style={{
             position: "relative",
@@ -208,30 +252,26 @@ const Player = ({
               style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
             />
           ) : isAudio ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "3px", height: "56px" }}>
-                {Array.from({ length: 32 }).map((_, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: "3px",
-                      height: `${12 + Math.sin(i * 0.55) * 18 + Math.cos(i * 0.3) * 10}px`,
-                      backgroundColor: "#E8742A",
-                      borderRadius: "2px",
-                      opacity: 0.75,
-                      animation: `wv ${0.7 + (i % 5) * 0.15}s ease-in-out infinite alternate`,
-                      animationDelay: `${i * 0.04}s`,
-                    }}
-                  />
-                ))}
-              </div>
-              <Volume2 size={28} color="rgba(255,255,255,.2)" />
+            <div style={{ display: "flex", alignItems: "center", gap: "3px", height: "56px" }}>
+              {Array.from({ length: 32 }).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: "3px",
+                    height: `${12 + Math.sin(i * 0.55) * 18 + Math.cos(i * 0.3) * 10}px`,
+                    backgroundColor: "#E8742A",
+                    borderRadius: "2px",
+                    opacity: 0.75,
+                    animation: `wv ${0.7 + (i % 5) * 0.15}s ease-in-out infinite alternate`,
+                    animationDelay: `${i * 0.04}s`,
+                  }}
+                />
+              ))}
             </div>
           ) : (
             <Video size={48} color="rgba(255,255,255,.15)" />
           )}
 
-          {/* Overlay gradient */}
           <div
             style={{
               position: "absolute",
@@ -240,7 +280,6 @@ const Player = ({
             }}
           />
 
-          {/* Play */}
           <div
             style={{
               position: "absolute",
@@ -258,7 +297,6 @@ const Player = ({
             <Play size={28} color="#fff" fill="#fff" style={{ marginLeft: "3px" }} />
           </div>
 
-          {/* Timeline badge */}
           <div
             style={{
               position: "absolute",
@@ -279,11 +317,10 @@ const Player = ({
                 textTransform: "uppercase",
               }}
             >
-              {tl.icon} {tl.text}
+              {tl.text}
             </span>
           </div>
 
-          {/* Privacy */}
           <div
             style={{
               position: "absolute",
@@ -307,7 +344,6 @@ const Player = ({
           </div>
         </div>
 
-        {/* Info */}
         <div style={{ padding: "20px 20px 4px" }}>
           <h2
             style={{
@@ -337,7 +373,6 @@ const Player = ({
           <p style={{ fontSize: "11px", color: "rgba(255,255,255,.25)" }}>{formatDate(memory.created_at)}</p>
         </div>
 
-        {/* Nav */}
         <div style={{ display: "flex", borderTop: "1px solid rgba(255,255,255,.06)", marginTop: "16px" }}>
           {[
             { icon: <ChevronLeft size={22} />, action: onPrev, enabled: hasPrev },
@@ -375,6 +410,232 @@ const Player = ({
   );
 };
 
+// ─── Life Timeline Header ─────────────────────────────────────────────────────
+// Replaces the traditional single avatar.
+// Shows 5 circular photos representing different life ages,
+// arranged in an ascending arc — childhood (B&W) → today (color, largest).
+
+const LifeTimeline = ({ handle }: { handle: string }) => {
+  const [selectedAge, setSelectedAge] = useState<number | null>(null);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {/* Arc of life circles */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end", // align bottoms — creates ascending arc effect
+          gap: "6px",
+          paddingBottom: "8px",
+          position: "relative",
+        }}
+      >
+        {LIFE_AGES.map((age, i) => {
+          const isSelected = selectedAge === i;
+          const isLast = i === LIFE_AGES.length - 1;
+          // Vertical offset — earlier ages sit higher (smaller offset from bottom)
+          const verticalLift = (LIFE_AGES.length - 1 - i) * 8;
+
+          return (
+            <div
+              key={i}
+              style={{ marginBottom: `${verticalLift}px`, cursor: "pointer" }}
+              onClick={() => setSelectedAge(isSelected ? null : i)}
+            >
+              {/* Circle */}
+              <div
+                style={{
+                  width: `${age.size}px`,
+                  height: `${age.size}px`,
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  border: `2.5px solid ${age.border}`,
+                  boxShadow: isSelected
+                    ? `0 0 0 3px rgba(232,116,42,.35), 0 0 20px rgba(232,116,42,.5)`
+                    : isLast
+                      ? `0 0 0 3px rgba(232,116,42,.2), 0 0 16px rgba(232,116,42,.4)`
+                      : "0 2px 8px rgba(0,0,0,.3)",
+                  transition: "box-shadow .2s, transform .2s",
+                  transform: isSelected ? "scale(1.08)" : "scale(1)",
+                  position: "relative",
+                }}
+              >
+                <img
+                  src={age.photo}
+                  alt={age.label}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center top",
+                    filter: age.filter,
+                  }}
+                />
+                {/* Gloss */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 55%)",
+                    borderRadius: "50%",
+                  }}
+                />
+              </div>
+
+              {/* Age label — shown on tap */}
+              {isSelected && (
+                <div style={{ textAlign: "center", marginTop: "4px" }}>
+                  <span
+                    style={{
+                      fontSize: "8px",
+                      fontWeight: 700,
+                      color: "#E8742A",
+                      letterSpacing: ".08em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {age.label}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* + button to add a new life photo */}
+        <div style={{ marginBottom: "0px" }}>
+          <button
+            onClick={() => toast.info("Add a life photo — coming soon")}
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              backgroundColor: "#E8742A",
+              border: "2.5px solid rgba(255,255,255,.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 0 12px rgba(232,116,42,.5)",
+            }}
+          >
+            <Plus size={16} color="#fff" />
+          </button>
+        </div>
+      </div>
+
+      {/* Timeline label */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+        {/* Connecting line */}
+        <div
+          style={{
+            width: "28px",
+            height: "1px",
+            background: "linear-gradient(to right, transparent, rgba(232,116,42,.5))",
+          }}
+        />
+        <p
+          style={{
+            fontSize: "8px",
+            fontWeight: 700,
+            letterSpacing: ".18em",
+            color: "rgba(255,255,255,.28)",
+            textTransform: "uppercase",
+          }}
+        >
+          your life through time
+        </p>
+        <div
+          style={{
+            width: "28px",
+            height: "1px",
+            background: "linear-gradient(to left, transparent, rgba(232,116,42,.5))",
+          }}
+        />
+      </div>
+
+      {/* Handle */}
+      <p
+        style={{
+          fontSize: "14px",
+          fontWeight: 600,
+          color: "rgba(255,255,255,.75)",
+          marginTop: "8px",
+          letterSpacing: ".02em",
+          fontFamily: "Georgia,serif",
+          fontStyle: "italic",
+        }}
+      >
+        @{handle.toLowerCase().replace(/\s+/g, "_")}
+      </p>
+    </div>
+  );
+};
+
+// ─── Personal Vault card ──────────────────────────────────────────────────────
+
+const VaultCard = ({ onClick }: { onClick: () => void }) => (
+  <div
+    onClick={onClick}
+    style={{
+      gridColumn: "1 / -1", // full width across both columns
+      backgroundColor: "#0E1A20",
+      borderRadius: "20px",
+      border: "1px solid rgba(212,175,55,.35)",
+      boxShadow: "0 0 0 1px rgba(212,175,55,.1), 0 4px 24px rgba(212,175,55,.12), inset 0 1px 0 rgba(255,215,80,.1)",
+      padding: "20px 20px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: "16px",
+      transition: "transform .15s",
+      marginBottom: "4px",
+    }}
+    onTouchStart={(e) => (e.currentTarget.style.transform = "scale(.98)")}
+    onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
+  >
+    {/* Icon */}
+    <div
+      style={{
+        width: "48px",
+        height: "48px",
+        borderRadius: "14px",
+        flexShrink: 0,
+        background: "linear-gradient(135deg, rgba(212,175,55,.25), rgba(184,134,11,.15))",
+        border: "1px solid rgba(212,175,55,.3)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Shield size={22} color="rgba(212,175,55,.9)" />
+    </div>
+
+    {/* Text */}
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p
+        style={{
+          fontSize: "13px",
+          fontWeight: 700,
+          color: "rgba(212,175,55,.95)",
+          marginBottom: "3px",
+          fontFamily: "Georgia,serif",
+        }}
+      >
+        My Private Vault
+      </p>
+      <p style={{ fontSize: "11px", color: "rgba(255,255,255,.35)", lineHeight: 1.4 }}>
+        Your most intimate memories. Visible only to you.
+      </p>
+    </div>
+
+    {/* Lock */}
+    <div style={{ flexShrink: 0 }}>
+      <Lock size={16} color="rgba(212,175,55,.6)" />
+    </div>
+  </div>
+);
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 const Treasure = () => {
@@ -383,7 +644,6 @@ const Treasure = () => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState("Your");
-  const [userInitial, setUserInitial] = useState("M");
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
   const [isDemo, setIsDemo] = useState(false);
   const [playerIdx, setPlayerIdx] = useState<number | null>(null);
@@ -407,10 +667,7 @@ const Treasure = () => {
           .select("display_name")
           .eq("user_id", session.user.id)
           .single();
-        if (profile?.display_name) {
-          setDisplayName(profile.display_name);
-          setUserInitial(profile.display_name[0]?.toUpperCase() || "M");
-        }
+        if (profile?.display_name) setDisplayName(profile.display_name);
 
         const { data: mems, error } = await (supabase as any)
           .from("memories")
@@ -465,14 +722,14 @@ const Treasure = () => {
         />
       )}
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      {/* ── Hero — Life Timeline replaces single avatar ──────────────────── */}
       <div
         style={{
-          background: "linear-gradient(145deg, #1A3B47 0%, #22534A 45%, #B85A18 100%)",
+          background: "linear-gradient(160deg, #1A3B47 0%, #22534A 45%, #B85A18 100%)",
           paddingTop: "56px",
           paddingBottom: "28px",
-          paddingLeft: "24px",
-          paddingRight: "24px",
+          paddingLeft: "20px",
+          paddingRight: "20px",
           borderRadius: "0 0 32px 32px",
           position: "relative",
           overflow: "hidden",
@@ -499,82 +756,23 @@ const Treasure = () => {
           <ArrowLeft size={17} color="#fff" />
         </button>
 
-        {/* Decorative circles */}
-        <div
+        {/* Page label */}
+        <p
           style={{
-            position: "absolute",
-            top: "-30px",
-            right: "-30px",
-            width: "160px",
-            height: "160px",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,.04)",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-20px",
-            right: "40px",
-            width: "80px",
-            height: "80px",
-            borderRadius: "50%",
-            background: "rgba(232,116,42,.15)",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Top row: label + avatar — aligned */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-          <p
-            style={{
-              fontSize: "10px",
-              fontWeight: 900,
-              letterSpacing: ".22em",
-              color: "rgba(255,255,255,.4)",
-              textTransform: "uppercase",
-            }}
-          >
-            Your Haven
-          </p>
-          {/* Avatar — aligned with title line */}
-          <div
-            style={{
-              width: "46px",
-              height: "46px",
-              borderRadius: "50%",
-              backgroundColor: "#E8742A",
-              border: "2.5px solid rgba(255,255,255,.3)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px",
-              fontWeight: 900,
-              color: "#fff",
-              boxShadow: "0 0 0 4px rgba(232,116,42,.2)",
-              flexShrink: 0,
-            }}
-          >
-            {userInitial}
-          </div>
-        </div>
-
-        {/* Title — same left edge as label above */}
-        <h1
-          style={{
-            fontSize: "30px",
-            fontWeight: 700,
-            color: "#fff",
-            fontFamily: "Georgia,serif",
-            lineHeight: 1.15,
-            marginBottom: "24px",
+            textAlign: "center",
+            fontSize: "10px",
+            fontWeight: 900,
+            letterSpacing: ".22em",
+            color: "rgba(255,255,255,.35)",
+            textTransform: "uppercase",
+            marginBottom: "20px",
           }}
         >
-          Your
-          <br />
-          <span style={{ fontStyle: "italic", color: "rgba(255,255,255,.85)" }}>stories</span>
-        </h1>
+          Your Haven
+        </p>
+
+        {/* ── Life Timeline ── */}
+        <LifeTimeline handle={displayName} />
 
         {/* Stats */}
         <div
@@ -582,33 +780,34 @@ const Treasure = () => {
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
             gap: "8px",
+            marginTop: "20px",
           }}
         >
           {[
-            { value: real.length, label: "Stories preserved" },
-            { value: statVideos, label: "Video moments" },
-            { value: statVoices, label: "Voice captures" },
+            { value: real.length, label: "Stories" },
+            { value: statVideos, label: "Moments" },
+            { value: statVoices, label: "Voices" },
           ].map((s, i) => (
             <div
               key={i}
               style={{
                 backgroundColor: "rgba(255,255,255,.1)",
-                borderRadius: "16px",
-                padding: "14px 8px",
+                borderRadius: "14px",
+                padding: "12px 8px",
                 textAlign: "center",
                 backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,.08)",
+                border: "1px solid rgba(255,255,255,.07)",
               }}
             >
-              <p style={{ fontSize: "28px", fontWeight: 900, color: "#fff", lineHeight: 1 }}>{s.value}</p>
+              <p style={{ fontSize: "24px", fontWeight: 900, color: "#fff", lineHeight: 1 }}>{s.value}</p>
               <p
                 style={{
-                  fontSize: "8.5px",
+                  fontSize: "8px",
                   fontWeight: 700,
                   letterSpacing: ".1em",
-                  color: "rgba(255,255,255,.38)",
+                  color: "rgba(255,255,255,.35)",
                   textTransform: "uppercase",
-                  marginTop: "4px",
+                  marginTop: "3px",
                 }}
               >
                 {s.label}
@@ -621,23 +820,23 @@ const Treasure = () => {
           <div
             style={{
               marginTop: "12px",
-              padding: "10px 14px",
+              padding: "9px 14px",
               borderRadius: "12px",
               backgroundColor: "rgba(255,255,255,.07)",
               border: "1px solid rgba(255,255,255,.12)",
             }}
           >
-            <p style={{ fontSize: "11px", color: "rgba(255,255,255,.5)", textAlign: "center" }}>
+            <p style={{ fontSize: "10px", color: "rgba(255,255,255,.45)", textAlign: "center" }}>
               ✦ Preview mode — record your first memory
             </p>
           </div>
         )}
       </div>
 
-      {/* ── Tabs ──────────────────────────────────────────────────────────── */}
+      {/* ── Tabs ─────────────────────────────────────────────────────────── */}
       <div
         style={{
-          padding: "20px 20px 4px",
+          padding: "18px 20px 4px",
           display: "flex",
           gap: "8px",
           overflowX: "auto",
@@ -650,14 +849,13 @@ const Treasure = () => {
             onClick={() => setActiveTab(t.id)}
             style={{
               flexShrink: 0,
-              // Bigger touch target
               padding: "10px 20px",
               borderRadius: "24px",
               fontSize: "13px",
               fontWeight: 700,
               transition: "all .18s",
               backgroundColor: activeTab === t.id ? "#E8742A" : "rgba(255,255,255,.08)",
-              color: activeTab === t.id ? "#fff" : "rgba(255,255,255,.55)",
+              color: activeTab === t.id ? "#fff" : "rgba(255,255,255,.5)",
               border: activeTab === t.id ? "none" : "1px solid rgba(255,255,255,.1)",
               boxShadow: activeTab === t.id ? "0 4px 18px rgba(232,116,42,.45)" : "none",
               cursor: "pointer",
@@ -668,7 +866,7 @@ const Treasure = () => {
         ))}
       </div>
 
-      {/* ── Grid ──────────────────────────────────────────────────────────── */}
+      {/* ── Grid with Vault card pinned at top ──────────────────────────── */}
       <div style={{ padding: "12px 20px" }}>
         {loading ? (
           <div
@@ -696,244 +894,234 @@ const Treasure = () => {
             </p>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
-        ) : filtered.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "60px 24px",
-              marginTop: "8px",
-              backgroundColor: "rgba(255,255,255,.04)",
-              borderRadius: "24px",
-              border: "2px dashed rgba(255,255,255,.1)",
-            }}
-          >
-            <Heart size={44} color="rgba(255,255,255,.1)" style={{ margin: "0 auto 16px" }} />
-            <p
-              style={{
-                fontSize: "16px",
-                fontFamily: "Georgia,serif",
-                fontStyle: "italic",
-                color: "rgba(255,255,255,.5)",
-                marginBottom: "8px",
-              }}
-            >
-              Nothing here yet...
-            </p>
-            <p style={{ fontSize: "12px", color: "rgba(255,255,255,.25)" }}>Record a memory to fill this space.</p>
-          </div>
         ) : (
-          // NO "+ card" in grid — only real/demo cards
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            {filtered.map((mem, idx) => {
-              const tl = tlStyle(mem.timeline);
-              const isAudio = mem.file_type === "audio";
-              const isFore = mem.timeline === "forever";
+            {/* ── Personal Vault — always first, full width ── */}
+            <VaultCard onClick={() => toast.info("Private Vault — coming soon")} />
 
-              return (
-                <div
-                  key={mem.id}
-                  onClick={() => {
-                    if (isDemo) {
-                      toast.info("Record your first memory.");
-                      return;
-                    }
-                    setPlayerIdx(idx);
-                  }}
+            {/* ── Memory cards ── */}
+            {filtered.length === 0 ? (
+              <div
+                style={{
+                  gridColumn: "1 / -1",
+                  textAlign: "center",
+                  padding: "50px 24px",
+                  backgroundColor: "rgba(255,255,255,.04)",
+                  borderRadius: "24px",
+                  border: "2px dashed rgba(255,255,255,.1)",
+                }}
+              >
+                <Heart size={40} color="rgba(255,255,255,.1)" style={{ margin: "0 auto 14px" }} />
+                <p
                   style={{
-                    backgroundColor: "#1A2530",
-                    borderRadius: "20px",
-                    overflow: "hidden",
-                    border: isFore ? "1px solid rgba(107,78,155,.3)" : "1px solid rgba(255,255,255,.07)",
-                    cursor: "pointer",
-                    transition: "transform .14s",
+                    fontSize: "15px",
+                    fontFamily: "Georgia,serif",
+                    fontStyle: "italic",
+                    color: "rgba(255,255,255,.45)",
+                    marginBottom: "6px",
                   }}
-                  onTouchStart={(e) => (e.currentTarget.style.transform = "scale(.96)")}
-                  onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
                 >
-                  {/* Thumbnail */}
+                  Nothing here yet...
+                </p>
+                <p style={{ fontSize: "12px", color: "rgba(255,255,255,.22)" }}>Record a memory to fill this space.</p>
+              </div>
+            ) : (
+              filtered.map((mem, idx) => {
+                const tl = tlStyle(mem.timeline);
+                const isAudio = mem.file_type === "audio";
+                const isFore = mem.timeline === "forever";
+
+                return (
                   <div
-                    style={{
-                      position: "relative",
-                      aspectRatio: "1",
-                      backgroundColor: isAudio
-                        ? isFore
-                          ? "rgba(107,78,155,.15)"
-                          : "rgba(26,59,71,.4)"
-                        : "rgba(0,0,0,.4)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
+                    key={mem.id}
+                    onClick={() => {
+                      if (isDemo) {
+                        toast.info("Record your first memory.");
+                        return;
+                      }
+                      setPlayerIdx(idx);
                     }}
+                    style={{
+                      backgroundColor: "#1A2530",
+                      borderRadius: "20px",
+                      overflow: "hidden",
+                      border: isFore ? "1px solid rgba(107,78,155,.3)" : "1px solid rgba(255,255,255,.07)",
+                      cursor: "pointer",
+                      transition: "transform .14s",
+                    }}
+                    onTouchStart={(e) => (e.currentTarget.style.transform = "scale(.96)")}
+                    onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
                   >
-                    {mem.thumbnail_url ? (
-                      <img
-                        src={mem.thumbnail_url}
-                        alt=""
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          objectPosition: "center top",
-                          filter: isFore ? "brightness(.8) saturate(.7)" : "none",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          gap: "6px",
-                          opacity: 0.25,
-                        }}
-                      >
-                        {isAudio ? <Volume2 size={28} color="#fff" /> : <Video size={28} color="#fff" />}
-                      </div>
-                    )}
-
-                    {/* Strong gradient for text legibility */}
                     <div
                       style={{
-                        position: "absolute",
-                        inset: 0,
-                        background:
-                          "linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.12) 55%, transparent 100%)",
-                      }}
-                    />
-
-                    {/* Play */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: "8px",
-                        right: "8px",
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
-                        backgroundColor: "rgba(232,116,42,.85)",
+                        position: "relative",
+                        aspectRatio: "1",
+                        backgroundColor: isAudio
+                          ? isFore
+                            ? "rgba(107,78,155,.15)"
+                            : "rgba(26,59,71,.4)"
+                          : "rgba(0,0,0,.4)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        boxShadow: "0 0 12px rgba(232,116,42,.4)",
+                        overflow: "hidden",
                       }}
                     >
-                      <Play size={12} color="#fff" fill="#fff" style={{ marginLeft: "1px" }} />
-                    </div>
-
-                    {/* Timeline badge */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "8px",
-                        left: "8px",
-                        padding: "3px 8px",
-                        borderRadius: "20px",
-                        backgroundColor: tl.bg,
-                        border: `1px solid ${tl.border}`,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "7px",
-                          fontWeight: 900,
-                          letterSpacing: ".08em",
-                          color: tl.color,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {tl.text.toUpperCase()}
-                      </span>
-                    </div>
-
-                    {/* Privacy */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "8px",
-                        right: "8px",
-                        width: "22px",
-                        height: "22px",
-                        borderRadius: "50%",
-                        backgroundColor: "rgba(0,0,0,.35)",
-                        backdropFilter: "blur(4px)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {mem.is_public ? (
-                        <Globe size={9} color="rgba(255,255,255,.65)" />
+                      {mem.thumbnail_url ? (
+                        <img
+                          src={mem.thumbnail_url}
+                          alt=""
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "center top",
+                            filter: isFore ? "brightness(.8) saturate(.7)" : "none",
+                          }}
+                        />
                       ) : (
-                        <Lock size={9} color="rgba(255,255,255,.65)" />
+                        <div style={{ opacity: 0.22 }}>
+                          {isAudio ? <Volume2 size={28} color="#fff" /> : <Video size={28} color="#fff" />}
+                        </div>
                       )}
-                    </div>
 
-                    {/* Forever vignette */}
-                    {isFore && (
                       <div
                         style={{
                           position: "absolute",
                           inset: 0,
-                          background: "linear-gradient(to top, rgba(107,78,155,.45) 0%, transparent 55%)",
+                          background:
+                            "linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.08) 55%, transparent 100%)",
                         }}
                       />
-                    )}
-                  </div>
 
-                  {/* Footer */}
-                  <div style={{ padding: "10px 12px 12px" }}>
-                    <h3
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        color: "#fff",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        marginBottom: "4px",
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {mem.title || "A memory"}
-                    </h3>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <p style={{ fontSize: "9px", color: "rgba(255,255,255,.3)" }}>{formatDate(mem.created_at)}</p>
                       <div
                         style={{
+                          position: "absolute",
+                          bottom: "8px",
+                          right: "8px",
+                          width: "30px",
+                          height: "30px",
+                          borderRadius: "50%",
+                          backgroundColor: "rgba(232,116,42,.85)",
                           display: "flex",
                           alignItems: "center",
-                          gap: "3px",
-                          padding: "2px 7px",
-                          borderRadius: "10px",
-                          backgroundColor: isAudio ? "rgba(107,78,155,.2)" : "rgba(255,255,255,.07)",
+                          justifyContent: "center",
+                          boxShadow: "0 0 12px rgba(232,116,42,.4)",
                         }}
                       >
-                        {isAudio ? (
-                          <Volume2 size={8} color="#c4b5fd" />
-                        ) : (
-                          <Video size={8} color="rgba(255,255,255,.5)" />
-                        )}
+                        <Play size={12} color="#fff" fill="#fff" style={{ marginLeft: "1px" }} />
+                      </div>
+
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "8px",
+                          left: "8px",
+                          padding: "3px 8px",
+                          borderRadius: "20px",
+                          backgroundColor: tl.bg,
+                          border: `1px solid ${tl.border}`,
+                        }}
+                      >
                         <span
                           style={{
-                            fontSize: "8px",
-                            fontWeight: 700,
-                            color: isAudio ? "#c4b5fd" : "rgba(255,255,255,.45)",
+                            fontSize: "7px",
+                            fontWeight: 900,
+                            letterSpacing: ".08em",
+                            color: tl.color,
+                            textTransform: "uppercase",
                           }}
                         >
-                          {isAudio ? "Voice" : "Video"}
+                          {tl.text}
                         </span>
+                      </div>
+
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "8px",
+                          right: "8px",
+                          width: "22px",
+                          height: "22px",
+                          borderRadius: "50%",
+                          backgroundColor: "rgba(0,0,0,.28)",
+                          backdropFilter: "blur(4px)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        {mem.is_public ? (
+                          <Globe size={9} color="rgba(255,255,255,.65)" />
+                        ) : (
+                          <Lock size={9} color="rgba(255,255,255,.65)" />
+                        )}
+                      </div>
+
+                      {isFore && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: "linear-gradient(to top, rgba(107,78,155,.45) 0%, transparent 55%)",
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    <div style={{ padding: "10px 12px 12px" }}>
+                      <h3
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 700,
+                          color: "#fff",
+                          overflow: "hidden",
+                          whiteSpace: "nowrap",
+                          textOverflow: "ellipsis",
+                          marginBottom: "4px",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {mem.title || "A memory"}
+                      </h3>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <p style={{ fontSize: "9px", color: "rgba(255,255,255,.3)" }}>{formatDate(mem.created_at)}</p>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "3px",
+                            padding: "2px 7px",
+                            borderRadius: "10px",
+                            backgroundColor: isAudio ? "rgba(107,78,155,.2)" : "rgba(255,255,255,.07)",
+                          }}
+                        >
+                          {isAudio ? (
+                            <Volume2 size={8} color="#c4b5fd" />
+                          ) : (
+                            <Video size={8} color="rgba(255,255,255,.5)" />
+                          )}
+                          <span
+                            style={{
+                              fontSize: "8px",
+                              fontWeight: 700,
+                              color: isAudio ? "#c4b5fd" : "rgba(255,255,255,.45)",
+                            }}
+                          >
+                            {isAudio ? "Voice" : "Video"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         )}
       </div>
 
-      {/* ── Fixed CTA — orange glow, no duplicate "+" card ────────────────── */}
+      {/* ── Fixed CTA ─────────────────────────────────────────────────────── */}
       <div
         style={{
           position: "fixed",
@@ -959,7 +1147,6 @@ const Treasure = () => {
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            // Magic glow
             boxShadow: "0 0 0 1px rgba(232,116,42,.3), 0 8px 32px rgba(232,116,42,.55), 0 0 60px rgba(232,116,42,.25)",
             border: "none",
             cursor: "pointer",
