@@ -1,92 +1,210 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { Waves, MapPin, Plus, Users2, Gem } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import logo from "@/assets/infeelit-logo.png";
+import type { Timeline } from "@/types/timeline";
 
-const NAV_ITEMS = [
-  { icon: Waves, label: "Feels", path: "/" },
-  { icon: MapPin, label: "Places", path: "/places" },
-  { icon: null, label: "", path: "/record" },
-  { icon: Users2, label: "Connect", path: "/connect" },
-  { icon: Gem, label: "Treasure", path: "/treasure" },
+interface HeaderProps {
+  activeTimeline: Timeline;
+  onTimelineChange: (t: Timeline) => void | Promise<void>;
+}
+
+const tabs: { id: Timeline; label: string }[] = [
+  { id: "memories", label: "Memories" },
+  { id: "instant", label: "Instant" },
+  { id: "forever", label: "Forever" },
 ];
 
-const CurvedBottomNav = () => {
+const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInitial, setUserInitial] = useState("M");
 
-  const handleRecord = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session) {
-      navigate("/record");
-    } else {
-      navigate("/welcome");
-    }
-  };
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+      if (session) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", session.user.id)
+          .single();
+        if (profile?.display_name) {
+          setUserInitial(profile.display_name[0].toUpperCase());
+        }
+      }
+    };
+    checkSession();
+  }, []);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-20">
+    <header
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        paddingTop: "12px",
+        paddingBottom: "8px",
+      }}
+    >
       <div
-        className="flex items-center justify-around px-2 pb-6 pt-3"
         style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.65))",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingLeft: "16px",
+          paddingRight: "16px",
+          marginBottom: "10px",
         }}
       >
-        {NAV_ITEMS.map((item, index) => {
-          if (index === 2) {
-            return (
-              <button
-                key="record"
-                onClick={handleRecord}
-                className="relative -top-6 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
-                style={{
-                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                  boxShadow: "0 0 30px rgba(232,116,42,0.6), 0 8px 20px rgba(0,0,0,0.4)",
-                }}
-              >
-                <Plus size={28} className="text-white" strokeWidth={2.5} />
-              </button>
-            );
-          }
+        {/* Globe */}
+        <button
+          onClick={() => toast("FR / EN / AR — Coming this week 🌍")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            padding: "6px 14px",
+            borderRadius: "999px",
+            backgroundColor: "rgba(255,255,255,0.15)",
+            border: "1px solid rgba(255,255,255,0.25)",
+            cursor: "pointer",
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <Globe size={13} color="#FFFFFF" />
+          <span
+            style={{
+              color: "#FFFFFF",
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "0.05em",
+            }}
+          >
+            EN
+          </span>
+        </button>
 
-          const isActive = location.pathname === item.path;
-          const Icon = item.icon;
+        {/* Logo */}
+        <img
+          src={logo}
+          alt="Infeelit"
+          style={{
+            height: "44px",
+            width: "auto",
+            maxWidth: "160px",
+            opacity: 1,
+            display: "block",
+            filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
+          }}
+        />
+
+        {/* Begin my story ou avatar */}
+        {isLoggedIn ? (
+          <button
+            onClick={() => navigate("/treasure")}
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "50%",
+              backgroundColor: "#E8742A",
+              border: "2px solid rgba(255,255,255,0.4)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#FFFFFF",
+              fontWeight: 900,
+              fontSize: "14px",
+            }}
+          >
+            {userInitial}
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate("/welcome")}
+            style={{
+              padding: "6px 14px",
+              borderRadius: "999px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#FFFFFF",
+              fontSize: "10px",
+              fontWeight: 800,
+              letterSpacing: "0.04em",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 2px 12px rgba(232,116,42,0.5)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Begin my story
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <nav
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "32px",
+        }}
+      >
+        {tabs.map((tab) => {
+          const isActive = activeTimeline === tab.id;
+          const underlineColor = tab.id === "forever" ? "#38bdf8" : tab.id === "instant" ? "#E8742A" : "#ffffff";
 
           return (
             <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
+              key={tab.id}
+              onClick={() => onTimelineChange(tab.id)}
+              style={{
+                position: "relative",
+                paddingBottom: "6px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.75)",
+                fontWeight: isActive ? 900 : 700,
+                fontSize: isActive ? "16px" : "13px",
+                letterSpacing: "0.02em",
+                textShadow: "0 1px 8px rgba(0,0,0,0.9)",
+                transition: "all 0.2s ease",
+                whiteSpace: "nowrap",
+              }}
             >
-              {Icon && (
-                <Icon
-                  size={22}
+              {tab.label}
+              {isActive && (
+                <div
                   style={{
-                    color: isActive ? "#E8742A" : "rgba(255,255,255,0.5)",
-                    filter: isActive ? "drop-shadow(0 0 6px rgba(232,116,42,0.7))" : "none",
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: "2.5px",
+                    borderRadius: "999px",
+                    backgroundColor: underlineColor,
+                    boxShadow: `0 0 10px ${underlineColor}`,
                   }}
                 />
               )}
-              <span
-                style={{
-                  fontSize: "8px",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.12em",
-                  color: isActive ? "#E8742A" : "rgba(255,255,255,0.35)",
-                }}
-              >
-                {item.label}
-              </span>
             </button>
           );
         })}
-      </div>
-    </div>
+      </nav>
+    </header>
   );
 };
 
-export default CurvedBottomNav;
+export default Header;
