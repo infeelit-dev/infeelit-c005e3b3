@@ -25,7 +25,7 @@ const Welcome = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          // CORRECTION ICI : On envoie vers l'aiguilleur et non plus vers treasure en direct
+          // ✅ CORRIGÉ — pointe vers le callback, pas vers /treasure
           emailRedirectTo: window.location.origin + "/auth/callback",
         },
       });
