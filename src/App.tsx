@@ -48,6 +48,7 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/treasure" element={<Treasure />} />
 
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
