@@ -1,13 +1,10 @@
 export type Lang = "en" | "fr" | "ar";
 
 export interface Translations {
-  // Header
   memories: string;
   instant: string;
   forever: string;
   beginMyStory: string;
-
-  // Welcome
   welcomeTagline: string;
   welcomeSubtitle: string;
   welcomePlaceholder: string;
@@ -15,8 +12,6 @@ export interface Translations {
   welcomeSending: string;
   welcomeFooter: string;
   welcomeSuccess: string;
-
-  // Treasure / Profile
   yourHaven: string;
   yourStories: string;
   storiesPreserved: string;
@@ -35,8 +30,6 @@ export interface Translations {
   privateVault: string;
   privateVaultSub: string;
   lifeThrough: string;
-
-  // Record
   yourStory: string;
   breathe: string;
   howShare: string;
@@ -60,8 +53,6 @@ export interface Translations {
   listening: string;
   recording: string;
   timeLimitReached: string;
-
-  // Circle
   ourCircle: string;
   privateLabel: string;
   thisWeek: string;
@@ -74,27 +65,19 @@ export interface Translations {
   memberJournal: string;
   grandfatherVoice: string;
   grandmotherVoice: string;
-
-  // Auth callback
   verifying: string;
   checkingProfile: string;
   welcomeBack: string;
   setupProfile: string;
-
-  // Portrait — step labels
   portraitStep1Label: string;
   portraitStep2Label: string;
   portraitStep3Label: string;
-
-  // Portrait — step titles
   portraitStep1Title: string;
   portraitStep1Sub: string;
   portraitStep2Title: string;
   portraitStep2Sub: string;
   portraitStep3Title: string;
   portraitStep3Sub: string;
-
-  // Portrait — generation options
   genSilent: string;
   genSilentSub: string;
   genBoomer: string;
@@ -107,8 +90,6 @@ export interface Translations {
   genZSub: string;
   genAlpha: string;
   genAlphaSub: string;
-
-  // Portrait — audience options
   audChildren: string;
   audChildrenSub: string;
   audParents: string;
@@ -117,8 +98,6 @@ export interface Translations {
   audSelfSub: string;
   audAll: string;
   audAllSub: string;
-
-  // Portrait — spark options
   sparkAfraid: string;
   sparkAfraidSub: string;
   sparkPresence: string;
@@ -127,25 +106,17 @@ export interface Translations {
   sparkTruthSub: string;
   sparkLesson: string;
   sparkLessonSub: string;
-
-  // Portrait — buttons
   portraitContinue: string;
   portraitFinish: string;
   portraitSaving: string;
   portraitError: string;
-
-  // Loading
   loadingTitle: string;
   loadingQuote: string;
   loadingSubtitle: string;
-
-  // General
   comingSoon: string;
   voiceLabel: string;
   videoLabel: string;
 }
-
-// ─── English ──────────────────────────────────────────────────────────────────
 
 const en: Translations = {
   memories: "Memories",
@@ -264,9 +235,6 @@ const en: Translations = {
   voiceLabel: "Voice",
   videoLabel: "Video",
 };
-
-// ─── French ───────────────────────────────────────────────────────────────────
-
 const fr: Translations = {
   memories: "Mémoires",
   instant: "Instant",
@@ -367,4 +335,142 @@ const fr: Translations = {
   audAllSub: "Certaines voix sont trop importantes pour un seul cœur.",
   sparkAfraid: "Une voix que j'ai peur de perdre",
   sparkAfraidSub: "Quelqu'un que j'aime est encore là. Son histoire ne doit jamais s'effacer.",
-  sparkP
+  sparkPresence: "Une présence qui continue",
+  sparkPresenceSub: "Ils sont partis. Mais leur voix vit encore en moi.",
+  sparkTruth: "Ma propre vérité",
+  sparkTruthSub: "J'ai besoin de m'entendre parler pour comprendre qui je suis.",
+  sparkLesson: "Une leçon qui doit me survivre",
+  sparkLessonSub: "Je sais quelque chose d'important. Il mérite d'être entendu pour toujours.",
+  portraitContinue: "Continuer",
+  portraitFinish: "Commencer mon histoire",
+  portraitSaving: "Préparation de votre voyage...",
+  portraitError: "Erreur lors de la sauvegarde. Veuillez réessayer.",
+  loadingTitle: "Tissage de vos ères...",
+  loadingQuote: "Chaque souvenir est un fil dans la tapisserie de qui vous êtes.",
+  loadingSubtitle: "Création de votre voix unique",
+  comingSoon: "Bientôt disponible",
+  voiceLabel: "Voix",
+  videoLabel: "Vidéo",
+};
+
+const ar: Translations = {
+  memories: "الذكريات",
+  instant: "اللحظة",
+  forever: "إلى الأبد",
+  beginMyStory: "ابدأ قصتي",
+  welcomeTagline: "صوت عائلتك، محفوظٌ إلى الأبد.",
+  welcomeSubtitle: "المساحة الخاصة التي تعيش فيها القصص وتنمو ولا تختفي أبداً.",
+  welcomePlaceholder: "بريدك الإلكتروني للدخول",
+  welcomeCta: "ابدأ قصتي",
+  welcomeSending: "جارٍ الإرسال...",
+  welcomeFooter: "فنّ التوارث يبدأ هنا.",
+  welcomeSuccess: "مفتاحك في الطريق إليك. ✉️",
+  yourHaven: "ملاذك",
+  yourStories: "قصصك",
+  storiesPreserved: "القصص",
+  videoMoments: "اللحظات",
+  voiceCaptures: "الأصوات",
+  previewMode: "✦ وضع المعاينة — سجّل أول ذكرى لك",
+  tabAll: "الكل",
+  tabMemories: "الذكريات",
+  tabForever: "للأبد",
+  tabVideo: "🎬 فيديو",
+  tabVoices: "🎙️ صوت",
+  openingChest: "جارٍ فتح صندوقك...",
+  nothingYet: "لا شيء هنا بعد...",
+  recordToFill: "سجّل ذكرى لملء هذه المساحة.",
+  preserveStory: "احتفظ بقصة",
+  privateVault: "خزنتي الخاصة",
+  privateVaultSub: "أعمق ذكرياتك. مرئية لك وحدك.",
+  lifeThrough: "حياتك عبر الزمن",
+  yourStory: "قصتك",
+  breathe: "خذ نفساً. تحدّث من القلب.",
+  howShare: "كيف تريد المشاركة؟",
+  videoShowFace: "فيديو — أظهر وجهك",
+  voiceOnly: "صوت فقط — صوتك وحده",
+  imReady: "أنا مستعد",
+  weaving: "جارٍ نسج ذكراك...",
+  oneMoreQuestion: "سؤال أخير",
+  answerToo: "أجب على هذا أيضاً",
+  nextQuestion: "السؤال التالي",
+  seeMyMemory: "شاهد ذكراي",
+  memoryReady: "ذكراك جاهزة",
+  shareMemory: "شارك هذه الذكرى",
+  whoHears: "من يجب أن يسمع هذا؟",
+  myFamilyCircle: "🔒 دائرتي العائلية",
+  shareInOcean: "🌊 مشاركة في المحيط",
+  keepPrivate: "🔐 احتفظ بها لنفسك",
+  sharedCircle: "تمت المشاركة مع دائرتك العائلية.",
+  sharedOcean: "تمت المشاركة في المحيط.",
+  keptPrivate: "تم حفظ الذكرى بشكل خاص.",
+  listening: "يستمع...",
+  recording: "تسجيل",
+  timeLimitReached: "انتهت المدة. جارٍ حفظ ذكراك...",
+  ourCircle: "دائرة حياتنا",
+  privateLabel: "🔒 خاص",
+  thisWeek: "هذا الأسبوع",
+  latestMemory: "آخر ذكرى",
+  addVoice: "+ أضف صوتاً إلى الدائرة",
+  inviteLink: "رابط دعوتك",
+  inviteWhatsApp: "ادعُ عائلتك على واتساب",
+  circlePrivate: "دائرتك خاصة. فقط الأعضاء المدعوون يمكنهم رؤية ذكرياتك.",
+  seeAll: "← عرض الكل",
+  memberJournal: "سجل العضو — قريباً",
+  grandfatherVoice: "صوت الجد — قريباً",
+  grandmotherVoice: "صوت الجدة — قريباً",
+  verifying: "جارٍ فتح مساحتك...",
+  checkingProfile: "جارٍ التحقق من ملفك الشخصي...",
+  welcomeBack: "مرحباً بعودتك ✦",
+  setupProfile: "لنُعِدَّ ملفك الشخصي...",
+  portraitStep1Label: "الأصل — الخطوة ١ من ٣",
+  portraitStep2Label: "المتلقي — الخطوة ٢ من ٣",
+  portraitStep3Label: "الشرارة — الخطوة ٣ من ٣",
+  portraitStep1Title: "من يتحدث اليوم؟",
+  portraitStep1Sub: "متى بدأت قصتك؟",
+  portraitStep2Title: "إلى أي قلب تتحدث؟",
+  portraitStep2Sub: "رسالتك تحتاج إلى وجهة.",
+  portraitStep3Title: "ما الذي أحضرك إلى هنا؟",
+  portraitStep3Sub: "الشرارة التي أشعلت النار.",
+  genSilent: "الجيل الصامت",
+  genSilentSub: "حراس الذكريات غير المرئية.",
+  genBoomer: "جيل طفرة المواليد",
+  genBoomerSub: "شهود التحول العظيم.",
+  genX: "الجيل إكس",
+  genXSub: "الجسر بين حقبتين.",
+  genMillennial: "جيل الألفية",
+  genMillennialSub: "مهندسو عالم متغير.",
+  genZ: "الجيل زد",
+  genZSub: "أرواح رقمية، أصوات لا نهاية لها.",
+  genAlpha: "جيل ألفا",
+  genAlphaSub: "الصفحة الأولى من كتاب جديد.",
+  audChildren: "لمن يأتون بعدي",
+  audChildrenSub: "أطفالي. من يحملون صوتي إلى الأمام.",
+  audParents: "لمن جاؤوا قبلي",
+  audParentsSub: "والداي. الأصوات التي لا أزال أريد سماعها.",
+  audSelf: "لروحي",
+  audSelfSub: "أحتاج أن أقول حقيقتي قبل أن أشاركها.",
+  audAll: "لكل من أحب",
+  audAllSub: "بعض الأصوات أهم من أن تُحفظ لقلب واحد.",
+  sparkAfraid: "صوت أخشى أن أفقده",
+  sparkAfraidSub: "شخص أحبه لا يزال هنا. قصته يجب ألا تختفي أبداً.",
+  sparkPresence: "حضور يستمر",
+  sparkPresenceSub: "غادروا. لكن صوتهم لا يزال يعيش بداخلي.",
+  sparkTruth: "حقيقتي",
+  sparkTruthSub: "أحتاج أن أسمع نفسي أتحدث لأفهم من أنا.",
+  sparkLesson: "درس يجب أن يبقى بعدي",
+  sparkLessonSub: "أعرف شيئاً مهماً. يستحق أن يُسمع إلى الأبد.",
+  portraitContinue: "متابعة",
+  portraitFinish: "ابدأ قصتي",
+  portraitSaving: "جارٍ التحضير لرحلتك...",
+  portraitError: "خطأ في حفظ ملفك. يرجى المحاولة مرة أخرى.",
+  loadingTitle: "جارٍ نسج حقبك...",
+  loadingQuote: "كل ذكرى هي خيط في نسيج هويتك.",
+  loadingSubtitle: "إنشاء صوتك الفريد",
+  comingSoon: "قريباً",
+  voiceLabel: "صوت",
+  videoLabel: "فيديو",
+};
+
+export const translations: Record<Lang, Translations> = { en, fr, ar };
+export const isRTL = (lang: Lang) => lang === "ar";
+export const langLabel: Record<Lang, string> = { en: "EN", fr: "FR", ar: "عر" };
