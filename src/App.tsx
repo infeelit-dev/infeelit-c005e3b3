@@ -30,8 +30,8 @@ const App = () => (
       <LanguageProvider>
         <Toaster />
         <Sonner />
-        <LangBadge />
         <BrowserRouter>
+          <LangBadge />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/feed" element={<Index />} />
