@@ -1,0 +1,1 @@
+// LangBadge component - placeholder
