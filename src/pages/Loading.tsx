@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 import infeelit from "@/assets/infeelit-logo.png";
 import imgRelax from "@/assets/relax.jpg";
 import imgTravel from "@/assets/travel.jpg";
@@ -27,27 +28,21 @@ const IMAGES = [
 
 const Loading = () => {
   const navigate = useNavigate();
+  const { t, lang, rtl } = useLanguage();
+
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // 1. Animation des images toutes les 800ms
     const imgInterval = setInterval(() => {
       setCurrentImgIndex((prev) => (prev + 1) % IMAGES.length);
     }, 800);
 
-    // 2. Barre de progression sur 4 secondes
     const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) return 100;
-        return prev + 1;
-      });
+      setProgress((prev) => (prev >= 100 ? 100 : prev + 1));
     }, 40);
 
-    // 3. Redirection vers le feed après 4.5 secondes
-    const timeout = setTimeout(() => {
-      navigate("/feed");
-    }, 4500);
+    const timeout = setTimeout(() => navigate("/feed"), 4500);
 
     return () => {
       clearInterval(imgInterval);
@@ -57,16 +52,20 @@ const Loading = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center px-8 overflow-hidden">
+    <div
+      className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center px-8 overflow-hidden"
+      dir={rtl ? "rtl" : "ltr"}
+      style={{ fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit" }}
+    >
       <style>{`
         @keyframes slow-zoom {
-          from { transform: scale(1); opacity: 0; }
-          to { transform: scale(1.1); opacity: 1; }
+          from { transform: scale(1);   opacity: 0; }
+          to   { transform: scale(1.1); opacity: 1; }
         }
         .fade-in-out { animation: slow-zoom 1.2s ease-in-out infinite alternate; }
       `}</style>
 
-      {/* Logo en haut */}
+      {/* Logo */}
       <img
         src={infeelit}
         alt="Infeelit"
@@ -74,7 +73,7 @@ const Loading = () => {
         style={{ mixBlendMode: "multiply" }}
       />
 
-      {/* Cercle central avec images en noir et blanc sépia */}
+      {/* Rotating memory circle */}
       <div className="relative w-48 h-48 mb-12">
         <div className="absolute inset-0 rounded-full border-4 border-[#F97316]/20 animate-ping" />
         <div className="absolute inset-0 rounded-full border-2 border-[#F97316]/10 animate-pulse" />
@@ -88,20 +87,18 @@ const Loading = () => {
         </div>
       </div>
 
-      {/* Texte poétique */}
+      {/* Poetic text — translated */}
       <div className="text-center space-y-3 max-w-xs">
-        <h2 className="text-[#1A4D4D] text-xl font-black uppercase tracking-tighter">Weaving your eras...</h2>
-        <p className="text-[#6B7280] text-sm font-medium italic opacity-80 leading-relaxed">
-          "Every memory is a thread in the tapestry of who you are."
-        </p>
+        <h2 className="text-[#1A4D4D] text-xl font-black uppercase tracking-tighter">{t.loadingTitle}</h2>
+        <p className="text-[#6B7280] text-sm font-medium italic opacity-80 leading-relaxed">"{t.loadingQuote}"</p>
       </div>
 
-      {/* Barre de progression */}
+      {/* Progress bar */}
       <div className="w-full max-w-[200px] mt-16 bg-gray-100 h-1 rounded-full overflow-hidden">
         <div className="h-full bg-[#F97316] transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
       </div>
 
-      <p className="mt-4 text-[9px] font-black text-[#9CA3AF] uppercase tracking-[0.3em]">Creating your unique voice</p>
+      <p className="mt-4 text-[9px] font-black text-[#9CA3AF] uppercase tracking-[0.3em]">{t.loadingSubtitle}</p>
     </div>
   );
 };
