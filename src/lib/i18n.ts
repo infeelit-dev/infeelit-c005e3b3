@@ -1,5 +1,3 @@
-// ─── Language types ───────────────────────────────────────────────────────────
-
 export type Lang = "en" | "fr" | "ar";
 
 export interface Translations {
@@ -59,6 +57,9 @@ export interface Translations {
   sharedCircle: string;
   sharedOcean: string;
   keptPrivate: string;
+  listening: string;
+  recording: string;
+  timeLimitReached: string;
 
   // Circle
   ourCircle: string;
@@ -70,15 +71,78 @@ export interface Translations {
   inviteWhatsApp: string;
   circlePrivate: string;
   seeAll: string;
+  memberJournal: string;
+  grandfatherVoice: string;
+  grandmotherVoice: string;
 
-  // Auth
+  // Auth callback
   verifying: string;
   checkingProfile: string;
   welcomeBack: string;
   setupProfile: string;
 
+  // Portrait — step labels
+  portraitStep1Label: string;
+  portraitStep2Label: string;
+  portraitStep3Label: string;
+
+  // Portrait — step titles
+  portraitStep1Title: string;
+  portraitStep1Sub: string;
+  portraitStep2Title: string;
+  portraitStep2Sub: string;
+  portraitStep3Title: string;
+  portraitStep3Sub: string;
+
+  // Portrait — generation options
+  genSilent: string;
+  genSilentSub: string;
+  genBoomer: string;
+  genBoomerSub: string;
+  genX: string;
+  genXSub: string;
+  genMillennial: string;
+  genMillennialSub: string;
+  genZ: string;
+  genZSub: string;
+  genAlpha: string;
+  genAlphaSub: string;
+
+  // Portrait — audience options
+  audChildren: string;
+  audChildrenSub: string;
+  audParents: string;
+  audParentsSub: string;
+  audSelf: string;
+  audSelfSub: string;
+  audAll: string;
+  audAllSub: string;
+
+  // Portrait — spark options
+  sparkAfraid: string;
+  sparkAfraidSub: string;
+  sparkPresence: string;
+  sparkPresenceSub: string;
+  sparkTruth: string;
+  sparkTruthSub: string;
+  sparkLesson: string;
+  sparkLessonSub: string;
+
+  // Portrait — buttons
+  portraitContinue: string;
+  portraitFinish: string;
+  portraitSaving: string;
+  portraitError: string;
+
+  // Loading
+  loadingTitle: string;
+  loadingQuote: string;
+  loadingSubtitle: string;
+
   // General
   comingSoon: string;
+  voiceLabel: string;
+  videoLabel: string;
 }
 
 // ─── English ──────────────────────────────────────────────────────────────────
@@ -133,6 +197,9 @@ const en: Translations = {
   sharedCircle: "Shared with your family circle.",
   sharedOcean: "Shared in the ocean.",
   keptPrivate: "Memory kept privately.",
+  listening: "Listening...",
+  recording: "Recording",
+  timeLimitReached: "3 minute limit reached. Saving your memory...",
   ourCircle: "Our Circle of Life",
   privateLabel: "🔒 Private",
   thisWeek: "This week",
@@ -142,11 +209,60 @@ const en: Translations = {
   inviteWhatsApp: "Invite your family on WhatsApp",
   circlePrivate: "Your circle is private. Only invited members can see your memories.",
   seeAll: "See all →",
+  memberJournal: "Member journal — coming soon",
+  grandfatherVoice: "Grandfather's voice — coming soon",
+  grandmotherVoice: "Grandmother's voice — coming soon",
   verifying: "Opening your space...",
   checkingProfile: "Checking your profile...",
   welcomeBack: "Welcome back ✦",
   setupProfile: "Let's set up your profile...",
+  portraitStep1Label: "Origin — Step 1 of 3",
+  portraitStep2Label: "Audience — Step 2 of 3",
+  portraitStep3Label: "Spark — Step 3 of 3",
+  portraitStep1Title: "Who is speaking today?",
+  portraitStep1Sub: "When did your story begin?",
+  portraitStep2Title: "Whose heart are you speaking to?",
+  portraitStep2Sub: "Your message needs a destination.",
+  portraitStep3Title: "What brought your voice here?",
+  portraitStep3Sub: "The spark that lit the fire.",
+  genSilent: "Silent Generation",
+  genSilentSub: "The keepers of unseen memories.",
+  genBoomer: "Baby Boomers",
+  genBoomerSub: "Witnesses of the great transformation.",
+  genX: "Generation X",
+  genXSub: "The bridge between two eras.",
+  genMillennial: "Millennials",
+  genMillennialSub: "Architects of a changing world.",
+  genZ: "Gen Z",
+  genZSub: "Digital souls, infinite voices.",
+  genAlpha: "Gen Alpha",
+  genAlphaSub: "The first page of a new book.",
+  audChildren: "To those who follow",
+  audChildrenSub: "My children. The ones who carry my voice forward.",
+  audParents: "To those who came before",
+  audParentsSub: "My parents. The voices I still want to hear.",
+  audSelf: "To my own soul",
+  audSelfSub: "I need to speak my truth before I share it.",
+  audAll: "To everyone I love",
+  audAllSub: "Some voices are too important to keep to one heart.",
+  sparkAfraid: "A voice I'm afraid to lose",
+  sparkAfraidSub: "Someone I love is still here. Their story must never fade.",
+  sparkPresence: "A presence that lives on",
+  sparkPresenceSub: "They're gone. But their voice still lives inside me.",
+  sparkTruth: "My own truth",
+  sparkTruthSub: "I need to hear myself speak to understand who I am.",
+  sparkLesson: "A lesson that must survive me",
+  sparkLessonSub: "I know something important. It deserves to be heard forever.",
+  portraitContinue: "Continue",
+  portraitFinish: "Begin my story",
+  portraitSaving: "Preparing your journey...",
+  portraitError: "Error saving your profile. Please try again.",
+  loadingTitle: "Weaving your eras...",
+  loadingQuote: "Every memory is a thread in the tapestry of who you are.",
+  loadingSubtitle: "Creating your unique voice",
   comingSoon: "Coming soon",
+  voiceLabel: "Voice",
+  videoLabel: "Video",
 };
 
 // ─── French ───────────────────────────────────────────────────────────────────
@@ -201,6 +317,9 @@ const fr: Translations = {
   sharedCircle: "Partagé avec votre cercle familial.",
   sharedOcean: "Partagé dans l'océan.",
   keptPrivate: "Souvenir conservé en privé.",
+  listening: "Écoute...",
+  recording: "Enregistrement",
+  timeLimitReached: "Limite de 3 minutes atteinte. Sauvegarde en cours...",
   ourCircle: "Notre Cercle de Vie",
   privateLabel: "🔒 Privé",
   thisWeek: "Cette semaine",
@@ -210,90 +329,42 @@ const fr: Translations = {
   inviteWhatsApp: "Inviter la famille sur WhatsApp",
   circlePrivate: "Votre cercle est privé. Seuls les membres invités peuvent voir vos souvenirs.",
   seeAll: "Tout voir →",
+  memberJournal: "Journal du membre — bientôt disponible",
+  grandfatherVoice: "Voix du grand-père — bientôt disponible",
+  grandmotherVoice: "Voix de la grand-mère — bientôt disponible",
   verifying: "Ouverture de votre espace...",
   checkingProfile: "Vérification de votre profil...",
   welcomeBack: "Bon retour ✦",
   setupProfile: "Configurons votre profil...",
-  comingSoon: "Bientôt disponible",
-};
-
-// ─── Arabic ───────────────────────────────────────────────────────────────────
-// Literary Arabic, Dubai register — dignified, warm, not colloquial
-
-const ar: Translations = {
-  memories: "الذكريات",
-  instant: "اللحظة",
-  forever: "إلى الأبد",
-  beginMyStory: "ابدأ قصتي",
-  welcomeTagline: "صوت عائلتك، محفوظٌ إلى الأبد.",
-  welcomeSubtitle: "المساحة الخاصة التي تعيش فيها القصص وتنمو ولا تختفي أبداً.",
-  welcomePlaceholder: "بريدك الإلكتروني للدخول",
-  welcomeCta: "ابدأ قصتي",
-  welcomeSending: "جارٍ الإرسال...",
-  welcomeFooter: "فنّ التوارث يبدأ هنا.",
-  welcomeSuccess: "مفتاحك في الطريق إليك. ✉️",
-  yourHaven: "ملاذك",
-  yourStories: "قصصك",
-  storiesPreserved: "القصص",
-  videoMoments: "اللحظات",
-  voiceCaptures: "الأصوات",
-  previewMode: "✦ وضع المعاينة — سجّل أول ذكرى لك",
-  tabAll: "الكل",
-  tabMemories: "الذكريات",
-  tabForever: "للأبد",
-  tabVideo: "🎬 فيديو",
-  tabVoices: "🎙️ صوت",
-  openingChest: "جارٍ فتح صندوقك...",
-  nothingYet: "لا شيء هنا بعد...",
-  recordToFill: "سجّل ذكرى لملء هذه المساحة.",
-  preserveStory: "احتفظ بقصة",
-  privateVault: "خزنتي الخاصة",
-  privateVaultSub: "أعمق ذكرياتك. مرئية لك وحدك.",
-  lifeThrough: "حياتك عبر الزمن",
-  yourStory: "قصتك",
-  breathe: "خذ نفساً. تحدّث من القلب.",
-  howShare: "كيف تريد المشاركة؟",
-  videoShowFace: "فيديو — أظهر وجهك",
-  voiceOnly: "صوت فقط — صوتك وحده",
-  imReady: "أنا مستعد",
-  weaving: "جارٍ نسج ذكراك...",
-  oneMoreQuestion: "سؤال أخير",
-  answerToo: "أجب على هذا أيضاً",
-  nextQuestion: "السؤال التالي",
-  seeMyMemory: "شاهد ذكراي",
-  memoryReady: "ذكراك جاهزة",
-  shareMemory: "شارك هذه الذكرى",
-  whoHears: "من يجب أن يسمع هذا؟",
-  myFamilyCircle: "🔒 دائرتي العائلية",
-  shareInOcean: "🌊 مشاركة في المحيط",
-  keepPrivate: "🔐 احتفظ بها لنفسك",
-  sharedCircle: "تمت المشاركة مع دائرتك العائلية.",
-  sharedOcean: "تمت المشاركة في المحيط.",
-  keptPrivate: "تم حفظ الذكرى بشكل خاص.",
-  ourCircle: "دائرة حياتنا",
-  privateLabel: "🔒 خاص",
-  thisWeek: "هذا الأسبوع",
-  latestMemory: "آخر ذكرى",
-  addVoice: "+ أضف صوتاً إلى الدائرة",
-  inviteLink: "رابط دعوتك",
-  inviteWhatsApp: "ادعُ عائلتك على واتساب",
-  circlePrivate: "دائرتك خاصة. فقط الأعضاء المدعوون يمكنهم رؤية ذكرياتك.",
-  seeAll: "عرض الكل ←",
-  verifying: "جارٍ فتح مساحتك...",
-  checkingProfile: "جارٍ التحقق من ملفك الشخصي...",
-  welcomeBack: "مرحباً بعودتك ✦",
-  setupProfile: "لنُعِدَّ ملفك الشخصي...",
-  comingSoon: "قريباً",
-};
-
-// ─── Export ───────────────────────────────────────────────────────────────────
-
-export const translations: Record<Lang, Translations> = { en, fr, ar };
-
-export const isRTL = (lang: Lang) => lang === "ar";
-
-export const langLabel: Record<Lang, string> = {
-  en: "EN",
-  fr: "FR",
-  ar: "عر",
-};
+  portraitStep1Label: "Origine — Étape 1 sur 3",
+  portraitStep2Label: "Destinataire — Étape 2 sur 3",
+  portraitStep3Label: "Étincelle — Étape 3 sur 3",
+  portraitStep1Title: "Qui parle aujourd'hui ?",
+  portraitStep1Sub: "Quand votre histoire a-t-elle commencé ?",
+  portraitStep2Title: "À quel cœur vous adressez-vous ?",
+  portraitStep2Sub: "Votre message a besoin d'une destination.",
+  portraitStep3Title: "Qu'est-ce qui vous a amené ici ?",
+  portraitStep3Sub: "L'étincelle qui a allumé le feu.",
+  genSilent: "Génération Silencieuse",
+  genSilentSub: "Les gardiens des mémoires invisibles.",
+  genBoomer: "Baby-Boomers",
+  genBoomerSub: "Témoins de la grande transformation.",
+  genX: "Génération X",
+  genXSub: "Le pont entre deux époques.",
+  genMillennial: "Millennials",
+  genMillennialSub: "Architectes d'un monde en changement.",
+  genZ: "Génération Z",
+  genZSub: "Âmes numériques, voix infinies.",
+  genAlpha: "Génération Alpha",
+  genAlphaSub: "La première page d'un nouveau livre.",
+  audChildren: "À ceux qui suivent",
+  audChildrenSub: "Mes enfants. Ceux qui portent ma voix en avant.",
+  audParents: "À ceux qui sont venus avant",
+  audParentsSub: "Mes parents. Les voix que je veux encore entendre.",
+  audSelf: "À ma propre âme",
+  audSelfSub: "J'ai besoin de dire ma vérité avant de la partager.",
+  audAll: "À tous ceux que j'aime",
+  audAllSub: "Certaines voix sont trop importantes pour un seul cœur.",
+  sparkAfraid: "Une voix que j'ai peur de perdre",
+  sparkAfraidSub: "Quelqu'un que j'aime est encore là. Son histoire ne doit jamais s'effacer.",
+  sparkP
