@@ -1,29 +1,26 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Waves, MapPin, Plus, Users2, Gem } from "lucide-react";
-
-const NAV_ITEMS = [
-  { icon: Waves, label: "Feels", path: "/" },
-  { icon: MapPin, label: "Places", path: "/places" },
-  { icon: null, label: "", path: "/record" },
-  { icon: Users2, label: "Connect", path: "/connect" },
-  { icon: Gem, label: "Treasure", path: "/treasure" },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const CurvedBottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
+
+  const NAV_ITEMS = [
+    { icon: Waves, label: t.navFeels, path: "/" },
+    { icon: MapPin, label: t.navPlaces, path: "/places" },
+    { icon: null, label: "", path: "/record" },
+    { icon: Users2, label: t.navConnect, path: "/connect" },
+    { icon: Gem, label: t.navTreasure, path: "/treasure" },
+  ];
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-20">
-      {/* Dégradé transparent au-dessus de la nav */}
       <div
         className="h-16 w-full pointer-events-none"
-        style={{
-          background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))",
-        }}
+        style={{ background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))" }}
       />
-
-      {/* Barre navigation glassmorphism */}
       <div
         className="flex items-center justify-around px-4 pb-8 pt-3"
         style={{
