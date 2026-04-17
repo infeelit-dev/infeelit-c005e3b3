@@ -9,22 +9,27 @@ const LANGS: { id: Lang; flag: string; label: string }[] = [
   { id: "ar", flag: "🇦🇪", label: "العربية" },
 ];
 
-// Pages where Header already handles language — hide LangBadge there
-const HIDE_ON = ["/", "/feed"];
-
 const LangBadge = () => {
   const { lang, setLang } = useLanguage();
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
-  // Don't render on Index/feed — Header already has the selector
-  if (HIDE_ON.includes(location.pathname)) return null;
-
   const current = LANGS.find((l) => l.id === lang)!;
 
+  // On Index/feed le badge se place en haut à gauche sans conflit
+  // car on a supprimé le sélecteur du Header
+  const isOnFeed = location.pathname === "/" || location.pathname === "/feed";
+
   return (
-    <div style={{ position: "fixed", top: "14px", left: "14px", zIndex: 9999 }}>
-      {/* Single pill button */}
+    <div
+      style={{
+        position: "fixed",
+        top: isOnFeed ? "14px" : "14px",
+        left: "14px",
+        zIndex: 9999,
+      }}
+    >
+      {/* Single pill */}
       <button
         onClick={() => setOpen((v) => !v)}
         style={{
@@ -33,37 +38,37 @@ const LangBadge = () => {
           gap: "5px",
           padding: "6px 12px",
           borderRadius: "999px",
-          backgroundColor: "rgba(0,0,0,.45)",
-          border: "1px solid rgba(255,255,255,.2)",
+          backgroundColor: isOnFeed ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,.45)",
+          border: "1px solid rgba(255,255,255,.25)",
           backdropFilter: "blur(10px)",
           cursor: "pointer",
           color: "#fff",
           fontSize: "11px",
           fontWeight: 700,
+          boxShadow: "0 2px 8px rgba(0,0,0,.2)",
         }}
       >
         <span>{current.flag}</span>
         <span>{langLabel[lang]}</span>
-        <span style={{ fontSize: "8px", opacity: 0.6 }}>▼</span>
+        <span style={{ fontSize: "8px", opacity: 0.5, marginLeft: "1px" }}>▼</span>
       </button>
 
       {/* Dropdown */}
       {open && (
         <>
-          {/* Click outside to close */}
           <div style={{ position: "fixed", inset: 0, zIndex: -1 }} onClick={() => setOpen(false)} />
           <div
             style={{
               position: "absolute",
               top: "calc(100% + 6px)",
               left: 0,
-              backgroundColor: "rgba(10,17,40,.96)",
+              backgroundColor: "rgba(10,17,40,.97)",
               backdropFilter: "blur(16px)",
               borderRadius: "14px",
               border: "1px solid rgba(255,255,255,.12)",
               overflow: "hidden",
               minWidth: "130px",
-              boxShadow: "0 8px 32px rgba(0,0,0,.4)",
+              boxShadow: "0 8px 32px rgba(0,0,0,.5)",
             }}
           >
             {LANGS.map((l, i) => (
@@ -75,20 +80,28 @@ const LangBadge = () => {
                 }}
                 style={{
                   width: "100%",
-                  padding: "10px 14px",
+                  padding: "11px 14px",
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
-                  backgroundColor: lang === l.id ? "rgba(232,116,42,.18)" : "transparent",
+                  backgroundColor: lang === l.id ? "rgba(232,116,42,.2)" : "transparent",
                   border: "none",
-                  borderBottom: i < LANGS.length - 1 ? "1px solid rgba(255,255,255,.06)" : "none",
+                  borderBottom: i < LANGS.length - 1 ? "1px solid rgba(255,255,255,.07)" : "none",
                   cursor: "pointer",
-                  direction: l.id === "ar" ? "rtl" : "ltr",
                 }}
               >
                 <span style={{ fontSize: "16px" }}>{l.flag}</span>
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>{l.label}</span>
-                {lang === l.id && <span style={{ marginLeft: "auto", color: "#E8742A", fontSize: "12px" }}>✓</span>}
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    color: "#fff",
+                    fontFamily: l.id === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+                  }}
+                >
+                  {l.label}
+                </span>
+                {lang === l.id && <span style={{ marginLeft: "auto", color: "#E8742A", fontSize: "13px" }}>✓</span>}
               </button>
             ))}
           </div>
