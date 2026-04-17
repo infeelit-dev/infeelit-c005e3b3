@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Lang, langLabel } from "@/lib/i18n";
 import logo from "@/assets/infeelit-logo.png";
 import type { Timeline } from "@/types/timeline";
 
@@ -11,14 +10,11 @@ interface HeaderProps {
   onTimelineChange: (t: Timeline) => void | Promise<void>;
 }
 
-const LANGS: Lang[] = ["en", "fr", "ar"];
-
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
-  const { lang, setLang, t, rtl } = useLanguage();
+  const { t, lang } = useLanguage();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("M");
-  const [showLangMenu, setShowLangMenu] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -74,92 +70,10 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           marginBottom: "10px",
         }}
       >
-        {/* ── Language selector ── */}
-        <div style={{ position: "relative" }}>
-          <button
-            onClick={() => setShowLangMenu((v) => !v)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              padding: "6px 14px",
-              borderRadius: "999px",
-              backgroundColor: "rgba(255,255,255,0.15)",
-              border: "1px solid rgba(255,255,255,0.25)",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
-            }}
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-            </svg>
-            <span style={{ color: "#fff", fontSize: "10px", fontWeight: 700, letterSpacing: "0.05em" }}>
-              {langLabel[lang]}
-            </span>
-          </button>
+        {/* Left spacer — same width as right button for centering */}
+        <div style={{ width: "80px" }} />
 
-          {/* Dropdown */}
-          {showLangMenu && (
-            <div
-              style={{
-                position: "absolute",
-                top: "calc(100% + 6px)",
-                left: rtl ? "auto" : 0,
-                right: rtl ? 0 : "auto",
-                backgroundColor: "rgba(10,17,40,0.95)",
-                backdropFilter: "blur(16px)",
-                borderRadius: "14px",
-                border: "1px solid rgba(255,255,255,.15)",
-                overflow: "hidden",
-                minWidth: "110px",
-                boxShadow: "0 8px 32px rgba(0,0,0,.4)",
-                zIndex: 100,
-              }}
-            >
-              {LANGS.map((l) => (
-                <button
-                  key={l}
-                  onClick={() => {
-                    setLang(l);
-                    setShowLangMenu(false);
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "10px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    backgroundColor: lang === l ? "rgba(232,116,42,.15)" : "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    borderBottom: l !== "ar" ? "1px solid rgba(255,255,255,.07)" : "none",
-                    fontFamily: l === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
-                    direction: l === "ar" ? "rtl" : "ltr",
-                  }}
-                >
-                  <span style={{ fontSize: "16px" }}>{l === "en" ? "🇬🇧" : l === "fr" ? "🇫🇷" : "🇦🇪"}</span>
-                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>
-                    {l === "en" ? "English" : l === "fr" ? "Français" : "العربية"}
-                  </span>
-                  {lang === l && <span style={{ marginLeft: "auto", color: "#E8742A", fontSize: "12px" }}>✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Logo */}
+        {/* Logo — perfectly centered */}
         <img
           src={logo}
           alt="Infeelit"
@@ -171,7 +85,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           }}
         />
 
-        {/* Begin my story / Avatar */}
+        {/* Right — Begin my story or avatar */}
         {isLoggedIn ? (
           <button
             onClick={() => navigate("/treasure")}
@@ -232,7 +146,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
                 fontWeight: isActive ? 900 : 700,
                 fontSize: isActive ? "16px" : "13px",
-                letterSpacing: "0.02em",
                 textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                 transition: "all 0.2s",
                 whiteSpace: "nowrap",
@@ -258,11 +171,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           );
         })}
       </nav>
-
-      {/* Click outside to close lang menu */}
-      {showLangMenu && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 99 }} onClick={() => setShowLangMenu(false)} />
-      )}
     </header>
   );
 };
