@@ -116,6 +116,10 @@ export interface Translations {
   comingSoon: string;
   voiceLabel: string;
   videoLabel: string;
+  navFeels: string;
+  navPlaces: string;
+  navConnect: string;
+  navTreasure: string;
 }
 
 const en: Translations = {
@@ -234,7 +238,12 @@ const en: Translations = {
   comingSoon: "Coming soon",
   voiceLabel: "Voice",
   videoLabel: "Video",
+  navFeels: "FEELS",
+  navPlaces: "PLACES",
+  navConnect: "CONNECT",
+  navTreasure: "TREASURE",
 };
+
 const fr: Translations = {
   memories: "Mémoires",
   instant: "Instant",
@@ -351,6 +360,10 @@ const fr: Translations = {
   comingSoon: "Bientôt disponible",
   voiceLabel: "Voix",
   videoLabel: "Vidéo",
+  navFeels: "ÉMOTIONS",
+  navPlaces: "LIEUX",
+  navConnect: "CONNEXION",
+  navTreasure: "TRÉSOR",
 };
 
 const ar: Translations = {
@@ -469,6 +482,10 @@ const ar: Translations = {
   comingSoon: "قريباً",
   voiceLabel: "صوت",
   videoLabel: "فيديو",
+  navFeels: "المشاعر",
+  navPlaces: "الأماكن",
+  navConnect: "التواصل",
+  navTreasure: "الكنز",
 };
 
 export const translations: Record<Lang, Translations> = { en, fr, ar };
