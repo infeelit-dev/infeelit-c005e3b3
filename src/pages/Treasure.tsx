@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import grandfatherImg from "@/assets/grandfather.jpg";
 import marryImg from "@/assets/marry.jpg";
@@ -25,7 +26,6 @@ import relaxImg from "@/assets/relax.jpg";
 import travelImg from "@/assets/travel.jpg";
 import graduateImg from "@/assets/graduate.jpg";
 import picnicImg from "@/assets/picnic.jpg";
-import birthImg from "@/assets/birth.jpg";
 import childImg from "@/assets/child.jpg";
 import houseImg from "@/assets/house.jpg";
 
@@ -45,35 +45,7 @@ interface Memory {
 
 type ActiveTab = "all" | "memories" | "forever" | "video" | "voices";
 
-// ─── Life ages — placeholder photos representing the timeline ─────────────────
-// Each "age" has a photo, a label, and a visual treatment
-const LIFE_AGES = [
-  {
-    label: "Childhood",
-    photo: childImg,
-    filter: "grayscale(1) sepia(.4) brightness(.85)",
-    size: 62,
-    border: "rgba(232,116,42,.6)",
-  },
-  {
-    label: "Teen",
-    photo: picnicImg,
-    filter: "grayscale(1) sepia(.25) brightness(.9)",
-    size: 62,
-    border: "rgba(232,116,42,.7)",
-  },
-  {
-    label: "Young adult",
-    photo: loveImg,
-    filter: "grayscale(.4) brightness(.95)",
-    size: 68,
-    border: "rgba(232,116,42,.85)",
-  },
-  { label: "Prime", photo: relaxImg, filter: "grayscale(.15) brightness(1)", size: 68, border: "rgba(232,116,42,.9)" },
-  { label: "Today", photo: marryImg, filter: "none", size: 78, border: "rgba(232,116,42,1)" },
-];
-
-// ─── Demo memories ────────────────────────────────────────────────────────────
+// ─── Demo fallback ────────────────────────────────────────────────────────────
 
 const DEMO: Memory[] = [
   {
@@ -166,6 +138,16 @@ const DEMO: Memory[] = [
   },
 ];
 
+// ─── Life ages ────────────────────────────────────────────────────────────────
+
+const LIFE_AGES = [
+  { photo: childImg, filter: "grayscale(1) sepia(.4) brightness(.85)", size: 62, border: "rgba(232,116,42,.6)" },
+  { photo: picnicImg, filter: "grayscale(1) sepia(.25) brightness(.9)", size: 62, border: "rgba(232,116,42,.7)" },
+  { photo: loveImg, filter: "grayscale(.4) brightness(.95)", size: 68, border: "rgba(232,116,42,.85)" },
+  { photo: relaxImg, filter: "grayscale(.15) brightness(1)", size: 68, border: "rgba(232,116,42,.9)" },
+  { photo: marryImg, filter: "none", size: 78, border: "rgba(232,116,42,1)" },
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatDate = (iso: string) =>
@@ -179,15 +161,201 @@ const tlStyle = (tl: string | null) => {
   return { text: "Past", bg: "rgba(232,116,42,.18)", border: "rgba(232,116,42,.45)", color: "#fdba74" };
 };
 
-const TABS: { id: ActiveTab; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "memories", label: "Memories" },
-  { id: "forever", label: "Forever" },
-  { id: "video", label: "🎬 Video" },
-  { id: "voices", label: "🎙️ Voice" },
-];
+// ─── Life Timeline component ──────────────────────────────────────────────────
 
-// ─── Player overlay ───────────────────────────────────────────────────────────
+const LifeTimeline = ({ handle, lifeLabel }: { handle: string; lifeLabel: string }) => {
+  const [selectedAge, setSelectedAge] = useState<number | null>(null);
+
+  const ageLabels = ["Childhood", "Teen", "Young adult", "Prime", "Today"];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "6px", paddingBottom: "8px" }}>
+        {LIFE_AGES.map((age, i) => {
+          const isSelected = selectedAge === i;
+          const isLast = i === LIFE_AGES.length - 1;
+          const verticalLift = (LIFE_AGES.length - 1 - i) * 8;
+          return (
+            <div
+              key={i}
+              style={{ marginBottom: `${verticalLift}px`, cursor: "pointer" }}
+              onClick={() => setSelectedAge(isSelected ? null : i)}
+            >
+              <div
+                style={{
+                  width: `${age.size}px`,
+                  height: `${age.size}px`,
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  border: `2.5px solid ${age.border}`,
+                  boxShadow: isSelected
+                    ? "0 0 0 3px rgba(232,116,42,.35), 0 0 20px rgba(232,116,42,.5)"
+                    : isLast
+                      ? "0 0 0 3px rgba(232,116,42,.2), 0 0 16px rgba(232,116,42,.4)"
+                      : "0 2px 8px rgba(0,0,0,.3)",
+                  transition: "box-shadow .2s, transform .2s",
+                  transform: isSelected ? "scale(1.08)" : "scale(1)",
+                  position: "relative",
+                }}
+              >
+                <img
+                  src={age.photo}
+                  alt={ageLabels[i]}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center top",
+                    filter: age.filter,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 55%)",
+                    borderRadius: "50%",
+                  }}
+                />
+              </div>
+              {isSelected && (
+                <div style={{ textAlign: "center", marginTop: "4px" }}>
+                  <span
+                    style={{
+                      fontSize: "8px",
+                      fontWeight: 700,
+                      color: "#E8742A",
+                      letterSpacing: ".08em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {ageLabels[i]}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* + button */}
+        <div style={{ marginBottom: "0px" }}>
+          <button
+            onClick={() => toast.info("Add a life photo — coming soon")}
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              backgroundColor: "#E8742A",
+              border: "2.5px solid rgba(255,255,255,.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 0 12px rgba(232,116,42,.5)",
+            }}
+          >
+            <Plus size={16} color="#fff" />
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+        <div
+          style={{
+            width: "28px",
+            height: "1px",
+            background: "linear-gradient(to right,transparent,rgba(232,116,42,.5))",
+          }}
+        />
+        <p
+          style={{
+            fontSize: "8px",
+            fontWeight: 700,
+            letterSpacing: ".18em",
+            color: "rgba(255,255,255,.28)",
+            textTransform: "uppercase",
+          }}
+        >
+          {lifeLabel}
+        </p>
+        <div
+          style={{
+            width: "28px",
+            height: "1px",
+            background: "linear-gradient(to left,transparent,rgba(232,116,42,.5))",
+          }}
+        />
+      </div>
+
+      <p
+        style={{
+          fontSize: "14px",
+          fontWeight: 600,
+          color: "rgba(255,255,255,.75)",
+          marginTop: "8px",
+          fontFamily: "Georgia,serif",
+          fontStyle: "italic",
+        }}
+      >
+        @{handle.toLowerCase().replace(/\s+/g, "_")}
+      </p>
+    </div>
+  );
+};
+
+// ─── Vault card ───────────────────────────────────────────────────────────────
+
+const VaultCard = ({ title, subtitle, onClick }: { title: string; subtitle: string; onClick: () => void }) => (
+  <div
+    onClick={onClick}
+    style={{
+      gridColumn: "1 / -1",
+      backgroundColor: "#0E1A20",
+      borderRadius: "20px",
+      border: "1px solid rgba(212,175,55,.35)",
+      boxShadow: "0 0 0 1px rgba(212,175,55,.1), 0 4px 24px rgba(212,175,55,.12), inset 0 1px 0 rgba(255,215,80,.1)",
+      padding: "20px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: "16px",
+      marginBottom: "4px",
+    }}
+  >
+    <div
+      style={{
+        width: "48px",
+        height: "48px",
+        borderRadius: "14px",
+        flexShrink: 0,
+        background: "linear-gradient(135deg,rgba(212,175,55,.25),rgba(184,134,11,.15))",
+        border: "1px solid rgba(212,175,55,.3)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Shield size={22} color="rgba(212,175,55,.9)" />
+    </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p
+        style={{
+          fontSize: "13px",
+          fontWeight: 700,
+          color: "rgba(212,175,55,.95)",
+          marginBottom: "3px",
+          fontFamily: "Georgia,serif",
+        }}
+      >
+        {title}
+      </p>
+      <p style={{ fontSize: "11px", color: "rgba(255,255,255,.35)", lineHeight: 1.4 }}>{subtitle}</p>
+    </div>
+    <Lock size={16} color="rgba(212,175,55,.6)" style={{ flexShrink: 0 }} />
+  </div>
+);
+
+// ─── Player ───────────────────────────────────────────────────────────────────
 
 const Player = ({
   memory,
@@ -230,7 +398,7 @@ const Player = ({
           backgroundColor: "#141414",
           borderRadius: "28px",
           overflow: "hidden",
-          boxShadow: "0 40px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06)",
+          boxShadow: "0 40px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -276,7 +444,7 @@ const Player = ({
             style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(to top, rgba(0,0,0,.75) 0%, transparent 55%)",
+              background: "linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 55%)",
             }}
           />
 
@@ -290,7 +458,7 @@ const Player = ({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 0 8px rgba(232,116,42,.18), 0 0 40px rgba(232,116,42,.5)",
+              boxShadow: "0 0 0 8px rgba(232,116,42,.18),0 0 40px rgba(232,116,42,.5)",
               cursor: "pointer",
             }}
           >
@@ -404,242 +572,16 @@ const Player = ({
       </div>
 
       <p style={{ color: "rgba(255,255,255,.2)", fontSize: "11px", marginTop: "16px" }}>Tap outside to close</p>
-
       <style>{`@keyframes wv{from{transform:scaleY(1)}to{transform:scaleY(1.7)}}`}</style>
     </div>
   );
 };
 
-// ─── Life Timeline Header ─────────────────────────────────────────────────────
-// Replaces the traditional single avatar.
-// Shows 5 circular photos representing different life ages,
-// arranged in an ascending arc — childhood (B&W) → today (color, largest).
-
-const LifeTimeline = ({ handle }: { handle: string }) => {
-  const [selectedAge, setSelectedAge] = useState<number | null>(null);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      {/* Arc of life circles */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end", // align bottoms — creates ascending arc effect
-          gap: "6px",
-          paddingBottom: "8px",
-          position: "relative",
-        }}
-      >
-        {LIFE_AGES.map((age, i) => {
-          const isSelected = selectedAge === i;
-          const isLast = i === LIFE_AGES.length - 1;
-          // Vertical offset — earlier ages sit higher (smaller offset from bottom)
-          const verticalLift = (LIFE_AGES.length - 1 - i) * 8;
-
-          return (
-            <div
-              key={i}
-              style={{ marginBottom: `${verticalLift}px`, cursor: "pointer" }}
-              onClick={() => setSelectedAge(isSelected ? null : i)}
-            >
-              {/* Circle */}
-              <div
-                style={{
-                  width: `${age.size}px`,
-                  height: `${age.size}px`,
-                  borderRadius: "50%",
-                  overflow: "hidden",
-                  border: `2.5px solid ${age.border}`,
-                  boxShadow: isSelected
-                    ? `0 0 0 3px rgba(232,116,42,.35), 0 0 20px rgba(232,116,42,.5)`
-                    : isLast
-                      ? `0 0 0 3px rgba(232,116,42,.2), 0 0 16px rgba(232,116,42,.4)`
-                      : "0 2px 8px rgba(0,0,0,.3)",
-                  transition: "box-shadow .2s, transform .2s",
-                  transform: isSelected ? "scale(1.08)" : "scale(1)",
-                  position: "relative",
-                }}
-              >
-                <img
-                  src={age.photo}
-                  alt={age.label}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    objectPosition: "center top",
-                    filter: age.filter,
-                  }}
-                />
-                {/* Gloss */}
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 55%)",
-                    borderRadius: "50%",
-                  }}
-                />
-              </div>
-
-              {/* Age label — shown on tap */}
-              {isSelected && (
-                <div style={{ textAlign: "center", marginTop: "4px" }}>
-                  <span
-                    style={{
-                      fontSize: "8px",
-                      fontWeight: 700,
-                      color: "#E8742A",
-                      letterSpacing: ".08em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {age.label}
-                  </span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {/* + button to add a new life photo */}
-        <div style={{ marginBottom: "0px" }}>
-          <button
-            onClick={() => toast.info("Add a life photo — coming soon")}
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              backgroundColor: "#E8742A",
-              border: "2.5px solid rgba(255,255,255,.3)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              boxShadow: "0 0 12px rgba(232,116,42,.5)",
-            }}
-          >
-            <Plus size={16} color="#fff" />
-          </button>
-        </div>
-      </div>
-
-      {/* Timeline label */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
-        {/* Connecting line */}
-        <div
-          style={{
-            width: "28px",
-            height: "1px",
-            background: "linear-gradient(to right, transparent, rgba(232,116,42,.5))",
-          }}
-        />
-        <p
-          style={{
-            fontSize: "8px",
-            fontWeight: 700,
-            letterSpacing: ".18em",
-            color: "rgba(255,255,255,.28)",
-            textTransform: "uppercase",
-          }}
-        >
-          your life through time
-        </p>
-        <div
-          style={{
-            width: "28px",
-            height: "1px",
-            background: "linear-gradient(to left, transparent, rgba(232,116,42,.5))",
-          }}
-        />
-      </div>
-
-      {/* Handle */}
-      <p
-        style={{
-          fontSize: "14px",
-          fontWeight: 600,
-          color: "rgba(255,255,255,.75)",
-          marginTop: "8px",
-          letterSpacing: ".02em",
-          fontFamily: "Georgia,serif",
-          fontStyle: "italic",
-        }}
-      >
-        @{handle.toLowerCase().replace(/\s+/g, "_")}
-      </p>
-    </div>
-  );
-};
-
-// ─── Personal Vault card ──────────────────────────────────────────────────────
-
-const VaultCard = ({ onClick }: { onClick: () => void }) => (
-  <div
-    onClick={onClick}
-    style={{
-      gridColumn: "1 / -1", // full width across both columns
-      backgroundColor: "#0E1A20",
-      borderRadius: "20px",
-      border: "1px solid rgba(212,175,55,.35)",
-      boxShadow: "0 0 0 1px rgba(212,175,55,.1), 0 4px 24px rgba(212,175,55,.12), inset 0 1px 0 rgba(255,215,80,.1)",
-      padding: "20px 20px",
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      gap: "16px",
-      transition: "transform .15s",
-      marginBottom: "4px",
-    }}
-    onTouchStart={(e) => (e.currentTarget.style.transform = "scale(.98)")}
-    onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
-  >
-    {/* Icon */}
-    <div
-      style={{
-        width: "48px",
-        height: "48px",
-        borderRadius: "14px",
-        flexShrink: 0,
-        background: "linear-gradient(135deg, rgba(212,175,55,.25), rgba(184,134,11,.15))",
-        border: "1px solid rgba(212,175,55,.3)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Shield size={22} color="rgba(212,175,55,.9)" />
-    </div>
-
-    {/* Text */}
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <p
-        style={{
-          fontSize: "13px",
-          fontWeight: 700,
-          color: "rgba(212,175,55,.95)",
-          marginBottom: "3px",
-          fontFamily: "Georgia,serif",
-        }}
-      >
-        My Private Vault
-      </p>
-      <p style={{ fontSize: "11px", color: "rgba(255,255,255,.35)", lineHeight: 1.4 }}>
-        Your most intimate memories. Visible only to you.
-      </p>
-    </div>
-
-    {/* Lock */}
-    <div style={{ flexShrink: 0 }}>
-      <Lock size={16} color="rgba(212,175,55,.6)" />
-    </div>
-  </div>
-);
-
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 const Treasure = () => {
   const navigate = useNavigate();
+  const { t, lang, rtl } = useLanguage();
 
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -648,13 +590,20 @@ const Treasure = () => {
   const [isDemo, setIsDemo] = useState(false);
   const [playerIdx, setPlayerIdx] = useState<number | null>(null);
 
+  const TABS: { id: ActiveTab; label: string }[] = [
+    { id: "all", label: t.tabAll },
+    { id: "memories", label: t.tabMemories },
+    { id: "forever", label: t.tabForever },
+    { id: "video", label: t.tabVideo },
+    { id: "voices", label: t.tabVoices },
+  ];
+
   useEffect(() => {
     const init = async () => {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-
         if (!session) {
           setMemories(DEMO);
           setIsDemo(true);
@@ -709,7 +658,7 @@ const Treasure = () => {
   const statVoices = real.filter((m) => m.file_type === "audio").length;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#0E1A20", paddingBottom: "120px" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#0E1A20", paddingBottom: "120px" }} dir={rtl ? "rtl" : "ltr"}>
       {/* Player */}
       {playerIdx !== null && filtered[playerIdx] && (
         <Player
@@ -722,20 +671,20 @@ const Treasure = () => {
         />
       )}
 
-      {/* ── Hero — Life Timeline replaces single avatar ──────────────────── */}
+      {/* Hero */}
       <div
         style={{
-          background: "linear-gradient(160deg, #1A3B47 0%, #22534A 45%, #B85A18 100%)",
+          background: "linear-gradient(160deg,#1A3B47 0%,#22534A 45%,#B85A18 100%)",
           paddingTop: "56px",
           paddingBottom: "28px",
-          paddingLeft: "20px",
-          paddingRight: "20px",
+          paddingLeft: "24px",
+          paddingRight: "24px",
           borderRadius: "0 0 32px 32px",
           position: "relative",
           overflow: "hidden",
+          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
         }}
       >
-        {/* Back */}
         <button
           onClick={() => navigate(-1)}
           style={{
@@ -756,7 +705,19 @@ const Treasure = () => {
           <ArrowLeft size={17} color="#fff" />
         </button>
 
-        {/* Page label */}
+        <div
+          style={{
+            position: "absolute",
+            top: "-20px",
+            right: "-20px",
+            width: "150px",
+            height: "150px",
+            borderRadius: "50%",
+            background: "rgba(255,255,255,.04)",
+            pointerEvents: "none",
+          }}
+        />
+
         <p
           style={{
             textAlign: "center",
@@ -768,25 +729,16 @@ const Treasure = () => {
             marginBottom: "20px",
           }}
         >
-          Your Haven
+          {t.yourHaven}
         </p>
 
-        {/* ── Life Timeline ── */}
-        <LifeTimeline handle={displayName} />
+        <LifeTimeline handle={displayName} lifeLabel={t.lifeThrough} />
 
-        {/* Stats */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "8px",
-            marginTop: "20px",
-          }}
-        >
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "20px" }}>
           {[
-            { value: real.length, label: "Stories" },
-            { value: statVideos, label: "Moments" },
-            { value: statVoices, label: "Voices" },
+            { value: real.length, label: t.storiesPreserved },
+            { value: statVideos, label: t.videoMoments },
+            { value: statVoices, label: t.voiceCaptures },
           ].map((s, i) => (
             <div
               key={i}
@@ -826,14 +778,12 @@ const Treasure = () => {
               border: "1px solid rgba(255,255,255,.12)",
             }}
           >
-            <p style={{ fontSize: "10px", color: "rgba(255,255,255,.45)", textAlign: "center" }}>
-              ✦ Preview mode — record your first memory
-            </p>
+            <p style={{ fontSize: "10px", color: "rgba(255,255,255,.45)", textAlign: "center" }}>{t.previewMode}</p>
           </div>
         )}
       </div>
 
-      {/* ── Tabs ─────────────────────────────────────────────────────────── */}
+      {/* Tabs */}
       <div
         style={{
           padding: "18px 20px 4px",
@@ -841,12 +791,13 @@ const Treasure = () => {
           gap: "8px",
           overflowX: "auto",
           scrollbarWidth: "none",
+          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
         }}
       >
-        {TABS.map((t) => (
+        {TABS.map((tab) => (
           <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
             style={{
               flexShrink: 0,
               padding: "10px 20px",
@@ -854,19 +805,19 @@ const Treasure = () => {
               fontSize: "13px",
               fontWeight: 700,
               transition: "all .18s",
-              backgroundColor: activeTab === t.id ? "#E8742A" : "rgba(255,255,255,.08)",
-              color: activeTab === t.id ? "#fff" : "rgba(255,255,255,.5)",
-              border: activeTab === t.id ? "none" : "1px solid rgba(255,255,255,.1)",
-              boxShadow: activeTab === t.id ? "0 4px 18px rgba(232,116,42,.45)" : "none",
+              backgroundColor: activeTab === tab.id ? "#E8742A" : "rgba(255,255,255,.08)",
+              color: activeTab === tab.id ? "#fff" : "rgba(255,255,255,.5)",
+              border: activeTab === tab.id ? "none" : "1px solid rgba(255,255,255,.1)",
+              boxShadow: activeTab === tab.id ? "0 4px 18px rgba(232,116,42,.45)" : "none",
               cursor: "pointer",
             }}
           >
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>
 
-      {/* ── Grid with Vault card pinned at top ──────────────────────────── */}
+      {/* Grid */}
       <div style={{ padding: "12px 20px" }}>
         {loading ? (
           <div
@@ -890,16 +841,16 @@ const Treasure = () => {
                 color: "rgba(255,255,255,.3)",
               }}
             >
-              Opening your chest...
+              {t.openingChest}
             </p>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            {/* ── Personal Vault — always first, full width ── */}
-            <VaultCard onClick={() => toast.info("Private Vault — coming soon")} />
+            {/* Vault card */}
+            <VaultCard title={t.privateVault} subtitle={t.privateVaultSub} onClick={() => toast.info(t.comingSoon)} />
 
-            {/* ── Memory cards ── */}
+            {/* Memory cards */}
             {filtered.length === 0 ? (
               <div
                 style={{
@@ -921,9 +872,9 @@ const Treasure = () => {
                     marginBottom: "6px",
                   }}
                 >
-                  Nothing here yet...
+                  {t.nothingYet}
                 </p>
-                <p style={{ fontSize: "12px", color: "rgba(255,255,255,.22)" }}>Record a memory to fill this space.</p>
+                <p style={{ fontSize: "12px", color: "rgba(255,255,255,.22)" }}>{t.recordToFill}</p>
               </div>
             ) : (
               filtered.map((mem, idx) => {
@@ -936,7 +887,7 @@ const Treasure = () => {
                     key={mem.id}
                     onClick={() => {
                       if (isDemo) {
-                        toast.info("Record your first memory.");
+                        toast.info(t.recordToFill);
                         return;
                       }
                       setPlayerIdx(idx);
@@ -989,8 +940,7 @@ const Treasure = () => {
                         style={{
                           position: "absolute",
                           inset: 0,
-                          background:
-                            "linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.08) 55%, transparent 100%)",
+                          background: "linear-gradient(to top,rgba(0,0,0,.78) 0%,rgba(0,0,0,.08) 55%,transparent 100%)",
                         }}
                       />
 
@@ -1063,7 +1013,7 @@ const Treasure = () => {
                           style={{
                             position: "absolute",
                             inset: 0,
-                            background: "linear-gradient(to top, rgba(107,78,155,.45) 0%, transparent 55%)",
+                            background: "linear-gradient(to top,rgba(107,78,155,.45) 0%,transparent 55%)",
                           }}
                         />
                       )}
@@ -1108,7 +1058,7 @@ const Treasure = () => {
                               color: isAudio ? "#c4b5fd" : "rgba(255,255,255,.45)",
                             }}
                           >
-                            {isAudio ? "Voice" : "Video"}
+                            {isAudio ? t.voiceLabel : t.videoLabel}
                           </span>
                         </div>
                       </div>
@@ -1121,7 +1071,7 @@ const Treasure = () => {
         )}
       </div>
 
-      {/* ── Fixed CTA ─────────────────────────────────────────────────────── */}
+      {/* Fixed CTA */}
       <div
         style={{
           position: "fixed",
@@ -1129,8 +1079,9 @@ const Treasure = () => {
           left: 0,
           right: 0,
           padding: "16px 20px 32px",
-          background: "linear-gradient(to top, #0E1A20 55%, transparent)",
+          background: "linear-gradient(to top,#0E1A20 55%,transparent)",
           zIndex: 50,
+          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
         }}
       >
         <button
@@ -1147,13 +1098,12 @@ const Treasure = () => {
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: "0 0 0 1px rgba(232,116,42,.3), 0 8px 32px rgba(232,116,42,.55), 0 0 60px rgba(232,116,42,.25)",
+            boxShadow: "0 0 0 1px rgba(232,116,42,.3),0 8px 32px rgba(232,116,42,.55),0 0 60px rgba(232,116,42,.25)",
             border: "none",
             cursor: "pointer",
           }}
         >
-          <Mic size={20} />
-          Preserve a story
+          <Mic size={20} /> {t.preserveStory}
         </button>
       </div>
     </div>
