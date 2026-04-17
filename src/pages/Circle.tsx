@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Copy, Check, Mic, Play, Volume2, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import grandfatherImg from "@/assets/grandfather.jpg";
 import marryImg from "@/assets/marry.jpg";
@@ -23,6 +24,7 @@ interface Memory {
   thumbnail_url: string | null;
   created_at: string;
 }
+
 type FilterType = "all" | "voices" | "moments" | "chronicles";
 type SphereMode = "question" | "memory";
 
@@ -39,8 +41,6 @@ interface DemoMember {
   float: string;
   delay: string;
 }
-
-const AI_QUESTION = "What is the most beautiful lesson of courage your father ever gave you?";
 
 const DEMO_MEMBERS: DemoMember[] = [
   {
@@ -230,15 +230,9 @@ const DEMO_SHELF = [
   },
 ];
 
-const FILTERS: { id: FilterType; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "voices", label: "🎙️ Voices" },
-  { id: "moments", label: "🎬 Moments" },
-  { id: "chronicles", label: "📖 Chronicles" },
-];
-
 const Circle = () => {
   const navigate = useNavigate();
+  const { t, lang, rtl } = useLanguage();
   const sphereTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [copied, setCopied] = useState(false);
@@ -246,6 +240,13 @@ const Circle = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [seenMembers, setSeenMembers] = useState<Set<string>>(new Set());
   const [memories, setMemories] = useState<Memory[]>([]);
+
+  const FILTERS: { id: FilterType; label: string }[] = [
+    { id: "all", label: t.tabAll },
+    { id: "voices", label: t.tabVoices },
+    { id: "moments", label: t.tabVideo },
+    { id: "chronicles", label: "📖 Chronicles" },
+  ];
 
   useEffect(() => {
     const init = async () => {
@@ -273,7 +274,7 @@ const Circle = () => {
   const handleCopyLink = () => {
     navigator.clipboard.writeText("https://infeelit.com/join/demo");
     setCopied(true);
-    toast.success("Link copied!");
+    toast.success(t.comingSoon);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -287,106 +288,39 @@ const Circle = () => {
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-x-hidden"
+      dir={rtl ? "rtl" : "ltr"}
       style={{
         background: "radial-gradient(ellipse at 50% 36%, #F5E6CC 0%, #D2B48C 100%)",
         backgroundColor: "#D2B48C",
+        fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
       }}
     >
       <style>{`
-
-        /* ── Background bubbles — wide lazy drift ── */
-        @keyframes bgS {
-          0%   { transform: translate(0px, 0px); }
-          20%  { transform: translate(35px, -45px); }
-          40%  { transform: translate(58px, 10px); }
-          60%  { transform: translate(40px, 55px); }
-          80%  { transform: translate(-12px, 35px); }
-          100% { transform: translate(0px, 0px); }
-        }
-        @keyframes bgM {
-          0%   { transform: translate(0px, 0px); }
-          20%  { transform: translate(-42px, -32px); }
-          40%  { transform: translate(-60px, 20px); }
-          60%  { transform: translate(-38px, 60px); }
-          80%  { transform: translate(10px, 42px); }
-          100% { transform: translate(0px, 0px); }
-        }
-        .bg-s { animation: bgS 20s ease-in-out infinite; }
-        .bg-m { animation: bgM 15s ease-in-out infinite; }
-
-        /* ── Member float — bigger, livelier movement ── */
-        @keyframes mfA {
-          0%   { transform: translate(0px,  0px); }
-          20%  { transform: translate(12px, -18px); }
-          40%  { transform: translate(22px,  -4px); }
-          60%  { transform: translate(14px,  16px); }
-          80%  { transform: translate(-5px,  10px); }
-          100% { transform: translate(0px,  0px); }
-        }
-        @keyframes mfB {
-          0%   { transform: translate(0px,   0px); }
-          20%  { transform: translate(-16px, -13px); }
-          40%  { transform: translate(-22px,  10px); }
-          60%  { transform: translate(-12px,  20px); }
-          80%  { transform: translate(6px,   14px); }
-          100% { transform: translate(0px,   0px); }
-        }
-        @keyframes mfC {
-          0%   { transform: translate(0px,  0px); }
-          20%  { transform: translate(18px,  13px); }
-          40%  { transform: translate(8px,  -20px); }
-          60%  { transform: translate(-14px, -10px); }
-          80%  { transform: translate(-8px,   8px); }
-          100% { transform: translate(0px,  0px); }
-        }
-        .mf-a { animation: mfA  8s ease-in-out infinite; }
-        .mf-b { animation: mfB 10s ease-in-out infinite; }
-        .mf-c { animation: mfC 12s ease-in-out infinite; }
-
-        /* ── Gold ring ── */
-        @keyframes goldRing {
-          0%,100% { box-shadow: 0 0 0 3px rgba(255,200,50,.95), 0 0 14px rgba(255,170,0,.6); }
-          50%      { box-shadow: 0 0 0 4px rgba(255,225,80,1),   0 0 24px rgba(255,200,0,.9); }
-        }
-        .gold-ring { animation: goldRing 2s ease-in-out infinite; }
-
-        /* ── Sphere ── */
-        @keyframes spherePulse {
-          0%,100% { box-shadow: 0 0 36px rgba(255,185,60,.55), 0 0 70px rgba(232,116,42,.28); }
-          50%      { box-shadow: 0 0 65px rgba(255,210,80,.85), 0 0 115px rgba(232,116,42,.48); }
-        }
-        .sphere-glow { animation: spherePulse 3s ease-in-out infinite; }
-
-        /* ── Frame halo — glow only, frames NEVER move ── */
-        @keyframes frameHalo {
-          0%,100% { box-shadow: 0 0 16px rgba(251,191,36,.42), 0 0 32px rgba(251,191,36,.18); }
-          50%      { box-shadow: 0 0 26px rgba(251,191,36,.68), 0 0 50px rgba(251,191,36,.32); }
-        }
-        .frame-halo { animation: frameHalo 4s ease-in-out infinite; }
-
-        /* ── Candle — only moving element in shrine ── */
-        @keyframes flameBurn {
-          0%   { transform: scaleX(1)    scaleY(1)    skewX(0deg)    translateY(0px);    opacity: 1; }
-          14%  { transform: scaleX(.87)  scaleY(1.13) skewX(-4deg)   translateY(-2px);   opacity: .82; }
-          28%  { transform: scaleX(1.10) scaleY(.90)  skewX(3deg)    translateY(.6px);   opacity: 1; }
-          42%  { transform: scaleX(.92)  scaleY(1.08) skewX(-2.5deg) translateY(-2.5px); opacity: .87; }
-          57%  { transform: scaleX(1.07) scaleY(.93)  skewX(4deg)    translateY(.8px);   opacity: .96; }
-          71%  { transform: scaleX(.94)  scaleY(1.06) skewX(-3deg)   translateY(-1px);   opacity: .9; }
-          85%  { transform: scaleX(1.04) scaleY(.96)  skewX(1deg)    translateY(0px);    opacity: .95; }
-          100% { transform: scaleX(1)    scaleY(1)    skewX(0deg)    translateY(0px);    opacity: 1; }
-        }
-        @keyframes candleGlow {
-          0%,100% { box-shadow: 0 -5px 12px rgba(255,130,0,.55), 0 0 26px rgba(255,90,0,.25); }
-          50%      { box-shadow: 0 -5px 22px rgba(255,155,0,.88), 0 0 42px rgba(255,120,0,.44); }
-        }
-        .flame       { animation: flameBurn 1.75s ease-in-out infinite; transform-origin: bottom center; }
-        .candle-body { animation: candleGlow 2.3s ease-in-out infinite; }
-
-        .hide-scroll { scrollbar-width: none; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
+        @keyframes bgS { 0%{transform:translate(0,0);} 20%{transform:translate(35px,-45px);} 40%{transform:translate(58px,10px);} 60%{transform:translate(40px,55px);} 80%{transform:translate(-12px,35px);} 100%{transform:translate(0,0);} }
+        @keyframes bgM { 0%{transform:translate(0,0);} 20%{transform:translate(-42px,-32px);} 40%{transform:translate(-60px,20px);} 60%{transform:translate(-38px,60px);} 80%{transform:translate(10px,42px);} 100%{transform:translate(0,0);} }
+        @keyframes mfA { 0%,100%{transform:translate(0,0);} 20%{transform:translate(12px,-18px);} 40%{transform:translate(22px,-4px);} 60%{transform:translate(14px,16px);} 80%{transform:translate(-5px,10px);} }
+        @keyframes mfB { 0%,100%{transform:translate(0,0);} 20%{transform:translate(-16px,-13px);} 40%{transform:translate(-22px,10px);} 60%{transform:translate(-12px,20px);} 80%{transform:translate(6px,14px);} }
+        @keyframes mfC { 0%,100%{transform:translate(0,0);} 20%{transform:translate(18px,13px);} 40%{transform:translate(8px,-20px);} 60%{transform:translate(-14px,-10px);} 80%{transform:translate(-8px,8px);} }
+        @keyframes goldRing { 0%,100%{box-shadow:0 0 0 3px rgba(255,200,50,.95),0 0 14px rgba(255,170,0,.6);} 50%{box-shadow:0 0 0 4px rgba(255,225,80,1),0 0 24px rgba(255,200,0,.9);} }
+        @keyframes spherePulse { 0%,100%{box-shadow:0 0 36px rgba(255,185,60,.55),0 0 70px rgba(232,116,42,.28);} 50%{box-shadow:0 0 65px rgba(255,210,80,.85),0 0 115px rgba(232,116,42,.48);} }
+        @keyframes frameHalo { 0%,100%{box-shadow:0 0 16px rgba(251,191,36,.42),0 0 32px rgba(251,191,36,.18);} 50%{box-shadow:0 0 26px rgba(251,191,36,.68),0 0 50px rgba(251,191,36,.32);} }
+        @keyframes flameBurn { 0%{transform:scaleX(1) scaleY(1) skewX(0deg) translateY(0px);opacity:1;} 14%{transform:scaleX(.87) scaleY(1.13) skewX(-4deg) translateY(-2px);opacity:.82;} 28%{transform:scaleX(1.10) scaleY(.90) skewX(3deg) translateY(.6px);opacity:1;} 42%{transform:scaleX(.92) scaleY(1.08) skewX(-2.5deg) translateY(-2.5px);opacity:.87;} 57%{transform:scaleX(1.07) scaleY(.93) skewX(4deg) translateY(.8px);opacity:.96;} 71%{transform:scaleX(.94) scaleY(1.06) skewX(-3deg) translateY(-1px);opacity:.9;} 85%{transform:scaleX(1.04) scaleY(.96) skewX(1deg) translateY(0px);opacity:.95;} 100%{transform:scaleX(1) scaleY(1) skewX(0deg) translateY(0px);opacity:1;} }
+        @keyframes candleGlow { 0%,100%{box-shadow:0 -5px 12px rgba(255,130,0,.55),0 0 26px rgba(255,90,0,.25);} 50%{box-shadow:0 -5px 22px rgba(255,155,0,.88),0 0 42px rgba(255,120,0,.44);} }
+        .bg-s{animation:bgS 20s ease-in-out infinite;}
+        .bg-m{animation:bgM 15s ease-in-out infinite;}
+        .mf-a{animation:mfA 8s ease-in-out infinite;}
+        .mf-b{animation:mfB 10s ease-in-out infinite;}
+        .mf-c{animation:mfC 12s ease-in-out infinite;}
+        .gold-ring{animation:goldRing 2s ease-in-out infinite;}
+        .sphere-glow{animation:spherePulse 3s ease-in-out infinite;}
+        .frame-halo{animation:frameHalo 4s ease-in-out infinite;}
+        .flame{animation:flameBurn 1.75s ease-in-out infinite;transform-origin:bottom center;}
+        .candle-body{animation:candleGlow 2.3s ease-in-out infinite;}
+        .hide-scroll{scrollbar-width:none;}
+        .hide-scroll::-webkit-scrollbar{display:none;}
       `}</style>
 
-      {/* ── Atmospheric background bubbles ── */}
+      {/* Background bubbles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {BG_BUBBLES.map((b, i) => (
           <div
@@ -420,7 +354,7 @@ const Circle = () => {
         ))}
       </div>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="relative z-10 flex items-center justify-between px-5 pt-14 pb-2">
         <button
           onClick={() => navigate(-1)}
@@ -435,7 +369,7 @@ const Circle = () => {
             The Morgan Family
           </h1>
           <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(61,43,26,.42)" }}>
-            Our Circle of Life · 12 members
+            {t.ourCircle} · 12 members
           </p>
         </div>
 
@@ -447,13 +381,12 @@ const Circle = () => {
             color: "#6B4E9B",
           }}
         >
-          🔒 Private
+          {t.privateLabel}
         </div>
       </div>
 
-      {/* ── Constellation ── */}
+      {/* Constellation */}
       <div className="relative mx-auto z-10" style={{ width: "370px", height: "510px" }}>
-        {/* Orbit rings */}
         {[108, 132, 156].map((r, i) => (
           <div
             key={i}
@@ -504,10 +437,14 @@ const Circle = () => {
                   textAlign: "center",
                 }}
               >
-                This week
+                {t.thisWeek}
               </p>
               <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.38, textAlign: "center" }}>
-                {AI_QUESTION}
+                {lang === "ar"
+                  ? "ما هو أجمل درس في الشجاعة تعلمته من والدك؟"
+                  : lang === "fr"
+                    ? "Quelle est la plus belle leçon de courage de votre père ?"
+                    : "What is the most beautiful lesson of courage your father gave you?"}
               </p>
             </>
           ) : (
@@ -517,7 +454,7 @@ const Circle = () => {
                 {latestMem?.title ?? "Lucas · 2h ago"}
               </p>
               <p style={{ fontSize: "7px", color: "rgba(255,255,255,.6)", marginTop: "3px", textAlign: "center" }}>
-                Latest memory
+                {t.latestMemory}
               </p>
             </>
           )}
@@ -527,7 +464,7 @@ const Circle = () => {
           />
         </div>
 
-        {/* Living members — all float */}
+        {/* Living members */}
         {DEMO_MEMBERS.map((m) => {
           const isNew = m.hasNew && !seenMembers.has(m.id);
           return (
@@ -544,7 +481,7 @@ const Circle = () => {
               }}
               onClick={() => {
                 setSeenMembers((prev) => new Set([...prev, m.id]));
-                toast.info("Member journal — coming soon");
+                toast.info(t.memberJournal);
               }}
             >
               <div
@@ -617,7 +554,6 @@ const Circle = () => {
               >
                 {m.name}
               </p>
-              {/* Fixed: use subtitle, not m.count + m.memType */}
               <p style={{ fontSize: "7px", color: "rgba(61,43,26,.48)", textAlign: "center", lineHeight: 1.1 }}>
                 {m.subtitle}
               </p>
@@ -625,10 +561,10 @@ const Circle = () => {
           );
         })}
 
-        {/* ══ SHRINE — fully static, frames straight upright ══════════════ */}
+        {/* Shrine — deceased frames + candle */}
         <div className="absolute" style={{ left: "6px", bottom: "0px", zIndex: 7 }}>
           <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", paddingLeft: "8px" }}>
-            {/* Grandfather frame — STRAIGHT, no rotation */}
+            {/* Grandfather */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div
                 className="frame-halo"
@@ -637,17 +573,14 @@ const Circle = () => {
                   height: "88px",
                   borderRadius: "3px",
                   border: "4px solid rgba(184,142,32,.92)",
-                  boxShadow: `
-                  inset 0 0 0 2px rgba(255,220,80,.52),
-                  inset 0 0 0 5px rgba(110,72,8,.42),
-                  0 0 28px rgba(251,191,36,.5)
-                `,
+                  boxShadow:
+                    "inset 0 0 0 2px rgba(255,220,80,.52), inset 0 0 0 5px rgba(110,72,8,.42), 0 0 28px rgba(251,191,36,.5)",
                   overflow: "hidden",
                   cursor: "pointer",
                   backgroundColor: "#4A2E0A",
                   position: "relative",
                 }}
-                onClick={() => toast.info("Grandfather's voice — coming soon")}
+                onClick={() => toast.info(t.grandfatherVoice)}
               >
                 <img
                   src={grandfatherImg}
@@ -679,12 +612,14 @@ const Circle = () => {
                   marginTop: "4px",
                 }}
               >
-                Grandfather
+                {lang === "ar" ? "الجد" : lang === "fr" ? "Grand-père" : "Grandfather"}
               </p>
-              <p style={{ fontSize: "6.5px", color: "rgba(61,43,26,.38)", textAlign: "center" }}>4 voices</p>
+              <p style={{ fontSize: "6.5px", color: "rgba(61,43,26,.38)", textAlign: "center" }}>
+                4 {t.tabVoices.replace("🎙️ ", "")}
+              </p>
             </div>
 
-            {/* Grandmother frame — STRAIGHT, no rotation */}
+            {/* Grandmother */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div
                 className="frame-halo"
@@ -693,17 +628,14 @@ const Circle = () => {
                   height: "78px",
                   borderRadius: "3px",
                   border: "4px solid rgba(184,142,32,.86)",
-                  boxShadow: `
-                  inset 0 0 0 2px rgba(255,220,80,.48),
-                  inset 0 0 0 5px rgba(110,72,8,.38),
-                  0 0 22px rgba(251,191,36,.42)
-                `,
+                  boxShadow:
+                    "inset 0 0 0 2px rgba(255,220,80,.48), inset 0 0 0 5px rgba(110,72,8,.38), 0 0 22px rgba(251,191,36,.42)",
                   overflow: "hidden",
                   cursor: "pointer",
                   backgroundColor: "#4A2E0A",
                   position: "relative",
                 }}
-                onClick={() => toast.info("Grandmother's voice — coming soon")}
+                onClick={() => toast.info(t.grandmotherVoice)}
               >
                 <img
                   src={relaxImg}
@@ -735,12 +667,14 @@ const Circle = () => {
                   marginTop: "4px",
                 }}
               >
-                Grandmother
+                {lang === "ar" ? "الجدة" : lang === "fr" ? "Grand-mère" : "Grandmother"}
               </p>
-              <p style={{ fontSize: "6.5px", color: "rgba(61,43,26,.38)", textAlign: "center" }}>2 voices</p>
+              <p style={{ fontSize: "6.5px", color: "rgba(61,43,26,.38)", textAlign: "center" }}>
+                2 {t.tabVoices.replace("🎙️ ", "")}
+              </p>
             </div>
 
-            {/* Candle — only moving element in shrine */}
+            {/* Candle */}
             <div
               style={{
                 display: "flex",
@@ -820,7 +754,7 @@ const Circle = () => {
             </div>
           </div>
 
-          {/* Wooden table */}
+          {/* Table */}
           <div
             style={{
               height: "11px",
@@ -843,11 +777,9 @@ const Circle = () => {
             }}
           />
         </div>
-        {/* end shrine */}
       </div>
-      {/* end constellation */}
 
-      {/* ── Shelf "This week" ── */}
+      {/* Shelf */}
       <div className="px-5 mb-5 relative z-10">
         <div className="flex items-center justify-between mb-3">
           <p
@@ -859,10 +791,10 @@ const Circle = () => {
               color: "rgba(61,43,26,.38)",
             }}
           >
-            This week in your circle
+            {t.thisWeek}
           </p>
           <button style={{ fontSize: "10px", color: "#E8742A", fontWeight: 700 }} onClick={() => navigate("/treasure")}>
-            See all →
+            {t.seeAll}
           </button>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2 hide-scroll">
@@ -922,7 +854,7 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* ── Filter pills ── */}
+      {/* Filters */}
       <div className="px-5 mb-5 relative z-10">
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
           {FILTERS.map((f) => (
@@ -946,7 +878,7 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* ── Invite ── */}
+      {/* Invite */}
       <div className="px-5 pb-36 relative z-10 space-y-3">
         <div
           className="flex items-center gap-3 p-4 rounded-2xl"
@@ -962,7 +894,7 @@ const Circle = () => {
                 marginBottom: "2px",
               }}
             >
-              Invite Link
+              {t.inviteLink}
             </p>
             <p className="font-mono text-sm truncate" style={{ color: "#3D2B1A" }}>
               infeelit.com/join/demo
@@ -984,16 +916,21 @@ const Circle = () => {
             )}
           </button>
         </div>
+
         <button
           onClick={handleWhatsApp}
           className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2"
           style={{ background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff" }}
         >
-          <span>💬</span> Invite your family on WhatsApp
+          <span>💬</span> {t.inviteWhatsApp}
         </button>
+
+        <p className="text-center text-xs" style={{ color: "rgba(61,43,26,.28)" }}>
+          {t.circlePrivate}
+        </p>
       </div>
 
-      {/* ── Fixed CTA ── */}
+      {/* Fixed CTA */}
       <div
         className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 z-20"
         style={{ background: "linear-gradient(to top,rgba(210,180,140,1) 60%,transparent)" }}
@@ -1007,7 +944,7 @@ const Circle = () => {
             boxShadow: "0 0 28px rgba(232,116,42,.45)",
           }}
         >
-          <Mic size={20} />+ Add a voice to the circle
+          <Mic size={20} /> {t.addVoice}
         </button>
       </div>
     </div>
