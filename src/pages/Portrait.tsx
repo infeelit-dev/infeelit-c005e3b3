@@ -55,10 +55,21 @@ const Portrait = () => {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
+
+      // ✅ FIX — display_name depuis l'email + onboarding_completed = true
+      const defaultName = user.email?.split("@")[0] || "Member";
+
       const { error } = await supabase
         .from("profiles")
-        .update({ generation, audience, spark } as any)
+        .update({
+          generation,
+          audience,
+          spark,
+          display_name: defaultName,
+          onboarding_completed: true,
+        } as any)
         .eq("user_id", user.id);
+
       if (error) throw error;
       navigate("/loading");
     } catch (err) {
@@ -99,13 +110,13 @@ const Portrait = () => {
       style={{ fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit" }}
     >
       <style>{`
-        @keyframes drift1 { 0%{transform:translate(0,0) rotate(-12deg) scale(1);} 25%{transform:translate(18px,-20px) rotate(-5deg) scale(1.05);} 50%{transform:translate(8px,-35px) rotate(5deg) scale(.97);} 75%{transform:translate(-15px,-15px) rotate(-8deg) scale(1.03);} 100%{transform:translate(0,0) rotate(-12deg) scale(1);} }
-        @keyframes drift2 { 0%{transform:translate(0,0) rotate(0deg) scale(1);} 25%{transform:translate(-20px,-25px) rotate(8deg) scale(1.06);} 50%{transform:translate(-35px,-10px) rotate(-5deg) scale(.95);} 75%{transform:translate(-10px,15px) rotate(10deg) scale(1.04);} 100%{transform:translate(0,0) rotate(0deg) scale(1);} }
-        @keyframes drift3 { 0%{transform:translate(0,0) rotate(6deg) scale(1);} 25%{transform:translate(25px,20px) rotate(15deg) scale(.96);} 50%{transform:translate(15px,-25px) rotate(-3deg) scale(1.07);} 75%{transform:translate(-20px,-10px) rotate(8deg) scale(.98);} 100%{transform:translate(0,0) rotate(6deg) scale(1);} }
-        @keyframes drift4 { 0%{transform:translate(0,0) rotate(-3deg) scale(1);} 25%{transform:translate(-25px,18px) rotate(-12deg) scale(1.04);} 50%{transform:translate(10px,30px) rotate(5deg) scale(.96);} 75%{transform:translate(22px,-12px) rotate(-7deg) scale(1.05);} 100%{transform:translate(0,0) rotate(-3deg) scale(1);} }
-        @keyframes drift5 { 0%{transform:translate(0,0) rotate(12deg) scale(1);} 25%{transform:translate(15px,-30px) rotate(20deg) scale(.94);} 50%{transform:translate(-18px,-20px) rotate(8deg) scale(1.08);} 75%{transform:translate(-25px,10px) rotate(15deg) scale(.97);} 100%{transform:translate(0,0) rotate(12deg) scale(1);} }
-        @keyframes drift6 { 0%{transform:translate(0,0) rotate(-8deg) scale(1);} 25%{transform:translate(30px,15px) rotate(-2deg) scale(1.05);} 50%{transform:translate(20px,-28px) rotate(-15deg) scale(.95);} 75%{transform:translate(-12px,-18px) rotate(-5deg) scale(1.03);} 100%{transform:translate(0,0) rotate(-8deg) scale(1);} }
-        @keyframes drift7 { 0%{transform:translate(0,0) rotate(4deg) scale(1);} 25%{transform:translate(-22px,-22px) rotate(-3deg) scale(1.06);} 50%{transform:translate(-30px,15px) rotate(10deg) scale(.96);} 75%{transform:translate(10px,25px) rotate(6deg) scale(1.04);} 100%{transform:translate(0,0) rotate(4deg) scale(1);} }
+        @keyframes drift1{0%{transform:translate(0,0) rotate(-12deg) scale(1);}25%{transform:translate(18px,-20px) rotate(-5deg) scale(1.05);}50%{transform:translate(8px,-35px) rotate(5deg) scale(.97);}75%{transform:translate(-15px,-15px) rotate(-8deg) scale(1.03);}100%{transform:translate(0,0) rotate(-12deg) scale(1);}}
+        @keyframes drift2{0%{transform:translate(0,0) rotate(0deg) scale(1);}25%{transform:translate(-20px,-25px) rotate(8deg) scale(1.06);}50%{transform:translate(-35px,-10px) rotate(-5deg) scale(.95);}75%{transform:translate(-10px,15px) rotate(10deg) scale(1.04);}100%{transform:translate(0,0) rotate(0deg) scale(1);}}
+        @keyframes drift3{0%{transform:translate(0,0) rotate(6deg) scale(1);}25%{transform:translate(25px,20px) rotate(15deg) scale(.96);}50%{transform:translate(15px,-25px) rotate(-3deg) scale(1.07);}75%{transform:translate(-20px,-10px) rotate(8deg) scale(.98);}100%{transform:translate(0,0) rotate(6deg) scale(1);}}
+        @keyframes drift4{0%{transform:translate(0,0) rotate(-3deg) scale(1);}25%{transform:translate(-25px,18px) rotate(-12deg) scale(1.04);}50%{transform:translate(10px,30px) rotate(5deg) scale(.96);}75%{transform:translate(22px,-12px) rotate(-7deg) scale(1.05);}100%{transform:translate(0,0) rotate(-3deg) scale(1);}}
+        @keyframes drift5{0%{transform:translate(0,0) rotate(12deg) scale(1);}25%{transform:translate(15px,-30px) rotate(20deg) scale(.94);}50%{transform:translate(-18px,-20px) rotate(8deg) scale(1.08);}75%{transform:translate(-25px,10px) rotate(15deg) scale(.97);}100%{transform:translate(0,0) rotate(12deg) scale(1);}}
+        @keyframes drift6{0%{transform:translate(0,0) rotate(-8deg) scale(1);}25%{transform:translate(30px,15px) rotate(-2deg) scale(1.05);}50%{transform:translate(20px,-28px) rotate(-15deg) scale(.95);}75%{transform:translate(-12px,-18px) rotate(-5deg) scale(1.03);}100%{transform:translate(0,0) rotate(-8deg) scale(1);}}
+        @keyframes drift7{0%{transform:translate(0,0) rotate(4deg) scale(1);}25%{transform:translate(-22px,-22px) rotate(-3deg) scale(1.06);}50%{transform:translate(-30px,15px) rotate(10deg) scale(.96);}75%{transform:translate(10px,25px) rotate(6deg) scale(1.04);}100%{transform:translate(0,0) rotate(4deg) scale(1);}}
         .bubble-1{animation:drift1 6s ease-in-out infinite;}
         .bubble-2{animation:drift2 8s ease-in-out infinite;}
         .bubble-3{animation:drift3 7s ease-in-out infinite;}
@@ -190,7 +201,6 @@ const Portrait = () => {
             <Card type="generation" id="GenAlpha" title={t.genAlpha} subtitle={t.genAlphaSub} />
           </div>
         )}
-
         {step === 2 && (
           <div className="flex flex-col">
             <Card type="audience" id="Children" title={t.audChildren} subtitle={t.audChildrenSub} />
@@ -199,7 +209,6 @@ const Portrait = () => {
             <Card type="audience" id="All" title={t.audAll} subtitle={t.audAllSub} />
           </div>
         )}
-
         {step === 3 && (
           <div className="flex flex-col">
             <Card type="spark" id="Afraid" title={t.sparkAfraid} subtitle={t.sparkAfraidSub} />
@@ -210,7 +219,7 @@ const Portrait = () => {
         )}
       </div>
 
-      {/* CTA button */}
+      {/* CTA */}
       <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FAF8F6] via-[#FAF8F6] to-transparent z-30">
         <button
           disabled={!isStepValid() || loading}
