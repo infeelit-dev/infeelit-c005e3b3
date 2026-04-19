@@ -56,21 +56,27 @@ const Portrait = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      // ✅ FIX — display_name depuis l'email + onboarding_completed = true
       const defaultName = user.email?.split("@")[0] || "Member";
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({
+      // UPSERT — crée la ligne si elle n'existe pas, met à jour sinon
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          user_id: user.id,
           generation,
           audience,
           spark,
           display_name: defaultName,
           onboarding_completed: true,
-        } as any)
-        .eq("user_id", user.id);
+        } as any,
+        {
+          onConflict: "user_id",
+        },
+      );
 
-      if (error) throw error;
+      if (error) {
+        console.error("Upsert error:", error);
+        throw error;
+      }
       navigate("/loading");
     } catch (err) {
       console.error(err);
