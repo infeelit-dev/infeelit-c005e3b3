@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      memories: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_public: boolean
+          thumbnail_url: string | null
+          timeline: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_public?: boolean
+          thumbnail_url?: string | null
+          timeline?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_public?: boolean
+          thumbnail_url?: string | null
+          timeline?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
