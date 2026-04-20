@@ -177,6 +177,8 @@ const Record = () => {
   const uploadedThumbUrl = useRef<string>("");
   const uploadedType = useRef<string>("video");
   const userIdRef = useRef<string>("");
+  // ✅ FIX Bug 1 — savoir si on enregistre un followup
+  const isFollowupRec = useRef<boolean>(false);
 
   const [stage, setStage] = useState<Stage>("question");
   const [mediaRecorder, setMR] = useState<MediaRecorder | null>(null);
@@ -277,7 +279,9 @@ const Record = () => {
     return () => cancelAnimationFrame(animFrameRef.current);
   }, [audioMode, stage]);
 
-  const startCountdown = () => {
+  // ✅ FIX Bug 1 — startCountdown sait si c'est un followup
+  const startCountdown = (fromFollowup = false) => {
+    isFollowupRec.current = fromFollowup;
     setStage("countdown");
     setCountdown(3);
     const timer = setInterval(() => {
@@ -320,7 +324,6 @@ const Record = () => {
           return;
         }
 
-        // Sauvegarde le blob pour le partage natif
         recordedBlob.current = blob;
 
         const {
@@ -331,11 +334,10 @@ const Record = () => {
         uploadedType.current = audioMode ? "audio" : "video";
 
         const ts = Date.now();
-        const ext = audioMode ? "webm" : mimeType.includes("mp4") ? "mp4" : "webm";
+        const ext = mimeType.includes("mp4") ? "mp4" : "webm";
         const fileName = `${userId}/${ts}_memory.${ext}`;
         const posterName = `${userId}/${ts}_poster.jpg`;
 
-        // Upload dans Supabase Storage
         let fileUrl = "";
         if (user) {
           const { data, error: uploadError } = await supabase.storage
@@ -349,7 +351,6 @@ const Record = () => {
         }
         uploadedFileUrl.current = fileUrl;
 
-        // Upload thumbnail
         let thumbUrl = "";
         if (posterBlob && user) {
           const { data } = await supabase.storage
@@ -361,7 +362,22 @@ const Record = () => {
         }
         uploadedThumbUrl.current = thumbUrl;
         setTitle(poeticTitles[Math.floor(Math.random() * poeticTitles.length)]);
-        setStage("followup");
+
+        // ✅ FIX Bug 1 — si c'était un followup → avance à la question suivante ou title
+        if (isFollowupRec.current) {
+          isFollowupRec.current = false;
+          setFollowIdx((i) => {
+            const next = i + 1;
+            if (next >= followups.length) {
+              setStage("title");
+            } else {
+              setStage("followup");
+            }
+            return next;
+          });
+        } else {
+          setStage("followup");
+        }
       } catch (err) {
         console.error(err);
         toast.error("Error saving. Please try again.");
@@ -388,12 +404,16 @@ const Record = () => {
         created_at: new Date().toISOString(),
       });
       if (error) console.error("Insert error:", error);
-      else toast.success(type === "circle" ? t.sharedCircle : type === "public" ? t.sharedOcean : t.keptPrivate);
     }
+
+    if (type === "circle") toast.success(t.sharedCircle);
+    else if (type === "public") toast.success(t.sharedOcean);
+    else toast.success(t.keptPrivate);
+
+    // ✅ FIX Bug 2 — Treasure, pas feed
     navigate("/treasure");
   };
 
-  // Web Share API — partage natif mobile
   const handleNativeShare = async () => {
     const blob = recordedBlob.current;
     const title = memoryTitle || "A memory";
@@ -405,7 +425,6 @@ const Record = () => {
           : `I shared a memory on Infeelit: "${title}"`;
     const url = "https://infeelit.com";
 
-    // Si Web Share API disponible avec fichiers
     if (navigator.canShare && blob) {
       const file = new File([blob], `memory.${audioMode ? "webm" : "mp4"}`, { type: blob.type });
       if (navigator.canShare({ files: [file] })) {
@@ -417,8 +436,6 @@ const Record = () => {
         }
       }
     }
-
-    // Fallback — partage du lien uniquement
     if (navigator.share) {
       try {
         await navigator.share({ title, text, url });
@@ -426,13 +443,11 @@ const Record = () => {
         /* user cancelled */
       }
     } else {
-      // Dernier fallback — copie le lien
       navigator.clipboard.writeText(`${text} ${url}`);
       toast.success(lang === "ar" ? "تم النسخ!" : lang === "fr" ? "Lien copié !" : "Link copied!");
     }
   };
 
-  // Téléchargement direct
   const handleDownload = () => {
     const blob = recordedBlob.current;
     if (!blob) return;
@@ -529,7 +544,7 @@ const Record = () => {
             </div>
           ) : (
             <button
-              onClick={startCountdown}
+              onClick={() => startCountdown(false)}
               className="mt-2 px-10 py-4 rounded-full gradient-orange font-bold text-lg"
               style={{ color: "#fff" }}
             >
@@ -600,20 +615,23 @@ const Record = () => {
           <p className="text-white/40 text-xs uppercase tracking-widest">
             {followupIdx + 1} / {followups.length}
           </p>
-          <h2 className="text-white text-2xl font-bold leading-tight">{followups[followupIdx]}</h2>
+          <h2 className="text-white text-2xl font-bold leading-tight">
+            {followups[Math.min(followupIdx, followups.length - 1)]}
+          </h2>
           <div className="flex flex-col gap-3 w-full max-w-xs">
+            {/* ✅ FIX Bug 1 — passe fromFollowup=true */}
             <button
-              onClick={startCountdown}
+              onClick={() => startCountdown(true)}
               className="w-full py-4 rounded-full gradient-orange font-bold text-base"
               style={{ color: "#fff" }}
             >
               {t.answerToo}
             </button>
             <button
-              onClick={() => (followupIdx < followups.length - 1 ? setFollowIdx((i) => i + 1) : setStage("title"))}
+              onClick={() => setStage("title")}
               className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base"
             >
-              {followupIdx < followups.length - 1 ? t.nextQuestion : t.seeMyMemory}
+              {t.seeMyMemory}
             </button>
           </div>
         </div>
@@ -647,7 +665,6 @@ const Record = () => {
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.whoHears}</p>
           <h2 className="text-white text-lg font-bold leading-tight italic mb-2">"{memoryTitle}"</h2>
 
-          {/* Partage dans Infeelit */}
           <button
             onClick={() => handleShare("circle")}
             className="w-full max-w-xs py-4 rounded-full font-bold text-white text-base"
@@ -669,7 +686,6 @@ const Record = () => {
             {t.keepPrivate}
           </button>
 
-          {/* Séparateur */}
           <div className="flex items-center gap-3 w-full max-w-xs my-1">
             <div className="flex-1 h-px bg-white/15" />
             <span className="text-white/30 text-xs uppercase tracking-widest">
@@ -678,7 +694,6 @@ const Record = () => {
             <div className="flex-1 h-px bg-white/15" />
           </div>
 
-          {/* Partage natif mobile — toutes les apps */}
           <button
             onClick={handleNativeShare}
             className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2"
@@ -696,7 +711,6 @@ const Record = () => {
                 : "Share on social media"}
           </button>
 
-          {/* Télécharger */}
           <button
             onClick={handleDownload}
             className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2"
