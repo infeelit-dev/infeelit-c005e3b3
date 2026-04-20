@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { X, StopCircle, Loader2, Share2, Video, Mic } from "lucide-react";
+import { X, StopCircle, Loader2, Share2, Video, Mic, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -139,15 +139,6 @@ const getTheme = (question: string): string => {
   return "default";
 };
 
-const uploadToR2 = async (blob: Blob, fileName: string): Promise<string> => {
-  const endpoint = import.meta.env.VITE_R2_ENDPOINT;
-  const bucketName = import.meta.env.VITE_R2_BUCKET_NAME || "infeelit-memories";
-  const url = `${endpoint}/${bucketName}/${fileName}`;
-  const response = await fetch(url, { method: "PUT", headers: { "Content-Type": blob.type }, body: blob });
-  if (!response.ok) throw new Error(`R2 upload failed: ${response.status}`);
-  return url;
-};
-
 const capturePosterFrame = (videoElement: HTMLVideoElement): Promise<Blob | null> => {
   return new Promise((resolve) => {
     try {
@@ -181,6 +172,7 @@ const Record = () => {
   const recordedChunks = useRef<Blob[]>([]);
   const hardCapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const elapsedTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordedBlob = useRef<Blob | null>(null);
   const uploadedFileUrl = useRef<string>("");
   const uploadedThumbUrl = useRef<string>("");
   const uploadedType = useRef<string>("video");
@@ -197,7 +189,6 @@ const Record = () => {
 
   const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
   const theme = getTheme(question);
-
   const followups =
     FOLLOWUP_QUESTIONS[lang]?.[theme as keyof typeof FOLLOWUP_QUESTIONS.en] ??
     FOLLOWUP_QUESTIONS.en[theme as keyof typeof FOLLOWUP_QUESTIONS.en];
@@ -205,13 +196,25 @@ const Record = () => {
     POETIC_TITLES[lang]?.[theme as keyof typeof POETIC_TITLES.en] ??
     POETIC_TITLES.en[theme as keyof typeof POETIC_TITLES.en];
 
+  const getMimeType = (audioOnly: boolean) => {
+    if (audioOnly) {
+      if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) return "audio/webm;codecs=opus";
+      if (MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4";
+      return "audio/webm";
+    }
+    if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) return "video/webm;codecs=vp9";
+    if (MediaRecorder.isTypeSupported("video/webm")) return "video/webm";
+    if (MediaRecorder.isTypeSupported("video/mp4")) return "video/mp4";
+    return "video/webm";
+  };
+
   const startMedia = async (audioOnly: boolean) => {
     try {
       const constraints = audioOnly
         ? { audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } }
         : {
             video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 480 }, frameRate: { ideal: 24 } },
-            audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 },
+            audio: { echoCancellation: true, noiseSuppression: true },
           };
       const s = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(s);
@@ -224,16 +227,8 @@ const Record = () => {
         source.connect(anal);
         analyserRef.current = anal;
       }
-      const mimeType = audioOnly
-        ? "audio/webm;codecs=opus"
-        : MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-          ? "video/webm;codecs=vp9"
-          : "video/webm";
-      const recorder = new MediaRecorder(s, {
-        mimeType,
-        videoBitsPerSecond: audioOnly ? undefined : 500_000,
-        audioBitsPerSecond: 64_000,
-      });
+      const mimeType = getMimeType(audioOnly);
+      const recorder = new MediaRecorder(s, { mimeType, audioBitsPerSecond: 64_000 });
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) recordedChunks.current.push(e.data);
       };
@@ -295,14 +290,6 @@ const Record = () => {
           setElapsed(0);
           elapsedTimer.current = setInterval(() => setElapsed((e) => e + 1), 1000);
           hardCapTimer.current = setTimeout(() => {
-            toast(
-              lang === "ar"
-                ? "انتهى الوقت، جارٍ الحفظ..."
-                : lang === "fr"
-                  ? "Limite atteinte, sauvegarde..."
-                  : "3 minute limit reached. Saving...",
-              { icon: "⏱️" },
-            );
             handleStop();
           }, MAX_DURATION_SECONDS * 1000);
           return 3;
@@ -325,13 +312,16 @@ const Record = () => {
 
     mediaRecorder.onstop = async () => {
       try {
-        const type = audioMode ? "audio/webm" : "video/webm";
-        const blob = new Blob(recordedChunks.current, { type });
+        const mimeType = getMimeType(audioMode);
+        const blob = new Blob(recordedChunks.current, { type: mimeType });
         if (blob.size === 0) {
           toast.error("Nothing recorded.");
           setStage("recording");
           return;
         }
+
+        // Sauvegarde le blob pour le partage natif
+        recordedBlob.current = blob;
 
         const {
           data: { user },
@@ -341,31 +331,32 @@ const Record = () => {
         uploadedType.current = audioMode ? "audio" : "video";
 
         const ts = Date.now();
-        const fileName = `${userId}/${ts}_memory.webm`;
+        const ext = audioMode ? "webm" : mimeType.includes("mp4") ? "mp4" : "webm";
+        const fileName = `${userId}/${ts}_memory.${ext}`;
         const posterName = `${userId}/${ts}_poster.jpg`;
 
+        // Upload dans Supabase Storage
         let fileUrl = "";
-        try {
-          fileUrl = await uploadToR2(blob, fileName);
-        } catch {
-          if (user) {
-            const { data } = await supabase.storage.from("memories").upload(fileName, blob, { contentType: type });
-            if (data) fileUrl = supabase.storage.from("memories").getPublicUrl(fileName).data.publicUrl;
+        if (user) {
+          const { data, error: uploadError } = await supabase.storage
+            .from("memories")
+            .upload(fileName, blob, { contentType: mimeType, upsert: true });
+          if (data) {
+            fileUrl = supabase.storage.from("memories").getPublicUrl(fileName).data.publicUrl;
+          } else {
+            console.error("Storage upload error:", uploadError);
           }
         }
         uploadedFileUrl.current = fileUrl;
 
+        // Upload thumbnail
         let thumbUrl = "";
-        if (posterBlob) {
-          try {
-            thumbUrl = await uploadToR2(posterBlob, posterName);
-          } catch {
-            if (user) {
-              const { data } = await supabase.storage
-                .from("memories")
-                .upload(posterName, posterBlob, { contentType: "image/jpeg" });
-              if (data) thumbUrl = supabase.storage.from("memories").getPublicUrl(posterName).data.publicUrl;
-            }
+        if (posterBlob && user) {
+          const { data } = await supabase.storage
+            .from("memories")
+            .upload(posterName, posterBlob, { contentType: "image/jpeg", upsert: true });
+          if (data) {
+            thumbUrl = supabase.storage.from("memories").getPublicUrl(posterName).data.publicUrl;
           }
         }
         uploadedThumbUrl.current = thumbUrl;
@@ -383,24 +374,74 @@ const Record = () => {
   const handleShare = async (type: "circle" | "public" | "private") => {
     stream?.getTracks().forEach((t) => t.stop());
     const isPublic = type === "public";
-    if (userIdRef.current && userIdRef.current !== "anonymous" && uploadedFileUrl.current) {
+
+    if (userIdRef.current && userIdRef.current !== "anonymous") {
       const { error } = await (supabase as any).from("memories").insert({
         user_id: userIdRef.current,
         title: memoryTitle || "A memory",
         description: null,
-        file_url: uploadedFileUrl.current,
+        file_url: uploadedFileUrl.current || "",
         file_type: uploadedType.current,
         thumbnail_url: uploadedThumbUrl.current || null,
-        timeline: "past",
+        timeline: "memories",
         is_public: isPublic,
         created_at: new Date().toISOString(),
       });
       if (error) console.error("Insert error:", error);
+      else toast.success(type === "circle" ? t.sharedCircle : type === "public" ? t.sharedOcean : t.keptPrivate);
     }
-    if (type === "circle") toast.success(t.sharedCircle);
-    else if (type === "public") toast.success(t.sharedOcean);
-    else toast.success(t.keptPrivate);
-    navigate("/");
+    navigate("/treasure");
+  };
+
+  // Web Share API — partage natif mobile
+  const handleNativeShare = async () => {
+    const blob = recordedBlob.current;
+    const title = memoryTitle || "A memory";
+    const text =
+      lang === "ar"
+        ? `شاركت ذكرى على Infeelit: "${title}"`
+        : lang === "fr"
+          ? `J'ai partagé un souvenir sur Infeelit : "${title}"`
+          : `I shared a memory on Infeelit: "${title}"`;
+    const url = "https://infeelit.com";
+
+    // Si Web Share API disponible avec fichiers
+    if (navigator.canShare && blob) {
+      const file = new File([blob], `memory.${audioMode ? "webm" : "mp4"}`, { type: blob.type });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ title, text, files: [file] });
+          return;
+        } catch {
+          /* user cancelled */
+        }
+      }
+    }
+
+    // Fallback — partage du lien uniquement
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+      } catch {
+        /* user cancelled */
+      }
+    } else {
+      // Dernier fallback — copie le lien
+      navigator.clipboard.writeText(`${text} ${url}`);
+      toast.success(lang === "ar" ? "تم النسخ!" : lang === "fr" ? "Lien copié !" : "Link copied!");
+    }
+  };
+
+  // Téléchargement direct
+  const handleDownload = () => {
+    const blob = recordedBlob.current;
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `infeelit-memory-${Date.now()}.${audioMode ? "webm" : "mp4"}`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
@@ -450,15 +491,7 @@ const Record = () => {
                 <Video size={14} className="text-[#E8742A]" />
               )}
               <span className="text-[10px] text-white/70 font-bold uppercase tracking-widest">
-                {audioMode
-                  ? lang === "ar"
-                    ? "صوت فقط"
-                    : lang === "fr"
-                      ? "Voix"
-                      : "Voice only"
-                  : lang === "ar"
-                    ? "فيديو"
-                    : "Video"}
+                {audioMode ? t.voiceLabel : t.videoLabel}
               </span>
             </div>
           )}
@@ -520,17 +553,7 @@ const Record = () => {
             <div className="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full animate-pulse">
               <div className="w-2 h-2 bg-white rounded-full" />
               <span className="text-[10px] text-white font-black uppercase tracking-widest">
-                {audioMode
-                  ? lang === "ar"
-                    ? "يستمع..."
-                    : lang === "fr"
-                      ? "Écoute..."
-                      : "Listening..."
-                  : lang === "ar"
-                    ? "تسجيل"
-                    : lang === "fr"
-                      ? "Enregistrement"
-                      : "Recording"}
+                {audioMode ? t.listening : t.recording}
               </span>
             </div>
           </div>
@@ -620,9 +643,11 @@ const Record = () => {
 
       {/* STAGE 7 — SHARE */}
       {stage === "share" && (
-        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-5">
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.whoHears}</p>
           <h2 className="text-white text-lg font-bold leading-tight italic mb-2">"{memoryTitle}"</h2>
+
+          {/* Partage dans Infeelit */}
           <button
             onClick={() => handleShare("circle")}
             className="w-full max-w-xs py-4 rounded-full font-bold text-white text-base"
@@ -642,6 +667,43 @@ const Record = () => {
             className="w-full max-w-xs py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base"
           >
             {t.keepPrivate}
+          </button>
+
+          {/* Séparateur */}
+          <div className="flex items-center gap-3 w-full max-w-xs my-1">
+            <div className="flex-1 h-px bg-white/15" />
+            <span className="text-white/30 text-xs uppercase tracking-widest">
+              {lang === "ar" ? "أو" : lang === "fr" ? "ou" : "or"}
+            </span>
+            <div className="flex-1 h-px bg-white/15" />
+          </div>
+
+          {/* Partage natif mobile — toutes les apps */}
+          <button
+            onClick={handleNativeShare}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: "rgba(255,255,255,.12)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,.2)",
+            }}
+          >
+            <Share2 size={18} />
+            {lang === "ar"
+              ? "مشاركة على وسائل التواصل"
+              : lang === "fr"
+                ? "Partager sur les réseaux"
+                : "Share on social media"}
+          </button>
+
+          {/* Télécharger */}
+          <button
+            onClick={handleDownload}
+            className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2"
+            style={{ color: "rgba(255,255,255,.4)" }}
+          >
+            <Download size={16} />
+            {lang === "ar" ? "تحميل الذكرى" : lang === "fr" ? "Télécharger le souvenir" : "Download memory"}
           </button>
         </div>
       )}
