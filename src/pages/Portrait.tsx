@@ -18,8 +18,9 @@ const Portrait = () => {
   const navigate = useNavigate();
   const { t, lang, rtl } = useLanguage();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // 0 = prénom
   const [loading, setLoading] = useState(false);
+  const [firstName, setFirstName] = useState("");
   const [generation, setGeneration] = useState("");
   const [audience, setAudience] = useState("");
   const [spark, setSpark] = useState("");
@@ -37,6 +38,7 @@ const Portrait = () => {
   };
 
   const isStepValid = () => {
+    if (step === 0) return firstName.trim().length >= 2;
     if (step === 1) return generation !== "";
     if (step === 2) return audience !== "";
     if (step === 3) return spark !== "";
@@ -56,16 +58,13 @@ const Portrait = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      const defaultName = user.email?.split("@")[0] || "Member";
-
-      // UPSERT — crée la ligne si elle n'existe pas, met à jour sinon
       const { error } = await supabase.from("profiles").upsert(
         {
           user_id: user.id,
           generation,
           audience,
           spark,
-          display_name: defaultName,
+          display_name: firstName.trim(),
           onboarding_completed: true,
         } as any,
         {
@@ -103,11 +102,47 @@ const Portrait = () => {
     );
   };
 
-  const stepLabel = step === 1 ? t.portraitStep1Label : step === 2 ? t.portraitStep2Label : t.portraitStep3Label;
+  const totalSteps = 4;
+  const progressPercent = (step / totalSteps) * 100;
 
-  const stepTitle = step === 1 ? t.portraitStep1Title : step === 2 ? t.portraitStep2Title : t.portraitStep3Title;
+  const stepLabel =
+    step === 0
+      ? lang === "ar"
+        ? "من أنت؟"
+        : lang === "fr"
+          ? "Votre prénom"
+          : "Your name"
+      : step === 1
+        ? t.portraitStep1Label
+        : step === 2
+          ? t.portraitStep2Label
+          : t.portraitStep3Label;
 
-  const stepSub = step === 1 ? t.portraitStep1Sub : step === 2 ? t.portraitStep2Sub : t.portraitStep3Sub;
+  const stepTitle =
+    step === 0
+      ? lang === "ar"
+        ? "كيف اسمك؟"
+        : lang === "fr"
+          ? "Comment vous appelez-vous ?"
+          : "What is your name?"
+      : step === 1
+        ? t.portraitStep1Title
+        : step === 2
+          ? t.portraitStep2Title
+          : t.portraitStep3Title;
+
+  const stepSub =
+    step === 0
+      ? lang === "ar"
+        ? "سيُحفظ اسمك مع قصصك إلى الأبد."
+        : lang === "fr"
+          ? "Votre prénom accompagnera vos souvenirs pour toujours."
+          : "Your name will accompany your memories forever."
+      : step === 1
+        ? t.portraitStep1Sub
+        : step === 2
+          ? t.portraitStep2Sub
+          : t.portraitStep3Sub;
 
   return (
     <div
@@ -190,13 +225,60 @@ const Portrait = () => {
         <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-[#E8742A] transition-all duration-500 ease-out rounded-full"
-            style={{ width: `${(step / 3) * 100}%` }}
+            style={{ width: `${progressPercent}%` }}
           />
         </div>
       </div>
 
-      {/* Cards */}
+      {/* Content */}
       <div className="flex-1 px-8 pt-6 overflow-y-auto pb-32">
+        {/* STEP 0 — Prénom */}
+        {step === 0 && (
+          <div className="flex flex-col items-center gap-6 pt-4">
+            <div className="w-full max-w-sm">
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder={
+                  lang === "ar" ? "اكتب اسمك هنا..." : lang === "fr" ? "Votre prénom..." : "Your first name..."
+                }
+                autoFocus
+                dir={rtl ? "rtl" : "ltr"}
+                className="w-full p-5 rounded-2xl border-2 border-gray-200 text-center text-xl font-bold text-[#1A3B47] focus:outline-none focus:border-[#E8742A] transition-colors bg-white shadow-sm"
+                style={{
+                  fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && isStepValid()) handleNext();
+                }}
+              />
+              {firstName.trim().length > 0 && firstName.trim().length < 2 && (
+                <p className="text-center text-xs text-red-400 mt-2">
+                  {lang === "ar"
+                    ? "يرجى إدخال اسم صحيح"
+                    : lang === "fr"
+                      ? "Veuillez entrer un prénom valide"
+                      : "Please enter a valid name"}
+                </p>
+              )}
+            </div>
+
+            {firstName.trim().length >= 2 && (
+              <div className="text-center animate-pulse">
+                <p className="text-[#E8742A] text-sm font-bold italic">
+                  {lang === "ar"
+                    ? `مرحباً، ${firstName} ✦`
+                    : lang === "fr"
+                      ? `Bienvenue, ${firstName} ✦`
+                      : `Welcome, ${firstName} ✦`}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 1 — Generation */}
         {step === 1 && (
           <div className="flex flex-col">
             <Card type="generation" id="Silent" title={t.genSilent} subtitle={t.genSilentSub} />
@@ -207,6 +289,8 @@ const Portrait = () => {
             <Card type="generation" id="GenAlpha" title={t.genAlpha} subtitle={t.genAlphaSub} />
           </div>
         )}
+
+        {/* STEP 2 — Audience */}
         {step === 2 && (
           <div className="flex flex-col">
             <Card type="audience" id="Children" title={t.audChildren} subtitle={t.audChildrenSub} />
@@ -215,6 +299,8 @@ const Portrait = () => {
             <Card type="audience" id="All" title={t.audAll} subtitle={t.audAllSub} />
           </div>
         )}
+
+        {/* STEP 3 — Spark */}
         {step === 3 && (
           <div className="flex flex-col">
             <Card type="spark" id="Afraid" title={t.sparkAfraid} subtitle={t.sparkAfraidSub} />
