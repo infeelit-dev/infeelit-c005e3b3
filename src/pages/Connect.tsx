@@ -34,25 +34,58 @@ const Connect = () => {
       setLoading(false);
     };
     init();
-  }, []);
+  }, [navigate]);
 
   const loadProfiles = async () => {
     const { data } = await supabase.from("profiles").select("id, user_id, display_name, phone").limit(50);
+
     if (data) setProfiles(data);
   };
 
   const loadFollowing = async (userId: string) => {
-    const stored = localStorage.getItem(`infeelit_following_${userId}`);
-    if (stored) setFollowing(JSON.parse(stored));
+    const { data } = await supabase.from("follows").select("following_id").eq("follower_id", userId);
+
+    if (data) {
+      const ids = data.map((f) => f.following_id);
+      setFollowing(ids);
+    }
   };
 
   const handleFollow = async (profileUserId: string) => {
     if (!currentUser) return;
+
     const isFollowing = following.includes(profileUserId);
-    const updated = isFollowing ? following.filter((id) => id !== profileUserId) : [...following, profileUserId];
-    setFollowing(updated);
-    localStorage.setItem(`infeelit_following_${currentUser}`, JSON.stringify(updated));
-    toast.success(isFollowing ? "Unfollowed" : "Following — you'll see their memories.");
+
+    if (isFollowing) {
+      const { error } = await supabase
+        .from("follows")
+        .delete()
+        .eq("follower_id", currentUser)
+        .eq("following_id", profileUserId);
+
+      if (error) {
+        console.error("Unfollow error:", error);
+        toast.error("Failed to unfollow.");
+        return;
+      }
+
+      setFollowing((prev) => prev.filter((id) => id !== profileUserId));
+      toast.success("Unfollowed");
+    } else {
+      const { error } = await supabase.from("follows").insert({
+        follower_id: currentUser,
+        following_id: profileUserId,
+      });
+
+      if (error) {
+        console.error("Follow error:", error);
+        toast.error("Failed to follow.");
+        return;
+      }
+
+      setFollowing((prev) => [...prev, profileUserId]);
+      toast.success("Following — you'll see their memories.");
+    }
   };
 
   const handleInvite = () => {
@@ -110,7 +143,7 @@ const Connect = () => {
         </div>
       </div>
 
-      {/* Liste */}
+      {/* List */}
       <div className="flex-1 overflow-y-auto px-6 pb-40 space-y-3">
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -141,7 +174,7 @@ const Connect = () => {
                   {getInitial(profile)}
                 </div>
 
-                {/* Infos */}
+                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-bold text-sm truncate">{profile.display_name || "Infeelit Member"}</p>
                   <div className="flex items-center gap-3 mt-1">
@@ -156,7 +189,7 @@ const Connect = () => {
                   </div>
                 </div>
 
-                {/* Follow */}
+                {/* Follow / Unfollow */}
                 <button
                   onClick={() => handleFollow(profile.user_id)}
                   className="shrink-0 px-4 py-2 rounded-full font-bold text-xs transition-all"
