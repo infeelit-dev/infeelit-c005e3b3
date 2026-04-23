@@ -45,7 +45,7 @@ interface Memory {
 
 type ActiveTab = "all" | "memories" | "forever" | "video" | "voices";
 
-// ─── Demo fallback ────────────────────────────────────────────────────────────
+// ─── Demo fallback (garde la vision du créateur) ──────────────────────────────
 
 const DEMO: Memory[] = [
   {
@@ -237,7 +237,6 @@ const LifeTimeline = ({ handle, lifeLabel }: { handle: string; lifeLabel: string
           );
         })}
 
-        {/* + button */}
         <div style={{ marginBottom: "0px" }}>
           <button
             onClick={() => toast.info("Add a life photo — coming soon")}
@@ -374,6 +373,7 @@ const Player = ({
 }) => {
   const tl = tlStyle(memory.timeline);
   const isAudio = memory.file_type === "audio";
+  const isDemo = memory.id.startsWith("d");
 
   return (
     <div
@@ -413,12 +413,20 @@ const Player = ({
             overflow: "hidden",
           }}
         >
-          {memory.thumbnail_url && !isAudio ? (
+          {!isDemo && memory.file_url && memory.file_type === "video" ? (
+            <video
+              src={memory.file_url}
+              controls
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : memory.thumbnail_url && !isAudio ? (
             <img
               src={memory.thumbnail_url}
               alt=""
               style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
             />
+          ) : isAudio && !isDemo && memory.file_url ? (
+            <audio src={memory.file_url} controls style={{ width: "80%" }} />
           ) : isAudio ? (
             <div style={{ display: "flex", alignItems: "center", gap: "3px", height: "56px" }}>
               {Array.from({ length: 32 }).map((_, i) => (
@@ -445,25 +453,27 @@ const Player = ({
               position: "absolute",
               inset: 0,
               background: "linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 55%)",
+              pointerEvents: "none",
             }}
           />
 
-          <div
-            style={{
-              position: "absolute",
-              width: "68px",
-              height: "68px",
-              borderRadius: "50%",
-              backgroundColor: "#E8742A",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 0 0 8px rgba(232,116,42,.18),0 0 40px rgba(232,116,42,.5)",
-              cursor: "pointer",
-            }}
-          >
-            <Play size={28} color="#fff" fill="#fff" style={{ marginLeft: "3px" }} />
-          </div>
+          {isDemo && (
+            <div
+              style={{
+                position: "absolute",
+                width: "68px",
+                height: "68px",
+                borderRadius: "50%",
+                backgroundColor: "#E8742A",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 0 0 8px rgba(232,116,42,.18),0 0 40px rgba(232,116,42,.5)",
+              }}
+            >
+              <Play size={28} color="#fff" fill="#fff" style={{ marginLeft: "3px" }} />
+            </div>
+          )}
 
           <div
             style={{
@@ -587,7 +597,7 @@ const Treasure = () => {
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState("Your");
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
-  const [isDemo, setIsDemo] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [playerIdx, setPlayerIdx] = useState<number | null>(null);
 
   const TABS: { id: ActiveTab; label: string }[] = [
@@ -604,12 +614,16 @@ const Treasure = () => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
+
         if (!session) {
+          // Pas connecté → on montre les démos pour la vision
           setMemories(DEMO);
-          setIsDemo(true);
+          setIsLoggedIn(false);
           setLoading(false);
           return;
         }
+
+        setIsLoggedIn(true);
 
         const { data: profile } = await supabase
           .from("profiles")
@@ -618,25 +632,24 @@ const Treasure = () => {
           .single();
         if (profile?.display_name) setDisplayName(profile.display_name);
 
-        const { data: mems, error } = await (supabase as any)
+        const { data: mems, error } = await supabase
           .from("memories")
           .select("*")
           .eq("user_id", session.user.id)
           .order("created_at", { ascending: false });
 
-        if (error) console.error(error);
-
-        if (mems?.length > 0) {
-          setMemories(mems as Memory[]);
-          setIsDemo(false);
-        } else {
+        if (error) {
+          console.error("Error fetching memories:", error);
           setMemories(DEMO);
-          setIsDemo(true);
+        } else if (mems && mems.length > 0) {
+          setMemories(mems as Memory[]);
+        } else {
+          // Connecté mais aucun souvenir → démos pour montrer la vision
+          setMemories(DEMO);
         }
       } catch (err) {
         console.error(err);
         setMemories(DEMO);
-        setIsDemo(true);
       } finally {
         setLoading(false);
       }
@@ -653,7 +666,8 @@ const Treasure = () => {
     return true;
   });
 
-  const real = isDemo ? [] : memories;
+  const isDemoData = memories.length > 0 && memories[0].id.startsWith("d");
+  const real = isDemoData ? [] : memories;
   const statVideos = real.filter((m) => m.file_type === "video").length;
   const statVoices = real.filter((m) => m.file_type === "audio").length;
 
@@ -768,7 +782,7 @@ const Treasure = () => {
           ))}
         </div>
 
-        {isDemo && (
+        {isDemoData && (
           <div
             style={{
               marginTop: "12px",
@@ -847,267 +861,121 @@ const Treasure = () => {
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            {/* Vault card */}
             <VaultCard title={t.privateVault} subtitle={t.privateVaultSub} onClick={() => toast.info(t.comingSoon)} />
 
-            {/* Memory cards */}
-            {filtered.length === 0 ? (
-              <div
-                style={{
-                  gridColumn: "1 / -1",
-                  textAlign: "center",
-                  padding: "50px 24px",
-                  backgroundColor: "rgba(255,255,255,.04)",
-                  borderRadius: "24px",
-                  border: "2px dashed rgba(255,255,255,.1)",
-                }}
-              >
-                <Heart size={40} color="rgba(255,255,255,.1)" style={{ margin: "0 auto 14px" }} />
-                <p
-                  style={{
-                    fontSize: "15px",
-                    fontFamily: "Georgia,serif",
-                    fontStyle: "italic",
-                    color: "rgba(255,255,255,.45)",
-                    marginBottom: "6px",
-                  }}
-                >
-                  {t.nothingYet}
-                </p>
-                <p style={{ fontSize: "12px", color: "rgba(255,255,255,.22)" }}>{t.recordToFill}</p>
-              </div>
-            ) : (
-              filtered.map((mem, idx) => {
-                const tl = tlStyle(mem.timeline);
-                const isAudio = mem.file_type === "audio";
-                const isFore = mem.timeline === "forever";
+            {filtered.map((mem, idx) => {
+              const tl = tlStyle(mem.timeline);
+              const isAudio = mem.file_type === "audio";
+              const isFore = mem.timeline === "forever";
 
-                return (
+              return (
+                <div
+                  key={mem.id}
+                  onClick={() => setPlayerIdx(idx)}
+                  style={{
+                    backgroundColor: "#1A2530",
+                    borderRadius: "20px",
+                    overflow: "hidden",
+                    border: isFore ? "1px solid rgba(107,78,155,.3)" : "1px solid rgba(255,255,255,.07)",
+                    cursor: "pointer",
+                    transition: "transform .14s",
+                  }}
+                  onTouchStart={(e) => (e.currentTarget.style.transform = "scale(.96)")}
+                  onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                >
                   <div
-                    key={mem.id}
-                    onClick={() => {
-                      if (isDemo) {
-                        toast.info(t.recordToFill);
-                        return;
-                      }
-                      setPlayerIdx(idx);
-                    }}
                     style={{
-                      backgroundColor: "#1A2530",
-                      borderRadius: "20px",
+                      position: "relative",
+                      aspectRatio: "1",
+                      backgroundColor: isAudio
+                        ? isFore
+                          ? "rgba(107,78,155,.15)"
+                          : "rgba(26,59,71,.4)"
+                        : "rgba(0,0,0,.4)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       overflow: "hidden",
-                      border: isFore ? "1px solid rgba(107,78,155,.3)" : "1px solid rgba(255,255,255,.07)",
-                      cursor: "pointer",
-                      transition: "transform .14s",
                     }}
-                    onTouchStart={(e) => (e.currentTarget.style.transform = "scale(.96)")}
-                    onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
                   >
+                    {mem.thumbnail_url ? (
+                      <img
+                        src={mem.thumbnail_url}
+                        alt=""
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          objectPosition: "center top",
+                          filter: isFore ? "brightness(.8) saturate(.7)" : "none",
+                        }}
+                      />
+                    ) : (
+                      <div style={{ opacity: 0.22 }}>
+                        {isAudio ? <Volume2 size={28} color="#fff" /> : <Video size={28} color="#fff" />}
+                      </div>
+                    )}
+
                     <div
                       style={{
-                        position: "relative",
-                        aspectRatio: "1",
-                        backgroundColor: isAudio
-                          ? isFore
-                            ? "rgba(107,78,155,.15)"
-                            : "rgba(26,59,71,.4)"
-                          : "rgba(0,0,0,.4)",
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(to top,rgba(0,0,0,.78) 0%,rgba(0,0,0,.08) 55%,transparent 100%)",
+                      }}
+                    />
+
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "8px",
+                        right: "8px",
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        backgroundColor: "rgba(232,116,42,.85)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        overflow: "hidden",
+                        boxShadow: "0 0 12px rgba(232,116,42,.4)",
                       }}
                     >
-                      {mem.thumbnail_url ? (
-                        <img
-                          src={mem.thumbnail_url}
-                          alt=""
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            objectPosition: "center top",
-                            filter: isFore ? "brightness(.8) saturate(.7)" : "none",
-                          }}
-                        />
-                      ) : (
-                        <div style={{ opacity: 0.22 }}>
-                          {isAudio ? <Volume2 size={28} color="#fff" /> : <Video size={28} color="#fff" />}
-                        </div>
-                      )}
-
-                      <div
-                        style={{
-                          position: "absolute",
-                          inset: 0,
-                          background: "linear-gradient(to top,rgba(0,0,0,.78) 0%,rgba(0,0,0,.08) 55%,transparent 100%)",
-                        }}
-                      />
-
-                      <div
-                        style={{
-                          position: "absolute",
-                          bottom: "8px",
-                          right: "8px",
-                          width: "30px",
-                          height: "30px",
-                          borderRadius: "50%",
-                          backgroundColor: "rgba(232,116,42,.85)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          boxShadow: "0 0 12px rgba(232,116,42,.4)",
-                        }}
-                      >
-                        <Play size={12} color="#fff" fill="#fff" style={{ marginLeft: "1px" }} />
-                      </div>
-
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "8px",
-                          left: "8px",
-                          padding: "3px 8px",
-                          borderRadius: "20px",
-                          backgroundColor: tl.bg,
-                          border: `1px solid ${tl.border}`,
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: "7px",
-                            fontWeight: 900,
-                            letterSpacing: ".08em",
-                            color: tl.color,
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {tl.text}
-                        </span>
-                      </div>
-
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "8px",
-                          right: "8px",
-                          width: "22px",
-                          height: "22px",
-                          borderRadius: "50%",
-                          backgroundColor: "rgba(0,0,0,.28)",
-                          backdropFilter: "blur(4px)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {mem.is_public ? (
-                          <Globe size={9} color="rgba(255,255,255,.65)" />
-                        ) : (
-                          <Lock size={9} color="rgba(255,255,255,.65)" />
-                        )}
-                      </div>
-
-                      {isFore && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            background: "linear-gradient(to top,rgba(107,78,155,.45) 0%,transparent 55%)",
-                          }}
-                        />
-                      )}
+                      <Play size={12} color="#fff" fill="#fff" style={{ marginLeft: "1px" }} />
                     </div>
 
-                    <div style={{ padding: "10px 12px 12px" }}>
-                      <h3
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "8px",
+                        left: "8px",
+                        padding: "3px 8px",
+                        borderRadius: "20px",
+                        backgroundColor: tl.bg,
+                        border: `1px solid ${tl.border}`,
+                      }}
+                    >
+                      <span
                         style={{
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          color: "#fff",
-                          overflow: "hidden",
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          marginBottom: "4px",
-                          lineHeight: 1.3,
+                          fontSize: "7px",
+                          fontWeight: 900,
+                          letterSpacing: ".08em",
+                          color: tl.color,
+                          textTransform: "uppercase",
                         }}
                       >
-                        {mem.title || "A memory"}
-                      </h3>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <p style={{ fontSize: "9px", color: "rgba(255,255,255,.3)" }}>{formatDate(mem.created_at)}</p>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "3px",
-                            padding: "2px 7px",
-                            borderRadius: "10px",
-                            backgroundColor: isAudio ? "rgba(107,78,155,.2)" : "rgba(255,255,255,.07)",
-                          }}
-                        >
-                          {isAudio ? (
-                            <Volume2 size={8} color="#c4b5fd" />
-                          ) : (
-                            <Video size={8} color="rgba(255,255,255,.5)" />
-                          )}
-                          <span
-                            style={{
-                              fontSize: "8px",
-                              fontWeight: 700,
-                              color: isAudio ? "#c4b5fd" : "rgba(255,255,255,.45)",
-                            }}
-                          >
-                            {isAudio ? t.voiceLabel : t.videoLabel}
-                          </span>
-                        </div>
-                      </div>
+                        {tl.text}
+                      </span>
                     </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
-      </div>
 
-      {/* Fixed CTA */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: "16px 20px 32px",
-          background: "linear-gradient(to top,#0E1A20 55%,transparent)",
-          zIndex: 50,
-          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
-        }}
-      >
-        <button
-          onClick={() => navigate("/record")}
-          style={{
-            width: "100%",
-            padding: "17px",
-            borderRadius: "20px",
-            background: "linear-gradient(135deg,#E8742A,#D4621A)",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: "15px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "10px",
-            boxShadow: "0 0 0 1px rgba(232,116,42,.3),0 8px 32px rgba(232,116,42,.55),0 0 60px rgba(232,116,42,.25)",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <Mic size={20} /> {t.preserveStory}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default Treasure;
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "8px",
+                        right: "8px",
+                        width: "22px",
+                        height: "22px",
+                        borderRadius: "50%",
+                        backgroundColor: "rgba(0,0,0,.28)",
+                        backdropFilter: "blur(4px)",
+                        display: "flex",
+                        alignItems: "center",
+                       
