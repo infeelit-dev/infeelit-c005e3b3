@@ -414,11 +414,7 @@ const Player = ({
           }}
         >
           {!isDemo && memory.file_url && memory.file_type === "video" ? (
-            <video
-              src={memory.file_url}
-              controls
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+            <video src={memory.file_url} controls style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           ) : memory.thumbnail_url && !isAudio ? (
             <img
               src={memory.thumbnail_url}
@@ -616,7 +612,6 @@ const Treasure = () => {
         } = await supabase.auth.getSession();
 
         if (!session) {
-          // Pas connecté → on montre les démos pour la vision
           setMemories(DEMO);
           setIsLoggedIn(false);
           setLoading(false);
@@ -644,7 +639,6 @@ const Treasure = () => {
         } else if (mems && mems.length > 0) {
           setMemories(mems as Memory[]);
         } else {
-          // Connecté mais aucun souvenir → démos pour montrer la vision
           setMemories(DEMO);
         }
       } catch (err) {
@@ -673,7 +667,6 @@ const Treasure = () => {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0E1A20", paddingBottom: "120px" }} dir={rtl ? "rtl" : "ltr"}>
-      {/* Player */}
       {playerIdx !== null && filtered[playerIdx] && (
         <Player
           memory={filtered[playerIdx]}
@@ -685,7 +678,6 @@ const Treasure = () => {
         />
       )}
 
-      {/* Hero */}
       <div
         style={{
           background: "linear-gradient(160deg,#1A3B47 0%,#22534A 45%,#B85A18 100%)",
@@ -797,7 +789,6 @@ const Treasure = () => {
         )}
       </div>
 
-      {/* Tabs */}
       <div
         style={{
           padding: "18px 20px 4px",
@@ -831,7 +822,6 @@ const Treasure = () => {
         ))}
       </div>
 
-      {/* Grid */}
       <div style={{ padding: "12px 20px" }}>
         {loading ? (
           <div
@@ -978,4 +968,114 @@ const Treasure = () => {
                         backdropFilter: "blur(4px)",
                         display: "flex",
                         alignItems: "center",
-                       
+                        justifyContent: "center",
+                      }}
+                    >
+                      {mem.is_public ? (
+                        <Globe size={9} color="rgba(255,255,255,.65)" />
+                      ) : (
+                        <Lock size={9} color="rgba(255,255,255,.65)" />
+                      )}
+                    </div>
+
+                    {isFore && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "linear-gradient(to top,rgba(107,78,155,.45) 0%,transparent 55%)",
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <div style={{ padding: "10px 12px 12px" }}>
+                    <h3
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: "#fff",
+                        overflow: "hidden",
+                        whiteSpace: "nowrap",
+                        textOverflow: "ellipsis",
+                        marginBottom: "4px",
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {mem.title || "A memory"}
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <p style={{ fontSize: "9px", color: "rgba(255,255,255,.3)" }}>{formatDate(mem.created_at)}</p>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "3px",
+                          padding: "2px 7px",
+                          borderRadius: "10px",
+                          backgroundColor: isAudio ? "rgba(107,78,155,.2)" : "rgba(255,255,255,.07)",
+                        }}
+                      >
+                        {isAudio ? (
+                          <Volume2 size={8} color="#c4b5fd" />
+                        ) : (
+                          <Video size={8} color="rgba(255,255,255,.5)" />
+                        )}
+                        <span
+                          style={{
+                            fontSize: "8px",
+                            fontWeight: 700,
+                            color: isAudio ? "#c4b5fd" : "rgba(255,255,255,.45)",
+                          }}
+                        >
+                          {isAudio ? t.voiceLabel : t.videoLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: "16px 20px 32px",
+          background: "linear-gradient(to top,#0E1A20 55%,transparent)",
+          zIndex: 50,
+          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+        }}
+      >
+        <button
+          onClick={() => navigate("/record")}
+          style={{
+            width: "100%",
+            padding: "17px",
+            borderRadius: "20px",
+            background: "linear-gradient(135deg,#E8742A,#D4621A)",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "15px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            boxShadow: "0 0 0 1px rgba(232,116,42,.3),0 8px 32px rgba(232,116,42,.55),0 0 60px rgba(232,116,42,.25)",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <Mic size={20} /> {t.preserveStory}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Treasure;
