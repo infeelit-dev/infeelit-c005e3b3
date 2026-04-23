@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Copy, Check, Mic, Play, Volume2, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -230,16 +231,43 @@ const DEMO_SHELF = [
   },
 ];
 
+// ─── Fetch function for React Query ───────────────────────────────────────────
+
+const fetchMemories = async (): Promise<Memory[]> => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return [];
+
+  const { data: mems } = await supabase
+    .from("memories")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  return (mems as Memory[]) || [];
+};
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 const Circle = () => {
   const navigate = useNavigate();
   const { t, lang, rtl } = useLanguage();
+
   const sphereTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [copied, setCopied] = useState(false);
   const [sphereMode, setSphereMode] = useState<SphereMode>("question");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [seenMembers, setSeenMembers] = useState<Set<string>>(new Set());
-  const [memories, setMemories] = useState<Memory[]>([]);
+
+  // React Query — cache automatique
+  const { data: memories = [] } = useQuery({
+    queryKey: ["memories"],
+    queryFn: fetchMemories,
+    staleTime: 30_000,
+  });
 
   const FILTERS: { id: FilterType; label: string }[] = [
     { id: "all", label: t.tabAll },
@@ -249,20 +277,6 @@ const Circle = () => {
   ];
 
   useEffect(() => {
-    const init = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) return;
-      const { data: mems } = await (supabase as any)
-        .from("memories")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (mems?.length) setMemories(mems as Memory[]);
-    };
-    init();
     sphereTimerRef.current = setInterval(() => {
       setSphereMode((p) => (p === "question" ? "memory" : "question"));
     }, 6000);
