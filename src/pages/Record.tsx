@@ -177,7 +177,6 @@ const Record = () => {
   const uploadedThumbUrl = useRef<string>("");
   const uploadedType = useRef<string>("video");
   const userIdRef = useRef<string>("");
-  // ✅ FIX Bug 1 — savoir si on enregistre un followup
   const isFollowupRec = useRef<boolean>(false);
 
   const [stage, setStage] = useState<Stage>("question");
@@ -190,6 +189,7 @@ const Record = () => {
   const [elapsed, setElapsed] = useState(0);
 
   const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
+  const category = location.state?.category || "past";
   const theme = getTheme(question);
   const followups =
     FOLLOWUP_QUESTIONS[lang]?.[theme as keyof typeof FOLLOWUP_QUESTIONS.en] ??
@@ -279,7 +279,6 @@ const Record = () => {
     return () => cancelAnimationFrame(animFrameRef.current);
   }, [audioMode, stage]);
 
-  // ✅ FIX Bug 1 — startCountdown sait si c'est un followup
   const startCountdown = (fromFollowup = false) => {
     isFollowupRec.current = fromFollowup;
     setStage("countdown");
@@ -343,27 +342,34 @@ const Record = () => {
           const { data, error: uploadError } = await supabase.storage
             .from("memories")
             .upload(fileName, blob, { contentType: mimeType, upsert: true });
+
+          if (uploadError) {
+            console.error("Upload failed:", uploadError);
+            toast.error("Failed to upload. Please try again.");
+            setStage("recording");
+            return;
+          }
+
           if (data) {
             fileUrl = supabase.storage.from("memories").getPublicUrl(fileName).data.publicUrl;
-          } else {
-            console.error("Storage upload error:", uploadError);
           }
         }
         uploadedFileUrl.current = fileUrl;
 
         let thumbUrl = "";
         if (posterBlob && user) {
-          const { data } = await supabase.storage
+          const { data: posterData, error: posterError } = await supabase.storage
             .from("memories")
             .upload(posterName, posterBlob, { contentType: "image/jpeg", upsert: true });
-          if (data) {
+
+          if (!posterError && posterData) {
             thumbUrl = supabase.storage.from("memories").getPublicUrl(posterName).data.publicUrl;
           }
         }
         uploadedThumbUrl.current = thumbUrl;
+
         setTitle(poeticTitles[Math.floor(Math.random() * poeticTitles.length)]);
 
-        // ✅ FIX Bug 1 — si c'était un followup → avance à la question suivante ou title
         if (isFollowupRec.current) {
           isFollowupRec.current = false;
           setFollowIdx((i) => {
@@ -391,26 +397,36 @@ const Record = () => {
     stream?.getTracks().forEach((t) => t.stop());
     const isPublic = type === "public";
 
-    if (userIdRef.current && userIdRef.current !== "anonymous") {
-      const { error } = await (supabase as any).from("memories").insert({
+    if (userIdRef.current && userIdRef.current !== "anonymous" && uploadedFileUrl.current) {
+      const timelineMap: Record<string, string> = {
+        past: "memories",
+        future: "forever",
+        family: "instant",
+      };
+      const timeline = timelineMap[category] || "memories";
+
+      const { error } = await supabase.from("memories").insert({
         user_id: userIdRef.current,
         title: memoryTitle || "A memory",
         description: null,
-        file_url: uploadedFileUrl.current || "",
+        file_url: uploadedFileUrl.current,
         file_type: uploadedType.current,
         thumbnail_url: uploadedThumbUrl.current || null,
-        timeline: "memories",
+        timeline: timeline,
         is_public: isPublic,
-        created_at: new Date().toISOString(),
       });
-      if (error) console.error("Insert error:", error);
+
+      if (error) {
+        console.error("Insert error:", error);
+        toast.error("Failed to save memory.");
+        return;
+      }
     }
 
     if (type === "circle") toast.success(t.sharedCircle);
     else if (type === "public") toast.success(t.sharedOcean);
     else toast.success(t.keptPrivate);
 
-    // ✅ FIX Bug 2 — Treasure, pas feed
     navigate("/treasure");
   };
 
@@ -619,7 +635,6 @@ const Record = () => {
             {followups[Math.min(followupIdx, followups.length - 1)]}
           </h2>
           <div className="flex flex-col gap-3 w-full max-w-xs">
-            {/* ✅ FIX Bug 1 — passe fromFollowup=true */}
             <button
               onClick={() => startCountdown(true)}
               className="w-full py-4 rounded-full gradient-orange font-bold text-base"
