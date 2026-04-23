@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Mic,
@@ -16,6 +16,7 @@ import {
   Plus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -45,7 +46,7 @@ interface Memory {
 
 type ActiveTab = "all" | "memories" | "forever" | "video" | "voices";
 
-// ─── Demo fallback (garde la vision du créateur) ──────────────────────────────
+// ─── Demo fallback ────────────────────────────────────────────────────────────
 
 const DEMO: Memory[] = [
   {
@@ -159,6 +160,36 @@ const tlStyle = (tl: string | null) => {
   if (tl === "instant")
     return { text: "Now", bg: "rgba(56,189,248,.18)", border: "rgba(56,189,248,.5)", color: "#7dd3fc" };
   return { text: "Past", bg: "rgba(232,116,42,.18)", border: "rgba(232,116,42,.45)", color: "#fdba74" };
+};
+
+// ─── Fetch function (for React Query) ─────────────────────────────────────────
+
+const fetchMemories = async (): Promise<{ memories: Memory[]; displayName: string; isLoggedIn: boolean }> => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return { memories: DEMO, displayName: "Your", isLoggedIn: false };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("user_id", session.user.id)
+    .single();
+
+  const { data: mems } = await supabase
+    .from("memories")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .order("created_at", { ascending: false });
+
+  return {
+    memories: (mems as Memory[]) && mems.length > 0 ? (mems as Memory[]) : DEMO,
+    displayName: profile?.display_name || "Your",
+    isLoggedIn: true,
+  };
 };
 
 // ─── Life Timeline component ──────────────────────────────────────────────────
@@ -589,12 +620,19 @@ const Treasure = () => {
   const navigate = useNavigate();
   const { t, lang, rtl } = useLanguage();
 
-  const [memories, setMemories] = useState<Memory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [displayName, setDisplayName] = useState("Your");
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [playerIdx, setPlayerIdx] = useState<number | null>(null);
+
+  // React Query — cache automatique, rechargement intelligent
+  const { data, isLoading } = useQuery({
+    queryKey: ["memories"],
+    queryFn: fetchMemories,
+    staleTime: 30_000, // 30 secondes avant de recharger
+  });
+
+  const memories = data?.memories ?? DEMO;
+  const displayName = data?.displayName ?? "Your";
+  const isLoggedIn = data?.isLoggedIn ?? false;
 
   const TABS: { id: ActiveTab; label: string }[] = [
     { id: "all", label: t.tabAll },
@@ -603,53 +641,6 @@ const Treasure = () => {
     { id: "video", label: t.tabVideo },
     { id: "voices", label: t.tabVoices },
   ];
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session) {
-          setMemories(DEMO);
-          setIsLoggedIn(false);
-          setLoading(false);
-          return;
-        }
-
-        setIsLoggedIn(true);
-
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("user_id", session.user.id)
-          .single();
-        if (profile?.display_name) setDisplayName(profile.display_name);
-
-        const { data: mems, error } = await supabase
-          .from("memories")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Error fetching memories:", error);
-          setMemories(DEMO);
-        } else if (mems && mems.length > 0) {
-          setMemories(mems as Memory[]);
-        } else {
-          setMemories(DEMO);
-        }
-      } catch (err) {
-        console.error(err);
-        setMemories(DEMO);
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, []);
 
   const filtered = memories.filter((m) => {
     if (activeTab === "all") return true;
@@ -823,7 +814,7 @@ const Treasure = () => {
       </div>
 
       <div style={{ padding: "12px 20px" }}>
-        {loading ? (
+        {isLoading ? (
           <div
             style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "80px", gap: "14px" }}
           >
