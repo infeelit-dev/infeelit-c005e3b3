@@ -43,10 +43,10 @@ const Connect = () => {
   };
 
   const loadFollowing = async (userId: string) => {
-    const { data } = await supabase.from("follows").select("following_id").eq("follower_id", userId);
+    const { data } = await (supabase as any).from("follows").select("following_id").eq("follower_id", userId);
 
     if (data) {
-      const ids = data.map((f) => f.following_id);
+      const ids = (data as any[]).map((f: any) => f.following_id);
       setFollowing(ids);
     }
   };
@@ -57,7 +57,7 @@ const Connect = () => {
     const isFollowing = following.includes(profileUserId);
 
     if (isFollowing) {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("follows")
         .delete()
         .eq("follower_id", currentUser)
@@ -72,7 +72,7 @@ const Connect = () => {
       setFollowing((prev) => prev.filter((id) => id !== profileUserId));
       toast.success("Unfollowed");
     } else {
-      const { error } = await supabase.from("follows").insert({
+      const { error } = await (supabase as any).from("follows").insert({
         follower_id: currentUser,
         following_id: profileUserId,
       });
