@@ -19,6 +19,7 @@ import Record from "./pages/Record";
 import Profile from "./pages/Profile";
 import Circle from "./pages/Circle";
 import Treasure from "./pages/Treasure";
+import Places from "./pages/Places";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/circle" element={<Circle />} />
             <Route path="/about" element={<About />} />
             <Route path="/treasure" element={<Treasure />} />
+            <Route path="/places" element={<Places />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
