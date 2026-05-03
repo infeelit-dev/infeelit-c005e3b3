@@ -20,7 +20,7 @@ const Welcome = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: window.location.origin + "/family-identity",
+          emailRedirectTo: window.location.origin + "/auth/callback",
         },
       });
       if (error) throw error;
