@@ -61,7 +61,7 @@ const Portrait = () => {
         return;
       }
 
-      const { error } = await supabase.from("profiles").upsert(
+      const { error } = await (supabase as any).from("profiles").upsert(
         {
           user_id: user.id,
           display_name: firstName.trim(),
