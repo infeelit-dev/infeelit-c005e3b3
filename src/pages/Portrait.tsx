@@ -51,9 +51,14 @@ const Portrait = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
 
-      const { error } = await (supabase as any).from("profiles").upsert(
+      if (!user) {
+        toast.error("Session expired. Please login again.");
+        navigate("/welcome", { replace: true });
+        return;
+      }
+
+      const { error } = await supabase.from("profiles").upsert(
         {
           id: user.id,
           user_id: user.id,
@@ -65,11 +70,15 @@ const Portrait = () => {
         { onConflict: "user_id" },
       );
 
-      if (error) throw error;
+      if (error) {
+        console.error("Upsert error:", error);
+        throw error;
+      }
+
       navigate("/loading");
-    } catch (err) {
-      console.error(err);
-      toast.error("Error saving your profile. Please try again.");
+    } catch (err: any) {
+      console.error("Save error:", err);
+      toast.error(err.message || "Error saving your profile. Please try again.");
       setLoading(false);
     }
   };
