@@ -18,11 +18,6 @@ const FamilyIdentity = () => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        // SÉCURITÉ DÉSACTIVÉE EN DEV — à réactiver avant production
-        // if (!session) {
-        //   navigate("/welcome", { replace: true });
-        //   return;
-        // }
         if (session?.user) {
           const meta = session.user.user_metadata ?? {};
           if (meta.full_name) {
@@ -52,7 +47,14 @@ const FamilyIdentity = () => {
       } = await supabase.auth.getSession();
       if (session?.user) {
         const displayName = `${firstName.trim()} ${lastName.trim()}`;
-        await supabase.from("profiles").update({ display_name: displayName }).eq("user_id", session.user.id);
+        await (supabase as any).from("profiles").upsert(
+          {
+            user_id: session.user.id,
+            display_name: displayName,
+            onboarding_completed: false,
+          },
+          { onConflict: "user_id" },
+        );
       }
       navigate("/portrait", { replace: true });
     } catch {
