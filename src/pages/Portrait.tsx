@@ -53,12 +53,17 @@ const Portrait = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      const updateData = { generation, audience, spark };
-
-      const { error } = await supabase
-        .from("profiles")
-        .update(updateData as any)
-        .eq("user_id", user.id);
+      const { error } = await (supabase as any).from("profiles").upsert(
+        {
+          id: user.id,
+          user_id: user.id,
+          generation,
+          audience,
+          spark,
+          onboarding_completed: true,
+        },
+        { onConflict: "user_id" },
+      );
 
       if (error) throw error;
       navigate("/loading");
