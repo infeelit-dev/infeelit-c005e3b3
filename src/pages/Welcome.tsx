@@ -20,7 +20,7 @@ const Welcome = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: window.location.origin + "/auth/callback",
+          emailRedirectTo: window.location.origin + "/family-identity",
         },
       });
       if (error) throw error;
@@ -46,7 +46,6 @@ const Welcome = () => {
           alt="Infeelit"
           className="w-[280px] md:w-[350px] max-w-[80vw] h-auto object-contain mx-auto"
         />
-
         <div className="text-center max-w-sm space-y-3 px-4">
           <p className="text-xl text-primary leading-relaxed" style={{ fontFamily: "serif" }}>
             {t.welcomeTagline}
@@ -77,7 +76,6 @@ const Welcome = () => {
             {loading ? t.welcomeSending : t.welcomeCta}
           </button>
         </form>
-
         <p className="text-center text-[10px] text-muted-foreground/60 px-4 italic">{t.welcomeFooter}</p>
       </div>
     </div>
