@@ -49,6 +49,7 @@ const FamilyIdentity = () => {
         const displayName = `${firstName.trim()} ${lastName.trim()}`;
         await (supabase as any).from("profiles").upsert(
           {
+            id: session.user.id,
             user_id: session.user.id,
             display_name: displayName,
             onboarding_completed: false,
@@ -91,10 +92,7 @@ const FamilyIdentity = () => {
           style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
 
-        <h1
-          className="text-3xl font-semibold text-center mb-2"
-          style={{ fontFamily: "'Inter', sans-serif", color: "#1A3B47" }}
-        >
+        <h1 className="text-3xl font-semibold text-center mb-2" style={{ color: "#1A3B47" }}>
           Tell us your name
         </h1>
 
@@ -109,9 +107,7 @@ const FamilyIdentity = () => {
 
         <div
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center mb-3 ${
-            firstFocused
-              ? "border-white/50 bg-white/80 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
-              : "border-white/40 bg-white/80"
+            firstFocused ? "border-white/50 bg-white/80" : "border-white/40 bg-white/80"
           }`}
         >
           <span
@@ -129,17 +125,13 @@ const FamilyIdentity = () => {
             onFocus={() => setFirstFocused(true)}
             onBlur={() => setFirstFocused(false)}
             onChange={(e) => setFirstName(e.target.value)}
-            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${
-              hasFirst || firstFocused ? "pt-3" : "pt-0"
-            }`}
+            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${hasFirst || firstFocused ? "pt-3" : "pt-0"}`}
           />
         </div>
 
         <div
           className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
-            lastFocused
-              ? "border-white/50 bg-white/80 shadow-[0_0_24px_-2px_hsl(var(--brand-orange)/0.2)]"
-              : "border-white/40 bg-white/80"
+            lastFocused ? "border-white/50 bg-white/80" : "border-white/40 bg-white/80"
           }`}
         >
           <span
@@ -157,9 +149,7 @@ const FamilyIdentity = () => {
             onFocus={() => setLastFocused(true)}
             onBlur={() => setLastFocused(false)}
             onChange={(e) => setLastName(e.target.value)}
-            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${
-              hasLast || lastFocused ? "pt-3" : "pt-0"
-            }`}
+            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${hasLast || lastFocused ? "pt-3" : "pt-0"}`}
           />
         </div>
 
@@ -167,7 +157,7 @@ const FamilyIdentity = () => {
           <button
             onClick={handleContinue}
             disabled={!canContinue || loading}
-            className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-lg text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)]"
+            className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-lg text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50"
             style={{ color: "#FFFFFF" }}
           >
             {loading ? "Saving..." : "Continue my story"}
