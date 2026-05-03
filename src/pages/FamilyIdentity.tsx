@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import infeelit from "@/assets/infeelit-logo.png";
 
 const FamilyIdentity = () => {
@@ -47,7 +48,7 @@ const FamilyIdentity = () => {
       } = await supabase.auth.getSession();
       if (session?.user) {
         const displayName = `${firstName.trim()} ${lastName.trim()}`;
-        await (supabase as any).from("profiles").upsert(
+        const { error } = await (supabase as any).from("profiles").upsert(
           {
             id: session.user.id,
             user_id: session.user.id,
@@ -56,10 +57,14 @@ const FamilyIdentity = () => {
           },
           { onConflict: "user_id" },
         );
+        if (error) throw error;
       }
       navigate("/portrait", { replace: true });
-    } catch {
-      navigate("/portrait", { replace: true });
+    } catch (err) {
+      console.error("Failed to save name:", err);
+      toast.error("Could not save your name. Please try again.");
+      setLoading(false);
+      return;
     } finally {
       setLoading(false);
     }
