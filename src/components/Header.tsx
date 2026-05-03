@@ -78,7 +78,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           src={logo}
           alt="Infeelit"
           style={{
-            height: "44px",
+            height: "64px",
             width: "auto",
             maxWidth: "160px",
             filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
