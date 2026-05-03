@@ -30,12 +30,14 @@ const FamilyIdentity = () => {
             setLastName(meta.last_name || meta.family_name || "");
           }
         }
+      } catch (err) {
+        console.error("Prefill error:", err);
       } finally {
         setInitialLoading(false);
       }
     };
     prefill();
-  }, [navigate]);
+  }, []);
 
   const canContinue = firstName.trim().length > 0 && lastName.trim().length > 0;
 
@@ -46,26 +48,34 @@ const FamilyIdentity = () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (session?.user) {
-        const displayName = `${firstName.trim()} ${lastName.trim()}`;
-        const { error } = await (supabase as any).from("profiles").upsert(
-          {
-            id: session.user.id,
-            user_id: session.user.id,
-            display_name: displayName,
-            onboarding_completed: false,
-          },
-          { onConflict: "user_id" },
-        );
-        if (error) throw error;
+
+      if (!session?.user) {
+        toast.error("Session expired. Please login again.");
+        navigate("/welcome", { replace: true });
+        return;
       }
+
+      const displayName = `${firstName.trim()} ${lastName.trim()}`;
+
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          id: session.user.id,
+          user_id: session.user.id,
+          display_name: displayName,
+          onboarding_completed: false,
+        },
+        { onConflict: "user_id" },
+      );
+
+      if (error) {
+        console.error("FamilyIdentity upsert error:", error);
+        throw error;
+      }
+
       navigate("/portrait", { replace: true });
-    } catch (err) {
-      console.error("Failed to save name:", err);
-      toast.error("Could not save your name. Please try again.");
-      setLoading(false);
-      return;
-    } finally {
+    } catch (err: any) {
+      console.error("FamilyIdentity save error:", err);
+      toast.error(err.message || "Could not save your name. Please try again.");
       setLoading(false);
     }
   };
@@ -130,7 +140,9 @@ const FamilyIdentity = () => {
             onFocus={() => setFirstFocused(true)}
             onBlur={() => setFirstFocused(false)}
             onChange={(e) => setFirstName(e.target.value)}
-            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${hasFirst || firstFocused ? "pt-3" : "pt-0"}`}
+            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${
+              hasFirst || firstFocused ? "pt-3" : "pt-0"
+            }`}
           />
         </div>
 
@@ -154,7 +166,9 @@ const FamilyIdentity = () => {
             onFocus={() => setLastFocused(true)}
             onBlur={() => setLastFocused(false)}
             onChange={(e) => setLastName(e.target.value)}
-            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${hasLast || lastFocused ? "pt-3" : "pt-0"}`}
+            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${
+              hasLast || lastFocused ? "pt-3" : "pt-0"
+            }`}
           />
         </div>
 
