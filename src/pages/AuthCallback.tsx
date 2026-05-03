@@ -7,16 +7,11 @@ const AuthCallback = () => {
   const [status, setStatus] = useState("Opening your space...");
 
   useEffect(() => {
-    // onAuthStateChange est le seul moyen fiable d'intercepter
-    // le token Magic Link dans le hash de l'URL.
-    // Il se déclenche automatiquement quand Supabase lit #access_token.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // SIGNED_IN couvre à la fois Magic Link (type=magiclink) et OTP
       if (event === "SIGNED_IN" && session) {
         setStatus("Checking your profile...");
-
         try {
           const { data: profile } = await supabase
             .from("profiles")
@@ -24,7 +19,6 @@ const AuthCallback = () => {
             .eq("user_id", session.user.id)
             .single();
 
-          // Un profil auto-créé par trigger aura display_name NULL ou vide
           const isComplete =
             !!profile?.display_name &&
             profile.display_name.trim().length > 0 &&
@@ -36,24 +30,21 @@ const AuthCallback = () => {
             navigate("/treasure", { replace: true });
           } else {
             setStatus("Let's set up your profile...");
-            navigate("/portrait", { replace: true });
+            navigate("/identity", { replace: true });
           }
         } catch (err) {
           console.error("Profile check failed:", err);
-          navigate("/portrait", { replace: true });
+          navigate("/identity", { replace: true });
         }
       }
 
-      // Token expiré ou lien invalide
       if (event === "SIGNED_OUT") {
         setStatus("Link expired. Redirecting...");
         setTimeout(() => navigate("/welcome", { replace: true }), 1500);
       }
     });
 
-    // Sécurité : si après 8 secondes rien ne s'est passé → welcome
     const fallback = setTimeout(() => {
-      setStatus("Taking too long. Redirecting...");
       navigate("/welcome", { replace: true });
     }, 8000);
 
@@ -86,7 +77,6 @@ const AuthCallback = () => {
           animation: "spin 1s linear infinite",
         }}
       />
-
       <p
         style={{
           fontSize: "24px",
@@ -98,7 +88,6 @@ const AuthCallback = () => {
       >
         Infeelit
       </p>
-
       <p
         style={{
           fontSize: "13px",
@@ -110,7 +99,6 @@ const AuthCallback = () => {
       >
         {status}
       </p>
-
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
