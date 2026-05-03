@@ -63,6 +63,7 @@ const Portrait = () => {
 
       const { error } = await (supabase as any).from("profiles").upsert(
         {
+          id: user.id,
           user_id: user.id,
           display_name: firstName.trim(),
           generation: generation,
@@ -171,7 +172,6 @@ const Portrait = () => {
         .bubble-7{animation:drift7 6.5s ease-in-out infinite;}
       `}</style>
 
-      {/* Floating bubbles */}
       <div className="h-44 relative flex items-center justify-center pt-6">
         <img
           src={imgBirth}
@@ -217,14 +217,12 @@ const Portrait = () => {
         />
       </div>
 
-      {/* Step header */}
       <div className="px-8 mt-2 text-center">
         <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">{stepLabel}</p>
         <h1 className="text-xl font-bold text-[#1A3B47]">{stepTitle}</h1>
         <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"{stepSub}"</p>
       </div>
 
-      {/* Progress bar */}
       <div className="px-8 mt-4">
         <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
           <div
@@ -234,7 +232,6 @@ const Portrait = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 px-8 pt-6 overflow-y-auto pb-32">
         {step === 0 && (
           <div className="flex flex-col items-center gap-6 pt-4">
@@ -308,7 +305,6 @@ const Portrait = () => {
         )}
       </div>
 
-      {/* CTA */}
       <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FAF8F6] via-[#FAF8F6] to-transparent z-30">
         <button
           disabled={!isStepValid() || loading}
