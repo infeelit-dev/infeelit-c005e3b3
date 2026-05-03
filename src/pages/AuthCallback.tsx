@@ -7,48 +7,78 @@ const AuthCallback = () => {
   const [status, setStatus] = useState("Opening your space...");
 
   useEffect(() => {
+    let cancelled = false;
+
+    const checkProfileAndRedirect = async (userId: string) => {
+      if (cancelled) return;
+      setStatus("Checking your profile...");
+      try {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("display_name, generation")
+          .eq("user_id", userId)
+          .single();
+
+        if (error && error.code !== "PGRST116") {
+          console.error("Profile fetch error:", error);
+        }
+
+        const hasName = !!profile?.display_name && profile.display_name.trim().length > 0;
+        const hasGeneration = !!profile?.generation && profile.generation.trim().length > 0;
+
+        if (cancelled) return;
+
+        if (hasName && hasGeneration) {
+          setStatus("Welcome back");
+          navigate("/treasure", { replace: true });
+        } else if (hasName && !hasGeneration) {
+          setStatus("Let's complete your profile...");
+          navigate("/portrait", { replace: true });
+        } else {
+          setStatus("Let's set up your profile...");
+          navigate("/identity", { replace: true });
+        }
+      } catch (err) {
+        console.error("Profile check failed:", err);
+        if (!cancelled) navigate("/identity", { replace: true });
+      }
+    };
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (cancelled) return;
       if (event === "SIGNED_IN" && session) {
-        setStatus("Checking your profile...");
-        try {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("display_name, generation")
-            .eq("user_id", session.user.id)
-            .single();
-
-          const isComplete =
-            !!profile?.display_name &&
-            profile.display_name.trim().length > 0 &&
-            !!profile?.generation &&
-            profile.generation.trim().length > 0;
-
-          if (isComplete) {
-            setStatus("Welcome back ✦");
-            navigate("/treasure", { replace: true });
-          } else {
-            setStatus("Let's set up your profile...");
-            navigate("/identity", { replace: true });
-          }
-        } catch (err) {
-          console.error("Profile check failed:", err);
-          navigate("/identity", { replace: true });
-        }
+        checkProfileAndRedirect(session.user.id);
       }
-
       if (event === "SIGNED_OUT") {
         setStatus("Link expired. Redirecting...");
-        setTimeout(() => navigate("/welcome", { replace: true }), 1500);
+        setTimeout(() => {
+          if (!cancelled) navigate("/welcome", { replace: true });
+        }, 1500);
       }
     });
 
+    const initSession = async () => {
+      if (cancelled) return;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session && !cancelled) {
+        checkProfileAndRedirect(session.user.id);
+      }
+    };
+    initSession();
+
     const fallback = setTimeout(() => {
-      navigate("/welcome", { replace: true });
-    }, 8000);
+      if (!cancelled) {
+        setStatus("Taking too long. Redirecting...");
+        navigate("/welcome", { replace: true });
+      }
+    }, 15000);
 
     return () => {
+      cancelled = true;
       subscription.unsubscribe();
       clearTimeout(fallback);
     };
