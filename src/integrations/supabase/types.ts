@@ -58,6 +58,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          audience: string | null
           created_at: string
           display_name: string | null
           generation: string | null
@@ -65,10 +66,12 @@ export type Database = {
           id: string
           onboarding_completed: boolean
           phone: string | null
+          spark: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          audience?: string | null
           created_at?: string
           display_name?: string | null
           generation?: string | null
@@ -76,10 +79,12 @@ export type Database = {
           id?: string
           onboarding_completed?: boolean
           phone?: string | null
+          spark?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          audience?: string | null
           created_at?: string
           display_name?: string | null
           generation?: string | null
@@ -87,6 +92,7 @@ export type Database = {
           id?: string
           onboarding_completed?: boolean
           phone?: string | null
+          spark?: string | null
           updated_at?: string
           user_id?: string
         }
