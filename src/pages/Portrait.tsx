@@ -18,7 +18,7 @@ const Portrait = () => {
   const navigate = useNavigate();
   const { t, lang, rtl } = useLanguage();
 
-  const [step, setStep] = useState(0); // 0 = prénom
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [generation, setGeneration] = useState("");
@@ -61,15 +61,11 @@ const Portrait = () => {
       const { error } = await supabase.from("profiles").upsert(
         {
           user_id: user.id,
-          generation,
-          audience,
-          spark,
           display_name: firstName.trim(),
+          generation: generation,
           onboarding_completed: true,
         } as any,
-        {
-          onConflict: "user_id",
-        },
+        { onConflict: "user_id" },
       );
 
       if (error) {
@@ -148,7 +144,9 @@ const Portrait = () => {
     <div
       className="min-h-screen bg-[#FAF8F6] flex flex-col font-sans relative overflow-hidden"
       dir={rtl ? "rtl" : "ltr"}
-      style={{ fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit" }}
+      style={{
+        fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+      }}
     >
       <style>{`
         @keyframes drift1{0%{transform:translate(0,0) rotate(-12deg) scale(1);}25%{transform:translate(18px,-20px) rotate(-5deg) scale(1.05);}50%{transform:translate(8px,-35px) rotate(5deg) scale(.97);}75%{transform:translate(-15px,-15px) rotate(-8deg) scale(1.03);}100%{transform:translate(0,0) rotate(-12deg) scale(1);}}
@@ -232,7 +230,6 @@ const Portrait = () => {
 
       {/* Content */}
       <div className="flex-1 px-8 pt-6 overflow-y-auto pb-32">
-        {/* STEP 0 — Prénom */}
         {step === 0 && (
           <div className="flex flex-col items-center gap-6 pt-4">
             <div className="w-full max-w-sm">
@@ -246,9 +243,7 @@ const Portrait = () => {
                 autoFocus
                 dir={rtl ? "rtl" : "ltr"}
                 className="w-full p-5 rounded-2xl border-2 border-gray-200 text-center text-xl font-bold text-[#1A3B47] focus:outline-none focus:border-[#E8742A] transition-colors bg-white shadow-sm"
-                style={{
-                  fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
-                }}
+                style={{ fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit" }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && isStepValid()) handleNext();
                 }}
@@ -263,7 +258,6 @@ const Portrait = () => {
                 </p>
               )}
             </div>
-
             {firstName.trim().length >= 2 && (
               <div className="text-center animate-pulse">
                 <p className="text-[#E8742A] text-sm font-bold italic">
@@ -278,7 +272,6 @@ const Portrait = () => {
           </div>
         )}
 
-        {/* STEP 1 — Generation */}
         {step === 1 && (
           <div className="flex flex-col">
             <Card type="generation" id="Silent" title={t.genSilent} subtitle={t.genSilentSub} />
@@ -290,7 +283,6 @@ const Portrait = () => {
           </div>
         )}
 
-        {/* STEP 2 — Audience */}
         {step === 2 && (
           <div className="flex flex-col">
             <Card type="audience" id="Children" title={t.audChildren} subtitle={t.audChildrenSub} />
@@ -300,7 +292,6 @@ const Portrait = () => {
           </div>
         )}
 
-        {/* STEP 3 — Spark */}
         {step === 3 && (
           <div className="flex flex-col">
             <Card type="spark" id="Afraid" title={t.sparkAfraid} subtitle={t.sparkAfraidSub} />
