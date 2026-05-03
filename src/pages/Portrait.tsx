@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useLanguage } from "@/contexts/LanguageContext";
 import imgGrandfather from "@/assets/grandfather.jpg";
 import imgChild from "@/assets/child.jpg";
 import imgMarry from "@/assets/marry.jpg";
@@ -16,16 +15,13 @@ type SelectionKey = "generation" | "audience" | "spark";
 
 const Portrait = () => {
   const navigate = useNavigate();
-  const { t, lang, rtl } = useLanguage();
-
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [firstName, setFirstName] = useState("");
   const [generation, setGeneration] = useState("");
   const [audience, setAudience] = useState("");
   const [spark, setSpark] = useState("");
 
-  const getSelection = (key: SelectionKey) => {
+  const getSelection = (key: SelectionKey): string => {
     if (key === "generation") return generation;
     if (key === "audience") return audience;
     return spark;
@@ -38,7 +34,6 @@ const Portrait = () => {
   };
 
   const isStepValid = () => {
-    if (step === 0) return firstName.trim().length >= 2;
     if (step === 1) return generation !== "";
     if (step === 2) return audience !== "";
     if (step === 3) return spark !== "";
@@ -56,33 +51,20 @@ const Portrait = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/welcome");
-        return;
-      }
+      if (!user) throw new Error("No user found");
 
-      const { error } = await (supabase as any).from("profiles").upsert(
-        {
-          id: user.id,
-          user_id: user.id,
-          display_name: firstName.trim(),
-          generation: generation,
-          onboarding_completed: true,
-        },
-        { onConflict: "user_id" },
-      );
+      const updateData = { generation, audience, spark };
 
-      if (error) {
-        console.error("Upsert error:", error.message, error.details, error.hint);
-        toast.error(error.message);
-        setLoading(false);
-        return;
-      }
+      const { error } = await supabase
+        .from("profiles")
+        .update(updateData as any)
+        .eq("user_id", user.id);
 
+      if (error) throw error;
       navigate("/loading");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      toast.error(err.message || "Error saving profile");
+      toast.error("Error saving your profile. Please try again.");
       setLoading(false);
     }
   };
@@ -92,7 +74,6 @@ const Portrait = () => {
     return (
       <button
         onClick={() => setSelection(type, id)}
-        style={{ textAlign: rtl ? "right" : "left" }}
         className={`w-full p-4 rounded-xl text-left transition-all border-l-4 mb-3 ${
           isSelected
             ? "bg-[#6B4E9B]/10 border-[#E8742A] shadow-md"
@@ -105,56 +86,8 @@ const Portrait = () => {
     );
   };
 
-  const totalSteps = 4;
-  const progressPercent = (step / totalSteps) * 100;
-
-  const stepLabel =
-    step === 0
-      ? lang === "ar"
-        ? "من أنت؟"
-        : lang === "fr"
-          ? "Votre prénom"
-          : "Your name"
-      : step === 1
-        ? t.portraitStep1Label
-        : step === 2
-          ? t.portraitStep2Label
-          : t.portraitStep3Label;
-
-  const stepTitle =
-    step === 0
-      ? lang === "ar"
-        ? "كيف اسمك؟"
-        : lang === "fr"
-          ? "Comment vous appelez-vous ?"
-          : "What is your name?"
-      : step === 1
-        ? t.portraitStep1Title
-        : step === 2
-          ? t.portraitStep2Title
-          : t.portraitStep3Title;
-
-  const stepSub =
-    step === 0
-      ? lang === "ar"
-        ? "سيُحفظ اسمك مع قصصك إلى الأبد."
-        : lang === "fr"
-          ? "Votre prénom accompagnera vos souvenirs pour toujours."
-          : "Your name will accompany your memories forever."
-      : step === 1
-        ? t.portraitStep1Sub
-        : step === 2
-          ? t.portraitStep2Sub
-          : t.portraitStep3Sub;
-
   return (
-    <div
-      className="min-h-screen bg-[#FAF8F6] flex flex-col font-sans relative overflow-hidden"
-      dir={rtl ? "rtl" : "ltr"}
-      style={{
-        fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
-      }}
-    >
+    <div className="min-h-screen bg-[#FAF8F6] flex flex-col font-sans relative overflow-hidden">
       <style>{`
         @keyframes drift1{0%{transform:translate(0,0) rotate(-12deg) scale(1);}25%{transform:translate(18px,-20px) rotate(-5deg) scale(1.05);}50%{transform:translate(8px,-35px) rotate(5deg) scale(.97);}75%{transform:translate(-15px,-15px) rotate(-8deg) scale(1.03);}100%{transform:translate(0,0) rotate(-12deg) scale(1);}}
         @keyframes drift2{0%{transform:translate(0,0) rotate(0deg) scale(1);}25%{transform:translate(-20px,-25px) rotate(8deg) scale(1.06);}50%{transform:translate(-35px,-10px) rotate(-5deg) scale(.95);}75%{transform:translate(-10px,15px) rotate(10deg) scale(1.04);}100%{transform:translate(0,0) rotate(0deg) scale(1);}}
@@ -218,89 +151,101 @@ const Portrait = () => {
       </div>
 
       <div className="px-8 mt-2 text-center">
-        <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">{stepLabel}</p>
-        <h1 className="text-xl font-bold text-[#1A3B47]">{stepTitle}</h1>
-        <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"{stepSub}"</p>
-      </div>
-
-      <div className="px-8 mt-4">
-        <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#E8742A] transition-all duration-500 ease-out rounded-full"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
+        <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
+          {step === 1 && "Origin — Step 1 of 3"}
+          {step === 2 && "Audience — Step 2 of 3"}
+          {step === 3 && "Spark — Step 3 of 3"}
+        </p>
+        {step === 1 && (
+          <div>
+            <h1 className="text-xl font-bold text-[#1A3B47]">Who is speaking today?</h1>
+            <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"When did your story begin?"</p>
+          </div>
+        )}
+        {step === 2 && (
+          <div>
+            <h1 className="text-xl font-bold text-[#1A3B47]">Whose heart are you speaking to?</h1>
+            <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"Your message needs a destination."</p>
+          </div>
+        )}
+        {step === 3 && (
+          <div>
+            <h1 className="text-xl font-bold text-[#1A3B47]">What brought your voice here?</h1>
+            <p className="text-sm text-[#1A3B47]/60 mt-1 italic">"The spark that lit the fire."</p>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 px-8 pt-6 overflow-y-auto pb-32">
-        {step === 0 && (
-          <div className="flex flex-col items-center gap-6 pt-4">
-            <div className="w-full max-w-sm">
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder={
-                  lang === "ar" ? "اكتب اسمك هنا..." : lang === "fr" ? "Votre prénom..." : "Your first name..."
-                }
-                autoFocus
-                dir={rtl ? "rtl" : "ltr"}
-                className="w-full p-5 rounded-2xl border-2 border-gray-200 text-center text-xl font-bold text-[#1A3B47] focus:outline-none focus:border-[#E8742A] transition-colors bg-white shadow-sm"
-                style={{ fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit" }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && isStepValid()) handleNext();
-                }}
-              />
-              {firstName.trim().length > 0 && firstName.trim().length < 2 && (
-                <p className="text-center text-xs text-red-400 mt-2">
-                  {lang === "ar"
-                    ? "يرجى إدخال اسم صحيح"
-                    : lang === "fr"
-                      ? "Veuillez entrer un prénom valide"
-                      : "Please enter a valid name"}
-                </p>
-              )}
-            </div>
-            {firstName.trim().length >= 2 && (
-              <div className="text-center animate-pulse">
-                <p className="text-[#E8742A] text-sm font-bold italic">
-                  {lang === "ar"
-                    ? `مرحباً، ${firstName} ✦`
-                    : lang === "fr"
-                      ? `Bienvenue, ${firstName} ✦`
-                      : `Welcome, ${firstName} ✦`}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
         {step === 1 && (
           <div className="flex flex-col">
-            <Card type="generation" id="Silent" title={t.genSilent} subtitle={t.genSilentSub} />
-            <Card type="generation" id="Boomer" title={t.genBoomer} subtitle={t.genBoomerSub} />
-            <Card type="generation" id="GenX" title={t.genX} subtitle={t.genXSub} />
-            <Card type="generation" id="Millennial" title={t.genMillennial} subtitle={t.genMillennialSub} />
-            <Card type="generation" id="GenZ" title={t.genZ} subtitle={t.genZSub} />
-            <Card type="generation" id="GenAlpha" title={t.genAlpha} subtitle={t.genAlphaSub} />
+            <Card type="generation" id="Silent" title="Silent Generation" subtitle="The keepers of unseen memories." />
+            <Card
+              type="generation"
+              id="Boomer"
+              title="Baby Boomers"
+              subtitle="Witnesses of the great transformation."
+            />
+            <Card type="generation" id="GenX" title="Generation X" subtitle="The bridge between two eras." />
+            <Card type="generation" id="Millennial" title="Millennials" subtitle="Architects of a changing world." />
+            <Card type="generation" id="GenZ" title="Gen Z" subtitle="Digital souls, infinite voices." />
+            <Card type="generation" id="GenAlpha" title="Gen Alpha" subtitle="The first page of a new book." />
           </div>
         )}
-
         {step === 2 && (
           <div className="flex flex-col">
-            <Card type="audience" id="Children" title={t.audChildren} subtitle={t.audChildrenSub} />
-            <Card type="audience" id="Parents" title={t.audParents} subtitle={t.audParentsSub} />
-            <Card type="audience" id="Self" title={t.audSelf} subtitle={t.audSelfSub} />
-            <Card type="audience" id="All" title={t.audAll} subtitle={t.audAllSub} />
+            <Card
+              type="audience"
+              id="Children"
+              title="To those who follow"
+              subtitle="My children. The ones who carry my voice forward."
+            />
+            <Card
+              type="audience"
+              id="Parents"
+              title="To those who came before"
+              subtitle="My parents. The voices I still want to hear."
+            />
+            <Card
+              type="audience"
+              id="Self"
+              title="To my own soul"
+              subtitle="I need to speak my truth before I share it."
+            />
+            <Card
+              type="audience"
+              id="All"
+              title="To everyone I love"
+              subtitle="Some voices are too important to keep to one heart."
+            />
           </div>
         )}
-
         {step === 3 && (
           <div className="flex flex-col">
-            <Card type="spark" id="Afraid" title={t.sparkAfraid} subtitle={t.sparkAfraidSub} />
-            <Card type="spark" id="Presence" title={t.sparkPresence} subtitle={t.sparkPresenceSub} />
-            <Card type="spark" id="Truth" title={t.sparkTruth} subtitle={t.sparkTruthSub} />
-            <Card type="spark" id="Lesson" title={t.sparkLesson} subtitle={t.sparkLessonSub} />
+            <Card
+              type="spark"
+              id="Afraid"
+              title="A voice I'm afraid to lose"
+              subtitle="Someone I love is still here. Their story must never fade."
+            />
+            <Card
+              type="spark"
+              id="Presence"
+              title="A presence that lives on"
+              subtitle="They're gone. But their voice still lives inside me."
+            />
+            <Card
+              type="spark"
+              id="Truth"
+              title="My own truth"
+              subtitle="I need to hear myself speak to understand who I am."
+            />
+            <Card
+              type="spark"
+              id="Lesson"
+              title="A lesson that must survive me"
+              subtitle="I know something important. It deserves to be heard forever."
+            />
           </div>
         )}
       </div>
@@ -317,12 +262,12 @@ const Portrait = () => {
           {loading ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              {t.portraitSaving}
+              Preparing your journey...
             </>
           ) : step < 3 ? (
-            t.portraitContinue
+            "Continue"
           ) : (
-            t.portraitFinish
+            "Begin my story"
           )}
         </button>
       </div>
