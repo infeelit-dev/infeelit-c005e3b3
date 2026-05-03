@@ -56,7 +56,10 @@ const Portrait = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      if (!user) {
+        navigate("/welcome");
+        return;
+      }
 
       const { error } = await supabase.from("profiles").upsert(
         {
@@ -64,18 +67,21 @@ const Portrait = () => {
           display_name: firstName.trim(),
           generation: generation,
           onboarding_completed: true,
-        } as any,
+        },
         { onConflict: "user_id" },
       );
 
       if (error) {
-        console.error("Upsert error:", error);
-        throw error;
+        console.error("Upsert error:", error.message, error.details, error.hint);
+        toast.error(error.message);
+        setLoading(false);
+        return;
       }
+
       navigate("/loading");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error(t.portraitError);
+      toast.error(err.message || "Error saving profile");
       setLoading(false);
     }
   };
