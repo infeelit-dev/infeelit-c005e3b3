@@ -9,6 +9,8 @@ const MAX_DURATION_SECONDS = 180;
 const VIDEO_BITRATE = 500_000;
 const AUDIO_BITRATE = 32_000;
 
+const EDGE_FUNCTION_URL = "https://rynnnhxfrcebdandsbjn.supabase.co/functions/v1/upload-video";
+
 const FOLLOWUP_QUESTIONS = {
   en: {
     childhood: [
@@ -380,11 +382,13 @@ const Record = () => {
     mediaRecorder.stop();
   };
 
+  // ─── NOUVEAU : Upload via Edge Function → Cloudflare R2 ─────────────────────
   const uploadAllClips = async (): Promise<string[]> => {
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    const userId = user?.id || "anonymous";
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id || "anonymous";
+    const token = session?.access_token || "";
     userIdRef.current = userId;
 
     const urls: string[] = [];
@@ -396,22 +400,43 @@ const Record = () => {
       const fileName = `${userId}/${ts}_memory.${ext}`;
       const posterName = `${userId}/${ts}_poster.jpg`;
 
-      if (user) {
-        const { data, error: uploadError } = await supabase.storage
-          .from("memories")
-          .upload(fileName, clip.blob, { contentType: mimeType, upsert: true });
-        if (data) {
-          const url = supabase.storage.from("memories").getPublicUrl(fileName).data.publicUrl;
-          urls.push(url);
+      // Upload video/audio via Edge Function → R2
+      try {
+        const formData = new FormData();
+        formData.append("file", clip.blob, fileName);
+        formData.append("fileName", fileName);
+
+        const response = await fetch(EDGE_FUNCTION_URL, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+
+        const result = await response.json();
+        if (result.url) {
+          urls.push(result.url);
         } else {
-          console.error("Storage upload error:", uploadError);
+          console.error("Edge Function upload error:", result.error);
         }
+      } catch (err) {
+        console.error("Edge Function call failed:", err);
       }
 
-      if (clip.posterBlob && user) {
-        await supabase.storage
-          .from("memories")
-          .upload(posterName, clip.posterBlob, { contentType: "image/jpeg", upsert: true });
+      // Upload poster/thumbnail via Edge Function → R2
+      if (clip.posterBlob) {
+        try {
+          const posterForm = new FormData();
+          posterForm.append("file", clip.posterBlob, posterName);
+          posterForm.append("fileName", posterName);
+
+          await fetch(EDGE_FUNCTION_URL, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: posterForm,
+          });
+        } catch (err) {
+          console.error("Poster upload failed:", err);
+        }
       }
     }
 
