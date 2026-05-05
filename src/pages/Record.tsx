@@ -352,7 +352,6 @@ const Record = () => {
           return;
         }
 
-        // Store this clip in the array instead of overwriting
         memoryClips.current.push({
           blob,
           question: currentQuestion.current,
@@ -382,7 +381,6 @@ const Record = () => {
     mediaRecorder.stop();
   };
 
-  // ─── NOUVEAU : Upload via Edge Function → Cloudflare R2 ─────────────────────
   const uploadAllClips = async (): Promise<string[]> => {
     const {
       data: { session },
@@ -400,7 +398,6 @@ const Record = () => {
       const fileName = `${userId}/${ts}_memory.${ext}`;
       const posterName = `${userId}/${ts}_poster.jpg`;
 
-      // Upload video/audio via Edge Function → R2
       try {
         const formData = new FormData();
         formData.append("file", clip.blob, fileName);
@@ -422,7 +419,6 @@ const Record = () => {
         console.error("Edge Function call failed:", err);
       }
 
-      // Upload poster/thumbnail via Edge Function → R2
       if (clip.posterBlob) {
         try {
           const posterForm = new FormData();
@@ -476,7 +472,6 @@ const Record = () => {
   };
 
   const handleNativeShare = async () => {
-    // Build a combined blob from all clips
     const allBlobs = memoryClips.current.map((c) => c.blob);
     const combinedBlob = new Blob(allBlobs, { type: getMimeType(audioMode) });
     const title = memoryTitle || "A memory";
@@ -488,7 +483,6 @@ const Record = () => {
           : `I shared a memory on Infeelit: "${title}"`;
     const url = "https://infeelit.com";
 
-    // Try sharing with file first
     if (navigator.canShare && combinedBlob.size > 0) {
       const file = new File([combinedBlob], `memory.${audioMode ? "webm" : "mp4"}`, { type: combinedBlob.type });
       if (navigator.canShare({ files: [file] })) {
@@ -497,27 +491,25 @@ const Record = () => {
           toast.success(lang === "ar" ? "تمت المشاركة!" : lang === "fr" ? "Partagé !" : "Shared successfully!");
           return;
         } catch (err: any) {
-          if (err?.name === "AbortError") return; // User cancelled — no toast needed
+          if (err?.name === "AbortError") return;
           console.error("File share failed:", err);
         }
       }
     }
 
-    // Fallback: share link
     if (navigator.share) {
       try {
         await navigator.share({ title, text, url });
         toast.success(lang === "ar" ? "تمت المشاركة!" : lang === "fr" ? "Partagé !" : "Shared successfully!");
       } catch (err: any) {
         if (err?.name === "AbortError") return;
-        // Final fallback: copy to clipboard
         navigator.clipboard.writeText(`${text} ${url}`);
         toast.success(
           lang === "ar"
             ? "تم نسخ الرابط! أرسله يدوياً"
             : lang === "fr"
               ? "Lien copié ! Envoyez-le manuellement"
-              : "Link copied! Send it manually",
+              : "Link copied! Send it manually"
         );
       }
     } else {
@@ -527,7 +519,7 @@ const Record = () => {
           ? "تم نسخ الرابط! أرسله يدوياً"
           : lang === "fr"
             ? "Lien copié ! Envoyez-le manuellement"
-            : "Link copied! Send it manually",
+            : "Link copied! Send it manually"
       );
     }
   };
@@ -566,7 +558,6 @@ const Record = () => {
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-      {/* Header */}
       <div className="relative z-10 p-6 flex justify-between items-center">
         <button
           onClick={() => {
@@ -601,7 +592,6 @@ const Record = () => {
         </div>
       </div>
 
-      {/* STAGE 1 — QUESTION */}
       {stage === "question" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.yourStory}</p>
@@ -642,14 +632,12 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE 2 — COUNTDOWN */}
       {stage === "countdown" && (
         <div className="relative z-20 flex-1 flex items-center justify-center">
           <div className="text-white text-9xl font-black animate-pulse">{countdown}</div>
         </div>
       )}
 
-      {/* STAGE 3 — RECORDING */}
       {stage === "recording" && (
         <>
           <div className="relative z-10 flex justify-end px-6 -mt-16">
@@ -690,7 +678,6 @@ const Record = () => {
         </>
       )}
 
-      {/* STAGE 4 — UPLOADING */}
       {stage === "uploading" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center gap-6">
           <Loader2 size={48} className="text-[#E8742A] animate-spin" />
@@ -699,7 +686,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE 5 — FOLLOWUP */}
       {stage === "followup" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.oneMoreQuestion}</p>
@@ -727,7 +713,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE 6 — TITLE */}
       {stage === "title" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.memoryReady}</p>
@@ -749,7 +734,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE 7 — SHARE */}
       {stage === "share" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.whoHears}</p>
@@ -786,33 +770,4 @@ const Record = () => {
 
           <button
             onClick={handleNativeShare}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2"
-            style={{
-              backgroundColor: "rgba(255,255,255,.12)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,.2)",
-            }}
-          >
-            <Share2 size={18} />
-            {lang === "ar"
-              ? "مشاركة على وسائل التواصل"
-              : lang === "fr"
-                ? "Partager sur les réseaux"
-                : "Share on social media"}
-          </button>
-
-          <button
-            onClick={handleDownload}
-            className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2"
-            style={{ color: "rgba(255,255,255,.4)" }}
-          >
-            <Download size={16} />
-            {lang === "ar" ? "تحميل الذكرى" : lang === "fr" ? "Télécharger le souvenir" : "Download memory"}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default Record;
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2
