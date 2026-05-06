@@ -42,7 +42,7 @@ const Loading = () => {
       setProgress((prev) => (prev >= 100 ? 100 : prev + 1));
     }, 40);
 
-    const timeout = setTimeout(() => navigate("/feed"), 4500);
+    const timeout = setTimeout(() => navigate("/"), 4500);
 
     return () => {
       clearInterval(imgInterval);
@@ -65,7 +65,6 @@ const Loading = () => {
         .fade-in-out { animation: slow-zoom 1.2s ease-in-out infinite alternate; }
       `}</style>
 
-      {/* Logo */}
       <img
         src={infeelit}
         alt="Infeelit"
@@ -73,7 +72,6 @@ const Loading = () => {
         style={{ mixBlendMode: "multiply" }}
       />
 
-      {/* Rotating memory circle */}
       <div className="relative w-48 h-48 mb-12">
         <div className="absolute inset-0 rounded-full border-4 border-[#F97316]/20 animate-ping" />
         <div className="absolute inset-0 rounded-full border-2 border-[#F97316]/10 animate-pulse" />
@@ -87,13 +85,11 @@ const Loading = () => {
         </div>
       </div>
 
-      {/* Poetic text — translated */}
       <div className="text-center space-y-3 max-w-xs">
         <h2 className="text-[#1A4D4D] text-xl font-black uppercase tracking-tighter">{t.loadingTitle}</h2>
         <p className="text-[#6B7280] text-sm font-medium italic opacity-80 leading-relaxed">"{t.loadingQuote}"</p>
       </div>
 
-      {/* Progress bar */}
       <div className="w-full max-w-[200px] mt-16 bg-gray-100 h-1 rounded-full overflow-hidden">
         <div className="h-full bg-[#F97316] transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
       </div>
