@@ -15,7 +15,7 @@ const AuthCallback = () => {
       try {
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("display_name, generation")
+          .select("display_name")
           .eq("user_id", userId)
           .single();
 
@@ -24,16 +24,12 @@ const AuthCallback = () => {
         }
 
         const hasName = !!profile?.display_name && profile.display_name.trim().length > 0;
-        const hasGeneration = !!profile?.generation && profile.generation.trim().length > 0;
 
         if (cancelled) return;
 
-        if (hasName && hasGeneration) {
+        if (hasName) {
           setStatus("Welcome back");
           navigate("/treasure", { replace: true });
-        } else if (hasName && !hasGeneration) {
-          setStatus("Let's complete your profile...");
-          navigate("/portrait", { replace: true });
         } else {
           setStatus("Let's set up your profile...");
           navigate("/identity", { replace: true });
