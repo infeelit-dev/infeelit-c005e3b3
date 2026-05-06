@@ -1,4 +1,4 @@
-Le fichier a été collé avec du texte français au début. Voici le code PUR, sans aucun texte autour.
+Vous avez collé le texte français avec le code. Voici le code SEUL, sans rien autour. Copiez à partir de `import` jusqu'à `export default Record;`.
 
 ```tsx
 import { useState, useRef, useEffect } from "react";
