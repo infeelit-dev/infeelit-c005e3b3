@@ -1,3 +1,4 @@
+```tsx
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -509,7 +510,7 @@ const Record = () => {
             ? "تم نسخ الرابط! أرسله يدوياً"
             : lang === "fr"
               ? "Lien copié ! Envoyez-le manuellement"
-              : "Link copied! Send it manually",
+              : "Link copied! Send it manually"
         );
       }
     } else {
@@ -519,7 +520,7 @@ const Record = () => {
           ? "تم نسخ الرابط! أرسله يدوياً"
           : lang === "fr"
             ? "Lien copié ! Envoyez-le manuellement"
-            : "Link copied! Send it manually",
+            : "Link copied! Send it manually"
       );
     }
   };
@@ -800,3 +801,4 @@ const Record = () => {
 };
 
 export default Record;
+```
