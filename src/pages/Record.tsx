@@ -1,3 +1,5 @@
+Il y a des backticks (`` ` ``) qui ont été mal interprétés. Voici le fichier complet corrigé :
+
 ```tsx
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -141,12 +143,12 @@ const estimateFileSize = (elapsedSeconds: number, isAudio: boolean): string => {
   if (isAudio) {
     const bytes = (AUDIO_BITRATE / 8) * elapsedSeconds;
     const mb = bytes / (1024 * 1024);
-    if (mb < 1) return `${Math.round(mb * 1000)} KB`;
-    return `${mb.toFixed(1)} MB`;
+    if (mb < 1) return Math.round(mb * 1000) + " KB";
+    return mb.toFixed(1) + " MB";
   }
   const bytes = ((VIDEO_BITRATE + AUDIO_BITRATE) / 8) * elapsedSeconds;
   const mb = bytes / (1024 * 1024);
-  return `${mb.toFixed(1)} MB`;
+  return mb.toFixed(1) + " MB";
 };
 
 const capturePosterFrame = (videoElement: HTMLVideoElement): Promise<Blob | null> => {
@@ -396,8 +398,8 @@ const Record = () => {
       const mimeType = getMimeType(audioMode);
       const ts = Date.now() + Math.random();
       const ext = mimeType.includes("mp4") ? "mp4" : "webm";
-      const fileName = `${userId}/${ts}_memory.${ext}`;
-      const posterName = `${userId}/${ts}_poster.jpg`;
+      const fileName = userId + "/" + ts + "_memory." + ext;
+      const posterName = userId + "/" + ts + "_poster.jpg";
 
       try {
         const formData = new FormData();
@@ -406,7 +408,7 @@ const Record = () => {
 
         const response = await fetch(EDGE_FUNCTION_URL, {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: "Bearer " + token },
           body: formData,
         });
 
@@ -428,7 +430,7 @@ const Record = () => {
 
           await fetch(EDGE_FUNCTION_URL, {
             method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: "Bearer " + token },
             body: posterForm,
           });
         } catch (err) {
@@ -478,14 +480,14 @@ const Record = () => {
     const title = memoryTitle || "A memory";
     const text =
       lang === "ar"
-        ? `شاركت ذكرى على Infeelit: "${title}"`
+        ? "شاركت ذكرى على Infeelit: \"" + title + "\""
         : lang === "fr"
-          ? `J'ai partagé un souvenir sur Infeelit : "${title}"`
-          : `I shared a memory on Infeelit: "${title}"`;
+          ? "J'ai partagé un souvenir sur Infeelit : \"" + title + "\""
+          : "I shared a memory on Infeelit: \"" + title + "\"";
     const url = "https://infeelit.com";
 
     if (navigator.canShare && combinedBlob.size > 0) {
-      const file = new File([combinedBlob], `memory.${audioMode ? "webm" : "mp4"}`, { type: combinedBlob.type });
+      const file = new File([combinedBlob], "memory." + (audioMode ? "webm" : "mp4"), { type: combinedBlob.type });
       if (navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ title, text, files: [file] });
@@ -504,7 +506,7 @@ const Record = () => {
         toast.success(lang === "ar" ? "تمت المشاركة!" : lang === "fr" ? "Partagé !" : "Shared successfully!");
       } catch (err: any) {
         if (err?.name === "AbortError") return;
-        navigator.clipboard.writeText(`${text} ${url}`);
+        navigator.clipboard.writeText(text + " " + url);
         toast.success(
           lang === "ar"
             ? "تم نسخ الرابط! أرسله يدوياً"
@@ -514,7 +516,7 @@ const Record = () => {
         );
       }
     } else {
-      navigator.clipboard.writeText(`${text} ${url}`);
+      navigator.clipboard.writeText(text + " " + url);
       toast.success(
         lang === "ar"
           ? "تم نسخ الرابط! أرسله يدوياً"
@@ -532,12 +534,12 @@ const Record = () => {
     const downloadUrl = URL.createObjectURL(combinedBlob);
     const a = document.createElement("a");
     a.href = downloadUrl;
-    a.download = `infeelit-memory-${Date.now()}.${audioMode ? "webm" : "mp4"}`;
+    a.download = "infeelit-memory-" + Date.now() + "." + (audioMode ? "webm" : "mp4");
     a.click();
     URL.revokeObjectURL(downloadUrl);
   };
 
-  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
+  const formatTime = (s: number) => Math.floor(s / 60) + ":" + (s % 60).toString().padStart(2, "0");
   const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
   return (
@@ -548,7 +550,7 @@ const Record = () => {
           autoPlay
           muted
           playsInline
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${stage === "recording" ? "opacity-80" : "opacity-20"}`}
+          className={"absolute inset-0 w-full h-full object-cover transition-opacity duration-500 " + (stage === "recording" ? "opacity-80" : "opacity-20")}
         />
       )}
       {audioMode && (
