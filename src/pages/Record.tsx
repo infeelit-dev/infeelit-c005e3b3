@@ -509,7 +509,7 @@ const Record = () => {
             ? "تم نسخ الرابط! أرسله يدوياً"
             : lang === "fr"
               ? "Lien copié ! Envoyez-le manuellement"
-              : "Link copied! Send it manually"
+              : "Link copied! Send it manually",
         );
       }
     } else {
@@ -519,7 +519,7 @@ const Record = () => {
           ? "تم نسخ الرابط! أرسله يدوياً"
           : lang === "fr"
             ? "Lien copié ! Envoyez-le manuellement"
-            : "Link copied! Send it manually"
+            : "Link copied! Send it manually",
       );
     }
   };
@@ -770,4 +770,33 @@ const Record = () => {
 
           <button
             onClick={handleNativeShare}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: "rgba(255,255,255,.12)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,.2)",
+            }}
+          >
+            <Share2 size={18} />
+            {lang === "ar"
+              ? "مشاركة على وسائل التواصل"
+              : lang === "fr"
+                ? "Partager sur les réseaux"
+                : "Share on social media"}
+          </button>
+
+          <button
+            onClick={handleDownload}
+            className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2"
+            style={{ color: "rgba(255,255,255,.4)" }}
+          >
+            <Download size={16} />
+            {lang === "ar" ? "تحميل الذكرى" : lang === "fr" ? "Télécharger le souvenir" : "Download memory"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Record;
