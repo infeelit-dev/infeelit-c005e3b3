@@ -7,11 +7,9 @@ import infeelit from "@/assets/infeelit-logo.png";
 const FamilyIdentity = () => {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [firstFocused, setFirstFocused] = useState(false);
-  const [lastFocused, setLastFocused] = useState(false);
 
   useEffect(() => {
     const prefill = async () => {
@@ -24,10 +22,8 @@ const FamilyIdentity = () => {
           if (meta.full_name) {
             const parts = meta.full_name.split(" ");
             setFirstName(parts[0] || "");
-            setLastName(parts.slice(1).join(" ") || "");
           } else {
             setFirstName(meta.first_name || meta.given_name || "");
-            setLastName(meta.last_name || meta.family_name || "");
           }
         }
       } catch (err) {
@@ -39,7 +35,7 @@ const FamilyIdentity = () => {
     prefill();
   }, []);
 
-  const canContinue = firstName.trim().length > 0 && lastName.trim().length > 0;
+  const canContinue = firstName.trim().length > 0;
 
   const handleContinue = async () => {
     if (!canContinue) return;
@@ -55,14 +51,14 @@ const FamilyIdentity = () => {
         return;
       }
 
-      const displayName = `${firstName.trim()} ${lastName.trim()}`;
+      const displayName = firstName.trim();
 
       const { error } = await supabase.from("profiles").upsert(
         {
           id: session.user.id,
           user_id: session.user.id,
           display_name: displayName,
-          onboarding_completed: false,
+          onboarding_completed: true,
         },
         { onConflict: "user_id" },
       );
@@ -72,7 +68,7 @@ const FamilyIdentity = () => {
         throw error;
       }
 
-      navigate("/portrait", { replace: true });
+      navigate("/loading");
     } catch (err: any) {
       console.error("FamilyIdentity save error:", err);
       toast.error(err.message || "Could not save your name. Please try again.");
@@ -89,7 +85,6 @@ const FamilyIdentity = () => {
   }
 
   const hasFirst = firstName.length > 0;
-  const hasLast = lastName.length > 0;
 
   return (
     <div
@@ -108,7 +103,7 @@ const FamilyIdentity = () => {
         />
 
         <h1 className="text-3xl font-semibold text-center mb-2" style={{ color: "#1A3B47" }}>
-          Tell us your name
+          What's your name?
         </h1>
 
         <p
@@ -146,32 +141,6 @@ const FamilyIdentity = () => {
           />
         </div>
 
-        <div
-          className={`relative w-full rounded-full px-5 py-4 backdrop-blur-md transition-all border text-center ${
-            lastFocused ? "border-white/50 bg-white/80" : "border-white/40 bg-white/80"
-          }`}
-        >
-          <span
-            className={`absolute left-0 right-0 text-center transition-all pointer-events-none ${
-              hasLast || lastFocused
-                ? "top-1.5 text-[10px] font-bold text-secondary"
-                : "top-4 text-base text-muted-foreground"
-            }`}
-          >
-            Last Name
-          </span>
-          <input
-            type="text"
-            value={lastName}
-            onFocus={() => setLastFocused(true)}
-            onBlur={() => setLastFocused(false)}
-            onChange={(e) => setLastName(e.target.value)}
-            className={`w-full bg-transparent outline-none text-foreground text-base text-center ${
-              hasLast || lastFocused ? "pt-3" : "pt-0"
-            }`}
-          />
-        </div>
-
         <div className="flex justify-center mt-10 mb-4 w-full">
           <button
             onClick={handleContinue}
@@ -179,7 +148,7 @@ const FamilyIdentity = () => {
             className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-lg text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50"
             style={{ color: "#FFFFFF" }}
           >
-            {loading ? "Saving..." : "Continue my story"}
+            {loading ? "Saving..." : "Enter Infeelit"}
           </button>
         </div>
       </div>
