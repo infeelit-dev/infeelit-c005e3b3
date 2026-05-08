@@ -1,6 +1,5 @@
-import { X, Copy, Facebook, Twitter, MessageCircle, Link2, Check, Heart, Bookmark, Share2, Eye } from "lucide-react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { X, Copy, Facebook, Twitter, MessageCircle, Link2, Check, Share2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -17,12 +16,6 @@ interface ShareModalProps {
 const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl }: ShareModalProps) => {
   const { lang } = useLanguage();
   const [copied, setCopied] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
-  const [saveCount, setSaveCount] = useState(0);
-  const [shareCount, setShareCount] = useState(0);
-  const [viewCount, setViewCount] = useState(0);
 
   if (!isOpen) return null;
 
@@ -45,45 +38,6 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
     reddit: `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
   };
 
-  // Load stats from Supabase
-  useEffect(() => {
-    if (!memoryId) return;
-    const loadStats = async () => {
-      const { data } = await supabase
-        .from("memories")
-        .select("like_count, save_count, share_count, view_count")
-        .eq("id", memoryId)
-        .single();
-      if (data) {
-        setLikeCount(data.like_count || 0);
-        setSaveCount(data.save_count || 0);
-        setShareCount(data.share_count || 0);
-        setViewCount(data.view_count || 0);
-      }
-    };
-    loadStats();
-  }, [memoryId]);
-
-  const handleLike = async () => {
-    const newLiked = !liked;
-    setLiked(newLiked);
-    setLikeCount((prev) => prev + (newLiked ? 1 : -1));
-    if (memoryId) {
-      await supabase.rpc("increment_likes", { memory_id: memoryId, increment: newLiked ? 1 : -1 });
-    }
-    toast.success(newLiked ? "Liked!" : "Unliked");
-  };
-
-  const handleSave = async () => {
-    const newSaved = !saved;
-    setSaved(newSaved);
-    setSaveCount((prev) => prev + (newSaved ? 1 : -1));
-    if (memoryId) {
-      await supabase.rpc("increment_saves", { memory_id: memoryId, increment: newSaved ? 1 : -1 });
-    }
-    toast.success(newSaved ? "Saved to your collection!" : "Removed from collection");
-  };
-
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(`${text} ${deepLink}`);
     setCopied(true);
@@ -94,15 +48,7 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({
-          title,
-          text,
-          url: deepLink,
-        });
-        if (memoryId) {
-          await supabase.rpc("increment_shares", { memory_id: memoryId });
-          setShareCount((prev) => prev + 1);
-        }
+        await navigator.share({ title, text, url: deepLink });
         toast.success("Shared successfully!");
       } catch (err: any) {
         if (err?.name !== "AbortError") handleCopyLink();
@@ -113,10 +59,6 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
   };
 
   const handleSocialShare = async (platform: string) => {
-    if (memoryId) {
-      await supabase.rpc("increment_shares", { memory_id: memoryId });
-      setShareCount((prev) => prev + 1);
-    }
     if (platform === "instagram" || platform === "tiktok" || platform === "snapchat") {
       await navigator.clipboard.writeText(`${text} ${deepLink}`);
       toast.success(
@@ -208,90 +150,6 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
           >
             "{title}"
           </p>
-        </div>
-
-        {/* Action buttons: Like, Save, Stats */}
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            marginBottom: "20px",
-            padding: "12px",
-            backgroundColor: "rgba(255,255,255,0.03)",
-            borderRadius: "16px",
-          }}
-        >
-          <button
-            onClick={handleLike}
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              padding: "12px 8px",
-              borderRadius: "12px",
-              backgroundColor: liked ? "rgba(239,68,68,0.15)" : "transparent",
-              border: liked ? "1px solid rgba(239,68,68,0.3)" : "1px solid transparent",
-              cursor: "pointer",
-              color: liked ? "#EF4444" : "rgba(255,255,255,0.6)",
-              transition: "all .15s",
-            }}
-          >
-            <Heart size={20} fill={liked ? "#EF4444" : "none"} />
-            <span style={{ fontSize: "10px", fontWeight: 600 }}>{likeCount}</span>
-          </button>
-
-          <button
-            onClick={handleSave}
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              padding: "12px 8px",
-              borderRadius: "12px",
-              backgroundColor: saved ? "rgba(232,116,42,0.15)" : "transparent",
-              border: saved ? "1px solid rgba(232,116,42,0.3)" : "1px solid transparent",
-              cursor: "pointer",
-              color: saved ? "#E8742A" : "rgba(255,255,255,0.6)",
-              transition: "all .15s",
-            }}
-          >
-            <Bookmark size={20} fill={saved ? "#E8742A" : "none"} />
-            <span style={{ fontSize: "10px", fontWeight: 600 }}>{saveCount}</span>
-          </button>
-
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              padding: "12px 8px",
-              color: "rgba(255,255,255,0.6)",
-            }}
-          >
-            <Eye size={20} />
-            <span style={{ fontSize: "10px", fontWeight: 600 }}>{viewCount}</span>
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              padding: "12px 8px",
-              color: "rgba(255,255,255,0.6)",
-            }}
-          >
-            <Share2 size={20} />
-            <span style={{ fontSize: "10px", fontWeight: 600 }}>{shareCount}</span>
-          </div>
         </div>
 
         {/* Native share button */}
