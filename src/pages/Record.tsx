@@ -426,31 +426,55 @@ const Record = () => {
   const handleShare = async (type: "circle" | "public" | "private") => {
     stream?.getTracks().forEach((t) => t.stop());
     const isPublic = type === "public";
-    const urls = await uploadAllClips();
-    uploadedFileUrl.current = urls[urls.length - 1] || "";
-    uploadedType.current = audioMode ? "audio" : "video";
-    if (userIdRef.current && userIdRef.current !== "anonymous") {
-      for (const url of urls) {
-        const { error } = await (supabase as any)
-          .from("memories")
-          .insert({
-            user_id: userIdRef.current,
-            title: memoryTitle || "A memory",
-            description: null,
-            file_url: url,
-            file_type: uploadedType.current,
-            thumbnail_url: uploadedThumbUrl.current || null,
-            timeline: "memories",
-            is_public: isPublic,
-            created_at: new Date().toISOString(),
-          });
-        if (error) console.error("Insert error:", error);
+    try {
+      const urls = await uploadAllClips();
+      if (urls.length === 0) {
+        toast.error("Upload failed. Please try again.");
+        setStage("share");
+        return;
       }
+      uploadedFileUrl.current = urls[urls.length - 1];
+      uploadedType.current = audioMode ? "audio" : "video";
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) {
+        toast.error("Session expired. Please login again.");
+        navigate("/welcome", { replace: true });
+        return;
+      }
+      userIdRef.current = userId;
+      const insertPromises = urls.map((url) =>
+        supabase.from("memories").insert({
+          user_id: userId,
+          title: memoryTitle || "A memory",
+          description: null,
+          file_url: url,
+          file_type: uploadedType.current,
+          thumbnail_url: uploadedThumbUrl.current || null,
+          timeline: "memories",
+          is_public: isPublic,
+          created_at: new Date().toISOString(),
+        }),
+      );
+      const results = await Promise.all(insertPromises);
+      const errors = results.filter((r) => r.error);
+      if (errors.length > 0) {
+        console.error("Insert errors:", errors);
+        toast.error("Error saving to your space. Please try again.");
+        setStage("share");
+        return;
+      }
+      if (type === "circle") toast.success(t.sharedCircle);
+      else if (type === "public") toast.success(t.sharedOcean);
+      else toast.success(t.keptPrivate);
+      navigate("/treasure", { state: { refresh: true } });
+    } catch (err) {
+      console.error("Global flow error:", err);
+      toast.error("An unexpected error occurred.");
+      setStage("share");
     }
-    if (type === "circle") toast.success(t.sharedCircle);
-    else if (type === "public") toast.success(t.sharedOcean);
-    else toast.success(t.keptPrivate);
-    navigate("/treasure");
   };
 
   const handleNativeShare = async () => {
