@@ -397,6 +397,7 @@ const Record = () => {
           body: formData,
         });
         const result = await response.json();
+        console.log("Edge Function response:", result);
         if (result.url) {
           urls.push(result.url);
         } else {
@@ -428,6 +429,7 @@ const Record = () => {
     const isPublic = type === "public";
     try {
       const urls = await uploadAllClips();
+      console.log("URLs returned:", urls);
       if (urls.length === 0) {
         toast.error("Upload failed. Please try again.");
         setStage("share");
@@ -439,6 +441,7 @@ const Record = () => {
         data: { session },
       } = await supabase.auth.getSession();
       const userId = session?.user?.id;
+      console.log("User ID:", userId);
       if (!userId) {
         toast.error("Session expired. Please login again.");
         navigate("/welcome", { replace: true });
@@ -459,6 +462,7 @@ const Record = () => {
         }),
       );
       const results = await Promise.all(insertPromises);
+      console.log("Insert results:", results);
       const errors = results.filter((r) => r.error);
       if (errors.length > 0) {
         console.error("Insert errors:", errors);
