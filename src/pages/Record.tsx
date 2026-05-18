@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { X, StopCircle, Loader2, Share2, Video, Mic, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ShareModal from "@/components/ShareModal";
 
 const MAX_DURATION_SECONDS = 180;
 const VIDEO_BITRATE = 500_000;
@@ -202,6 +203,7 @@ const Record = () => {
   const [audioMode, setAudioMode] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [estimatedSize, setEstimatedSize] = useState("0 KB");
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
   const theme = getTheme(question);
@@ -763,7 +765,7 @@ const Record = () => {
             <div className="flex-1 h-px bg-white/15" />
           </div>
           <button
-            onClick={handleNativeShare}
+            onClick={() => setShowShareModal(true)}
             className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2"
             style={{
               backgroundColor: "rgba(255,255,255,.12)",
@@ -788,6 +790,13 @@ const Record = () => {
           </button>
         </div>
       )}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title={memoryTitle || "A memory"}
+        url={uploadedFileUrl.current || "https://infeelit.com"}
+        text={`I preserved a memory on Infeelit: "${memoryTitle}"`}
+      />
     </div>
   );
 };
