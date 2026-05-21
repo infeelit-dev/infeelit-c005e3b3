@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { X, StopCircle, Loader2, Share2, Video, Mic, Download } from "lucide-react";
+import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ShareModal from "@/components/ShareModal";
@@ -166,7 +166,7 @@ const capturePosterFrame = (videoElement: HTMLVideoElement): Promise<Blob | null
   });
 };
 
-type Stage = "question" | "countdown" | "recording" | "uploading" | "followup" | "title" | "share";
+type Stage = "question" | "countdown" | "recording" | "preview" | "uploading" | "followup" | "title" | "share";
 
 interface MemoryClip {
   blob: Blob;
@@ -193,6 +193,7 @@ const Record = () => {
   const userIdRef = useRef<string>("");
   const isFollowupRec = useRef<boolean>(false);
   const currentQuestion = useRef<string>("");
+  const latestPosterBlob = useRef<Blob | null>(null);
 
   const [stage, setStage] = useState<Stage>("question");
   const [mediaRecorder, setMR] = useState<MediaRecorder | null>(null);
@@ -204,6 +205,9 @@ const Record = () => {
   const [elapsed, setElapsed] = useState(0);
   const [estimatedSize, setEstimatedSize] = useState("0 KB");
   const [showShareModal, setShowShareModal] = useState(false);
+  const [localBlob, setLocalBlob] = useState<Blob | null>(null);
+  const [localUrl, setLocalUrl] = useState<string>("");
+  const [previewReady, setPreviewReady] = useState(false);
 
   const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
   const theme = getTheme(question);
@@ -266,8 +270,9 @@ const Record = () => {
       cancelAnimationFrame(animFrameRef.current);
       if (hardCapTimer.current) clearTimeout(hardCapTimer.current);
       if (elapsedTimer.current) clearInterval(elapsedTimer.current);
+      if (localUrl) URL.revokeObjectURL(localUrl);
     };
-  }, [stream]);
+  }, [stream, localUrl]);
 
   useEffect(() => {
     if (!audioMode || stage !== "recording") return;
@@ -298,6 +303,18 @@ const Record = () => {
     draw();
     return () => cancelAnimationFrame(animFrameRef.current);
   }, [audioMode, stage]);
+
+  useEffect(() => {
+    if (stage === "preview" && previewReady && !audioMode && videoRef.current && localUrl) {
+      videoRef.current.srcObject = null;
+      videoRef.current.src = localUrl;
+      videoRef.current.controls = true;
+      videoRef.current.loop = false;
+      videoRef.current.muted = false;
+      videoRef.current.autoplay = false;
+      videoRef.current.playsInline = true;
+    }
+  }, [stage, previewReady, audioMode, localUrl]);
 
   const startCountdown = (fromFollowup = false) => {
     isFollowupRec.current = fromFollowup;
@@ -336,11 +353,10 @@ const Record = () => {
     if (hardCapTimer.current) clearTimeout(hardCapTimer.current);
     if (elapsedTimer.current) clearInterval(elapsedTimer.current);
     cancelAnimationFrame(animFrameRef.current);
-    setStage("uploading");
     mediaRecorder.requestData();
-    let posterBlob: Blob | null = null;
-    if (!audioMode && videoRef.current) posterBlob = await capturePosterFrame(videoRef.current);
-    mediaRecorder.onstop = async () => {
+    latestPosterBlob.current = null;
+    if (!audioMode && videoRef.current) latestPosterBlob.current = await capturePosterFrame(videoRef.current);
+    mediaRecorder.onstop = () => {
       try {
         const mimeType = getMimeType(audioMode);
         const blob = new Blob(recordedChunks.current, { type: mimeType });
@@ -349,28 +365,52 @@ const Record = () => {
           setStage("recording");
           return;
         }
-        memoryClips.current.push({ blob, question: currentQuestion.current, posterBlob });
-        if (isFollowupRec.current) {
-          isFollowupRec.current = false;
-          setFollowIdx((i) => {
-            const next = i + 1;
-            if (next >= followups.length) {
-              setStage("title");
-            } else {
-              setStage("followup");
-            }
-            return next;
-          });
-        } else {
-          setStage("followup");
-        }
+        setLocalBlob(blob);
+        const url = URL.createObjectURL(blob);
+        setLocalUrl(url);
+        setPreviewReady(true);
+        setStage("preview");
       } catch (err) {
         console.error(err);
-        toast.error("Error saving. Please try again.");
+        toast.error("Error preparing preview.");
         setStage("recording");
       }
     };
     mediaRecorder.stop();
+  };
+
+  const handleRetake = () => {
+    if (localUrl) URL.revokeObjectURL(localUrl);
+    setLocalBlob(null);
+    setLocalUrl("");
+    setPreviewReady(false);
+    recordedChunks.current = [];
+    setStage("question");
+  };
+
+  const handleConfirm = () => {
+    if (!localBlob) return;
+    setPreviewReady(false);
+    memoryClips.current.push({
+      blob: localBlob,
+      question: currentQuestion.current,
+      posterBlob: latestPosterBlob.current,
+    });
+    setStage("uploading");
+    if (isFollowupRec.current) {
+      isFollowupRec.current = false;
+      setFollowIdx((i) => {
+        const next = i + 1;
+        if (next >= followups.length) {
+          setStage("title");
+        } else {
+          setStage("followup");
+        }
+        return next;
+      });
+    } else {
+      setStage("followup");
+    }
   };
 
   const uploadAllClips = async (): Promise<string[]> => {
@@ -380,31 +420,25 @@ const Record = () => {
     const userId = session?.user?.id || "anonymous";
     userIdRef.current = userId;
     const urls: string[] = [];
-
     for (const clip of memoryClips.current) {
       const mimeType = getMimeType(audioMode);
       const ts = Date.now() + Math.random();
       const ext = mimeType.includes("mp4") ? "mp4" : "webm";
       const fileName = userId + "/" + ts + "_memory." + ext;
       const posterName = userId + "/" + ts + "_poster.jpg";
-
       try {
         const { data, error } = await supabase.storage
           .from("memories")
           .upload(fileName, clip.blob, { contentType: mimeType, upsert: true });
-
         if (error) {
           console.error("Storage upload error:", error);
           continue;
         }
-
         const { data: urlData } = supabase.storage.from("memories").getPublicUrl(fileName);
-
         if (urlData?.publicUrl) {
           urls.push(urlData.publicUrl);
         }
         uploadedThumbUrl.current = "";
-
         if (clip.posterBlob) {
           const { data: posterData } = await supabase.storage
             .from("memories")
@@ -446,17 +480,19 @@ const Record = () => {
       }
       userIdRef.current = userId;
       const insertPromises = urls.map((url) =>
-        supabase.from("memories").insert({
-          user_id: userId,
-          title: memoryTitle || "A memory",
-          description: null,
-          file_url: url,
-          file_type: uploadedType.current,
-          thumbnail_url: uploadedThumbUrl.current || null,
-          timeline: "memories",
-          is_public: isPublic,
-          created_at: new Date().toISOString(),
-        }),
+        supabase
+          .from("memories")
+          .insert({
+            user_id: userId,
+            title: memoryTitle || "A memory",
+            description: null,
+            file_url: url,
+            file_type: uploadedType.current,
+            thumbnail_url: uploadedThumbUrl.current || null,
+            timeline: "memories",
+            is_public: isPublic,
+            created_at: new Date().toISOString(),
+          }),
       );
       const results = await Promise.all(insertPromises);
       const errors = results.filter((r) => r.error);
@@ -477,57 +513,6 @@ const Record = () => {
     }
   };
 
-  const handleNativeShare = async () => {
-    const allBlobs = memoryClips.current.map((c) => c.blob);
-    const combinedBlob = new Blob(allBlobs, { type: getMimeType(audioMode) });
-    const title = memoryTitle || "A memory";
-    const text =
-      lang === "ar"
-        ? 'شاركت ذكرى على Infeelit: "' + title + '"'
-        : lang === "fr"
-          ? "J'ai partagé un souvenir sur Infeelit : \"" + title + '"'
-          : 'I shared a memory on Infeelit: "' + title + '"';
-    const url = "https://infeelit.com";
-    if (navigator.canShare && combinedBlob.size > 0) {
-      const file = new File([combinedBlob], "memory." + (audioMode ? "webm" : "mp4"), { type: combinedBlob.type });
-      if (navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ title, text, files: [file] });
-          toast.success(lang === "ar" ? "تمت المشاركة!" : lang === "fr" ? "Partagé !" : "Shared successfully!");
-          return;
-        } catch (err: any) {
-          if (err?.name === "AbortError") return;
-          console.error("File share failed:", err);
-        }
-      }
-    }
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, text, url });
-        toast.success(lang === "ar" ? "تمت المشاركة!" : lang === "fr" ? "Partagé !" : "Shared successfully!");
-      } catch (err: any) {
-        if (err?.name === "AbortError") return;
-        navigator.clipboard.writeText(text + " " + url);
-        toast.success(
-          lang === "ar"
-            ? "تم نسخ الرابط! أرسله يدوياً"
-            : lang === "fr"
-              ? "Lien copié ! Envoyez-le manuellement"
-              : "Link copied! Send it manually",
-        );
-      }
-    } else {
-      navigator.clipboard.writeText(text + " " + url);
-      toast.success(
-        lang === "ar"
-          ? "تم نسخ الرابط! أرسله يدوياً"
-          : lang === "fr"
-            ? "Lien copié ! Envoyez-le manuellement"
-            : "Link copied! Send it manually",
-      );
-    }
-  };
-
   const handleDownload = () => {
     const allBlobs = memoryClips.current.map((c) => c.blob);
     const combinedBlob = new Blob(allBlobs, { type: getMimeType(audioMode) });
@@ -545,7 +530,7 @@ const Record = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans" dir={rtl ? "rtl" : "ltr"}>
-      {!audioMode && (
+      {!audioMode && stage !== "preview" && (
         <video
           ref={videoRef}
           autoPlay
@@ -557,7 +542,10 @@ const Record = () => {
           }
         />
       )}
-      {audioMode && (
+      {stage === "preview" && !audioMode && (
+        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover opacity-90" />
+      )}
+      {audioMode && stage !== "preview" && (
         <div
           className="absolute inset-0"
           style={{ background: "linear-gradient(180deg,#0a0a0a 0%,#1a0a2e 50%,#0a0a0a 100%)" }}
@@ -568,6 +556,7 @@ const Record = () => {
         <button
           onClick={() => {
             stream?.getTracks().forEach((t) => t.stop());
+            if (localUrl) URL.revokeObjectURL(localUrl);
             navigate(-1);
           }}
           className="p-3 bg-white/10 backdrop-blur-xl rounded-full text-white border border-white/20"
@@ -679,6 +668,53 @@ const Record = () => {
             </button>
           </div>
         </>
+      )}
+      {stage === "preview" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
+            {lang === "ar"
+              ? "استمع إلى تسجيلك"
+              : lang === "fr"
+                ? "Réécoutez votre souvenir"
+                : "Listen to your recording"}
+          </p>
+          <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{currentQuestion.current}"</h2>
+          {audioMode ? (
+            <audio src={localUrl} controls className="w-full max-w-xs mt-4" autoPlay />
+          ) : (
+            <video
+              src={localUrl}
+              controls
+              className="w-full max-w-xs rounded-2xl border border-white/20 mt-4"
+              autoPlay
+              playsInline
+            />
+          )}
+          <p className="text-white/50 text-xs mt-4">
+            {lang === "ar"
+              ? "هل تريد الاحتفاظ بهذا التسجيل؟"
+              : lang === "fr"
+                ? "Voulez-vous garder cet enregistrement ?"
+                : "Do you want to keep this recording?"}
+          </p>
+          <div className="flex gap-4 w-full max-w-xs mt-4">
+            <button
+              onClick={handleRetake}
+              className="flex-1 py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20 flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={18} />
+              {lang === "ar" ? "إعادة" : lang === "fr" ? "Refaire" : "Retake"}
+            </button>
+            <button
+              onClick={handleConfirm}
+              className="flex-1 py-4 rounded-full gradient-orange text-white font-bold text-base flex items-center justify-center gap-2"
+              style={{ color: "#fff" }}
+            >
+              <Check size={18} />
+              {lang === "ar" ? "احتفاظ" : lang === "fr" ? "Garder" : "Keep"}
+            </button>
+          </div>
+        </div>
       )}
       {stage === "uploading" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center gap-6">
