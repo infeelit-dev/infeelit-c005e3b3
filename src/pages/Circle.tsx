@@ -36,9 +36,9 @@ interface DemoMember {
   photo: string;
   hasNew: boolean;
   isPet: boolean;
-  left: number;
-  top: number;
-  size: number;
+  leftPct: number;
+  topPct: number;
+  sizePct: number;
   float: string;
   delay: string;
 }
@@ -51,9 +51,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: marryImg,
     hasNew: true,
     isPet: false,
-    left: 18,
-    top: 24,
-    size: 80,
+    leftPct: 4.9,
+    topPct: 4.7,
+    sizePct: 21.6,
     float: "mf-a",
     delay: "0s",
   },
@@ -64,9 +64,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: loveImg,
     hasNew: true,
     isPet: false,
-    left: 252,
-    top: 12,
-    size: 75,
+    leftPct: 68.1,
+    topPct: 2.4,
+    sizePct: 20.3,
     float: "mf-b",
     delay: "1.3s",
   },
@@ -77,9 +77,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: relaxImg,
     hasNew: true,
     isPet: false,
-    left: 305,
-    top: 138,
-    size: 70,
+    leftPct: 82.4,
+    topPct: 27.1,
+    sizePct: 18.9,
     float: "mf-c",
     delay: "0.6s",
   },
@@ -90,9 +90,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: houseImg,
     hasNew: false,
     isPet: false,
-    left: 4,
-    top: 144,
-    size: 66,
+    leftPct: 1.1,
+    topPct: 28.2,
+    sizePct: 17.8,
     float: "mf-a",
     delay: "2.1s",
   },
@@ -103,9 +103,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: birthImg,
     hasNew: false,
     isPet: false,
-    left: 290,
-    top: 260,
-    size: 62,
+    leftPct: 78.4,
+    topPct: 51,
+    sizePct: 16.8,
     float: "mf-b",
     delay: "0.9s",
   },
@@ -116,9 +116,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: picnicImg,
     hasNew: false,
     isPet: false,
-    left: 6,
-    top: 266,
-    size: 60,
+    leftPct: 1.6,
+    topPct: 52.2,
+    sizePct: 16.2,
     float: "mf-c",
     delay: "1.8s",
   },
@@ -129,9 +129,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: graduateImg,
     hasNew: true,
     isPet: false,
-    left: 152,
-    top: 4,
-    size: 62,
+    leftPct: 41.1,
+    topPct: 0.8,
+    sizePct: 16.8,
     float: "mf-a",
     delay: "3s",
   },
@@ -142,9 +142,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: travelImg,
     hasNew: false,
     isPet: false,
-    left: 294,
-    top: 358,
-    size: 58,
+    leftPct: 79.5,
+    topPct: 70.2,
+    sizePct: 15.7,
     float: "mf-b",
     delay: "2.4s",
   },
@@ -155,9 +155,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: birthImg,
     hasNew: false,
     isPet: false,
-    left: 8,
-    top: 362,
-    size: 56,
+    leftPct: 2.2,
+    topPct: 71,
+    sizePct: 15.1,
     float: "mf-c",
     delay: "1.1s",
   },
@@ -168,9 +168,9 @@ const DEMO_MEMBERS: DemoMember[] = [
     photo: childImg,
     hasNew: false,
     isPet: true,
-    left: 196,
-    top: 368,
-    size: 60,
+    leftPct: 53,
+    topPct: 72.2,
+    sizePct: 16.2,
     float: "mf-a",
     delay: "0.4s",
   },
@@ -231,43 +231,30 @@ const DEMO_SHELF = [
   },
 ];
 
-// ─── Fetch function for React Query ───────────────────────────────────────────
-
 const fetchMemories = async (): Promise<Memory[]> => {
   const {
     data: { session },
   } = await supabase.auth.getSession();
   if (!session) return [];
-
   const { data: mems } = await supabase
     .from("memories")
     .select("*")
     .eq("user_id", session.user.id)
     .order("created_at", { ascending: false })
     .limit(10);
-
   return (mems as Memory[]) || [];
 };
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
 
 const Circle = () => {
   const navigate = useNavigate();
   const { t, lang, rtl } = useLanguage();
-
   const sphereTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   const [copied, setCopied] = useState(false);
   const [sphereMode, setSphereMode] = useState<SphereMode>("question");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [seenMembers, setSeenMembers] = useState<Set<string>>(new Set());
 
-  // React Query — cache automatique
-  const { data: memories = [] } = useQuery({
-    queryKey: ["memories"],
-    queryFn: fetchMemories,
-    staleTime: 30_000,
-  });
+  const { data: memories = [] } = useQuery({ queryKey: ["memories"], queryFn: fetchMemories, staleTime: 30_000 });
 
   const FILTERS: { id: FilterType; label: string }[] = [
     { id: "all", label: t.tabAll },
@@ -334,7 +321,6 @@ const Circle = () => {
         .hide-scroll::-webkit-scrollbar{display:none;}
       `}</style>
 
-      {/* Background bubbles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {BG_BUBBLES.map((b, i) => (
           <div
@@ -368,7 +354,6 @@ const Circle = () => {
         ))}
       </div>
 
-      {/* Header */}
       <div className="relative z-10 flex items-center justify-between px-5 pt-14 pb-2">
         <button
           onClick={() => navigate(-1)}
@@ -377,7 +362,6 @@ const Circle = () => {
         >
           ←
         </button>
-
         <div className="text-center">
           <h1 className="font-bold text-lg font-serif" style={{ color: "#3D2B1A" }}>
             The Morgan Family
@@ -386,7 +370,6 @@ const Circle = () => {
             {t.ourCircle} · 12 members
           </p>
         </div>
-
         <div
           className="px-3 py-1 rounded-full text-[10px] font-bold"
           style={{
@@ -399,30 +382,28 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* Constellation */}
-      <div className="relative mx-auto z-10" style={{ width: "370px", height: "510px" }}>
+      <div className="relative mx-auto z-10 w-full max-w-[90vw] aspect-[3.7/5.1] max-h-[55vh]">
         {[108, 132, 156].map((r, i) => (
           <div
             key={i}
             className="absolute rounded-full pointer-events-none"
             style={{
-              width: r * 2 + "px",
-              height: r * 2 + "px",
-              left: 185 - r + "px",
-              top: 198 - r + "px",
+              width: `${((r * 2) / 370) * 100}%`,
+              height: `${((r * 2) / 510) * 100}%`,
+              left: `${((185 - r) / 370) * 100}%`,
+              top: `${((198 - r) / 510) * 100}%`,
               border: `1px solid rgba(139,90,43,${0.08 + i * 0.04})`,
             }}
           />
         ))}
 
-        {/* Central sphere */}
         <div
           className="absolute sphere-glow"
           style={{
-            width: "132px",
-            height: "132px",
-            left: "119px",
-            top: "132px",
+            width: `${(132 / 370) * 100}%`,
+            height: `${(132 / 510) * 100}%`,
+            left: `${(119 / 370) * 100}%`,
+            top: `${(132 / 510) * 100}%`,
             borderRadius: "50%",
             background:
               "radial-gradient(circle at 38% 35%, rgba(255,228,115,.98), rgba(232,116,42,.9), rgba(175,90,10,.72))",
@@ -478,7 +459,6 @@ const Circle = () => {
           />
         </div>
 
-        {/* Living members */}
         {DEMO_MEMBERS.map((m) => {
           const isNew = m.hasNew && !seenMembers.has(m.id);
           return (
@@ -486,9 +466,10 @@ const Circle = () => {
               key={m.id}
               className={`absolute ${m.float}`}
               style={{
-                left: `${m.left}px`,
-                top: `${m.top}px`,
-                width: `${m.size}px`,
+                left: `${m.leftPct}%`,
+                top: `${m.topPct}%`,
+                width: `${m.sizePct}%`,
+                maxWidth: "80px",
                 zIndex: 5,
                 cursor: "pointer",
                 animationDelay: m.delay,
@@ -501,8 +482,8 @@ const Circle = () => {
               <div
                 className={isNew ? "gold-ring" : ""}
                 style={{
-                  width: `${m.size}px`,
-                  height: `${m.size}px`,
+                  width: "100%",
+                  height: "100%",
                   borderRadius: "50%",
                   overflow: "hidden",
                   position: "relative",
@@ -575,16 +556,16 @@ const Circle = () => {
           );
         })}
 
-        {/* Shrine — deceased frames + candle */}
-        <div className="absolute" style={{ left: "6px", bottom: "0px", zIndex: 7 }}>
+        <div className="absolute" style={{ left: `${(6 / 370) * 100}%`, bottom: "0px", zIndex: 7 }}>
           <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", paddingLeft: "8px" }}>
-            {/* Grandfather */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div
                 className="frame-halo"
                 style={{
-                  width: "68px",
-                  height: "88px",
+                  width: `${(68 / 370) * 100}%`,
+                  maxWidth: "68px",
+                  height: `${(88 / 510) * 100}%`,
+                  maxHeight: "88px",
                   borderRadius: "3px",
                   border: "4px solid rgba(184,142,32,.92)",
                   boxShadow:
@@ -632,14 +613,14 @@ const Circle = () => {
                 4 {t.tabVoices.replace("🎙️ ", "")}
               </p>
             </div>
-
-            {/* Grandmother */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div
                 className="frame-halo"
                 style={{
-                  width: "60px",
-                  height: "78px",
+                  width: `${(60 / 370) * 100}%`,
+                  maxWidth: "60px",
+                  height: `${(78 / 510) * 100}%`,
+                  maxHeight: "78px",
                   borderRadius: "3px",
                   border: "4px solid rgba(184,142,32,.86)",
                   boxShadow:
@@ -687,8 +668,6 @@ const Circle = () => {
                 2 {t.tabVoices.replace("🎙️ ", "")}
               </p>
             </div>
-
-            {/* Candle */}
             <div
               style={{
                 display: "flex",
@@ -767,8 +746,6 @@ const Circle = () => {
               />
             </div>
           </div>
-
-          {/* Table */}
           <div
             style={{
               height: "11px",
@@ -793,7 +770,6 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* Shelf */}
       <div className="px-5 mb-5 relative z-10">
         <div className="flex items-center justify-between mb-3">
           <p
@@ -868,7 +844,6 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="px-5 mb-5 relative z-10">
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scroll">
           {FILTERS.map((f) => (
@@ -892,7 +867,6 @@ const Circle = () => {
         </div>
       </div>
 
-      {/* Invite */}
       <div className="px-5 pb-36 relative z-10 space-y-3">
         <div
           className="flex items-center gap-3 p-4 rounded-2xl"
@@ -930,7 +904,6 @@ const Circle = () => {
             )}
           </button>
         </div>
-
         <button
           onClick={handleWhatsApp}
           className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2"
@@ -938,13 +911,11 @@ const Circle = () => {
         >
           <span>💬</span> {t.inviteWhatsApp}
         </button>
-
         <p className="text-center text-xs" style={{ color: "rgba(61,43,26,.28)" }}>
           {t.circlePrivate}
         </p>
       </div>
 
-      {/* Fixed CTA */}
       <div
         className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 z-20"
         style={{ background: "linear-gradient(to top,rgba(210,180,140,1) 60%,transparent)" }}
