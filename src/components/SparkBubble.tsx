@@ -161,13 +161,13 @@ const SparkBubble = () => {
           ))}
           <div className="heartbeat-pulse absolute rounded-full" style={{ width: "90px", height: "90px", background: "radial-gradient(circle at 45% 45%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.85) 25%, rgba(232,116,42,0.5) 55%, rgba(180,70,10,0.15) 100%)", border: "2px solid rgba(255,200,60,0.7)" }}>
             <div className="inner-glow-rotate absolute inset-0 rounded-full" style={{ background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.4) 25%, transparent 50%, rgba(255,255,255,0.2) 75%, transparent 100%)", opacity: 0.7 }} />
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-1 flex items-center justify-center">
               <img
                 src={infeeilitSymbol}
                 alt="Infeelit"
                 style={{
-                  width: "72px",
-                  height: "72px",
+                  width: "144px",
+                  height: "144px",
                   objectFit: "contain",
                   animation: "heartbeat 0.86s ease-in-out infinite",
                   filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
