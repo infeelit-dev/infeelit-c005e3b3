@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -77,7 +77,6 @@ const SparkBubble = () => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
   const [position, setPosition] = useState({ x: 50, y: 30 });
-  const [visible, setVisible] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [question, setQuestion] = useState("");
   const [showButton, setShowButton] = useState(false);
@@ -106,98 +105,150 @@ const SparkBubble = () => {
     }
   }, [expanded]);
 
-  const handleBubbleClick = () => {
-    setExpanded(true);
-  };
-
-  const handleClose = () => {
-    setExpanded(false);
-    setVisible(true);
-  };
-
+  const handleBubbleClick = () => setExpanded(true);
+  const handleClose = () => setExpanded(false);
   const handleRecord = () => {
     setExpanded(false);
     navigate("/record", { state: { question, category: "past", fromSpark: true } });
   };
 
-  if (!visible) return null;
-
   return (
     <>
       <style>{`
-        @keyframes sparkPulse {
-          0%, 100% { box-shadow: 0 0 15px rgba(232,116,42,0.4), 0 0 30px rgba(232,116,42,0.2), 0 0 45px rgba(255,180,40,0.1); }
-          25% { box-shadow: 0 0 25px rgba(255,180,40,0.7), 0 0 50px rgba(232,116,42,0.4), 0 0 75px rgba(255,200,60,0.2); }
-          50% { box-shadow: 0 0 35px rgba(255,200,60,0.9), 0 0 65px rgba(232,116,42,0.5), 0 0 90px rgba(255,220,80,0.3); }
-          75% { box-shadow: 0 0 25px rgba(255,180,40,0.7), 0 0 50px rgba(232,116,42,0.4), 0 0 75px rgba(255,200,60,0.2); }
+        @keyframes heartbeatPulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(255,180,40,0.5), 0 0 50px rgba(232,116,42,0.3), 0 0 80px rgba(255,200,60,0.15); }
+          8% { transform: scale(1.08); box-shadow: 0 0 35px rgba(255,200,60,0.8), 0 0 70px rgba(232,116,42,0.5), 0 0 100px rgba(255,220,80,0.3); }
+          16% { transform: scale(1); box-shadow: 0 0 25px rgba(255,180,40,0.5), 0 0 50px rgba(232,116,42,0.3), 0 0 80px rgba(255,200,60,0.15); }
+          24% { transform: scale(1.06); box-shadow: 0 0 30px rgba(255,200,60,0.6), 0 0 55px rgba(232,116,42,0.4), 0 0 85px rgba(255,220,80,0.2); }
+          32% { transform: scale(1); box-shadow: 0 0 25px rgba(255,180,40,0.5), 0 0 50px rgba(232,116,42,0.3), 0 0 80px rgba(255,200,60,0.15); }
         }
-        @keyframes sparkFloat {
-          0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-          20% { transform: translate3d(-15px, -25px, 0) scale(1.04); }
-          40% { transform: translate3d(20px, -10px, 0) scale(0.97); }
-          60% { transform: translate3d(10px, 20px, 0) scale(1.03); }
-          80% { transform: translate3d(-20px, 10px, 0) scale(0.98); }
+        @keyframes sparkleFloat {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(-12px, -20px) scale(1.05); }
+          50% { transform: translate(15px, -8px) scale(0.96); }
+          75% { transform: translate(8px, 15px) scale(1.04); }
         }
-        @keyframes innerGlow {
-          0%, 100% { opacity: 0.7; background-position: 0% 50%; }
-          25% { opacity: 1; background-position: 100% 0%; }
-          50% { opacity: 0.8; background-position: 100% 100%; }
-          75% { opacity: 1; background-position: 0% 100%; }
+        @keyframes innerGlowRotate {
+          0% { opacity: 0.6; transform: rotate(0deg); }
+          100% { opacity: 1; transform: rotate(360deg); }
+        }
+        @keyframes particleUp {
+          0% { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-40px) translateX(var(--dx)) scale(0); opacity: 0; }
         }
         @keyframes expandIn {
-          0% { transform: scale(0.3); opacity: 0; }
+          0% { transform: scale(0.2); opacity: 0; }
           60% { transform: scale(1.05); opacity: 1; }
           100% { transform: scale(1); opacity: 1; }
         }
-        @keyframes sparkEarned {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.4); color: #FFD700; }
-          100% { transform: scale(1); }
+        @keyframes haloSpin {
+          0% { transform: translate(-50%,-50%) rotate(0deg) scale(1); }
+          50% { transform: translate(-50%,-50%) rotate(180deg) scale(1.15); }
+          100% { transform: translate(-50%,-50%) rotate(360deg) scale(1); }
         }
-        .spark-pulse { animation: sparkPulse 3s ease-in-out infinite; }
-        .spark-float { animation: sparkFloat 8s ease-in-out infinite; }
-        .spark-inner { animation: innerGlow 4s ease-in-out infinite; }
+        .heartbeat { animation: heartbeatPulse 2.5s ease-in-out infinite; }
+        .sparkle-float { animation: sparkleFloat 10s ease-in-out infinite; }
+        .inner-glow-rotate { animation: innerGlowRotate 6s linear infinite; }
         .expand-in { animation: expandIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        .spark-earned { animation: sparkEarned 0.6s ease-out; }
       `}</style>
 
       {!expanded && (
         <button
           onClick={handleBubbleClick}
-          className="spark-float absolute z-[15] cursor-pointer transition-transform active:scale-95"
+          className="absolute z-[15] cursor-pointer transition-transform active:scale-90"
           style={{
             left: `${position.x}%`,
             top: `${position.y}%`,
-            width: "75px",
-            height: "75px",
+            width: "90px",
+            height: "90px",
             transition: "left 8s ease-in-out, top 8s ease-in-out",
+            transform: "translate(-50%,-50%)",
           }}
         >
+          {/* Particules qui s'échappent */}
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              style={
+                {
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  width: "3px",
+                  height: "3px",
+                  borderRadius: "50%",
+                  background: `hsl(${35 + i * 5}, 90%, ${60 + i * 3}%)`,
+                  boxShadow: "0 0 4px rgba(255,200,60,0.8)",
+                  animation: `particleUp ${2 + Math.random() * 2}s ease-out infinite`,
+                  animationDelay: `${i * 0.3}s`,
+                  "--dx": `${(Math.random() - 0.5) * 30}px`,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+
+          {/* Halo tournant */}
           <div
-            className="spark-pulse relative w-full h-full rounded-full overflow-hidden"
+            className="heartbeat absolute rounded-full"
             style={{
+              width: "90px",
+              height: "90px",
               background:
-                "radial-gradient(circle at 50% 50%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.8) 30%, rgba(232,116,42,0.6) 60%, rgba(180,70,10,0.3) 100%)",
-              border: "2px solid rgba(255,200,60,0.8)",
+                "radial-gradient(circle at 45% 45%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.85) 25%, rgba(232,116,42,0.5) 55%, rgba(180,70,10,0.15) 100%)",
+              border: "2px solid rgba(255,200,60,0.7)",
             }}
           >
+            {/* Reflet interne tournant */}
             <div
-              className="spark-inner absolute inset-0"
+              className="inner-glow-rotate absolute inset-0 rounded-full"
               style={{
                 background:
-                  "linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 40%, rgba(255,255,255,0.15) 60%, transparent 100%)",
-                backgroundSize: "200% 200%",
+                  "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.4) 25%, transparent 50%, rgba(255,255,255,0.2) 75%, transparent 100%)",
+                opacity: 0.7,
               }}
             />
+
+            {/* Point lumineux central */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles size={28} color="#fff" style={{ filter: "drop-shadow(0 0 6px rgba(255,200,60,0.8))" }} />
+              <div
+                style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  background:
+                    "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,220,80,0.6) 40%, transparent 70%)",
+                  boxShadow: "0 0 15px rgba(255,255,255,0.8), 0 0 30px rgba(255,200,60,0.6)",
+                }}
+              />
+              <Sparkles
+                size={22}
+                color="#fff"
+                style={{
+                  position: "absolute",
+                  filter: "drop-shadow(0 0 8px rgba(255,200,60,1)) drop-shadow(0 0 20px rgba(255,180,40,0.6))",
+                }}
+              />
             </div>
+
+            {/* Compteur de Sparks */}
             {sparkBalance > 0 && (
               <div
-                className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full flex items-center justify-center"
-                style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,200,60,0.5)" }}
+                className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full flex items-center justify-center"
+                style={{
+                  background: "rgba(0,0,0,0.7)",
+                  border: "1px solid rgba(255,200,60,0.6)",
+                  boxShadow: "0 0 8px rgba(255,200,60,0.4)",
+                }}
               >
-                <span style={{ fontSize: "9px", color: "#FFD700", fontWeight: 700, lineHeight: 1 }}>
+                <span
+                  style={{
+                    fontSize: "9px",
+                    color: "#FFD700",
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    textShadow: "0 0 4px rgba(255,200,60,0.8)",
+                  }}
+                >
                   ✦{sparkBalance}
                 </span>
               </div>
@@ -209,34 +260,44 @@ const SparkBubble = () => {
       {expanded && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)" }}
+          style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }}
           onClick={handleClose}
         >
           <div
             className="expand-in w-full max-w-sm mx-6 rounded-3xl px-8 py-10 text-center relative"
             style={{
-              background: "radial-gradient(ellipse at 50% 30%, rgba(232,116,42,0.15) 0%, rgba(0,0,0,0.95) 70%)",
-              border: "1px solid rgba(232,116,42,0.3)",
-              boxShadow: "0 0 60px rgba(232,116,42,0.15), 0 0 120px rgba(232,116,42,0.05)",
+              background: "radial-gradient(ellipse at 50% 30%, rgba(232,116,42,0.2) 0%, rgba(0,0,0,0.95) 70%)",
+              border: "1px solid rgba(232,116,42,0.35)",
+              boxShadow: "0 0 80px rgba(232,116,42,0.2), 0 0 150px rgba(232,116,42,0.08)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button onClick={handleClose} className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white/50">
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white/50 hover:bg-white/20 transition-colors"
+            >
               <X size={18} />
             </button>
 
             <div className="flex justify-center mb-6">
               <div
-                className="spark-pulse rounded-full flex items-center justify-center"
+                className="heartbeat rounded-full flex items-center justify-center"
                 style={{
-                  width: "70px",
-                  height: "70px",
+                  width: "80px",
+                  height: "80px",
                   background:
-                    "radial-gradient(circle at 50% 50%, rgba(255,220,80,1) 0%, rgba(255,180,40,0.9) 40%, rgba(232,116,42,0.5) 100%)",
+                    "radial-gradient(circle at 45% 45%, rgba(255,220,80,1) 0%, rgba(255,180,40,0.9) 35%, rgba(232,116,42,0.5) 100%)",
                   border: "2px solid rgba(255,200,60,0.8)",
+                  boxShadow: "0 0 40px rgba(255,200,60,0.6), 0 0 80px rgba(255,180,40,0.3)",
                 }}
               >
-                <Sparkles size={30} color="#fff" style={{ filter: "drop-shadow(0 0 8px rgba(255,200,60,0.9))" }} />
+                <Sparkles
+                  size={34}
+                  color="#fff"
+                  style={{
+                    filter: "drop-shadow(0 0 10px rgba(255,200,60,1)) drop-shadow(0 0 25px rgba(255,180,40,0.7))",
+                  }}
+                />
               </div>
             </div>
 
@@ -253,7 +314,7 @@ const SparkBubble = () => {
                 style={{
                   background: "linear-gradient(135deg, #E8742A, #D4621A)",
                   color: "#fff",
-                  boxShadow: "0 0 30px rgba(232,116,42,0.5), 0 0 60px rgba(232,116,42,0.2)",
+                  boxShadow: "0 0 35px rgba(232,116,42,0.6), 0 0 70px rgba(232,116,42,0.25)",
                 }}
               >
                 {lang === "ar" ? "أتذكر" : lang === "fr" ? "Je me souviens" : "I remember"}
