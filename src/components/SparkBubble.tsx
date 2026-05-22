@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import infeeilitSymbol from "@/assets/logo_sparkl_final_Infeelit.png";
+import infeeilitSymbol from "@/assets/logo_sparkl_4.png";
 
 const SPARK_INVITATIONS = {
   objet: {
@@ -169,9 +169,9 @@ const SparkBubble = () => {
                   width: "54px",
                   height: "54px",
                   objectFit: "contain",
+                  mixBlendMode: "screen",
                   animation: "heartbeat 0.86s ease-in-out infinite",
                   filter: "drop-shadow(0 0 10px rgba(255,200,60,0.9))",
-                  mixBlendMode: "screen",
                   position: "absolute",
                 }}
               />
@@ -193,12 +193,13 @@ const SparkBubble = () => {
                 src={infeeilitSymbol}
                 alt="Infeelit"
                 style={{
-                  width: "62px",
-                  height: "62px",
+                  width: "54px",
+                  height: "54px",
                   objectFit: "contain",
-                  animation: "heartbeat 0.86s ease-in-out infinite",
-                  filter: "drop-shadow(0 0 12px rgba(255,200,60,0.9))",
                   mixBlendMode: "screen",
+                  animation: "heartbeat 0.86s ease-in-out infinite",
+                  filter: "drop-shadow(0 0 10px rgba(255,200,60,0.9))",
+                  position: "absolute",
                 }}
               />
             </div>
