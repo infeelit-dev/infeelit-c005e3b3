@@ -47,34 +47,60 @@ Deno.serve(async (req: Request) => {
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    const fileName = formData.get("fileName") as string;
+    const clientFileName = (formData.get("fileName") as string) || "";
 
-    if (!file || !fileName) {
-      return new Response(JSON.stringify({ error: "Missing file or fileName" }), {
+    if (!file) {
+      return new Response(JSON.stringify({ error: "Missing file" }), {
         status: 400,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
     }
+
+    // Derive a safe extension from an allowlist; never trust the client path.
+    const allowedExt = new Map<string, string>([
+      ["video/mp4", "mp4"],
+      ["video/webm", "webm"],
+      ["video/quicktime", "mov"],
+      ["audio/mpeg", "mp3"],
+      ["audio/mp4", "m4a"],
+      ["audio/webm", "webm"],
+      ["audio/ogg", "ogg"],
+      ["image/jpeg", "jpg"],
+      ["image/png", "png"],
+    ]);
+    const ext =
+      allowedExt.get(file.type) ||
+      (clientFileName.match(/\.([a-zA-Z0-9]{1,5})$/)?.[1]?.toLowerCase() ?? "");
+    if (!ext || !/^[a-z0-9]{1,5}$/.test(ext)) {
+      return new Response(JSON.stringify({ error: "Unsupported file type" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Construct the object key entirely server-side, scoped to the user.
+    const safeKey = `${user.id}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
     const buffer = await file.arrayBuffer();
 
     await R2.send(
       new PutObjectCommand({
         Bucket: "infeelit-memories",
-        Key: fileName,
+        Key: safeKey,
         Body: new Uint8Array(buffer),
         ContentType: file.type,
       }),
     );
 
-    const url = `${Deno.env.get("R2_ENDPOINT")}/${fileName}`;
+    const url = `${Deno.env.get("R2_ENDPOINT")}/${safeKey}`;
 
-    return new Response(JSON.stringify({ url }), {
+    return new Response(JSON.stringify({ url, key: safeKey }), {
       status: 200,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
+  } catch (err) {
+    console.error("[upload-video]", err);
+    return new Response(JSON.stringify({ error: "Upload failed. Please try again." }), {
       status: 500,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
