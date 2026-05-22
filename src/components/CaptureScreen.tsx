@@ -361,7 +361,8 @@ const Record = () => {
             .from("memories")
             .upload(fileName, blob, { contentType: mimeType, upsert: true });
           if (data) {
-            fileUrl = supabase.storage.from("memories").getPublicUrl(fileName).data.publicUrl;
+            // Store the storage path; resolve to a signed URL at read time.
+            fileUrl = fileName;
           } else {
             console.error("Storage upload error:", uploadError);
           }
@@ -374,7 +375,7 @@ const Record = () => {
             .from("memories")
             .upload(posterName, posterBlob, { contentType: "image/jpeg", upsert: true });
           if (data) {
-            thumbUrl = supabase.storage.from("memories").getPublicUrl(posterName).data.publicUrl;
+            thumbUrl = posterName;
           }
         }
         uploadedThumbUrl.current = thumbUrl;
