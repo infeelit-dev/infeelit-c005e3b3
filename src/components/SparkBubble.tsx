@@ -166,11 +166,11 @@ const SparkBubble = () => {
                 src={infeeilitSymbol}
                 alt="Infeelit"
                 style={{
-                  width: "54px",
-                  height: "54px",
+                  width: "72px",
+                  height: "72px",
                   objectFit: "contain",
                   animation: "heartbeat 0.86s ease-in-out infinite",
-                  filter: "drop-shadow(0 0 10px rgba(255,200,60,0.9))",
+                  filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
                   position: "absolute",
                 }}
               />
@@ -192,11 +192,11 @@ const SparkBubble = () => {
                 src={infeeilitSymbol}
                 alt="Infeelit"
                 style={{
-                  width: "54px",
-                  height: "54px",
+                  width: "72px",
+                  height: "72px",
                   objectFit: "contain",
                   animation: "heartbeat 0.86s ease-in-out infinite",
-                  filter: "drop-shadow(0 0 10px rgba(255,200,60,0.9))",
+                  filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
                   position: "absolute",
                 }}
               />
