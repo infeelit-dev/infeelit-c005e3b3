@@ -5,7 +5,6 @@ import Header from "@/components/Header";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
-import NamePrompt from "@/components/NamePrompt";
 import imgMarry from "@/assets/marry.jpg";
 import type { Timeline } from "@/types/timeline";
 import type { BubbleCategory } from "@/components/MemoryBubble";
@@ -28,14 +27,8 @@ const Index = () => {
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showForeverOverlay, setShowForeverOverlay] = useState(false);
-  const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
-
-  useEffect(() => {
-    const savedName = localStorage.getItem("infeelit_user_name");
-    if (!savedName) setShowNamePrompt(true);
-  }, []);
 
   const handleTimelineChange = async (timeline: Timeline) => {
     if (timeline === "forever") {
@@ -189,7 +182,6 @@ const Index = () => {
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
-      {/* L'ÉTINCELLE — SparkBubble */}
       <SparkBubble />
 
       {activeTimeline === "memories" && (
@@ -405,8 +397,6 @@ const Index = () => {
           </div>
         </div>
       )}
-
-      {showNamePrompt && <NamePrompt onComplete={() => setShowNamePrompt(false)} />}
     </div>
   );
 };
