@@ -194,6 +194,7 @@ const Record = () => {
   const isFollowupRec = useRef<boolean>(false);
   const currentQuestion = useRef<string>("");
   const latestPosterBlob = useRef<Blob | null>(null);
+  const fromSpark = useRef<boolean>(false);
 
   const [stage, setStage] = useState<Stage>("question");
   const [mediaRecorder, setMR] = useState<MediaRecorder | null>(null);
@@ -217,6 +218,10 @@ const Record = () => {
   const poeticTitles =
     POETIC_TITLES[lang as keyof typeof POETIC_TITLES]?.[theme as keyof typeof POETIC_TITLES.en] ??
     POETIC_TITLES.en.default;
+
+  useEffect(() => {
+    if (location.state?.fromSpark) fromSpark.current = true;
+  }, [location.state]);
 
   const getMimeType = (audioOnly: boolean) => {
     if (audioOnly) {
@@ -502,6 +507,13 @@ const Record = () => {
         setStage("share");
         return;
       }
+
+      if (fromSpark.current) {
+        const bal = Number(localStorage.getItem("infeelit_spark_balance") || 0);
+        localStorage.setItem("infeelit_spark_balance", String(bal + 1));
+        fromSpark.current = false;
+      }
+
       if (type === "circle") toast.success(t.sharedCircle);
       else if (type === "public") toast.success(t.sharedOcean);
       else toast.success(t.keptPrivate);
