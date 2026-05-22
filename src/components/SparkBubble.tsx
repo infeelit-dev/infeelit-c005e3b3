@@ -1,4 +1,3 @@
-```tsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
@@ -292,4 +291,3 @@ const SparkBubble = () => {
 };
 
 export default SparkBubble;
-```
