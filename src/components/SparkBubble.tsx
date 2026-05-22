@@ -80,6 +80,8 @@ const SparkBubble = () => {
   const [userName, setUserName] = useState("");
   const [selectedCard, setSelectedCard] = useState(0);
   const [cards, setCards] = useState<{ category: Category; text: string }[]>([]);
+  const [showNameInput, setShowNameInput] = useState(false);
+  const [nameInput, setNameInput] = useState("");
 
   useEffect(() => {
     const savedName = localStorage.getItem("infeelit_user_name") || "";
@@ -115,14 +117,32 @@ const SparkBubble = () => {
     } else {
       setShowButton(false);
       setSelectedCard(0);
+      setShowNameInput(false);
+      setNameInput("");
     }
   }, [expanded]);
 
   const handleBubbleClick = () => {
-    if (!userName) return;
     setExpanded(true);
+    if (!localStorage.getItem("infeelit_user_name")) {
+      setShowNameInput(true);
+    }
   };
+
   const handleClose = () => setExpanded(false);
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = nameInput.trim();
+    if (trimmed.length < 1) return;
+    localStorage.setItem("infeelit_user_name", trimmed);
+    setUserName(trimmed);
+    setShowNameInput(false);
+    setShowButton(false);
+    const timer = setTimeout(() => setShowButton(true), 2000);
+    return () => clearTimeout(timer);
+  };
+
   const handleCardSelect = (idx: number) => {
     setSelectedCard(idx);
     if (scrollRef.current) {
@@ -130,24 +150,25 @@ const SparkBubble = () => {
       scrollRef.current.scrollTo({ left: idx * (cw + 16), behavior: "smooth" });
     }
   };
+
   const handleRecord = () => {
     const card = cards[selectedCard];
     setExpanded(false);
     navigate("/record", { state: { question: card?.text || "", category: "past", fromSpark: true } });
   };
+
   const getButtonText = () => {
     if (lang === "ar") return `${userName}، احكِ لنا`;
     if (lang === "fr") return `${userName}, raconte-nous`;
     return `${userName}, tell us`;
   };
+
   const getBadgeText = (cat: Category) => {
     if (lang === "ar") return cat === "objet" ? "✦ مستوى النور" : cat === "moment" ? "✦ مستوى الكنز" : "✦ مستوى الجوهر";
     if (lang === "fr")
       return cat === "objet" ? "✦ Niveau Lumière" : cat === "moment" ? "✦ Niveau Trésor" : "✦ Niveau Essence";
     return cat === "objet" ? "✦ Light Level" : cat === "moment" ? "✦ Treasure Level" : "✦ Essence Level";
   };
-
-  if (!userName) return null;
 
   return (
     <>
@@ -271,7 +292,7 @@ const SparkBubble = () => {
       {expanded && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center"
-          style={{ backgroundColor: "#FFF9F2" }}
+          style={{ backgroundColor: "rgba(255,249,242,0.94)", backdropFilter: "blur(8px)" }}
           onClick={handleClose}
         >
           <div
@@ -312,80 +333,112 @@ const SparkBubble = () => {
               </div>
             </div>
 
-            <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-3">
-              {lang === "ar" ? "اختر قصتك" : lang === "fr" ? "Choisis ton histoire" : "Choose your story"}
-            </p>
+            {showNameInput ? (
+              <form onSubmit={handleNameSubmit} className="flex flex-col items-center gap-5">
+                <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
+                  {lang === "ar" ? "ما اسمك ؟" : lang === "fr" ? "Comment tu t'appelles ?" : "What's your name?"}
+                </p>
+                <div className="relative w-full max-w-[260px] rounded-full px-6 py-4 transition-all border bg-[#FAFAF8] border-[#D4A853]/30 focus-within:border-[#E8742A] focus-within:shadow-[0_0_20px_rgba(232,116,42,0.1)]">
+                  <input
+                    type="text"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    placeholder={lang === "ar" ? "اسمك الأول" : lang === "fr" ? "Ton prénom" : "Your first name"}
+                    className="w-full bg-transparent outline-none text-[#3D2B1F] text-lg text-center font-serif"
+                    autoFocus
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={nameInput.trim().length < 1}
+                  className="w-full max-w-[260px] py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed border-none cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                    color: "#fff",
+                    boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
+                  }}
+                >
+                  {lang === "ar" ? "اكتشف قصصك" : lang === "fr" ? "Découvre tes histoires" : "Discover your stories"}
+                </button>
+              </form>
+            ) : (
+              <>
+                <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-3">
+                  {lang === "ar" ? "اختر قصتك" : lang === "fr" ? "Choisis ton histoire" : "Choose your story"}
+                </p>
 
-            <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-scroll pb-4 pt-2 hide-scroll">
-              {cards.map((card, idx) => {
-                const isSelected = selectedCard === idx;
-                return (
+                <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-scroll pb-4 pt-2 hide-scroll">
+                  {cards.map((card, idx) => {
+                    const isSelected = selectedCard === idx;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleCardSelect(idx)}
+                        className={`snap-card shrink-0 flex flex-col justify-center items-start text-left p-5 rounded-[20px] transition-all duration-300 cursor-pointer border-none ${isSelected ? "scale-[1.02]" : ""}`}
+                        style={{
+                          width: "85%",
+                          maxWidth: "300px",
+                          background: isSelected ? "rgba(232,116,42,0.06)" : "#FAFAF8",
+                          border: isSelected ? "1px solid rgba(232,116,42,0.5)" : "1px solid rgba(212,168,83,0.2)",
+                          boxShadow: isSelected ? "0 4px 16px rgba(232,116,42,0.08)" : "none",
+                        }}
+                      >
+                        <span
+                          className="text-[8px] font-black uppercase tracking-widest mb-2"
+                          style={{ color: isSelected ? "#E8742A" : "rgba(61,43,31,0.4)" }}
+                        >
+                          {getBadgeText(card.category)}
+                        </span>
+                        <p className="text-sm font-serif leading-relaxed italic" style={{ color: "#3D2B1F" }}>
+                          "{card.text}"
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex justify-center gap-2 mt-2 mb-4">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-2 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        background: selectedCard === i ? "#E8742A" : "rgba(61,43,31,0.15)",
+                        transform: selectedCard === i ? "scale(1.3)" : "scale(1)",
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {showButton && (
                   <button
-                    key={idx}
-                    onClick={() => handleCardSelect(idx)}
-                    className={`snap-card shrink-0 flex flex-col justify-center items-start text-left p-5 rounded-[20px] transition-all duration-300 cursor-pointer border-none ${isSelected ? "scale-[1.02]" : ""}`}
+                    onClick={handleRecord}
+                    className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] border-none cursor-pointer"
                     style={{
-                      width: "85%",
-                      maxWidth: "300px",
-                      background: isSelected ? "rgba(232,116,42,0.06)" : "#FAFAF8",
-                      border: isSelected ? "1px solid rgba(232,116,42,0.5)" : "1px solid rgba(212,168,83,0.2)",
-                      boxShadow: isSelected ? "0 4px 16px rgba(232,116,42,0.08)" : "none",
+                      background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                      color: "#fff",
+                      boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
                     }}
                   >
-                    <span
-                      className="text-[8px] font-black uppercase tracking-widest mb-2"
-                      style={{ color: isSelected ? "#E8742A" : "rgba(61,43,31,0.4)" }}
-                    >
-                      {getBadgeText(card.category)}
-                    </span>
-                    <p className="text-sm font-serif leading-relaxed italic" style={{ color: "#3D2B1F" }}>
-                      "{card.text}"
-                    </p>
+                    {getButtonText()}
                   </button>
-                );
-              })}
-            </div>
+                )}
+                {!showButton && (
+                  <div className="flex justify-center">
+                    <div className="w-8 h-8 border-2 border-[#E8742A]/20 border-t-[#E8742A] rounded-full animate-spin" />
+                  </div>
+                )}
 
-            <div className="flex justify-center gap-2 mt-2 mb-4">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="w-2 h-2 rounded-full transition-all duration-300"
-                  style={{
-                    background: selectedCard === i ? "#E8742A" : "rgba(61,43,31,0.15)",
-                    transform: selectedCard === i ? "scale(1.3)" : "scale(1)",
-                  }}
-                />
-              ))}
-            </div>
-
-            {showButton && (
-              <button
-                onClick={handleRecord}
-                className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] border-none cursor-pointer"
-                style={{
-                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                  color: "#fff",
-                  boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
-                }}
-              >
-                {getButtonText()}
-              </button>
-            )}
-            {!showButton && (
-              <div className="flex justify-center">
-                <div className="w-8 h-8 border-2 border-[#E8742A]/20 border-t-[#E8742A] rounded-full animate-spin" />
-              </div>
-            )}
-
-            {sparkBalance > 0 && (
-              <p className="text-[#3D2B1F]/30 text-[9px] mt-3">
-                {lang === "ar"
-                  ? `لديك ${sparkBalance} شرارات`
-                  : lang === "fr"
-                    ? `Tu as ${sparkBalance} étincelles`
-                    : `You have ${sparkBalance} sparks`}
-              </p>
+                {sparkBalance > 0 && (
+                  <p className="text-[#3D2B1F]/30 text-[9px] mt-3">
+                    {lang === "ar"
+                      ? `لديك ${sparkBalance} شرارات`
+                      : lang === "fr"
+                        ? `Tu as ${sparkBalance} étincelles`
+                        : `You have ${sparkBalance} sparks`}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
