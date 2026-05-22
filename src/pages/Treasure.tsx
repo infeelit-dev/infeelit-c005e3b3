@@ -57,12 +57,16 @@ const tlStyle = (tl: string | null) => {
   return { text: "Past", bg: "rgba(232,116,42,0.15)", border: "rgba(232,116,42,0.3)", color: "#fdbb74" };
 };
 
+import { resolveMemoryFields } from "@/lib/memoryUrl";
+
 const fetchMemories = async (): Promise<{ memories: Memory[]; displayName: string; isLoggedIn: boolean }> => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return { memories: DEMO, displayName: "You", isLoggedIn: false };
   const { data: profile } = await supabase.from("profiles").select("display_name").eq("user_id", session.user.id).single();
   const { data: mems } = await supabase.from("memories").select("*").eq("user_id", session.user.id).order("created_at", { ascending: false });
-  return { memories: (mems as Memory[]) && mems.length > 0 ? (mems as Memory[]) : [], displayName: profile?.display_name || "You", isLoggedIn: true };
+  const rows = (mems as Memory[]) || [];
+  const resolved = rows.length > 0 ? await resolveMemoryFields(rows) : [];
+  return { memories: resolved, displayName: profile?.display_name || "You", isLoggedIn: true };
 };
 
 const Player = ({ memory, onClose, onPrev, onNext, hasPrev, hasNext }: { memory: Memory; onClose: () => void; onPrev: () => void; onNext: () => void; hasPrev: boolean; hasNext: boolean }) => {
