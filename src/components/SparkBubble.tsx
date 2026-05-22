@@ -69,25 +69,30 @@ const getQuestionByHour = (lang: "en" | "fr" | "ar") => {
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
+const getSparkBalance = (): number => {
+  return Number(localStorage.getItem("infeelit_spark_balance") || 0);
+};
+
 const SparkBubble = () => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const [position, setPosition] = useState({ x: 50, y: 50 });
+  const [position, setPosition] = useState({ x: 50, y: 30 });
   const [visible, setVisible] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [question, setQuestion] = useState("");
   const [showButton, setShowButton] = useState(false);
+  const [sparkBalance, setSparkBalance] = useState(0);
 
   useEffect(() => {
     setQuestion(getQuestionByHour(lang as "en" | "fr" | "ar"));
+    setSparkBalance(getSparkBalance());
   }, [lang]);
 
   useEffect(() => {
     const moveInterval = setInterval(() => {
-      setPosition({
-        x: 15 + Math.random() * 70,
-        y: 15 + Math.random() * 50,
-      });
+      const newX = Math.random() > 0.5 ? 10 + Math.random() * 25 : 65 + Math.random() * 25;
+      const newY = 15 + Math.random() * 45;
+      setPosition({ x: newX, y: newY });
     }, 60000);
     return () => clearInterval(moveInterval);
   }, []);
@@ -112,7 +117,7 @@ const SparkBubble = () => {
 
   const handleRecord = () => {
     setExpanded(false);
-    navigate("/record", { state: { question, category: "past" } });
+    navigate("/record", { state: { question, category: "past", fromSpark: true } });
   };
 
   if (!visible) return null;
@@ -127,11 +132,11 @@ const SparkBubble = () => {
           75% { box-shadow: 0 0 25px rgba(255,180,40,0.7), 0 0 50px rgba(232,116,42,0.4), 0 0 75px rgba(255,200,60,0.2); }
         }
         @keyframes sparkFloat {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          20% { transform: translate(-15px, -25px) scale(1.04); }
-          40% { transform: translate(20px, -10px) scale(0.97); }
-          60% { transform: translate(10px, 20px) scale(1.03); }
-          80% { transform: translate(-20px, 10px) scale(0.98); }
+          0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+          20% { transform: translate3d(-15px, -25px, 0) scale(1.04); }
+          40% { transform: translate3d(20px, -10px, 0) scale(0.97); }
+          60% { transform: translate3d(10px, 20px, 0) scale(1.03); }
+          80% { transform: translate3d(-20px, 10px, 0) scale(0.98); }
         }
         @keyframes innerGlow {
           0%, 100% { opacity: 0.7; background-position: 0% 50%; }
@@ -144,10 +149,16 @@ const SparkBubble = () => {
           60% { transform: scale(1.05); opacity: 1; }
           100% { transform: scale(1); opacity: 1; }
         }
+        @keyframes sparkEarned {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.4); color: #FFD700; }
+          100% { transform: scale(1); }
+        }
         .spark-pulse { animation: sparkPulse 3s ease-in-out infinite; }
         .spark-float { animation: sparkFloat 8s ease-in-out infinite; }
         .spark-inner { animation: innerGlow 4s ease-in-out infinite; }
         .expand-in { animation: expandIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .spark-earned { animation: sparkEarned 0.6s ease-out; }
       `}</style>
 
       {!expanded && (
@@ -181,12 +192,16 @@ const SparkBubble = () => {
             <div className="absolute inset-0 flex items-center justify-center">
               <Sparkles size={28} color="#fff" style={{ filter: "drop-shadow(0 0 6px rgba(255,200,60,0.8))" }} />
             </div>
-            <div
-              className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
-              style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.4)" }}
-            >
-              <span style={{ fontSize: "10px", color: "#fff", lineHeight: 1 }}>✦</span>
-            </div>
+            {sparkBalance > 0 && (
+              <div
+                className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,200,60,0.5)" }}
+              >
+                <span style={{ fontSize: "9px", color: "#FFD700", fontWeight: 700, lineHeight: 1 }}>
+                  ✦{sparkBalance}
+                </span>
+              </div>
+            )}
           </div>
         </button>
       )}
@@ -258,6 +273,16 @@ const SparkBubble = () => {
                   ? "Enregistre ton souvenir et gagne une étincelle"
                   : "Record your memory and earn a spark"}
             </p>
+
+            {sparkBalance > 0 && (
+              <p className="text-[#FFD700]/40 text-[9px] mt-2">
+                {lang === "ar"
+                  ? `لديك ${sparkBalance} شرارات`
+                  : lang === "fr"
+                    ? `Tu as ${sparkBalance} étincelles`
+                    : `You have ${sparkBalance} sparks`}
+              </p>
+            )}
           </div>
         </div>
       )}
