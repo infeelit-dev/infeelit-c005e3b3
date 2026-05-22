@@ -279,7 +279,7 @@ const Player = ({
           : "Why are you reporting this content?",
     );
     if (!reason) return;
-    const { error } = await supabase.rpc("report_memory", { memory_id: memory.id, reason });
+    const { error } = await (supabase.rpc as any)("report_memory", { memory_id: memory.id, reason });
     if (error) {
       toast.error("Failed to report");
     } else {
