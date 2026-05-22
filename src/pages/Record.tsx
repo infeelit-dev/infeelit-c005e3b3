@@ -439,20 +439,15 @@ const Record = () => {
           console.error("Storage upload error:", error);
           continue;
         }
-        const { data: urlData } = supabase.storage.from("memories").getPublicUrl(fileName);
-        if (urlData?.publicUrl) {
-          urls.push(urlData.publicUrl);
-        }
+        // Store the storage path; resolve to a signed URL at read time.
+        urls.push(fileName);
         uploadedThumbUrl.current = "";
         if (clip.posterBlob) {
           const { data: posterData } = await supabase.storage
             .from("memories")
             .upload(posterName, clip.posterBlob, { contentType: "image/jpeg", upsert: true });
           if (posterData) {
-            const { data: thumbData } = supabase.storage.from("memories").getPublicUrl(posterName);
-            if (thumbData?.publicUrl) {
-              uploadedThumbUrl.current = thumbData.publicUrl;
-            }
+            uploadedThumbUrl.current = posterName;
           }
         }
       } catch (err) {
