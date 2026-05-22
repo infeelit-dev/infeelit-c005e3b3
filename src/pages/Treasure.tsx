@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Mic,
+  Play,
   Volume2,
   Video,
-  Play,
   ArrowLeft,
   Lock,
   Globe,
@@ -13,24 +14,24 @@ import {
   ChevronRight,
   Shield,
   Plus,
+  Flag,
+  Share2,
   Sparkles,
-  Calendar,
-  Hourglass,
-  Star,
-  Activity,
-  Layers,
-  Compass,
-  Orbit,
-  ExternalLink,
-  Eye,
-  Moon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ShareModal from "@/components/ShareModal";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+import grandfatherImg from "@/assets/grandfather.jpg";
+import marryImg from "@/assets/marry.jpg";
+import loveImg from "@/assets/love.jpg";
+import relaxImg from "@/assets/relax.jpg";
+import travelImg from "@/assets/travel.jpg";
+import graduateImg from "@/assets/graduate.jpg";
+import picnicImg from "@/assets/picnic.jpg";
+import childImg from "@/assets/child.jpg";
+import houseImg from "@/assets/house.jpg";
 
 interface Memory {
   id: string;
@@ -45,1009 +46,323 @@ interface Memory {
 }
 
 type ActiveTab = "all" | "memories" | "forever" | "video" | "voices";
-type ViewMode = "grid" | "constellation";
-
-// ─── Curated Unsplash Portrayals representing chronological lifespans ───────
-
-const EPOCH_PORTRAITS = {
-  childhood: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&w=150&q=80",
-  teen: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=150&q=80",
-  youngAdult: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-  prime: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
-  today: "https://images.unsplash.com/photo-1472417583565-62e00defa53b?auto=format&fit=crop&w=150&q=80",
-};
-
-// ─── Fallback Demo Memories ───────────────────────────────────────────────────
 
 const DEMO: Memory[] = [
   {
     id: "d1",
-    title: "Le parfum de notre maison d'enfance",
+    title: "The smell of home",
     file_url: "",
     file_type: "video",
-    thumbnail_url: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80",
+    thumbnail_url: grandfatherImg,
     created_at: "2026-04-07T10:00:00Z",
     is_public: false,
     timeline: "memories",
-    description: "Chaque fois que je sens l'odeur du pain grillé le matin...",
+    description: "Every time I smell fresh bread I think of her hands...",
   },
   {
     id: "d2",
-    title: "La grande leçon de courage de mon père",
+    title: "Dad's lesson about courage",
     file_url: "",
     file_type: "audio",
     thumbnail_url: null,
     created_at: "2026-04-06T14:00:00Z",
     is_public: true,
     timeline: "memories",
-    description: "Il n'utilisait jamais beaucoup de mots, mais sa poignée de main...",
+    description: null,
   },
   {
     id: "d3",
-    title: "L'été doré de 1987",
+    title: "Summer of 1987",
     file_url: "",
     file_type: "video",
-    thumbnail_url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
+    thumbnail_url: marryImg,
     created_at: "2026-04-05T09:00:00Z",
     is_public: false,
     timeline: "memories",
-    description: "Nous étions libres, sauvages et insouciants sur cette plage.",
+    description: null,
   },
   {
     id: "d4",
-    title: "Un message pour le jour de ton mariage",
+    title: "A message for your wedding",
     file_url: "",
     file_type: "video",
-    thumbnail_url: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=400&q=80",
+    thumbnail_url: loveImg,
     created_at: "2026-04-04T18:00:00Z",
     is_public: false,
     timeline: "forever",
-    description: "Mon cher enfant, quand ce moment se produira, écoute ceci...",
+    description: "My dear child, when this day comes...",
   },
   {
     id: "d5",
-    title: "Notre toute première maison à l'étranger",
+    title: "Our first home in Dubai",
     file_url: "",
     file_type: "audio",
     thumbnail_url: null,
     created_at: "2026-04-03T11:00:00Z",
     is_public: true,
     timeline: "instant",
-    description: "Les bruits de la rue, le chant des voisins sous les fenêtres.",
+    description: null,
   },
   {
     id: "d6",
-    title: "Le jour de ta naissance",
+    title: "The day you were born",
     file_url: "",
     file_type: "video",
-    thumbnail_url: "https://images.unsplash.com/photo-1551256817-e905fe6b4e9b?auto=format&fit=crop&w=400&q=80",
+    thumbnail_url: relaxImg,
     created_at: "2026-04-02T16:00:00Z",
     is_public: false,
     timeline: "memories",
-    description: "Je n'avais jamais ressenti une telle étincelle d'amour pur.",
+    description: null,
+  },
+  {
+    id: "d7",
+    title: "Grandmother's tajine recipe",
+    file_url: "",
+    file_type: "audio",
+    thumbnail_url: null,
+    created_at: "2026-04-01T08:00:00Z",
+    is_public: true,
+    timeline: "memories",
+    description: null,
+  },
+  {
+    id: "d8",
+    title: "When I am no longer here",
+    file_url: "",
+    file_type: "video",
+    thumbnail_url: travelImg,
+    created_at: "2026-03-30T20:00:00Z",
+    is_public: false,
+    timeline: "forever",
+    description: "I want you to know...",
   },
 ];
 
-// ─── Life Epoch Definition with Custom Vintage Chronological Filters ──────────
-
-interface LifeEpoch {
-  id: string;
-  name: Record<"en" | "fr" | "ar", string>;
-  photo: string;
-  filter: string;
-  size: number;
-  borderClass: string;
-  glowColor: string;
-}
-
-const LIFE_EPOCHS: LifeEpoch[] = [
-  {
-    id: "childhood",
-    name: { en: "Childhood", fr: "Enfance", ar: "الطفولة" },
-    photo: EPOCH_PORTRAITS.childhood,
-    filter: "grayscale(80%) sepia(30%) brightness(0.9) contrast(1.1)",
-    size: 56,
-    borderClass: "border-amber-700/60",
-    glowColor: "rgba(180,120,40,0.4)",
-  },
-  {
-    id: "teen",
-    name: { en: "Teenage", fr: "Adolescence", ar: "الشباب" },
-    photo: EPOCH_PORTRAITS.teen,
-    filter: "grayscale(30%) sepia(10%) brightness(0.92) saturate(1.1)",
-    size: 56,
-    borderClass: "border-amber-600/70",
-    glowColor: "rgba(210,130,50,0.5)",
-  },
-  {
-    id: "youngAdult",
-    name: { en: "Young Adult", fr: "Jeune Adulte", ar: "مقتبل العمر" },
-    photo: EPOCH_PORTRAITS.youngAdult,
-    filter: "grayscale(10%) brightness(0.95) saturate(1.2)",
-    size: 62,
-    borderClass: "border-sky-500/50",
-    glowColor: "rgba(56,189,248,0.4)",
-  },
-  {
-    id: "prime",
-    name: { en: "Prime", fr: "Vie Active", ar: "العمر الذهبي" },
-    photo: EPOCH_PORTRAITS.prime,
-    filter: "saturate(1.2) contrast(1.05)",
-    size: 62,
-    borderClass: "border-[#E8742A]/60",
-    glowColor: "rgba(232,116,42,0.5)",
-  },
-  {
-    id: "today",
-    name: { en: "Today", fr: "Aujourd'hui", ar: "اليوم" },
-    photo: EPOCH_PORTRAITS.today,
-    filter: "brightness(1) saturate(1.1)",
-    size: 70,
-    borderClass: "border-amber-400",
-    glowColor: "rgba(255,215,0,0.6)",
-  },
+const LIFE_AGES = [
+  { photo: childImg, filter: "grayscale(1) sepia(.4) brightness(.85)", size: 62, border: "rgba(232,116,42,.6)" },
+  { photo: picnicImg, filter: "grayscale(1) sepia(.25) brightness(.9)", size: 62, border: "rgba(232,116,42,.7)" },
+  { photo: loveImg, filter: "grayscale(.4) brightness(.95)", size: 68, border: "rgba(232,116,42,.85)" },
+  { photo: relaxImg, filter: "grayscale(.15) brightness(1)", size: 68, border: "rgba(232,116,42,.9)" },
+  { photo: marryImg, filter: "none", size: 78, border: "rgba(232,116,42,1)" },
 ];
-
-// ─── Helper Epoch Classifier based on titles ───────────────────────────────
-
-const getMemoryEpoch = (m: Memory): string => {
-  if (m.id === "d1") return "childhood";
-  if (m.id === "d2") return "youngAdult";
-  if (m.id === "d3") return "teen";
-  if (m.id === "d4") return "prime";
-  if (m.id === "d5") return "today";
-  if (m.id === "d6") return "today";
-
-  const titleLower = m.title?.toLowerCase() || "";
-  const descLower = m.description?.toLowerCase() || "";
-  if (
-    titleLower.includes("enfant") ||
-    titleLower.includes("child") ||
-    descLower.includes("enfance") ||
-    descLower.includes("childhood") ||
-    descLower.includes("bebé") ||
-    descLower.includes("baby")
-  )
-    return "childhood";
-  if (
-    titleLower.includes("ado") ||
-    titleLower.includes("teen") ||
-    titleLower.includes("été") ||
-    titleLower.includes("summer") ||
-    titleLower.includes("école") ||
-    titleLower.includes("school") ||
-    titleLower.includes("19") ||
-    titleLower.includes("bac")
-  )
-    return "teen";
-  if (
-    titleLower.includes("jeune") ||
-    titleLower.includes("young") ||
-    titleLower.includes("fac") ||
-    titleLower.includes("univ") ||
-    titleLower.includes("étudiant") ||
-    titleLower.includes("student") ||
-    titleLower.includes("diplome")
-  )
-    return "youngAdult";
-  if (
-    m.timeline === "forever" ||
-    titleLower.includes("mariage") ||
-    titleLower.includes("wedding") ||
-    titleLower.includes("naissance") ||
-    titleLower.includes("birth") ||
-    titleLower.includes("fils") ||
-    titleLower.includes("fille") ||
-    titleLower.includes("mon cher")
-  )
-    return "prime";
-  return "today";
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+const formatTime = (seconds: number) => Math.floor(seconds / 60) + ":" + (seconds % 60).toString().padStart(2, "0");
 
 const tlStyle = (tl: string | null) => {
   if (tl === "forever")
-    return { text: "Forever", bg: "rgba(147,51,234,0.15)", border: "rgba(147,51,234,0.3)", color: "#d8b4fe" };
+    return { text: "Forever", bg: "rgba(107,78,155,.15)", border: "rgba(107,78,155,.4)", color: "#6B4E9B" };
   if (tl === "instant")
-    return { text: "Now", bg: "rgba(56,189,248,0.15)", border: "rgba(56,189,248,0.3)", color: "#7dd3fc" };
-  return { text: "Past", bg: "rgba(232,116,42,0.15)", border: "rgba(232,116,42,0.3)", color: "#fdbb74" };
+    return { text: "Now", bg: "rgba(56,189,248,.12)", border: "rgba(56,189,248,.4)", color: "#0284c7" };
+  return { text: "Past", bg: "rgba(232,116,42,.12)", border: "rgba(232,116,42,.4)", color: "#c2410c" };
 };
-
-// ─── Fetch function (for React Query Cache) ───────────────────────────────────
 
 const fetchMemories = async (): Promise<{ memories: Memory[]; displayName: string; isLoggedIn: boolean }> => {
   const {
     data: { session },
   } = await supabase.auth.getSession();
-  if (!session) {
-    return { memories: DEMO, displayName: "M", isLoggedIn: false };
-  }
-
+  if (!session) return { memories: DEMO, displayName: "Your", isLoggedIn: false };
   const { data: profile } = await supabase
     .from("profiles")
     .select("display_name")
     .eq("user_id", session.user.id)
     .single();
-
   const { data: mems } = await supabase
     .from("memories")
     .select("*")
     .eq("user_id", session.user.id)
     .order("created_at", { ascending: false });
-
   return {
-    memories: mems && mems.length > 0 ? (mems as Memory[]) : DEMO,
-    displayName: profile?.display_name || "M",
+    memories: (mems as Memory[]) && mems.length > 0 ? (mems as Memory[]) : [],
+    displayName: profile?.display_name || "Your",
     isLoggedIn: true,
   };
 };
 
-// ─── Main Treasury Page ───────────────────────────────────────────────────────
-
-const Treasure = () => {
-  const navigate = useNavigate();
-  const { t, lang, rtl } = useLanguage();
-
-  const [activeTab, setActiveTab] = useState<ActiveTab>("all");
-  const [selectedEpoch, setSelectedEpoch] = useState<string | null>(null);
-  const [playerIdx, setPlayerIdx] = useState<number | null>(null);
-  const [sparkCount, setSparkCount] = useState<number>(0);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-
-  // Custom text translator function to add immense magical flavor beautifully
-  const getTxt = (key: string): string => {
-    const trans: Record<string, Record<string, string>> = {
-      constellationView: {
-        en: "Constellation Star Map",
-        fr: "Voie Lactée des Mémoires",
-        ar: "خريطة الكويكبات النجمية",
-      },
-      linearView: {
-        en: "Chronological Chest",
-        fr: "Grille du Coffre au Trésor",
-        ar: "شبكة صندوق الكنز",
-      },
-      constellationSub: {
-        en: "Your voice recordings suspended as glowing stars connected in eternity.",
-        fr: "Vos enregistrements vocaux suspendus comme des étoiles brillantes et éternelles.",
-        ar: "تسجيلاتك الصوتية معلقة كنجوم متوهجة في سماء الخلود الرقمي.",
-      },
-      tapToWhisper: {
-        en: "Tap a glowing star to revive its memory...",
-        fr: "Touchez un astre pour faire résonner un souvenir...",
-        ar: "انقر على جرم متوهج لإيقاظ ذكراه الصوتية...",
-      },
-      vaultSecurity: {
-        en: "Biometric and Quantum safehouse shielding activated.",
-        fr: "Protection quantique et stockage crypté de pointe activés.",
-        ar: "بروتوكول الحماية البيومترية والمستودع المشفر قيد التشغيل.",
-      },
-      starDustSpeed: {
-        en: "Celestial Stardust Path",
-        fr: "Sillage Temporel Scintillant",
-        ar: "المسار النجمي العابر للزمن",
-      },
-      wisdomSubtitle: {
-        en: "Every recorded confession of your family forms a star that guides the next generation.",
-        fr: "Chaque recueil de votre histoire familiale forme une étoile guidant la génération future.",
-        ar: "كل صوت عائلي موثق هنا ينسج شهاباً يضيء دروب أجيالنا القادمة.",
-      },
-      eterniteVoice: {
-        en: "Voice of Eternity",
-        fr: "Écho de l'Éternité",
-        ar: "صدى الأبدية",
-      },
-      secretGardenTitle: {
-        en: "Secret Garden",
-        fr: "Jardin Secret",
-        ar: "Jardin Secret",
-      },
-      secretGardenSub: {
-        en: "Your most intimate whispers and private stories, cloaked in silent grace.",
-        fr: "Vos récits les plus intimes et secrets bien gardés, enveloppés de tranquillité.",
-        ar: "همساتك وقصصك الخاصة الأكثر حميمية، والمصونة بكامل الأمان والسرية.",
-      },
-      wisdomQuote: {
-        en: "Stories are the threads that bind generations across eternity.",
-        fr: "Les histoires sont des fils d'or tissés d'éternité qui relient les générations.",
-        ar: "القصص هي حبال الذهب التي تربط الأجيال المتعاقبة عبر الأبدية.",
-      },
-    };
-    return trans[key]?.[lang as "en" | "fr" | "ar"] ?? trans[key]?.["en"] ?? "";
-  };
-
-  const TABS = [
-    { id: "all" as ActiveTab, label: t.tabAll },
-    { id: "memories" as ActiveTab, label: t.tabMemories || "Memories" },
-    { id: "forever" as ActiveTab, label: t.tabForever || "Forever" },
-    { id: "video" as ActiveTab, label: t.tabVideo || "Video" },
-    { id: "voices" as ActiveTab, label: t.tabVoices || "Voices" },
-  ];
-
-  // Load Sparks Client-Side token counter
-  useEffect(() => {
-    const balance = Number(localStorage.getItem("infeelit_spark_balance") || 0);
-    setSparkCount(balance);
-  }, []);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["memories"],
-    queryFn: fetchMemories,
-    staleTime: 30_000,
-  });
-
-  const memories = data?.memories ?? DEMO;
-  const displayName = data?.displayName ?? "M";
-  const isLoggedIn = data?.isLoggedIn ?? false;
-
-  const filtered = memories.filter((m) => {
-    // Advanced search by epoch
-    if (selectedEpoch) {
-      if (getMemoryEpoch(m) !== selectedEpoch) return false;
-    }
-
-    if (activeTab === "all") return true;
-    if (activeTab === "memories") return m.timeline === "memories" || m.timeline === "past";
-    if (activeTab === "forever") return m.timeline === "forever";
-    if (activeTab === "video") return m.file_type === "video";
-    if (activeTab === "voices") return m.file_type === "audio";
-    return true;
-  });
-
-  const isDemoData = memories.length > 0 && memories[0].id.startsWith("d");
-  const realMemoriesOnly = isDemoData ? [] : memories;
-  const statVideos = realMemoriesOnly.filter((m) => m.file_type === "video").length;
-  const statVoices = realMemoriesOnly.filter((m) => m.file_type === "audio").length;
-
+const LifeTimeline = ({ handle, lifeLabel }: { handle: string; lifeLabel: string }) => {
+  const [selectedAge, setSelectedAge] = useState<number | null>(null);
+  const ageLabels = ["Childhood", "Teen", "Young adult", "Prime", "Today"];
   return (
-    <div
-      className="min-h-screen bg-[#FDF8F0] text-[#3D2B1F] pb-36 font-sans relative overflow-x-hidden select-none"
-      dir={rtl ? "rtl" : "ltr"}
-    >
-      {/* Elegant linen thread and subtle paper grain overlays */}
-      <style>{`
-        @keyframes subtlePulse {
-          0%, 100% { transform: scale(1); opacity: 0.2; }
-          50% { transform: scale(1.05); opacity: 0.35; }
-        }
-        @keyframes floatSlow {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(2deg); }
-        }
-        @keyframes orbitCelestial {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes twinkleStar {
-          0%, 100% { opacity: 0.25; transform: scale(0.9); }
-          50% { opacity: 0.8; transform: scale(1.1); }
-        }
-        @keyframes audioWaveGlow {
-          0%, 100% { height: 12px; }
-          50% { height: 28px; }
-        }
-        .bg-nebula { animation: subtlePulse 14s ease-in-out infinite; }
-        .cosmic-float { animation: floatSlow 6s ease-in-out infinite; }
-        .celestial-compass { animation: orbitCelestial 60s linear infinite; }
-        .twinkle-star-fast { animation: twinkleStar 4s ease-in-out infinite; }
-        
-        .paper-grain {
-          background-image: radial-gradient(rgba(61, 43, 31, 0.035) 1px, transparent 1px);
-          background-size: 24px 24px;
-        }
-
-        .polaroid-card {
-          background: #FFFFFA;
-          border: 1px solid rgba(139, 90, 43, 0.12);
-          box-shadow: 0 4px 16px rgba(61, 43, 31, 0.05), 0 1px 2px rgba(61, 43, 15, 0.03);
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .polaroid-card:hover {
-          transform: translateY(-6px) rotate(0deg) scale(1.02);
-          box-shadow: 0 16px 32px rgba(61, 43, 31, 0.08), 0 2px 4px rgba(61, 43, 15, 0.04);
-          border-color: rgba(232, 116, 42, 0.3);
-        }
-
-        .glass-metric {
-          background: rgba(255, 255, 255, 0.65);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(139, 90, 43, 0.08);
-          box-shadow: 0 4px 12px rgba(61, 43, 31, 0.02);
-        }
-        
-        .fancy-scrollbar::-webkit-scrollbar {
-          height: 4px;
-        }
-        .fancy-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(232, 116, 42, 0.2);
-          border-radius: 99px;
-        }
-      `}</style>
-
-      {/* Gentle Warm Sun-stains & Soft Lighting */}
-      <div className="absolute inset-0 bg-nebula pointer-events-none z-0">
-        <div className="absolute top-[3%] -right-24 w-96 h-96 rounded-full bg-amber-500/10 blur-[120px]" />
-        <div className="absolute top-[35%] -left-32 w-[450px] h-[450px] rounded-full bg-[#E8742A]/5 blur-[140px]" />
-        <div className="absolute bottom-[8%] right-10 w-80 h-80 rounded-full bg-orange-400/5 blur-[100px]" />
-      </div>
-
-      {/* Warm Grid & Paper Texture Backdrop */}
-      <div className="absolute inset-x-0 top-0 h-[1200px] paper-grain pointer-events-none opacity-85 z-0" />
-
-      {/* Floating Sparkles micro particles */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        {[14, 38, 62, 25, 80].map((topVal, idx) => (
-          <div
-            key={idx}
-            className="absolute twinkle-star-fast bg-[#E8742A]/25 rounded-full"
-            style={{
-              top: `${topVal}%`,
-              left: `${((idx * 23) % 93) + 3}%`,
-              width: `${(idx % 2) * 2 + 2}px`,
-              height: `${(idx % 2) * 2 + 2}px`,
-              animationDelay: `${idx * 0.9}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Modal Photo Player focus case */}
-      {playerIdx !== null && filtered[playerIdx] && (
-        <Player
-          memory={filtered[playerIdx]}
-          onClose={() => setPlayerIdx(null)}
-          onPrev={() => setPlayerIdx((i) => (i! > 0 ? i! - 1 : i))}
-          onNext={() => setPlayerIdx((i) => (i! < filtered.length - 1 ? i! + 1 : i))}
-          hasPrev={playerIdx > 0}
-          hasNext={playerIdx < filtered.length - 1}
-        />
-      )}
-
-      {/* TOP CANVAS: Editorial Family Golden Header */}
-      <div className="relative pt-14 pb-8 px-6 rounded-b-[42px] bg-gradient-to-b from-[#FFF9F2] via-[#FAF3E8] to-[#FDF8F0] border-b border-amber-900/5 overflow-hidden shadow-[0_12px_35px_rgba(61,43,31,0.03)] z-10">
-        {/* Fine Line Astrolabe Map Layer */}
-        <div className="absolute top-[-90px] -right-24 w-72 h-72 border border-amber-800/5 rounded-full pointer-events-none select-none celestial-compass flex items-center justify-center">
-          <div className="w-56 h-56 border border-dashed border-amber-700/10 rounded-full flex items-center justify-center">
-            <div className="w-40 h-40 border border-[#E8742A]/10 rounded-full" />
-          </div>
-        </div>
-
-        {/* Back navigation */}
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-5 left-5 w-11 h-11 rounded-full bg-stone-900/5 border border-stone-800/10 flex items-center justify-center cursor-pointer hover:bg-stone-900/10 hover:border-stone-800/20 active:scale-95 transition-all text-[#3D2B1F]"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-
-        {/* Sparks Floating Bezel */}
-        <div className="absolute top-5 right-5 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-600/10 border border-amber-600/20 shadow-sm">
-          <Sparkles className="w-4 h-4 text-[#E8742A] animate-pulse" />
-          <span className="text-[10px] font-black text-amber-900 tracking-wider">✦ {sparkCount} SPARKS</span>
-        </div>
-
-        <p className="text-center text-[10px] font-black tracking-[0.3em] text-stone-500 uppercase mb-4 mt-2">
-          {t.yourHaven}
-        </p>
-
-        {/* Dynamic Space Timelines Carousel */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative flex items-end justify-center gap-4 py-6 px-4 w-full">
-            {/* Fine copper horizon timeline axis */}
-            <div className="absolute bottom-[46px] left-8 right-8 h-[1px] bg-gradient-to-r from-amber-800/5 via-amber-600/35 to-amber-800/5 border-b border-dashed border-amber-500/25 pointer-events-none" />
-
-            {LIFE_EPOCHS.map((epoch, i) => {
-              const isSelected = selectedEpoch === epoch.id;
-              const verticalShift = Math.abs(i - 2) * -3;
-
-              return (
-                <div
-                  key={epoch.id}
-                  style={{ transform: `translateY(${verticalShift}px)` }}
-                  className="flex flex-col items-center transition-all duration-300 active:scale-95 cursor-pointer relative z-10"
-                  onClick={() => setSelectedEpoch(isSelected ? null : epoch.id)}
-                >
-                  {/* Gentle warm ambient halo behind selected */}
-                  {isSelected && (
-                    <div
-                      className="absolute -inset-2.5 rounded-full opacity-50 blur-md transition-all duration-500"
-                      style={{ background: `radial-gradient(circle, rgba(232,116,42,0.3) 0%, transparent 70%)` }}
-                    />
-                  )}
-
-                  <div
-                    className={`relative rounded-full overflow-hidden transition-all duration-500 border-2 ${
-                      isSelected
-                        ? "border-[#E8742A] scale-115"
-                        : "border-stone-200 opacity-80 hover:opacity-100 shadow-sm"
-                    }`}
-                    style={{
-                      width: `${epoch.size}px`,
-                      height: `${epoch.size}px`,
-                      boxShadow: isSelected ? "0 0 16px rgba(232,116,42,0.25)" : "0 4px 10px rgba(61,43,31,0.06)",
-                    }}
-                  >
-                    <img
-                      src={epoch.photo}
-                      alt={epoch.name[lang as "en" | "fr" | "ar"]}
-                      className="w-full h-full object-cover object-top transition-transform duration-500"
-                      style={{ filter: isSelected ? "none" : `${epoch.filter} brightness(1.05)` }}
-                    />
-
-                    {/* Subtle warm wash overlay */}
-                    <div className="absolute inset-0 bg-amber-900/5 mix-blend-color-burn" />
-                  </div>
-
-                  {/* Epoch label */}
-                  <span
-                    className={`text-[8.5px] font-black tracking-widest mt-2 px-1 text-center transition-all ${
-                      isSelected ? "text-[#E8742A] font-bold" : "text-[#3D2B1F]/50"
-                    }`}
-                  >
-                    {epoch.name[lang as "en" | "fr" | "ar"]}
-                  </span>
-
-                  {/* Little star tag indicator */}
-                  {isSelected && (
-                    <div className="w-1 h-1 rounded-full bg-[#E8742A] mt-1 shadow-[0_0_8px_rgba(232,116,42,0.6)]" />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-px bg-gradient-to-r from-transparent to-amber-700/20" />
-            <span className="text-[9px] font-black tracking-[0.25em] text-stone-500 uppercase flex items-center gap-1.5">
-              <Orbit className="w-3 h-3 text-[#E8742A] animate-spin" style={{ animationDuration: "20s" }} />
-              {getTxt("starDustSpeed")}
-            </span>
-            <div className="w-10 h-px bg-gradient-to-l from-transparent to-amber-700/20" />
-          </div>
-
-          <h2 className="text-2xl font-serif font-semibold text-[#3D2B1F] mt-4 italic tracking-wide">
-            @{displayName.toLowerCase().replace(/\s+/g, "_")}
-          </h2>
-
-          <p className="text-[10px] text-stone-500 text-center max-w-xs mt-1 italic tracking-normal px-4">
-            "{getTxt("wisdomSubtitle")}"
-          </p>
-        </div>
-
-        {/* Textured Warm Metrics Grid */}
-        <div className="grid grid-cols-3 gap-2 px-1">
-          {[
-            { value: realMemoriesOnly.length, label: t.storiesPreserved, color: "text-[#E8742A]" },
-            { value: statVideos, label: t.videoMoments, color: "text-amber-800" },
-            { value: statVoices, label: t.voiceCaptures, color: "text-stone-700" },
-          ].map((s, i) => (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "6px", paddingBottom: "8px" }}>
+        {LIFE_AGES.map((age, i) => {
+          const isSelected = selectedAge === i;
+          const isLast = i === LIFE_AGES.length - 1;
+          const verticalLift = (LIFE_AGES.length - 1 - i) * 8;
+          return (
             <div
               key={i}
-              className="glass-metric rounded-2xl py-3 px-1 text-center group hover:border-[#E8742A]/35 hover:bg-white transition-all duration-300 shadow-sm"
+              style={{ marginBottom: `${verticalLift}px`, cursor: "pointer" }}
+              onClick={() => setSelectedAge(isSelected ? null : i)}
             >
-              <span className={`text-2xl font-black ${s.color} leading-none block`}>{s.value}</span>
-              <span className="text-[8px] font-black tracking-widest text-stone-500 uppercase mt-1 block">
-                {s.label}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {isDemoData && (
-          <div className="mt-4 py-2 px-4 rounded-xl bg-amber-600/5 border border-amber-600/10 text-center flex items-center justify-center gap-1.5">
-            <Sparkles className="w-3 h-3 text-[#E8742A]" />
-            <p className="text-[10px] text-amber-900 font-bold">{t.previewMode}</p>
-          </div>
-        )}
-      </div>
-
-      {/* VIEW & TAB NAVIGATION CONTROLS */}
-      <div className="px-5 mt-6 space-y-4 relative z-10">
-        {/* Toggle between light cartography star map and Polaroid grid */}
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black tracking-widest text-stone-500 uppercase">
-            {viewMode === "constellation" ? getTxt("constellationView") : getTxt("linearView")}
-          </span>
-
-          <div className="bg-stone-200/50 border border-stone-200/60 rounded-xl p-0.5 flex gap-1">
-            <button
-              onClick={() => {
-                setViewMode("grid");
-                toast.success(lang === "fr" ? "Affichage de l'Album Activé" : "Album View Activated");
-              }}
-              className={`p-2 rounded-lg cursor-pointer transition-all ${
-                viewMode === "grid" ? "bg-[#E8742A] text-white shadow-sm" : "text-stone-500 hover:text-stone-800"
-              }`}
-              title="Album Table view"
-            >
-              <Layers className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => {
-                setViewMode("constellation");
-                toast.success(
-                  lang === "fr" ? "Constellations Célestes Activées" : "Celestial Constellations Activated",
-                );
-              }}
-              className={`p-2 rounded-lg cursor-pointer transition-all ${
-                viewMode === "constellation"
-                  ? "bg-amber-800 text-white shadow-sm"
-                  : "text-stone-500 hover:text-stone-800"
-              }`}
-              title="Compass View"
-            >
-              <Star className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Media Format filter tabs */}
-        <div className="flex gap-2 overflow-x-auto hide-scroll pb-1.5 fancy-scrollbar">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`shrink-0 px-5 py-2.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${
-                activeTab === tab.id
-                  ? "bg-[#E8742A] text-white border-transparent shadow-[0_4px_14px_rgba(232,116,42,0.25)] scale-102"
-                  : "bg-white/65 text-stone-600 border-stone-200/60 hover:bg-white hover:text-[#3D2B1F]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* CORE TREASURE CHAMBERS (GRID LAYOUT VS CONSTELLATION MAP) */}
-      <div className="px-5 mt-4 relative z-10">
-        {/* MODE A: PARCHMENT GOLD CONSTELLATION COOP MAP */}
-        {viewMode === "constellation" ? (
-          <div className="space-y-4 animate-fade-in">
-            {/* Descriptive message block */}
-            <div
-              className="glass-metric p-4 rounded-2xl flex items-center gap-3.5 border border-amber-500/10"
-              style={{ background: "linear-gradient(135deg, rgba(254,251,246,0.9), rgba(246,238,225,0.95))" }}
-            >
-              <Compass className="w-8 h-8 text-[#E8742A] animate-pulse shrink-0" />
-              <div>
-                <p className="text-[11px] font-semibold text-stone-800 leading-relaxed">{getTxt("constellationSub")}</p>
-                <p className="text-[9px] text-[#E8742A] mt-0.5 flex items-center gap-1 font-bold tracking-wider">
-                  <Star className="w-2.5 h-2.5 fill-current animate-ping" />
-                  {getTxt("tapToWhisper")}
-                </p>
+              <div
+                style={{
+                  width: `${age.size}px`,
+                  height: `${age.size}px`,
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  border: `2.5px solid ${age.border}`,
+                  boxShadow: isSelected
+                    ? "0 0 0 3px rgba(232,116,42,.35), 0 0 20px rgba(232,116,42,.5)"
+                    : isLast
+                      ? "0 0 0 3px rgba(232,116,42,.2), 0 0 16px rgba(232,116,42,.4)"
+                      : "0 2px 8px rgba(0,0,0,.15)",
+                  transition: "box-shadow .2s, transform .2s",
+                  transform: isSelected ? "scale(1.08)" : "scale(1)",
+                  position: "relative",
+                }}
+              >
+                <img
+                  src={age.photo}
+                  alt={ageLabels[i]}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center top",
+                    filter: age.filter,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 55%)",
+                    borderRadius: "50%",
+                  }}
+                />
               </div>
-            </div>
-
-            {/* Light Parchment Celestial Chart */}
-            <div
-              className="relative w-full aspect-[4/5] sm:aspect-square rounded-3xl overflow-hidden border border-amber-700/15 flex flex-col justify-between p-4 shadow-[inset_0_0_35px_rgba(139,90,43,0.06)] bg-[#F8ECD6]"
-              style={{
-                background: "radial-gradient(ellipse at center, #F4E7CE 0%, #EDE0C3 100%)",
-              }}
-            >
-              {/* Star-Grid elements */}
-              <div className="absolute inset-0 bg-[radial-gradient(rgba(139,90,43,0.045)_1.5px,transparent_1.5px)] bg-[size:16px_16px] pointer-events-none" />
-
-              {/* Draw fine golden connection orbits */}
-              {filtered.length > 1 && (
-                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-                  <defs>
-                    <linearGradient id="astroParchmentLine" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#E8742A" stopOpacity="0.3" />
-                      <stop offset="50%" stopColor="#b45309" stopOpacity="0.5" />
-                      <stop offset="100%" stopColor="#854d0e" stopOpacity="0.3" />
-                    </linearGradient>
-                  </defs>
-                  {/* Connect sequentially using clean micro lines */}
-                  {filtered.map((item, keyIdx) => {
-                    if (keyIdx === filtered.length - 1) return null;
-                    const next = filtered[keyIdx + 1];
-
-                    const x1 = `${18 + ((keyIdx * 45) % 68)}%`;
-                    const y1 = `${12 + ((keyIdx * 32) % 64) + (keyIdx % 2) * 10}%`;
-                    const x2 = `${18 + (((keyIdx + 1) * 45) % 68)}%`;
-                    const y2 = `${12 + (((keyIdx + 1) * 32) % 64) + ((keyIdx + 1) % 2) * 10}%`;
-
-                    return (
-                      <g key={item.id}>
-                        <line
-                          x1={x1}
-                          y1={y1}
-                          x2={x2}
-                          y2={y2}
-                          stroke="url(#astroParchmentLine)"
-                          strokeWidth="1.2"
-                          strokeDasharray="4 3"
-                        />
-                        <circle cx={x1} cy={y1} r="2.5" fill="#E8742A" className="opacity-60" />
-                      </g>
-                    );
-                  })}
-                </svg>
-              )}
-
-              {/* Render memories as mini polaroid tokens inside star map */}
-              <div className="absolute inset-0 z-10">
-                {filtered.map((mem, idx) => {
-                  const isAudio = mem.file_type === "audio";
-                  const isFore = mem.timeline === "forever";
-                  const x = `${18 + ((idx * 45) % 68)}%`;
-                  const y = `${12 + ((idx * 32) % 64) + (idx % 2) * 10}%`;
-
-                  return (
-                    <button
-                      key={mem.id}
-                      onClick={() => setPlayerIdx(idx)}
-                      className="absolute translate-x-[-50%] translate-y-[-50%] flex flex-col items-center group cursor-pointer"
-                      style={{ left: x, top: y }}
-                    >
-                      {/* Aura */}
-                      <div className="relative">
-                        <div
-                          className={`absolute inset-[-14px] rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 blur-sm bg-amber-600/10`}
-                        />
-                        <div
-                          className="absolute inset-[-2px] rounded-full animate-ping opacity-20 bg-amber-600"
-                          style={{ animationDuration: "6s" }}
-                        />
-
-                        {/* Celestial Portrait Token element */}
-                        <div
-                          className={`w-14 h-14 rounded-full overflow-hidden border-2 flex items-center justify-center p-0.5 shadow-md transition-all duration-300 group-hover:scale-120 group-hover:-rotate-3 border-stone-200/90 bg-[#FFFFF6]`}
-                        >
-                          {mem.thumbnail_url ? (
-                            <img
-                              src={mem.thumbnail_url}
-                              alt=""
-                              className="w-full h-full object-cover rounded-full filter sepia-[20%]"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center">
-                              {isAudio ? (
-                                <Volume2 className="w-5 h-5 text-[#E8742A]" />
-                              ) : (
-                                <Video className="w-5 h-5 text-amber-900" />
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Lock Status indicator */}
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#FFFFFA] border border-stone-200 flex items-center justify-center text-[10px] shadow-sm">
-                          {mem.is_public ? (
-                            <Globe className="w-2.5 h-2.5 text-[#E8742A]" />
-                          ) : (
-                            <Lock className="w-2.5 h-2.5 text-stone-400" />
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Sticky paper-tag labels */}
-                      <div className="mt-2 scale-90 group-hover:scale-100 opacity-80 group-hover:opacity-100 transition-all z-20 pointer-events-none">
-                        <span className="px-1.5 py-0.5 rounded-md bg-[#FFFFFC] border border-stone-300/40 text-[9px] font-serif font-black tracking-wide text-[#3D2B1F] block max-w-[85px] truncate text-center shadow-xs">
-                          {mem.title || `Story #${idx + 1}`}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Star chart footer metadata */}
-              <div className="w-full mt-auto flex justify-between items-center z-25 relative bg-[#FFFFFB]/80 backdrop-blur-md p-2 rounded-xl border border-stone-300/20">
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
-                  <span className="text-[8.5px] font-mono tracking-widest text-stone-500 font-bold">
-                    COSMIC ATLAS v1.1
+              {isSelected && (
+                <div style={{ textAlign: "center", marginTop: "4px" }}>
+                  <span
+                    style={{
+                      fontSize: "8px",
+                      fontWeight: 700,
+                      color: "#E8742A",
+                      letterSpacing: ".08em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {ageLabels[i]}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-[#E8742A]">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span className="text-[8px] font-black tracking-wider">{filtered.length} NODES</span>
-                </div>
-              </div>
+              )}
             </div>
-          </div>
-        ) : (
-          /* MODE B: CHRONOLOGICAL COFFRE AUX TRESORS GRID (POLAROID PHOTO TABLEAU) */
-          <div className="grid grid-cols-2 gap-4 animate-fade-in pb-8">
-            {/* SECRET GARDEN - INTENSE PRIVATE SANCTUARY CAROUSEL LINK */}
-            <div
-              className="col-span-2 relative group bg-[#FFF8EE] rounded-2xl p-5 border border-[#D4A853]/45 hover:border-[#D4A853]/90 hover:shadow-[0_8px_24px_rgba(212,168,83,0.12)] cursor-pointer transition-all duration-300 shadow-sm active:scale-[0.99] overflow-hidden"
-              onClick={() => {
-                toast.info(t.comingSoon || "Feature coming soon");
-              }}
-            >
-              <div className="absolute inset-x-0 top-0 h-[1000px] paper-grain pointer-events-none opacity-40 animate-pulse" />
-
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="w-13 h-13 rounded-2xl flex items-center justify-center bg-white border border-[#D4A853]/30 shadow-xs group-hover:scale-105 transition-all">
-                  <Moon className="w-6 h-6 text-[#E8742A] fill-[#E8742A]/10" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-black text-[#3D2B1F] tracking-wider group-hover:text-[#E8742A] transition-colors uppercase flex items-center gap-1 font-serif">
-                    {getTxt("secretGardenTitle")}
-                    <Sparkles className="w-3.5 h-3.5 text-[#D4A853] animate-pulse" />
-                  </h4>
-                  <p className="text-[#3D2B1F]/60 text-[10px] leading-relaxed mt-1 font-mono">
-                    {getTxt("secretGardenSub")}
-                  </p>
-                </div>
-
-                <div className="p-1.5 px-2.5 rounded bg-amber-600/5 border border-[#D4A853]/35 text-[8px] font-black uppercase text-[#D4A853] select-none tracking-wider">
-                  {lang === "ar" ? "مشفر" : "SILENT KEY"}
-                </div>
-              </div>
-            </div>
-
-            {/* EMPTY FAMILY BOX CASE */}
-            {filtered.length === 0 ? (
-              <div className="col-span-2 py-20 text-center glass-metric border border-dashed border-stone-300 rounded-3xl">
-                <Hourglass className="w-12 h-12 mx-auto text-stone-300 mb-4 animate-spinPin" />
-                <p className="text-stone-500 text-sm italic font-serif leading-relaxed px-4">{t.recordToFill}</p>
-              </div>
-            ) : (
-              /* RENDER OF IMMACULATE POLAROID PHOTO CARDS */
-              filtered.map((mem, idx) => {
-                const tl = tlStyle(mem.timeline);
-                const isAudio = mem.file_type === "audio";
-                const isFore = mem.timeline === "forever";
-                const mEpoch = getMemoryEpoch(mem);
-
-                // Alternating elegant rotation angle for loose handmade collage aesthetic!
-                const rotationStyle = idx % 2 === 0 ? "rotate-[-1.5deg]" : "rotate-[1.5deg]";
-
-                return (
-                  <div
-                    key={mem.id}
-                    onClick={() => setPlayerIdx(idx)}
-                    className={`polaroid-card relative flex flex-col cursor-pointer ${rotationStyle} p-3 pb-6 rounded-none`}
-                  >
-                    {/* Visual Media Canvas Stage */}
-                    <div className="relative aspect-square overflow-hidden bg-stone-100 flex items-center justify-center shadow-[inset_0_1px_5px_rgba(0,0,0,0.06)]">
-                      {mem.thumbnail_url ? (
-                        <img
-                          src={mem.thumbnail_url}
-                          alt=""
-                          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 filter sepia-[10%] brightness-[1.02]`}
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-gradient-to-tr from-[#FAF3E8] to-[#FFFFFC] flex items-center justify-center">
-                          <div className="opacity-40 group-hover:scale-110 transition-transform duration-300">
-                            {isAudio ? (
-                              <Volume2 className="w-10 h-10 text-stone-500" />
-                            ) : (
-                              <Video className="w-10 h-10 text-stone-500" />
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Delicate vignette for physical authenticity */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
-
-                      {/* Continuous Pulsing Waveform spectrograph overlay on Audio files */}
-                      {isAudio && (
-                        <div className="absolute inset-0 flex items-center justify-center gap-1 pb-4 pointer-events-none select-none">
-                          {[18, 30, 16, 22, 38, 25, 12, 18, 28].map((h, k) => (
-                            <div
-                              key={k}
-                              className={`w-[2px] rounded-full`}
-                              style={{
-                                height: `${h}px`,
-                                backgroundColor: isFore ? "#9333EA" : "#E8742A",
-                                opacity: 0.8,
-                                animationDuration: `${0.7 + (k % 3) * 0.25}s`,
-                                animationDelay: `${k * 0.05}s`,
-                              }}
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Beautiful Retro play circle */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 bg-black/10 pointer-events-none">
-                        <div className="w-10 h-10 rounded-full bg-[#E8742A] flex items-center justify-center shadow-md animate-zoom-in">
-                          <Play className="w-4 h-4 text-white fill-white ml-[1px]" />
-                        </div>
-                      </div>
-
-                      {/* Top timeline capsule pill */}
-                      <div className="absolute top-2 left-2 z-10">
-                        <span
-                          className="px-2 py-0.5 rounded-full text-[7px] font-black tracking-wider uppercase border text-center block bg-white"
-                          style={{
-                            borderColor: tl.border,
-                            color: tl.color === "#d8b4fe" ? "#9333EA" : tl.color === "#7dd3fc" ? "#0284c7" : "#c2410c",
-                          }}
-                        >
-                          {tl.text}
-                        </span>
-                      </div>
-
-                      {/* Top Right Privacy lock status bubble */}
-                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/90 backdrop-blur-md border border-stone-200 flex items-center justify-center z-10 shadow-xs">
-                        {mem.is_public ? (
-                          <Globe className="w-3 h-3 text-[#E8742A]" />
-                        ) : (
-                          <Lock className="w-3 h-3 text-stone-400" />
-                        )}
-                      </div>
-
-                      {/* Little custom Epoch icon in corner */}
-                      <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-white/90 backdrop-blur-xs rounded-md border border-stone-200 text-[6.5px] font-black uppercase text-stone-500 tracking-wider">
-                        {mEpoch}
-                      </div>
-                    </div>
-
-                    {/* Metadata Subdescriptions panel - Structured Polaroid Bottom Edge */}
-                    <div className="pt-4 flex-1 flex flex-col justify-between">
-                      <div>
-                        {/* Elegant italic display handwriting substitute */}
-                        <h4 className="text-sm font-semibold font-serif text-[#3D2B1F] tracking-tight leading-snug group-hover:text-[#E8742A] transition-colors line-clamp-1">
-                          {mem.title || "Untitled Story"}
-                        </h4>
-
-                        {mem.description && (
-                          <p className="text-[10px] text-stone-500 italic leading-relaxed mt-1 line-clamp-2">
-                            "{mem.description}"
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-100">
-                        <div className="flex items-center gap-1.5 text-stone-400 text-[9px] font-medium">
-                          <Calendar className="w-3 h-3" />
-                          <span>{formatDate(mem.created_at)}</span>
-                        </div>
-
-                        <div
-                          className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-stone-100 text-[#3D2B1F]/70`}
-                        >
-                          {isAudio ? <Volume2 className="w-2.5 h-2.5" /> : <Video className="w-2.5 h-2.5" />}
-                          <span>{isAudio ? t.voiceLabel : t.videoLabel}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        )}
+          );
+        })}
+        <div style={{ marginBottom: "0px" }}>
+          <button
+            onClick={() => toast.info("Add a life photo — coming soon")}
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              backgroundColor: "#E8742A",
+              border: "2.5px solid rgba(255,255,255,.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 0 12px rgba(232,116,42,.5)",
+            }}
+          >
+            <Plus size={16} color="#fff" />
+          </button>
+        </div>
       </div>
-
-      {/* FOOTER EPITAPH MESSAGE: "Echo of Eternity" */}
-      <div className="mt-8 mb-8 text-center px-6 relative z-10 max-w-xs mx-auto">
-        <div className="w-8 h-px bg-gradient-to-r from-transparent via-amber-800/30 to-transparent mx-auto mb-3" />
-        <p className="text-[8.5px] uppercase tracking-[0.25em] text-stone-450 font-bold block mb-1">
-          {getTxt("eterniteVoice")}
-        </p>
-        <p className="text-[9.5px] text-stone-500 italic font-serif leading-relaxed">"{getTxt("wisdomQuote")}"</p>
-      </div>
-
-      {/* FIXED FLOATING CORE PRESERVE ACTION */}
-      <div className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[#FDF8F0] via-[#FDF8F0]/95 to-transparent z-40">
-        <button
-          onClick={() => navigate("/record")}
-          className="w-full py-[18px] rounded-2xl font-bold text-base bg-gradient-to-r from-[#E8742A] to-[#D4621A] text-white flex items-center justify-center gap-2.5 shadow-[0_10px_25px_rgba(232,116,42,0.3)] cursor-pointer transition-transform hover:scale-[1.01] active:scale-[0.98] border-none"
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
+        <div
+          style={{
+            width: "28px",
+            height: "1px",
+            background: "linear-gradient(to right,transparent,rgba(212,175,85,.5))",
+          }}
+        />
+        <p
+          style={{
+            fontSize: "8px",
+            fontWeight: 700,
+            letterSpacing: ".18em",
+            color: "rgba(61,43,31,.35)",
+            textTransform: "uppercase",
+          }}
         >
-          <Mic className="w-5 h-5" />
-          <span>{t.preserveStory}</span>
-        </button>
+          {lifeLabel}
+        </p>
+        <div
+          style={{
+            width: "28px",
+            height: "1px",
+            background: "linear-gradient(to left,transparent,rgba(212,175,85,.5))",
+          }}
+        />
       </div>
+      <p
+        style={{
+          fontSize: "14px",
+          fontWeight: 600,
+          color: "rgba(61,43,31,.75)",
+          marginTop: "8px",
+          fontFamily: "Georgia,serif",
+          fontStyle: "italic",
+        }}
+      >
+        @{handle.toLowerCase().replace(/\s+/g, "_")}
+      </p>
     </div>
   );
 };
 
-// ─── Modal Portrayed Memory Player Overhaul ────────────────────────────────────
+const VaultCard = ({ title, subtitle, onClick }: { title: string; subtitle: string; onClick: () => void }) => (
+  <div
+    onClick={onClick}
+    style={{
+      gridColumn: "1 / -1",
+      backgroundColor: "#FFFAF2",
+      borderRadius: "20px",
+      border: "1px solid rgba(212,175,85,.35)",
+      boxShadow: "0 0 0 1px rgba(212,175,85,.08), 0 2px 16px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.6)",
+      padding: "20px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: "16px",
+      marginBottom: "4px",
+    }}
+  >
+    <div
+      style={{
+        width: "48px",
+        height: "48px",
+        borderRadius: "14px",
+        flexShrink: 0,
+        background: "linear-gradient(135deg,rgba(212,175,85,.18),rgba(184,140,40,.08))",
+        border: "1px solid rgba(212,175,85,.3)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Shield size={22} color="rgba(212,175,85,.9)" />
+    </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p
+        style={{
+          fontSize: "13px",
+          fontWeight: 700,
+          color: "#3D2B1F",
+          marginBottom: "3px",
+          fontFamily: "Georgia,serif",
+        }}
+      >
+        {title}
+      </p>
+      <p style={{ fontSize: "11px", color: "rgba(61,43,31,.45)", lineHeight: 1.4 }}>{subtitle}</p>
+    </div>
+    <Lock size={16} color="rgba(212,175,85,.6)" style={{ flexShrink: 0 }} />
+  </div>
+);
 
 const Player = ({
   memory,
@@ -1064,138 +379,821 @@ const Player = ({
   hasPrev: boolean;
   hasNext: boolean;
 }) => {
-  const { t, lang } = useLanguage();
+  const { lang } = useLanguage();
   const tl = tlStyle(memory.timeline);
   const isAudio = memory.file_type === "audio";
   const isDemo = memory.id.startsWith("d");
+  const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
-  // Local helper for localized types
-  const getFormatLabel = () => {
-    if (isAudio) return lang === "fr" ? "DOCUMENT AUDIO NUMÉRIQUE" : "DIGITAL VOICE DOCUMENT";
-    return lang === "fr" ? "SOUVENIR VIDÉO SÉCURISÉ" : "SECURE FAMILY FOOTAGE";
+  const handleTimeUpdate = () => {
+    if (mediaRef.current) setCurrentTime(mediaRef.current.currentTime);
+  };
+  const handleLoadedMetadata = () => {
+    if (mediaRef.current) setDuration(mediaRef.current.duration);
+  };
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    if (mediaRef.current) mediaRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
+  const handlePlayPause = () => {
+    if (!mediaRef.current) return;
+    if (isPlaying) {
+      mediaRef.current.pause();
+    } else {
+      mediaRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+  const handleReport = async () => {
+    const reason = prompt(
+      lang === "ar"
+        ? "لماذا تبلغ عن هذا المحتوى؟"
+        : lang === "fr"
+          ? "Pourquoi signalez-vous ce contenu ?"
+          : "Why are you reporting this content?",
+    );
+    if (!reason) return;
+    const { error } = await supabase.rpc("report_memory", { memory_id: memory.id, reason });
+    if (error) {
+      toast.error(lang === "ar" ? "فشل الإبلاغ" : lang === "fr" ? "Échec du signalement" : "Failed to report");
+    } else {
+      toast.success(
+        lang === "ar"
+          ? "شكراً. سنراجع هذا المحتوى."
+          : lang === "fr"
+            ? "Merci. Nous allons examiner ce contenu."
+            : "Thank you. We'll review this content.",
+      );
+    }
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-5 bg-black/95 backdrop-blur-xl animate-fade-in"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        backgroundColor: "rgba(0,0,0,.94)",
+        backdropFilter: "blur(12px)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+      }}
       onClick={onClose}
     >
-      {/* Background magical ambient light inside player */}
-      <div className="absolute w-72 h-72 rounded-full bg-[#E8742A]/10 blur-[90px] pointer-events-none select-none" />
-
       <div
-        className="w-full max-w-sm bg-[#090e15] rounded-3xl overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.08)] border border-white/[0.06] animate-zoom-in"
+        style={{
+          width: "100%",
+          maxWidth: "340px",
+          backgroundColor: "#1A1A1A",
+          borderRadius: "28px",
+          overflow: "hidden",
+          boxShadow: "0 40px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Visual Header stage */}
-        <div className="relative aspect-[4/5] bg-black flex items-center justify-center overflow-hidden">
+        <div
+          style={{
+            position: "relative",
+            aspectRatio: isAudio ? "16/9" : "4/5",
+            backgroundColor: isAudio ? "#1A2E38" : "#0a0a0a",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
           {!isDemo && memory.file_url && memory.file_type === "video" ? (
-            <video src={memory.file_url} controls className="w-full h-full object-cover" />
+            <video
+              ref={mediaRef as React.RefObject<HTMLVideoElement>}
+              src={memory.file_url}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
           ) : memory.thumbnail_url && !isAudio ? (
-            <img src={memory.thumbnail_url} alt="" className="w-full h-full object-cover object-center" />
+            <img
+              src={memory.thumbnail_url}
+              alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+            />
           ) : isAudio && !isDemo && memory.file_url ? (
-            <audio src={memory.file_url} controls className="w-[85%] relative z-10" />
+            <audio
+              ref={mediaRef as React.RefObject<HTMLAudioElement>}
+              src={memory.file_url}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            />
           ) : isAudio ? (
-            /* Interactive Pulsing Star-Dust Audio Spectrograph */
-            <div className="relative w-full h-full flex flex-col items-center justify-center p-8 bg-[radial-gradient(ellipse_at_center,rgba(25,14,40,0.6)_0%,transparent_75%)]">
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/25 flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(245,158,11,0.15)]">
-                <Volume2 className="w-7 h-7 text-amber-500 animate-pulse" />
-              </div>
-
-              <div className="flex items-center gap-1.5 h-16 relative z-10">
-                {Array.from({ length: 24 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-[3px] rounded-full bg-amber-500/80"
-                    style={{
-                      height: `${14 + Math.sin(i * 0.45) * 20 + Math.cos(i * 0.25) * 8}px`,
-                      animation: "audioWaveGlow 2s ease-in-out infinite",
-                      animationDuration: `${0.8 + (i % 4) * 0.2}s`,
-                      animationDelay: `${i * 0.03}s`,
-                    }}
-                  />
-                ))}
-              </div>
-
-              <span className="text-[8px] font-mono tracking-[0.2em] text-amber-500/50 uppercase mt-4 block">
-                CYBERNETIC AUDIO ARCHIVE
-              </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "3px", height: "56px" }}>
+              {Array.from({ length: 32 }).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: "3px",
+                    height: `${12 + Math.sin(i * 0.55) * 18 + Math.cos(i * 0.3) * 10}px`,
+                    backgroundColor: "#E8742A",
+                    borderRadius: "2px",
+                    opacity: 0.75,
+                    animation: `wv ${0.7 + (i % 5) * 0.15}s ease-in-out infinite alternate`,
+                    animationDelay: `${i * 0.04}s`,
+                  }}
+                />
+              ))}
             </div>
           ) : (
-            <Video className="w-12 h-12 text-white/10" />
+            <Video size={48} color="rgba(255,255,255,.15)" />
           )}
-
-          {/* Vignette Shadowing */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent pointer-events-none" />
-
-          {/* Timeline Badge */}
-          <div className="absolute top-4 left-4">
-            <span
-              className="px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase border"
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 55%)",
+              pointerEvents: "none",
+            }}
+          />
+          {isDemo && (
+            <div
+              onClick={handlePlayPause}
               style={{
-                backgroundColor: tl.bg,
-                borderColor: tl.border,
+                position: "absolute",
+                width: "68px",
+                height: "68px",
+                borderRadius: "50%",
+                backgroundColor: "#E8742A",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 0 0 8px rgba(232,116,42,.18),0 0 40px rgba(232,116,42,.5)",
+                cursor: "pointer",
+              }}
+            >
+              <Play size={28} color="#fff" fill="#fff" style={{ marginLeft: "3px" }} />
+            </div>
+          )}
+          <div
+            style={{
+              position: "absolute",
+              top: "14px",
+              left: "14px",
+              padding: "4px 10px",
+              borderRadius: "20px",
+              backgroundColor: tl.bg,
+              border: `1px solid ${tl.border}`,
+            }}
+          >
+            <span
+              style={{
+                fontSize: "9px",
+                fontWeight: 900,
+                letterSpacing: ".1em",
                 color: tl.color,
-                textShadow: `0 0 6px ${tl.color}`,
+                textTransform: "uppercase",
               }}
             >
               {tl.text}
             </span>
           </div>
-
-          {/* Privacy Badge */}
-          <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10">
+          <div
+            style={{
+              position: "absolute",
+              top: "14px",
+              right: "14px",
+              width: "30px",
+              height: "30px",
+              borderRadius: "50%",
+              backgroundColor: "rgba(0,0,0,.4)",
+              backdropFilter: "blur(6px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             {memory.is_public ? (
-              <Globe className="w-3.5 h-3.5 text-sky-400" />
+              <Globe size={13} color="rgba(255,255,255,.65)" />
             ) : (
-              <Lock className="w-3.5 h-3.5 text-amber-500" />
+              <Lock size={13} color="rgba(255,255,255,.65)" />
             )}
           </div>
         </div>
-
-        {/* Subtitles & Descriptions */}
-        <div className="p-6 bg-gradient-to-b from-[#090e15] to-[#040810]">
-          <div className="text-[8px] font-black font-mono tracking-widest text-white/30 uppercase mb-2 block">
-            {getFormatLabel()}
-          </div>
-
-          <h3 className="text-xl font-bold font-serif text-white tracking-wide leading-snug">
-            {memory.title || "Untitled Memory"}
-          </h3>
-
+        <div style={{ padding: "20px 20px 4px" }}>
+          <h2
+            style={{
+              fontSize: "19px",
+              fontWeight: 700,
+              fontFamily: "Georgia,serif",
+              color: "#fff",
+              marginBottom: "8px",
+              lineHeight: 1.3,
+            }}
+          >
+            {memory.title || "A memory"}
+          </h2>
           {memory.description && (
-            <p className="text-white/60 text-sm mt-3.5 font-medium italic leading-relaxed pl-3.5 border-l border-amber-500/30">
+            <p
+              style={{
+                fontSize: "13px",
+                color: "rgba(255,255,255,.45)",
+                lineHeight: 1.55,
+                marginBottom: "10px",
+                fontStyle: "italic",
+              }}
+            >
               "{memory.description}"
             </p>
           )}
-
-          <div className="flex items-center gap-2 mt-5 text-white/35 text-xs">
-            <Calendar className="w-3.5 h-3.5 text-[#E8742A]" />
-            <span>{formatDate(memory.created_at)}</span>
-            <span className="text-white/10">•</span>
-            <span className="text-[9px] font-mono whitespace-nowrap">ID: {memory.id}</span>
-          </div>
+          <p style={{ fontSize: "11px", color: "rgba(255,255,255,.25)" }}>{formatDate(memory.created_at)}</p>
         </div>
-
-        {/* Custom audio controls wrapper */}
-        <div className="flex border-t border-white/[0.04]">
+        {duration > 0 && (
+          <div style={{ padding: "12px 20px 0" }}>
+            <input
+              type="range"
+              min={0}
+              max={duration || 0}
+              value={currentTime}
+              onChange={handleSeek}
+              style={{
+                width: "100%",
+                height: "4px",
+                WebkitAppearance: "none",
+                appearance: "none",
+                background: "rgba(255,255,255,.12)",
+                borderRadius: "2px",
+                outline: "none",
+                cursor: "pointer",
+                accentColor: "#E8742A",
+              }}
+            />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
+              <span style={{ fontSize: "10px", color: "rgba(255,255,255,.35)", fontVariantNumeric: "tabular-nums" }}>
+                {formatTime(Math.floor(currentTime))}
+              </span>
+              <span style={{ fontSize: "10px", color: "rgba(255,255,255,.35)", fontVariantNumeric: "tabular-nums" }}>
+                {formatTime(Math.floor(duration))}
+              </span>
+            </div>
+          </div>
+        )}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "16px",
+            padding: "8px 20px 4px",
+          }}
+        >
+          <button
+            onClick={handleReport}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,.2)",
+              fontSize: "10px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "4px 0",
+            }}
+          >
+            <Flag size={10} />
+            {lang === "ar" ? "إبلاغ" : lang === "fr" ? "Signaler" : "Report"}
+          </button>
+          <button
+            onClick={() => setShowShareModal(true)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,.35)",
+              fontSize: "10px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "4px 0",
+            }}
+          >
+            <Share2 size={10} />
+            {lang === "ar" ? "مشاركة" : lang === "fr" ? "Partager" : "Share"}
+          </button>
+        </div>
+        <div style={{ display: "flex", borderTop: "1px solid rgba(255,255,255,.06)", marginTop: "4px" }}>
           {[
-            { icon: <ChevronLeft className="w-6 h-6" />, action: onPrev, enabled: hasPrev },
-            { icon: <X className="w-5 h-5" />, action: onClose, enabled: true },
-            { icon: <ChevronRight className="w-6 h-6" />, action: onNext, enabled: hasNext },
+            { icon: <ChevronLeft size={22} />, action: onPrev, enabled: hasPrev },
+            { icon: <X size={18} />, action: onClose, enabled: true },
+            { icon: <ChevronRight size={22} />, action: onNext, enabled: hasNext },
           ].map((btn, i) => (
             <button
               key={i}
               onClick={btn.action}
               disabled={!btn.enabled}
-              className={`flex-1 py-5 flex items-center justify-center bg-transparent border-none transition-all hover:bg-white/[0.03] active:bg-white/[0.05] ${
-                i < 2 ? "border-r border-white/5" : ""
-              } ${btn.enabled ? "cursor-pointer text-white/60 hover:text-[#E8742A]" : "opacity-15 pointer-events-none"}`}
+              style={{
+                flex: 1,
+                padding: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "transparent",
+                border: "none",
+                borderRight: i < 2 ? "1px solid rgba(255,255,255,.06)" : "none",
+                cursor: btn.enabled ? "pointer" : "default",
+                opacity: btn.enabled ? 1 : 0.18,
+                color: "rgba(255,255,255,.55)",
+              }}
             >
               {btn.icon}
             </button>
           ))}
         </div>
+      </div>
+      <p style={{ color: "rgba(255,255,255,.2)", fontSize: "11px", marginTop: "16px" }}>Tap outside to close</p>
+      <style>{`@keyframes wv{from{transform:scaleY(1)}to{transform:scaleY(1.7)}}`}</style>
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title={memory.title || "A memory"}
+        url={memory.file_url || "https://infeelit.com"}
+        text={`Listen to this memory on Infeelit: "${memory.title || "A precious moment"}"`}
+      />
+    </div>
+  );
+};
+
+const Treasure = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const { t, lang, rtl } = useLanguage();
+  const [activeTab, setActiveTab] = useState<ActiveTab>("all");
+  const [playerIdx, setPlayerIdx] = useState<number | null>(null);
+
+  const { data, isLoading } = useQuery({ queryKey: ["memories"], queryFn: fetchMemories, staleTime: 30_000 });
+
+  useEffect(() => {
+    if (location.state?.refresh) queryClient.invalidateQueries({ queryKey: ["memories"] });
+  }, [location.state, queryClient]);
+
+  const memories = data?.memories ?? DEMO;
+  const displayName = data?.displayName ?? "Your";
+  const isLoggedIn = data?.isLoggedIn ?? false;
+
+  const TABS: { id: ActiveTab; label: string }[] = [
+    { id: "all", label: t.tabAll },
+    { id: "memories", label: t.tabMemories },
+    { id: "forever", label: t.tabForever },
+    { id: "video", label: t.tabVideo },
+    { id: "voices", label: t.tabVoices },
+  ];
+
+  const filtered = memories.filter((m) => {
+    if (activeTab === "all") return true;
+    if (activeTab === "memories") return m.timeline === "memories" || m.timeline === "past";
+    if (activeTab === "forever") return m.timeline === "forever";
+    if (activeTab === "video") return m.file_type === "video";
+    if (activeTab === "voices") return m.file_type === "audio";
+    return true;
+  });
+
+  const isDemoData = memories.length > 0 && memories[0].id.startsWith("d");
+  const real = isDemoData ? [] : memories;
+  const statVideos = real.filter((m) => m.file_type === "video").length;
+  const statVoices = real.filter((m) => m.file_type === "audio").length;
+
+  const sparkBalance = Number(localStorage.getItem("infeelit_spark_balance") || 0);
+
+  return (
+    <div style={{ minHeight: "100vh", backgroundColor: "#FDF8F0", paddingBottom: "120px" }} dir={rtl ? "rtl" : "ltr"}>
+      {playerIdx !== null && filtered[playerIdx] && (
+        <Player
+          memory={filtered[playerIdx]}
+          onClose={() => setPlayerIdx(null)}
+          onPrev={() => setPlayerIdx((i) => (i! > 0 ? i! - 1 : i))}
+          onNext={() => setPlayerIdx((i) => (i! < filtered.length - 1 ? i! + 1 : i))}
+          hasPrev={playerIdx > 0}
+          hasNext={playerIdx < filtered.length - 1}
+        />
+      )}
+
+      <div
+        style={{
+          background: "linear-gradient(180deg,#FDF8F0 0%,#F8EDDC 60%,#F0DCC0 100%)",
+          paddingTop: "56px",
+          paddingBottom: "28px",
+          paddingLeft: "24px",
+          paddingRight: "24px",
+          borderRadius: "0 0 32px 32px",
+          position: "relative",
+          overflow: "hidden",
+          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+          borderBottom: "1px solid rgba(212,175,85,.15)",
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            position: "absolute",
+            top: "14px",
+            left: "16px",
+            width: "34px",
+            height: "34px",
+            borderRadius: "50%",
+            backgroundColor: "rgba(61,43,31,.08)",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+          }}
+        >
+          <ArrowLeft size={17} color="#3D2B1F" />
+        </button>
+        <div
+          style={{
+            position: "absolute",
+            top: "-20px",
+            right: "-20px",
+            width: "150px",
+            height: "150px",
+            borderRadius: "50%",
+            background: "rgba(232,116,42,.04)",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: "40px",
+            left: "30px",
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            background: "rgba(212,175,85,.03)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {sparkBalance > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: "14px",
+              right: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "4px 10px",
+              borderRadius: "20px",
+              background: "rgba(255,215,0,.12)",
+              border: "1px solid rgba(212,175,85,.3)",
+            }}
+          >
+            <Sparkles size={12} color="#D4A853" />
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#B8860B" }}>✦{sparkBalance}</span>
+          </div>
+        )}
+
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: "10px",
+            fontWeight: 900,
+            letterSpacing: ".22em",
+            color: "rgba(61,43,31,.3)",
+            textTransform: "uppercase",
+            marginBottom: "20px",
+          }}
+        >
+          {t.yourHaven}
+        </p>
+        <LifeTimeline handle={displayName} lifeLabel={t.lifeThrough} />
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "20px" }}>
+          {[
+            { value: real.length, label: t.storiesPreserved },
+            { value: statVideos, label: t.videoMoments },
+            { value: statVoices, label: t.voiceCaptures },
+          ].map((s, i) => (
+            <div
+              key={i}
+              style={{
+                backgroundColor: "rgba(255,255,255,.6)",
+                borderRadius: "14px",
+                padding: "12px 8px",
+                textAlign: "center",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(212,175,85,.12)",
+                boxShadow: "0 1px 4px rgba(0,0,0,.02)",
+              }}
+            >
+              <p style={{ fontSize: "24px", fontWeight: 900, color: "#3D2B1F", lineHeight: 1 }}>{s.value}</p>
+              <p
+                style={{
+                  fontSize: "8px",
+                  fontWeight: 700,
+                  letterSpacing: ".1em",
+                  color: "rgba(61,43,31,.35)",
+                  textTransform: "uppercase",
+                  marginTop: "3px",
+                }}
+              >
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
+        {isDemoData && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "9px 14px",
+              borderRadius: "12px",
+              backgroundColor: "rgba(232,116,42,.06)",
+              border: "1px solid rgba(232,116,42,.12)",
+            }}
+          >
+            <p style={{ fontSize: "10px", color: "rgba(232,116,42,.6)", textAlign: "center" }}>{t.previewMode}</p>
+          </div>
+        )}
+      </div>
+
+      <div
+        style={{
+          padding: "18px 20px 4px",
+          display: "flex",
+          gap: "8px",
+          overflowX: "auto",
+          scrollbarWidth: "none",
+          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+        }}
+      >
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              flexShrink: 0,
+              padding: "10px 20px",
+              borderRadius: "24px",
+              fontSize: "13px",
+              fontWeight: 700,
+              transition: "all .18s",
+              backgroundColor: activeTab === tab.id ? "#E8742A" : "rgba(61,43,31,.05)",
+              color: activeTab === tab.id ? "#fff" : "rgba(61,43,31,.5)",
+              border: activeTab === tab.id ? "none" : "1px solid rgba(61,43,31,.08)",
+              boxShadow: activeTab === tab.id ? "0 4px 18px rgba(232,116,42,.3)" : "none",
+              cursor: "pointer",
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: "12px 20px" }}>
+        {isLoading ? (
+          <div
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "80px", gap: "14px" }}
+          >
+            <div
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                border: "3px solid rgba(232,116,42,.2)",
+                borderTopColor: "#E8742A",
+                animation: "spin 1s linear infinite",
+              }}
+            />
+            <p
+              style={{ fontSize: "13px", fontFamily: "Georgia,serif", fontStyle: "italic", color: "rgba(61,43,31,.3)" }}
+            >
+              {t.openingChest}
+            </p>
+            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <VaultCard
+              title="🌙 Secret Garden"
+              subtitle="The memories you cherish in silence."
+              onClick={() => toast.info(t.comingSoon)}
+            />
+            {filtered.map((mem, idx) => {
+              const tl = tlStyle(mem.timeline);
+              const isAudio = mem.file_type === "audio";
+              const isFore = mem.timeline === "forever";
+              return (
+                <div
+                  key={mem.id}
+                  onClick={() => setPlayerIdx(idx)}
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    borderRadius: "20px",
+                    overflow: "hidden",
+                    border: isFore ? "1px solid rgba(107,78,155,.2)" : "1px solid rgba(212,175,85,.15)",
+                    boxShadow: "0 1px 6px rgba(0,0,0,.03)",
+                    cursor: "pointer",
+                    transition: "transform .14s",
+                  }}
+                  onTouchStart={(e) => (e.currentTarget.style.transform = "scale(.96)")}
+                  onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  <div
+                    style={{
+                      position: "relative",
+                      aspectRatio: "1",
+                      backgroundColor: isAudio
+                        ? isFore
+                          ? "rgba(107,78,155,.06)"
+                          : "rgba(232,116,42,.06)"
+                        : "rgba(61,43,31,.04)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {mem.thumbnail_url ? (
+                      <img
+                        src={mem.thumbnail_url}
+                        alt=""
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          objectPosition: "center top",
+                          filter: isFore ? "brightness(.9) saturate(.8)" : "none",
+                        }}
+                      />
+                    ) : (
+                      <div style={{ opacity: 0.18 }}>
+                        {isAudio ? <Volume2 size={28} color="#3D2B1F" /> : <Video size={28} color="#3D2B1F" />}
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(to top,rgba(0,0,0,.45) 0%,rgba(0,0,0,.02) 55%,transparent 100%)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "8px",
+                        right: "8px",
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        backgroundColor: "rgba(232,116,42,.85)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 0 12px rgba(232,116,42,.3)",
+                      }}
+                    >
+                      <Play size={12} color="#fff" fill="#fff" style={{ marginLeft: "1px" }} />
+                    </div>
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "8px",
+                        left: "8px",
+                        padding: "3px 8px",
+                        borderRadius: "20px",
+                        backgroundColor: tl.bg,
+                        border: `1px solid ${tl.border}`,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "7px",
+                          fontWeight: 900,
+                          letterSpacing: ".08em",
+                          color: tl.color,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {tl.text}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "8px",
+                        right: "8px",
+                        width: "22px",
+                        height: "22px",
+                        borderRadius: "50%",
+                        backgroundColor: "rgba(0,0,0,.2)",
+                        backdropFilter: "blur(4px)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {mem.is_public ? (
+                        <Globe size={9} color="rgba(255,255,255,.7)" />
+                      ) : (
+                        <Lock size={9} color="rgba(255,255,255,.7)" />
+                      )}
+                    </div>
+                    {isFore && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "linear-gradient(to top,rgba(107,78,155,.25) 0%,transparent 55%)",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div style={{ padding: "10px 12px 12px" }}>
+                    <h3
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: "#3D2B1F",
+                        overflow: "hidden",
+                        whiteSpace: "nowrap",
+                        textOverflow: "ellipsis",
+                        marginBottom: "4px",
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {mem.title || "A memory"}
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <p style={{ fontSize: "9px", color: "rgba(61,43,31,.35)" }}>{formatDate(mem.created_at)}</p>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "3px",
+                          padding: "2px 7px",
+                          borderRadius: "10px",
+                          backgroundColor: isAudio ? "rgba(107,78,155,.08)" : "rgba(232,116,42,.06)",
+                        }}
+                      >
+                        {isAudio ? <Volume2 size={8} color="#6B4E9B" /> : <Video size={8} color="#E8742A" />}
+                        <span style={{ fontSize: "8px", fontWeight: 700, color: isAudio ? "#6B4E9B" : "#E8742A" }}>
+                          {isAudio ? t.voiceLabel : t.videoLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: "16px 20px 32px",
+          background: "linear-gradient(to top,#FDF8F0 55%,transparent)",
+          zIndex: 50,
+          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+        }}
+      >
+        <button
+          onClick={() => navigate("/record")}
+          style={{
+            width: "100%",
+            padding: "17px",
+            borderRadius: "20px",
+            background: "linear-gradient(135deg,#E8742A,#D4621A)",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "15px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            boxShadow: "0 0 0 1px rgba(232,116,42,.3),0 8px 32px rgba(232,116,42,.45)",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <Mic size={20} /> {t.preserveStory}
+        </button>
       </div>
     </div>
   );
