@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -87,6 +87,7 @@ const SparkBubble = () => {
     setSparkBalance(getSparkBalance());
   }, [lang]);
 
+  // Déplacement toutes les 60 secondes
   useEffect(() => {
     const moveInterval = setInterval(() => {
       const newX = Math.random() > 0.5 ? 10 + Math.random() * 25 : 65 + Math.random() * 25;
@@ -122,32 +123,20 @@ const SparkBubble = () => {
           24% { transform: scale(1.06); box-shadow: 0 0 30px rgba(255,200,60,0.6), 0 0 55px rgba(232,116,42,0.4), 0 0 85px rgba(255,220,80,0.2); }
           32% { transform: scale(1); box-shadow: 0 0 25px rgba(255,180,40,0.5), 0 0 50px rgba(232,116,42,0.3), 0 0 80px rgba(255,200,60,0.15); }
         }
-        @keyframes sparkleFloat {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(-12px, -20px) scale(1.05); }
-          50% { transform: translate(15px, -8px) scale(0.96); }
-          75% { transform: translate(8px, 15px) scale(1.04); }
+        @keyframes particleUp {
+          0% { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-45px) translateX(var(--dx)) scale(0); opacity: 0; }
         }
         @keyframes innerGlowRotate {
           0% { opacity: 0.6; transform: rotate(0deg); }
           100% { opacity: 1; transform: rotate(360deg); }
-        }
-        @keyframes particleUp {
-          0% { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
-          100% { transform: translateY(-40px) translateX(var(--dx)) scale(0); opacity: 0; }
         }
         @keyframes expandIn {
           0% { transform: scale(0.2); opacity: 0; }
           60% { transform: scale(1.05); opacity: 1; }
           100% { transform: scale(1); opacity: 1; }
         }
-        @keyframes haloSpin {
-          0% { transform: translate(-50%,-50%) rotate(0deg) scale(1); }
-          50% { transform: translate(-50%,-50%) rotate(180deg) scale(1.15); }
-          100% { transform: translate(-50%,-50%) rotate(360deg) scale(1); }
-        }
         .heartbeat { animation: heartbeatPulse 2.5s ease-in-out infinite; }
-        .sparkle-float { animation: sparkleFloat 10s ease-in-out infinite; }
         .inner-glow-rotate { animation: innerGlowRotate 6s linear infinite; }
         .expand-in { animation: expandIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
       `}</style>
@@ -165,8 +154,8 @@ const SparkBubble = () => {
             transform: "translate(-50%,-50%)",
           }}
         >
-          {/* Particules qui s'échappent */}
-          {[...Array(8)].map((_, i) => (
+          {/* Particules qui s'échappent en continu */}
+          {[...Array(10)].map((_, i) => (
             <div
               key={i}
               style={
@@ -174,20 +163,20 @@ const SparkBubble = () => {
                   position: "absolute",
                   top: "50%",
                   left: "50%",
-                  width: "3px",
-                  height: "3px",
+                  width: i % 3 === 0 ? "4px" : "2.5px",
+                  height: i % 3 === 0 ? "4px" : "2.5px",
                   borderRadius: "50%",
-                  background: `hsl(${35 + i * 5}, 90%, ${60 + i * 3}%)`,
-                  boxShadow: "0 0 4px rgba(255,200,60,0.8)",
-                  animation: `particleUp ${2 + Math.random() * 2}s ease-out infinite`,
-                  animationDelay: `${i * 0.3}s`,
-                  "--dx": `${(Math.random() - 0.5) * 30}px`,
+                  background: `hsl(${35 + i * 4}, 90%, ${60 + i * 2}%)`,
+                  boxShadow: "0 0 5px rgba(255,200,60,0.9)",
+                  animation: `particleUp ${2.5 + Math.random() * 2}s ease-out infinite`,
+                  animationDelay: `${i * 0.35}s`,
+                  "--dx": `${(Math.random() - 0.5) * 35}px`,
                 } as React.CSSProperties
               }
             />
           ))}
 
-          {/* Halo tournant */}
+          {/* Bulle principale avec battement de cœur */}
           <div
             className="heartbeat absolute rounded-full"
             style={{
@@ -208,7 +197,7 @@ const SparkBubble = () => {
               }}
             />
 
-            {/* Point lumineux central */}
+            {/* Icône centrale */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div
                 style={{
