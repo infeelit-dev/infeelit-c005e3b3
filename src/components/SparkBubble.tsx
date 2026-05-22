@@ -1,72 +1,72 @@
-import { useState, useEffect } from "react";
+```tsx
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const QUESTIONS = {
-  night: {
-    en: [
-      "The voice you would give anything to hear again...",
-      "What did the silence of your childhood sound like?",
-      "A face that comes back to you in dreams...",
-    ],
+const SPARK_INVITATIONS = {
+  objet: {
     fr: [
-      "La voix que tu donnerais tout pour réentendre...",
-      "À quoi ressemblait le silence de ton enfance ?",
-      "Un visage qui te revient en rêve...",
+      "{name}, raconte-nous le jouet que tu n'aurais jamais voulu perdre.",
+      "{name}, raconte-nous le cadeau qui t'a laissé sans voix.",
+      "{name}, raconte-nous l'objet que tu gardes encore aujourd'hui.",
     ],
-    ar: ["الصوت الذي تقدم كل شيء لتسمعه مجدداً...", "كيف كان يبدو صمت طفولتك؟", "وجه يعود إليك في أحلامك..."],
+    en: [
+      "{name}, tell us about the toy you never wanted to lose.",
+      "{name}, tell us about the gift that left you speechless.",
+      "{name}, tell us about the object you still keep to this day.",
+    ],
+    ar: [
+      "{name}، احكِ لنا عن اللعبة التي لم تكن تريد أن تفقدها أبداً.",
+      "{name}، احكِ لنا عن الهدية التي أبهرتك وتركتك بلا كلام.",
+      "{name}، احكِ لنا عن الشيء الذي لا تزال تحتفظ به حتى اليوم.",
+    ],
   },
-  morning: {
-    en: [
-      "What lesson from your father still guides you today?",
-      "The bravest person in your family...",
-      "A morning ritual you'll never forget...",
-    ],
+  moment: {
     fr: [
-      "Quelle leçon de ton père te guide encore aujourd'hui ?",
-      "La personne la plus courageuse de ta famille...",
-      "Un rituel du matin que tu n'oublieras jamais...",
+      "{name}, raconte-nous ton premier spectacle devant tout le monde.",
+      "{name}, raconte-nous le match ou le jour dont tu es le plus fier.",
+      "{name}, raconte-nous la fête de famille que tu n'oublieras jamais.",
     ],
-    ar: ["ما الدرس الذي علمك إياه والدك وما زال يرشدك؟", "أشجع شخص في عائلتك...", "طقوس صباحية لن تنساها أبداً..."],
+    en: [
+      "{name}, tell us about your first performance in front of everyone.",
+      "{name}, tell us about the game or the day you are most proud of.",
+      "{name}, tell us about the family celebration you'll never forget.",
+    ],
+    ar: [
+      "{name}، احكِ لنا عن أول عرض قدمته أمام الجميع.",
+      "{name}، احكِ لنا عن المباراة أو اليوم الذي تفخر به أكثر.",
+      "{name}، احكِ لنا عن احتفال العائلة الذي لن تنساه أبداً.",
+    ],
   },
-  afternoon: {
-    en: [
-      "Who loved you without ever saying the words?",
-      "The first heartbreak that shaped you...",
-      "A love letter never sent...",
-    ],
+  personne: {
     fr: [
-      "Qui t'a aimé sans jamais le dire ?",
-      "Le premier chagrin d'amour qui t'a façonné...",
-      "Une lettre d'amour jamais envoyée...",
+      "{name}, raconte-nous le geste de tes parents qui valait mille mots.",
+      "{name}, raconte-nous la personne qui t'a appris quelque chose d'essentiel.",
+      "{name}, raconte-nous le moment où tu as senti que tu étais vraiment aimé.",
     ],
-    ar: ["من أحبك دون أن ينطق الكلمة أبداً؟", "أول انكسار قلب شكّلك...", "رسالة حب لم تُرسل أبداً..."],
-  },
-  evening: {
     en: [
-      "What will your grandchildren wish you had recorded?",
-      "The wisdom you're afraid will die with you...",
-      "What does the word 'home' smell like to you?",
+      "{name}, tell us about the gesture of your parents that said everything.",
+      "{name}, tell us about the person who taught you something essential.",
+      "{name}, tell us about the moment you felt truly loved.",
     ],
-    fr: [
-      "Qu'est-ce que tes petits-enfants voudraient que tu aies enregistré ?",
-      "La sagesse que tu as peur d'emporter avec toi...",
-      "Quelle est l'odeur du mot 'maison' pour toi ?",
+    ar: [
+      "{name}، احكِ لنا عن لفتة والديك التي كانت تساوي ألف كلمة.",
+      "{name}، احكِ لنا عن الشخص الذي علّمك شيئاً لا يُنسى.",
+      "{name}، احكِ لنا عن اللحظة التي شعرت فيها بالحب الحقيقي.",
     ],
-    ar: ["ماذا سيتمنى أحفادك لو سجلته لهم؟", "الحكمة التي تخشى أن تموت معك...", "ما هي رائحة كلمة 'بيت' بالنسبة لك؟"],
   },
 };
 
-const getQuestionByHour = (lang: "en" | "fr" | "ar") => {
+type Category = "objet" | "moment" | "personne";
+
+const getCardsForHour = (): Category[] => {
   const hour = new Date().getHours();
-  let key: "night" | "morning" | "afternoon" | "evening";
-  if (hour >= 0 && hour < 6) key = "night";
-  else if (hour >= 6 && hour < 12) key = "morning";
-  else if (hour >= 12 && hour < 18) key = "afternoon";
-  else key = "evening";
-  const pool = QUESTIONS[key][lang] || QUESTIONS[key].en;
-  return pool[Math.floor(Math.random() * pool.length)];
+  if (hour >= 6 && hour < 12) return ["objet", "moment", "personne"];
+  if (hour >= 12 && hour < 18) return ["moment", "personne", "objet"];
+  if (hour >= 18 && hour < 24) return ["personne", "objet", "moment"];
+  return ["personne", "personne", "personne"];
 };
 
 const getSparkBalance = (): number => {
@@ -76,21 +76,48 @@ const getSparkBalance = (): number => {
 const SparkBubble = () => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 50, y: 30 });
   const [expanded, setExpanded] = useState(false);
-  const [question, setQuestion] = useState("");
   const [showButton, setShowButton] = useState(false);
   const [sparkBalance, setSparkBalance] = useState(0);
+  const [userName, setUserName] = useState("");
+  const [selectedCard, setSelectedCard] = useState(0);
+  const [cards, setCards] = useState<{ category: Category; text: string }[]>([]);
 
   useEffect(() => {
-    setQuestion(getQuestionByHour(lang as "en" | "fr" | "ar"));
+    const loadName = async () => {
+      const savedName = localStorage.getItem("infeelit_user_name") || "";
+      if (savedName) { setUserName(savedName); return; }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase.from("profiles").select("display_name").eq("user_id", session.user.id).single();
+        if (profile?.display_name) {
+          const firstName = profile.display_name.split(" ")[0];
+          setUserName(firstName);
+          localStorage.setItem("infeelit_user_name", firstName);
+        }
+      }
+    };
+    loadName();
     setSparkBalance(getSparkBalance());
-  }, [lang]);
+  }, []);
 
-  // Déplacement toutes les 60 secondes
+  useEffect(() => {
+    const categories = getCardsForHour();
+    const langKey = (lang === "fr" ? "fr" : lang === "ar" ? "ar" : "en") as "fr" | "en" | "ar";
+    const displayName = userName || (lang === "ar" ? "صديقي" : lang === "fr" ? "ami(e)" : "friend");
+    const selectedCards = categories.map((cat) => {
+      const pool = SPARK_INVITATIONS[cat][langKey];
+      const randomText = pool[Math.floor(Math.random() * pool.length)];
+      return { category: cat, text: randomText.replace("{name}", displayName) };
+    });
+    setCards(selectedCards);
+  }, [lang, userName, expanded]);
+
   useEffect(() => {
     const moveInterval = setInterval(() => {
-      const newX = Math.random() > 0.5 ? 10 + Math.random() * 25 : 65 + Math.random() * 25;
+      const newX = Math.random() > 0.5 ? (10 + Math.random() * 25) : (65 + Math.random() * 25);
       const newY = 15 + Math.random() * 45;
       setPosition({ x: newX, y: newY });
     }, 60000);
@@ -103,14 +130,49 @@ const SparkBubble = () => {
       return () => clearTimeout(timer);
     } else {
       setShowButton(false);
+      setSelectedCard(0);
     }
   }, [expanded]);
 
   const handleBubbleClick = () => setExpanded(true);
   const handleClose = () => setExpanded(false);
+
+  const handleCardSelect = (idx: number) => {
+    setSelectedCard(idx);
+    if (scrollRef.current) {
+      const cardWidth = scrollRef.current.children[0]?.clientWidth || 280;
+      scrollRef.current.scrollTo({ left: idx * (cardWidth + 16), behavior: "smooth" });
+    }
+  };
+
   const handleRecord = () => {
+    const card = cards[selectedCard];
+    const question = card?.text || "";
     setExpanded(false);
     navigate("/record", { state: { question, category: "past", fromSpark: true } });
+  };
+
+  const getButtonText = () => {
+    const name = userName || (lang === "ar" ? "صديقي" : lang === "fr" ? "ami(e)" : "friend");
+    if (lang === "ar") return `${name}، احكِ لنا`;
+    if (lang === "fr") return `${name}, raconte-nous`;
+    return `${name}, tell us`;
+  };
+
+  const getBadgeText = (cat: Category) => {
+    if (lang === "ar") {
+      if (cat === "objet") return "✦ مستوى النور (شيء)";
+      if (cat === "moment") return "✦ مستوى الكنز (لحظة)";
+      return "✦ مستوى الجوهر (شخص)";
+    }
+    if (lang === "fr") {
+      if (cat === "objet") return "✦ Niveau Lumière (Objet)";
+      if (cat === "moment") return "✦ Niveau Trésor (Moment)";
+      return "✦ Niveau Essence (Personne)";
+    }
+    if (cat === "objet") return "✦ Light Level (Object)";
+    if (cat === "moment") return "✦ Treasure Level (Moment)";
+    return "✦ Essence Level (Person)";
   };
 
   return (
@@ -125,7 +187,7 @@ const SparkBubble = () => {
         }
         @keyframes particleUp {
           0% { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
-          100% { transform: translateY(-45px) translateX(var(--dx)) scale(0); opacity: 0; }
+          100% { transform: translateY(-50px) translateX(var(--dx)) scale(0); opacity: 0; }
         }
         @keyframes innerGlowRotate {
           0% { opacity: 0.6; transform: rotate(0deg); }
@@ -139,12 +201,16 @@ const SparkBubble = () => {
         .heartbeat { animation: heartbeatPulse 2.5s ease-in-out infinite; }
         .inner-glow-rotate { animation: innerGlowRotate 6s linear infinite; }
         .expand-in { animation: expandIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .snap-scroll { scroll-snap-type: x mandatory; }
+        .snap-card { scroll-snap-align: center; }
+        .hide-scroll { scrollbar-width: none; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
       `}</style>
 
       {!expanded && (
         <button
           onClick={handleBubbleClick}
-          className="absolute z-[15] cursor-pointer transition-transform active:scale-90"
+          className="absolute z-[15] cursor-pointer transition-transform active:scale-90 bg-transparent border-none p-0"
           style={{
             left: `${position.x}%`,
             top: `${position.y}%`,
@@ -154,92 +220,18 @@ const SparkBubble = () => {
             transform: "translate(-50%,-50%)",
           }}
         >
-          {/* Particules qui s'échappent en continu */}
           {[...Array(10)].map((_, i) => (
-            <div
-              key={i}
-              style={
-                {
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  width: i % 3 === 0 ? "4px" : "2.5px",
-                  height: i % 3 === 0 ? "4px" : "2.5px",
-                  borderRadius: "50%",
-                  background: `hsl(${35 + i * 4}, 90%, ${60 + i * 2}%)`,
-                  boxShadow: "0 0 5px rgba(255,200,60,0.9)",
-                  animation: `particleUp ${2.5 + Math.random() * 2}s ease-out infinite`,
-                  animationDelay: `${i * 0.35}s`,
-                  "--dx": `${(Math.random() - 0.5) * 35}px`,
-                } as React.CSSProperties
-              }
-            />
+            <div key={i} style={{ position: "absolute", top: "50%", left: "50%", width: i % 3 === 0 ? "4px" : "2.5px", height: i % 3 === 0 ? "4px" : "2.5px", borderRadius: "50%", background: `hsl(${35 + i * 4}, 90%, ${60 + i * 2}%)`, boxShadow: "0 0 5px rgba(255,200,60,0.9)", animation: `particleUp ${2.5 + Math.random() * 2}s ease-out infinite`, animationDelay: `${i * 0.35}s`, "--dx": `${(Math.random() - 0.5) * 40}px` } as React.CSSProperties} />
           ))}
-
-          {/* Bulle principale avec battement de cœur */}
-          <div
-            className="heartbeat absolute rounded-full"
-            style={{
-              width: "90px",
-              height: "90px",
-              background:
-                "radial-gradient(circle at 45% 45%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.85) 25%, rgba(232,116,42,0.5) 55%, rgba(180,70,10,0.15) 100%)",
-              border: "2px solid rgba(255,200,60,0.7)",
-            }}
-          >
-            {/* Reflet interne tournant */}
-            <div
-              className="inner-glow-rotate absolute inset-0 rounded-full"
-              style={{
-                background:
-                  "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.4) 25%, transparent 50%, rgba(255,255,255,0.2) 75%, transparent 100%)",
-                opacity: 0.7,
-              }}
-            />
-
-            {/* Icône centrale */}
+          <div className="heartbeat absolute rounded-full" style={{ width: "90px", height: "90px", background: "radial-gradient(circle at 45% 45%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.85) 25%, rgba(232,116,42,0.5) 55%, rgba(180,70,10,0.15) 100%)", border: "2px solid rgba(255,200,60,0.7)" }}>
+            <div className="inner-glow-rotate absolute inset-0 rounded-full" style={{ background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.4) 25%, transparent 50%, rgba(255,255,255,0.2) 75%, transparent 100%)", opacity: 0.7 }} />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div
-                style={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "50%",
-                  background:
-                    "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,220,80,0.6) 40%, transparent 70%)",
-                  boxShadow: "0 0 15px rgba(255,255,255,0.8), 0 0 30px rgba(255,200,60,0.6)",
-                }}
-              />
-              <Sparkles
-                size={22}
-                color="#fff"
-                style={{
-                  position: "absolute",
-                  filter: "drop-shadow(0 0 8px rgba(255,200,60,1)) drop-shadow(0 0 20px rgba(255,180,40,0.6))",
-                }}
-              />
+              <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,220,80,0.6) 40%, transparent 70%)", boxShadow: "0 0 15px rgba(255,255,255,0.8), 0 0 30px rgba(255,200,60,0.6)" }} />
+              <Sparkles size={22} color="#fff" style={{ position: "absolute", filter: "drop-shadow(0 0 8px rgba(255,200,60,1)) drop-shadow(0 0 20px rgba(255,180,40,0.6))" }} />
             </div>
-
-            {/* Compteur de Sparks */}
             {sparkBalance > 0 && (
-              <div
-                className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full flex items-center justify-center"
-                style={{
-                  background: "rgba(0,0,0,0.7)",
-                  border: "1px solid rgba(255,200,60,0.6)",
-                  boxShadow: "0 0 8px rgba(255,200,60,0.4)",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "9px",
-                    color: "#FFD700",
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    textShadow: "0 0 4px rgba(255,200,60,0.8)",
-                  }}
-                >
-                  ✦{sparkBalance}
-                </span>
+              <div className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,200,60,0.6)", boxShadow: "0 0 8px rgba(255,200,60,0.4)" }}>
+                <span style={{ fontSize: "9px", color: "#FFD700", fontWeight: 700, lineHeight: 1, textShadow: "0 0 4px rgba(255,200,60,0.8)" }}>✦{sparkBalance}</span>
               </div>
             )}
           </div>
@@ -247,97 +239,57 @@ const SparkBubble = () => {
       )}
 
       {expanded && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }}
-          onClick={handleClose}
-        >
-          <div
-            className="expand-in w-full max-w-sm mx-6 rounded-3xl px-8 py-10 text-center relative"
-            style={{
-              background: "radial-gradient(ellipse at 50% 30%, rgba(232,116,42,0.2) 0%, rgba(0,0,0,0.95) 70%)",
-              border: "1px solid rgba(232,116,42,0.35)",
-              boxShadow: "0 0 80px rgba(232,116,42,0.2), 0 0 150px rgba(232,116,42,0.08)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white/50 hover:bg-white/20 transition-colors"
-            >
-              <X size={18} />
-            </button>
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center" style={{ background: "rgba(0,0,0,0.93)", backdropFilter: "blur(20px)" }} onClick={handleClose}>
+          <div className="expand-in w-full max-w-md mx-6 rounded-3xl px-6 py-8 text-center relative overflow-hidden" style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(232,116,42,0.2) 0%, rgba(0,0,0,0.95) 70%)", border: "1px solid rgba(232,116,42,0.35)", boxShadow: "0 0 80px rgba(232,116,42,0.2), 0 0 150px rgba(232,116,42,0.08)" }} onClick={(e) => e.stopPropagation()}>
+          <button onClick={handleClose} className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white/50 hover:bg-white/20 transition-colors border-none cursor-pointer"><X size={18} /></button>
 
-            <div className="flex justify-center mb-6">
-              <div
-                className="heartbeat rounded-full flex items-center justify-center"
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  background:
-                    "radial-gradient(circle at 45% 45%, rgba(255,220,80,1) 0%, rgba(255,180,40,0.9) 35%, rgba(232,116,42,0.5) 100%)",
-                  border: "2px solid rgba(255,200,60,0.8)",
-                  boxShadow: "0 0 40px rgba(255,200,60,0.6), 0 0 80px rgba(255,180,40,0.3)",
-                }}
-              >
-                <Sparkles
-                  size={34}
-                  color="#fff"
-                  style={{
-                    filter: "drop-shadow(0 0 10px rgba(255,200,60,1)) drop-shadow(0 0 25px rgba(255,180,40,0.7))",
-                  }}
-                />
-              </div>
+          <div className="flex justify-center mb-4">
+            <div className="heartbeat rounded-full flex items-center justify-center" style={{ width: "70px", height: "70px", background: "radial-gradient(circle at 45% 45%, rgba(255,220,80,1) 0%, rgba(255,180,40,0.9) 35%, rgba(232,116,42,0.5) 100%)", border: "2px solid rgba(255,200,60,0.8)", boxShadow: "0 0 40px rgba(255,200,60,0.6), 0 0 80px rgba(255,180,40,0.3)" }}>
+              <Sparkles size={28} color="#fff" style={{ filter: "drop-shadow(0 0 8px rgba(255,200,60,1)) drop-shadow(0 0 20px rgba(255,180,40,0.6))" }} />
             </div>
-
-            <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-4">
-              {lang === "ar" ? "شرارة اليوم" : lang === "fr" ? "L'étincelle du jour" : "Today's Spark"}
-            </p>
-
-            <h2 className="text-white text-xl font-bold leading-relaxed mb-8 italic font-serif">"{question}"</h2>
-
-            {showButton && (
-              <button
-                onClick={handleRecord}
-                className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style={{
-                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                  color: "#fff",
-                  boxShadow: "0 0 35px rgba(232,116,42,0.6), 0 0 70px rgba(232,116,42,0.25)",
-                }}
-              >
-                {lang === "ar" ? "أتذكر" : lang === "fr" ? "Je me souviens" : "I remember"}
-              </button>
-            )}
-
-            {!showButton && (
-              <div className="flex justify-center">
-                <div className="w-8 h-8 border-2 border-[#E8742A]/30 border-t-[#E8742A] rounded-full animate-spin" />
-              </div>
-            )}
-
-            <p className="text-white/20 text-[10px] mt-6">
-              {lang === "ar"
-                ? "سجّل ذكراك واكسب شرارة"
-                : lang === "fr"
-                  ? "Enregistre ton souvenir et gagne une étincelle"
-                  : "Record your memory and earn a spark"}
-            </p>
-
-            {sparkBalance > 0 && (
-              <p className="text-[#FFD700]/40 text-[9px] mt-2">
-                {lang === "ar"
-                  ? `لديك ${sparkBalance} شرارات`
-                  : lang === "fr"
-                    ? `Tu as ${sparkBalance} étincelles`
-                    : `You have ${sparkBalance} sparks`}
-              </p>
-            )}
           </div>
+
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-3">
+            {lang === "ar" ? "اختر قصتك" : lang === "fr" ? "Choisis ton histoire" : "Choose your story"}
+          </p>
+
+          <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-scroll pb-4 pt-2 hide-scroll">
+            {cards.map((card, idx) => {
+              const isSelected = selectedCard === idx;
+              return (
+                <button key={idx} onClick={() => handleCardSelect(idx)} className={`snap-card shrink-0 flex flex-col justify-center items-start text-left p-5 rounded-[20px] transition-all duration-300 cursor-pointer border-none ${isSelected ? "scale-[1.02]" : ""}`} style={{ width: "85%", maxWidth: "300px", background: isSelected ? "rgba(232,116,42,0.12)" : "rgba(255,255,255,0.06)", border: isSelected ? "1px solid rgba(232,116,42,0.8)" : "1px solid rgba(232,116,42,0.3)" }}>
+                  <span className="text-[8px] font-black uppercase tracking-widest mb-2" style={{ color: isSelected ? "#E8742A" : "rgba(255,255,255,0.4)" }}>{getBadgeText(card.category)}</span>
+                  <p className="text-white text-sm font-serif leading-relaxed italic">"{card.text}"</p>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center gap-2 mt-2 mb-4">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="w-2 h-2 rounded-full transition-all duration-300" style={{ background: selectedCard === i ? "#E8742A" : "rgba(255,255,255,0.2)", transform: selectedCard === i ? "scale(1.3)" : "scale(1)" }} />
+            ))}
+          </div>
+
+          {showButton && (
+            <button onClick={handleRecord} className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] border-none cursor-pointer" style={{ background: "linear-gradient(135deg, #E8742A, #D4621A)", color: "#fff", boxShadow: "0 0 35px rgba(232,116,42,0.6), 0 0 70px rgba(232,116,42,0.25)" }}>{getButtonText()}</button>
+          )}
+
+          {!showButton && (
+            <div className="flex justify-center"><div className="w-8 h-8 border-2 border-[#E8742A]/30 border-t-[#E8742A] rounded-full animate-spin" /></div>
+          )}
+
+          {sparkBalance > 0 && (
+            <p className="text-[#FFD700]/40 text-[9px] mt-3">
+              {lang === "ar" ? `لديك ${sparkBalance} شرارات` : lang === "fr" ? `Tu as ${sparkBalance} étincelles` : `You have ${sparkBalance} sparks`}
+            </p>
+          )}
         </div>
+      </div>
       )}
     </>
   );
 };
 
 export default SparkBubble;
+```
