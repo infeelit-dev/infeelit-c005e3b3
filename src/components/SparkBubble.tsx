@@ -192,12 +192,11 @@ const SparkBubble = () => {
                 src={infeeilitSymbol}
                 alt="Infeelit"
                 style={{
-                  width: "72px",
-                  height: "72px",
+                  width: "144px",
+                  height: "144px",
                   objectFit: "contain",
                   animation: "heartbeat 0.86s ease-in-out infinite",
                   filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
-                  position: "absolute",
                 }}
               />
             </div>
