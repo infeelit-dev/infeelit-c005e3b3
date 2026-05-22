@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
+import SparkBubble from "@/components/SparkBubble";
 import imgMarry from "@/assets/marry.jpg";
 import type { Timeline } from "@/types/timeline";
 import type { BubbleCategory } from "@/components/MemoryBubble";
@@ -74,9 +75,7 @@ const Index = () => {
   const handleJoin = () => {
     setShowInterstitial(false);
     setShowForeverOverlay(false);
-    navigate("/welcome", {
-      state: { question: pendingQuestion, context: interstitialContext },
-    });
+    navigate("/welcome", { state: { question: pendingQuestion, context: interstitialContext } });
   };
 
   const getBackground = () => {
@@ -182,6 +181,9 @@ const Index = () => {
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
+
+      {/* L'ÉTINCELLE — SparkBubble */}
+      <SparkBubble />
 
       {activeTimeline === "memories" && (
         <button
@@ -319,10 +321,7 @@ const Index = () => {
         >
           <div
             className="fade-in-up w-full max-w-sm mx-6 rounded-3xl px-8 py-8 text-center"
-            style={{
-              backgroundColor: "#020818",
-              border: "1px solid rgba(56,189,248,0.3)",
-            }}
+            style={{ backgroundColor: "#020818", border: "1px solid rgba(56,189,248,0.3)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <span className="text-4xl mb-4 block" style={{ textShadow: "0 0 20px rgba(56,189,248,0.8)" }}>
@@ -348,10 +347,7 @@ const Index = () => {
                 handleJoin();
               }}
               className="w-full py-4 rounded-full font-bold text-base mb-3"
-              style={{
-                background: "linear-gradient(135deg, #38bdf8, #6B4E9B)",
-                color: "#FFFFFF",
-              }}
+              style={{ background: "linear-gradient(135deg, #38bdf8, #6B4E9B)", color: "#FFFFFF" }}
             >
               Create my legacy — it's free
             </button>
@@ -376,10 +372,7 @@ const Index = () => {
         >
           <div
             className="fade-in-up w-full max-w-sm mx-6 rounded-3xl px-8 py-8 text-center"
-            style={{
-              backgroundColor: "#0f0f0f",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
+            style={{ backgroundColor: "#0f0f0f", border: "1px solid rgba(255,255,255,0.1)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <p className="font-black text-[10px] uppercase tracking-[0.3em] mb-3" style={{ color: "#E8742A" }}>
