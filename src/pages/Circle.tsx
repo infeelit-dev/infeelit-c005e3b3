@@ -231,6 +231,8 @@ const DEMO_SHELF = [
   },
 ];
 
+import { resolveMemoryFields } from "@/lib/memoryUrl";
+
 const fetchMemories = async (): Promise<Memory[]> => {
   const {
     data: { session },
@@ -242,7 +244,8 @@ const fetchMemories = async (): Promise<Memory[]> => {
     .eq("user_id", session.user.id)
     .order("created_at", { ascending: false })
     .limit(10);
-  return (mems as Memory[]) || [];
+  const rows = (mems as Memory[]) || [];
+  return rows.length > 0 ? await resolveMemoryFields(rows) : [];
 };
 
 const Circle = () => {
