@@ -17,12 +17,14 @@ const JoinCircle = () => {
     const loadCircle = async () => {
       if (!code) return;
       const { data } = await supabase
-        .from("circles")
-        .select("*, circle_members(user_id, profiles(display_name))")
-        .eq("invite_code", code)
-        .single();
+        .rpc("lookup_circle_by_invite_code", { _code: code })
+        .maybeSingle();
       if (data) {
-        setCircle(data);
+        setCircle({
+          id: (data as any).id,
+          name: (data as any).name,
+          circle_members: Array.from({ length: Number((data as any).member_count) || 0 }).map(() => ({})),
+        });
       } else {
         setNotFound(true);
       }
