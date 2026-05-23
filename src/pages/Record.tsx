@@ -517,7 +517,8 @@ const Record = () => {
       if (uid && uid !== "anonymous") {
         userIdRef.current = uid;
         const ips = urls.map((u) =>
-          (supabase.from("memories") as any).insert({
+          (supabase.from("memories") as any)
+            .insert({
             user_id: uid,
             title: memoryTitle || "A memory",
             description: null,
@@ -532,7 +533,8 @@ const Record = () => {
             background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
             aura_intensity: auraRef.current ? 35 : null,
             created_at: new Date().toISOString(),
-          }),
+            })
+            .select("id"),
         );
         const res = await Promise.all(ips);
         const errs = res.filter((r) => r.error);
