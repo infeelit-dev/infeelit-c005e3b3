@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw, Check, Lock, Users, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useUserName } from "@/hooks/useUserName";
+import useUserName from "@/hooks/useUserName";
 import ShareModal from "@/components/ShareModal";
 
 const MAX_DURATION_SECONDS = 180;
@@ -179,7 +179,7 @@ const Record = () => {
       const { data: { session } } = await supabase.auth.getSession(); const userId = session?.user?.id;
       if (userId && userId !== "anonymous") {
         userIdRef.current = userId;
-        const insertPromises = urls.map((url) => supabase.from("memories").insert({ user_id: userId, title: memoryTitle || "A memory", description: null, file_url: url, file_type: uploadedType.current, thumbnail_url: uploadedThumbUrl.current || null, timeline: "memories", is_public: isCommunity.current, is_community: isCommunity.current, is_anonymous: isAnonymous.current, spark_reward: sparkReward.current, created_at: new Date().toISOString() }));
+        const insertPromises = urls.map((url) => supabase.from("memories").insert({ user_id: userId, title: memoryTitle || "A memory", description: null, file_url: url, file_type: uploadedType.current, thumbnail_url: uploadedThumbUrl.current || null, timeline: "memories", is_public: isCommunity.current, is_community: isCommunity.current, is_anonymous: isAnonymous.current, spark_reward: sparkReward.current, created_at: new Date().toISOString() } as any));
         const results = await Promise.all(insertPromises); const errors = results.filter((r) => r.error);
         if (errors.length > 0) { console.error("Insert errors:", errors); toast.error("Error saving to your space. Please try again."); setStage("share"); return; }
       }
