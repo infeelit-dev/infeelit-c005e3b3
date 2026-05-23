@@ -224,6 +224,27 @@ const Treasure = () => {
 
   const souvenirDuJour = (() => { if (filtered.length === 0) return memories[0] || null; const forevers = filtered.filter((m) => m.timeline === "forever"); if (forevers.length > 0) return forevers[new Date().getDate() % forevers.length]; return filtered[new Date().getDate() % filtered.length]; })();
 
+  const handleNativeShare = async (mem: Memory) => {
+    const title = mem.title || "A memory";
+    const text =
+      lang === "fr"
+        ? `Écoute ce souvenir sur Infeelit : "${title}"`
+        : lang === "ar"
+          ? `استمع إلى هذه الذكرى على Infeelit: "${title}"`
+          : `Listen to this memory on Infeelit: "${title}"`;
+    const url = window.location.origin;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+      } else {
+        await navigator.clipboard.writeText(`${text} ${url}`);
+        toast.success(lang === "fr" ? "Lien copié" : lang === "ar" ? "تم نسخ الرابط" : "Link copied");
+      }
+    } catch {
+      /* user cancelled */
+    }
+  };
+
   return (
     <div className="min-h-screen pb-[140px] relative select-none" style={{ backgroundColor: "#FDF8F0", fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit" }} dir={rtl ? "rtl" : "ltr"}>
       <style>{`
