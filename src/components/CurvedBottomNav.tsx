@@ -1,8 +1,13 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Waves, MapPin, Plus, Users2, Gem } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const CurvedBottomNav = () => {
+interface CurvedBottomNavProps {
+  onPlusClick?: () => void;
+}
+
+const CurvedBottomNav = ({ onPlusClick }: CurvedBottomNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -34,7 +39,7 @@ const CurvedBottomNav = () => {
             return (
               <button
                 key="record"
-                onClick={() => navigate("/record")}
+                onClick={() => onPlusClick?.()}
                 className="relative -top-6 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
                 style={{
                   background: "linear-gradient(135deg, #E8742A, #D4621A)",
