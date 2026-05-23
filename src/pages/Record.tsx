@@ -1,28 +1,106 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw, Check, Lock, Users, UserPlus } from "lucide-react";
+import {
+  X,
+  StopCircle,
+  Loader2,
+  Share2,
+  Video,
+  Mic,
+  Download,
+  RotateCcw,
+  Check,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import useUserName from "@/hooks/useUserName";
+import { useUserName } from "@/hooks/useUserName";
 import ShareModal from "@/components/ShareModal";
+
+import childImg from "@/assets/child.jpg";
+import grandfatherImg from "@/assets/grandfather.jpg";
+import houseImg from "@/assets/house.jpg";
+import loveImg from "@/assets/love.jpg";
+import travelImg from "@/assets/travel.jpg";
+import relaxImg from "@/assets/relax.jpg";
+import picnicImg from "@/assets/picnic.jpg";
+import marryImg from "@/assets/marry.jpg";
+import birthImg from "@/assets/birth.jpg";
+import graduateImg from "@/assets/graduate.jpg";
 
 const MAX_DURATION_SECONDS = 180;
 const VIDEO_BITRATE = 500_000;
 const AUDIO_BITRATE = 32_000;
 
+const getThematicCards = (question: string): string[] => {
+  const q = question.toLowerCase();
+  if (q.match(/jouet|toy|enfant|child|école|school|طفل/)) return [childImg, houseImg, picnicImg];
+  if (q.match(/père|father|أب|grand-père|grandfather/)) return [grandfatherImg, loveImg, houseImg];
+  if (q.match(/mère|mother|أم|grand-mère|grandmother/)) return [loveImg, houseImg, picnicImg];
+  if (q.match(/maison|home|بيت|cuisine|kitchen|مطبخ/)) return [houseImg, grandfatherImg, relaxImg];
+  if (q.match(/amour|love|حب|coeur|heart/)) return [loveImg, marryImg, picnicImg];
+  if (q.match(/voyage|travel|سفر|vacances|holiday/)) return [travelImg, relaxImg, graduateImg];
+  if (q.match(/fête|celebration|احتفال|repas|meal|famil|عائلة/)) return [picnicImg, marryImg, birthImg];
+  if (q.match(/nager|swim|سباحة|sport|match|stade|stadium/)) return [relaxImg, travelImg, graduateImg];
+  return [grandfatherImg, houseImg, relaxImg];
+};
+
+const generateTitleFromQuestion = (q: string): string => {
+  return q
+    .replace(/^[A-Za-zÀ-ÿ\u0600-\u06FF]+[،,]?\s*/u, "")
+    .replace(/raconte-leur |raconte-nous |tell them |tell us |احكِ لهم |احكِ لنا /gi, "")
+    .trim()
+    .replace(/^./, (c) => c.toUpperCase());
+};
+
+const imageUrlToBlob = async (src: string): Promise<Blob> => {
+  const res = await fetch(src);
+  return res.blob();
+};
+
 const FOLLOWUP_QUESTIONS = {
   en: {
-    childhood: ["Who made that moment feel safe?", "What did that place smell like?", "Do your children know this story?"],
-    family: ["What did that person teach you without words?", "When did you last tell them what they mean to you?", "What part of them lives in you today?"],
-    loss: ["What do you wish you had said?", "What did they leave behind in you?", "Who carries their memory with you?"],
-    default: ["Who else was there in that memory?", "What would you tell that version of yourself?", "Is there someone who needs to hear this story?"],
+    childhood: [
+      "Who made that moment feel safe?",
+      "What did that place smell like?",
+      "Do your children know this story?",
+    ],
+    family: [
+      "What did that person teach you without words?",
+      "When did you last tell them what they mean to you?",
+      "What part of them lives in you today?",
+    ],
+    loss: [
+      "What do you wish you had said?",
+      "What did they leave behind in you?",
+      "Who carries their memory with you?",
+    ],
+    default: [
+      "Who else was there in that memory?",
+      "What would you tell that version of yourself?",
+      "Is there someone who needs to hear this story?",
+    ],
   },
   fr: {
-    childhood: ["Qui a rendu ce moment sûr ?", "Quelle odeur avait cet endroit ?", "Vos enfants connaissent-ils cette histoire ?"],
-    family: ["Que vous a appris cette personne sans mots ?", "Quand lui avez-vous dit ce qu'elle représente pour vous ?", "Quelle part d'elle vit en vous aujourd'hui ?"],
+    childhood: [
+      "Qui a rendu ce moment sûr ?",
+      "Quelle odeur avait cet endroit ?",
+      "Vos enfants connaissent-ils cette histoire ?",
+    ],
+    family: [
+      "Que vous a appris cette personne sans mots ?",
+      "Quand lui avez-vous dit ce qu'elle représente pour vous ?",
+      "Quelle part d'elle vit en vous aujourd'hui ?",
+    ],
     loss: ["Qu'auriez-vous voulu dire ?", "Que vous ont-ils laissé en vous ?", "Qui porte leur mémoire avec vous ?"],
-    default: ["Qui d'autre était là dans ce souvenir ?", "Que diriez-vous à cette version de vous-même ?", "Y a-t-il quelqu'un qui a besoin d'entendre cette histoire ?"],
+    default: [
+      "Qui d'autre était là dans ce souvenir ?",
+      "Que diriez-vous à cette version de vous-même ?",
+      "Y a-t-il quelqu'un qui a besoin d'entendre cette histoire ?",
+    ],
   },
   ar: {
     childhood: ["من جعل تلك اللحظة آمنة؟", "كيف كانت رائحة ذلك المكان؟", "هل يعرف أطفالك هذه القصة؟"],
@@ -32,141 +110,402 @@ const FOLLOWUP_QUESTIONS = {
   },
 };
 
-const POETIC_TITLES = {
-  en: {
-    childhood: ["A memory that still smells like home...", "The day I understood what childhood meant...", "A place I can still find with my eyes closed..."],
-    family: ["What they never said out loud...", "The voice I still carry with me...", "A love that didn't need words..."],
-    loss: ["What remains after goodbye...", "The presence that never truly left...", "Everything they left inside me..."],
-    default: ["A story that deserved to be told...", "The moment I didn't know I'd remember...", "A thread in the tapestry of who I am..."],
-  },
-  fr: {
-    childhood: ["Un souvenir qui sent encore comme la maison...", "Le jour où j'ai compris ce qu'était l'enfance...", "Un endroit que je trouve encore les yeux fermés..."],
-    family: ["Ce qu'ils n'ont jamais dit à voix haute...", "La voix que je porte encore avec moi...", "Un amour qui n'avait pas besoin de mots..."],
-    loss: ["Ce qui reste après l'au revoir...", "La présence qui n'est jamais vraiment partie...", "Tout ce qu'ils ont laissé en moi..."],
-    default: ["Une histoire qui méritait d'être racontée...", "Le moment dont je ne savais pas que je m'en souviendrais...", "Un fil dans la tapisserie de qui je suis..."],
-  },
-  ar: {
-    childhood: ["ذكرى لا تزال تفوح منها رائحة البيت...", "اليوم الذي فهمت فيه معنى الطفولة...", "مكان لا أزال أجده بعيني مغمضتين..."],
-    family: ["ما لم يقولوه بصوت عالٍ...", "الصوت الذي لا أزال أحمله معي...", "حبٌّ لم يحتج إلى كلمات..."],
-    loss: ["ما يبقى بعد الوداع...", "الحضور الذي لم يغادر حقاً...", "كل ما تركوه بداخلي..."],
-    default: ["قصة استحقت أن تُروى...", "اللحظة التي لم أعلم أنني سأتذكرها...", "خيط في نسيج هويتي..."],
-  },
-};
-
-const getTheme = (question: string): string => {
-  const q = question.toLowerCase();
-  if (q.includes("child") || q.includes("home") || q.includes("enfance") || q.includes("طفل") || q.includes("بيت")) return "childhood";
-  if (q.includes("mother") || q.includes("father") || q.includes("family") || q.includes("mère") || q.includes("père") || q.includes("أم") || q.includes("أب")) return "family";
-  if (q.includes("lost") || q.includes("miss") || q.includes("gone") || q.includes("perdu") || q.includes("فقد")) return "loss";
+const getTheme = (q: string): string => {
+  const lq = q.toLowerCase();
+  if (lq.includes("child") || lq.includes("home") || lq.includes("enfance") || lq.includes("طفل") || lq.includes("بيت"))
+    return "childhood";
+  if (
+    lq.includes("mother") ||
+    lq.includes("father") ||
+    lq.includes("family") ||
+    lq.includes("mère") ||
+    lq.includes("père") ||
+    lq.includes("أم") ||
+    lq.includes("أب")
+  )
+    return "family";
+  if (lq.includes("lost") || lq.includes("miss") || lq.includes("gone") || lq.includes("perdu") || lq.includes("فقد"))
+    return "loss";
   return "default";
 };
 
-const estimateFileSize = (elapsedSeconds: number, isAudio: boolean): string => {
-  if (isAudio) { const bytes = (AUDIO_BITRATE / 8) * elapsedSeconds; const mb = bytes / (1024 * 1024); if (mb < 1) return Math.round(mb * 1000) + " KB"; return mb.toFixed(1) + " MB"; }
-  const bytes = ((VIDEO_BITRATE + AUDIO_BITRATE) / 8) * elapsedSeconds; const mb = bytes / (1024 * 1024); return mb.toFixed(1) + " MB";
+const estimateFileSize = (s: number, audio: boolean): string => {
+  const b = audio ? (AUDIO_BITRATE / 8) * s : ((VIDEO_BITRATE + AUDIO_BITRATE) / 8) * s;
+  const mb = b / (1024 * 1024);
+  return mb < 1 ? Math.round(mb * 1000) + " KB" : mb.toFixed(1) + " MB";
 };
 
-const capturePosterFrame = (videoElement: HTMLVideoElement): Promise<Blob | null> => {
-  return new Promise((resolve) => {
+const capturePosterFrame = (el: HTMLVideoElement): Promise<Blob | null> =>
+  new Promise((r) => {
     try {
-      const canvas = document.createElement("canvas"); canvas.width = 320; canvas.height = 180;
-      const ctx = canvas.getContext("2d"); if (!ctx) { resolve(null); return; }
-      ctx.drawImage(videoElement, 0, 0, 320, 180); canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.7);
-    } catch { resolve(null); }
+      const c = document.createElement("canvas");
+      c.width = 320;
+      c.height = 180;
+      const x = c.getContext("2d");
+      if (!x) {
+        r(null);
+        return;
+      }
+      x.drawImage(el, 0, 0, 320, 180);
+      c.toBlob((b) => r(b), "image/jpeg", 0.7);
+    } catch {
+      r(null);
+    }
   });
-};
 
-type Stage = "question" | "countdown" | "recording" | "preview" | "uploading" | "followup" | "title" | "visibility" | "share";
-
-interface MemoryClip { blob: Blob; question: string; posterBlob: Blob | null; }
+type Stage =
+  | "question"
+  | "countdown"
+  | "recording"
+  | "preview"
+  | "uploading"
+  | "followup"
+  | "thumbnail"
+  | "title"
+  | "visibility"
+  | "share";
+interface MemoryClip {
+  blob: Blob;
+  question: string;
+  posterBlob: Blob | null;
+}
 
 const Record = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const loc = useLocation();
   const { t, lang, rtl } = useLanguage();
   const userName = useUserName();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animFrameRef = useRef<number>(0);
+  const animRef = useRef(0);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const recordedChunks = useRef<Blob[]>([]);
-  const hardCapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const elapsedTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const memoryClips = useRef<MemoryClip[]>([]);
-  const uploadedFileUrl = useRef<string>("");
-  const uploadedThumbUrl = useRef<string>("");
-  const uploadedType = useRef<string>("video");
-  const userIdRef = useRef<string>("");
-  const isFollowupRec = useRef<boolean>(false);
-  const currentQuestion = useRef<string>("");
-  const latestPosterBlob = useRef<Blob | null>(null);
-  const fromSpark = useRef<boolean>(false);
-  const sparkReward = useRef<number>(0);
-  const isCommunity = useRef<boolean>(false);
-  const isAnonymous = useRef<boolean>(false);
+  const chunksRef = useRef<Blob[]>([]);
+  const hardCapRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const clipsRef = useRef<MemoryClip[]>([]);
+  const fileUrlRef = useRef("");
+  const thumbUrlRef = useRef("");
+  const typeRef = useRef("video");
+  const userIdRef = useRef("");
+  const followupRef = useRef(false);
+  const questionRef = useRef("");
+  const posterRef = useRef<Blob | null>(null);
+  const fromSparkRef = useRef(false);
+  const sparkRewardRef = useRef(0);
+  const isCommunityRef = useRef(false);
+  const isAnonymousRef = useRef(false);
+  const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const thumbScrollRef = useRef<HTMLDivElement>(null);
 
   const [stage, setStage] = useState<Stage>("question");
-  const [mediaRecorder, setMR] = useState<MediaRecorder | null>(null);
+  const [mr, setMR] = useState<MediaRecorder | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [countdown, setCountdown] = useState(3);
-  const [followupIdx, setFollowIdx] = useState(0);
+  const [followIdx, setFollowIdx] = useState(0);
   const [memoryTitle, setTitle] = useState("");
   const [audioMode, setAudioMode] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [estimatedSize, setEstimatedSize] = useState("0 KB");
+  const [estSize, setEstSize] = useState("0 KB");
   const [showShareModal, setShowShareModal] = useState(false);
   const [localBlob, setLocalBlob] = useState<Blob | null>(null);
-  const [localUrl, setLocalUrl] = useState<string>("");
+  const [localUrl, setLocalUrl] = useState("");
   const [previewReady, setPreviewReady] = useState(false);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const [selectedThumb, setSelectedThumb] = useState(0);
+  const [customThumb, setCustomThumb] = useState<string | null>(null);
 
-  const question = location.state?.question || "What smell instantly brings you back to your childhood home?";
+  const question = loc.state?.question || "What smell instantly brings you back to your childhood home?";
   const theme = getTheme(question);
-  const followups = FOLLOWUP_QUESTIONS[lang as keyof typeof FOLLOWUP_QUESTIONS]?.[theme as keyof typeof FOLLOWUP_QUESTIONS.en] ?? FOLLOWUP_QUESTIONS.en.default;
-  const poeticTitles = POETIC_TITLES[lang as keyof typeof POETIC_TITLES]?.[theme as keyof typeof POETIC_TITLES.en] ?? POETIC_TITLES.en.default;
+  const followups =
+    FOLLOWUP_QUESTIONS[lang as keyof typeof FOLLOWUP_QUESTIONS]?.[theme as keyof typeof FOLLOWUP_QUESTIONS.en] ??
+    FOLLOWUP_QUESTIONS.en.default;
+  const thumbCards = getThematicCards(question);
 
-  useEffect(() => { if (location.state?.fromSpark) fromSpark.current = true; }, [location.state]);
-  useEffect(() => { supabase.auth.getSession().then(({ data: { session } }) => setHasSession(!!session)); }, []);
+  useEffect(() => {
+    if (loc.state?.fromSpark) fromSparkRef.current = true;
+  }, [loc.state]);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setHasSession(!!session));
+  }, []);
+  useEffect(() => {
+    return () => {
+      stream?.getTracks().forEach((t) => t.stop());
+      cancelAnimationFrame(animRef.current);
+      if (hardCapRef.current) clearTimeout(hardCapRef.current);
+      if (elapsedRef.current) clearInterval(elapsedRef.current);
+      if (localUrl) URL.revokeObjectURL(localUrl);
+      if (posterTimerRef.current) clearTimeout(posterTimerRef.current);
+    };
+  }, [stream, localUrl]);
+  useEffect(() => {
+    if (!audioMode || stage !== "recording") return;
+    const c = canvasRef.current;
+    const a = analyserRef.current;
+    if (!c || !a) return;
+    const x = c.getContext("2d")!;
+    const b = new Uint8Array(a.frequencyBinCount);
+    const d = () => {
+      animRef.current = requestAnimationFrame(d);
+      a.getByteTimeDomainData(b);
+      x.clearRect(0, 0, c.width, c.height);
+      x.lineWidth = 3;
+      x.strokeStyle = "#E8742A";
+      x.shadowBlur = 15;
+      x.shadowColor = "#E8742A";
+      x.beginPath();
+      const sw = c.width / b.length;
+      let px = 0;
+      for (let i = 0; i < b.length; i++) {
+        const y = ((b[i] / 128) * c.height) / 2;
+        i === 0 ? x.moveTo(px, y) : x.lineTo(px, y);
+        px += sw;
+      }
+      x.lineTo(c.width, c.height / 2);
+      x.stroke();
+    };
+    d();
+    return () => cancelAnimationFrame(animRef.current);
+  }, [audioMode, stage]);
+  useEffect(() => {
+    if (stage === "preview" && previewReady && !audioMode && videoRef.current && localUrl) {
+      videoRef.current.srcObject = null;
+      videoRef.current.src = localUrl;
+      videoRef.current.controls = true;
+      videoRef.current.loop = false;
+      videoRef.current.muted = false;
+      videoRef.current.autoplay = false;
+      videoRef.current.playsInline = true;
+    }
+  }, [stage, previewReady, audioMode, localUrl]);
 
-  const getMimeType = (audioOnly: boolean) => {
-    if (audioOnly) { if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) return "audio/webm;codecs=opus"; if (MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4"; return "audio/webm"; }
-    if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) return "video/webm;codecs=vp9"; if (MediaRecorder.isTypeSupported("video/webm")) return "video/webm"; if (MediaRecorder.isTypeSupported("video/mp4")) return "video/mp4"; return "video/webm";
+  const getMimeType = (a: boolean) => {
+    if (a) {
+      if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) return "audio/webm;codecs=opus";
+      if (MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4";
+      return "audio/webm";
+    }
+    if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) return "video/webm;codecs=vp9";
+    if (MediaRecorder.isTypeSupported("video/webm")) return "video/webm";
+    if (MediaRecorder.isTypeSupported("video/mp4")) return "video/mp4";
+    return "video/webm";
   };
 
-  const startMedia = async (audioOnly: boolean) => {
+  const startMedia = async (a: boolean) => {
     try {
-      const constraints = audioOnly ? { audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } } : { video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }, audio: { echoCancellation: true, noiseSuppression: true } };
-      const s = await navigator.mediaDevices.getUserMedia(constraints); setStream(s);
-      if (!audioOnly && videoRef.current) videoRef.current.srcObject = s;
-      if (audioOnly) { const ctx = new AudioContext(); const source = ctx.createMediaStreamSource(s); const anal = ctx.createAnalyser(); anal.fftSize = 256; source.connect(anal); analyserRef.current = anal; }
-      const mimeType = getMimeType(audioOnly); const recorder = new MediaRecorder(s, { mimeType, videoBitsPerSecond: VIDEO_BITRATE, audioBitsPerSecond: AUDIO_BITRATE });
-      recorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.current.push(e.data); }; setMR(recorder);
-    } catch { toast.error("Microphone not accessible."); }
+      const c = a
+        ? { audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } }
+        : {
+            video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+            audio: { echoCancellation: true, noiseSuppression: true },
+          };
+      const s = await navigator.mediaDevices.getUserMedia(c);
+      setStream(s);
+      if (!a && videoRef.current) videoRef.current.srcObject = s;
+      if (a) {
+        const ctx = new AudioContext();
+        const src = ctx.createMediaStreamSource(s);
+        const an = ctx.createAnalyser();
+        an.fftSize = 256;
+        src.connect(an);
+        analyserRef.current = an;
+      }
+      const m = getMimeType(a);
+      const r = new MediaRecorder(s, {
+        mimeType: m,
+        videoBitsPerSecond: VIDEO_BITRATE,
+        audioBitsPerSecond: AUDIO_BITRATE,
+      });
+      r.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      setMR(r);
+    } catch {
+      toast.error("Microphone not accessible.");
+    }
   };
 
-  useEffect(() => { return () => { stream?.getTracks().forEach((t) => t.stop()); cancelAnimationFrame(animFrameRef.current); if (hardCapTimer.current) clearTimeout(hardCapTimer.current); if (elapsedTimer.current) clearInterval(elapsedTimer.current); if (localUrl) URL.revokeObjectURL(localUrl); }; }, [stream, localUrl]);
-  useEffect(() => { if (!audioMode || stage !== "recording") return; const canvas = canvasRef.current; const analyser = analyserRef.current; if (!canvas || !analyser) return; const ctx = canvas.getContext("2d")!; const buf = new Uint8Array(analyser.frequencyBinCount); const draw = () => { animFrameRef.current = requestAnimationFrame(draw); analyser.getByteTimeDomainData(buf); ctx.clearRect(0,0,canvas.width,canvas.height); ctx.lineWidth=3; ctx.strokeStyle="#E8742A"; ctx.shadowBlur=15; ctx.shadowColor="#E8742A"; ctx.beginPath(); const sliceW=canvas.width/buf.length; let x=0; for(let i=0;i<buf.length;i++){const y=((buf[i]/128)*canvas.height)/2; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); x+=sliceW;} ctx.lineTo(canvas.width,canvas.height/2); ctx.stroke(); }; draw(); return () => cancelAnimationFrame(animFrameRef.current); }, [audioMode, stage]);
-  useEffect(() => { if (stage==="preview" && previewReady && !audioMode && videoRef.current && localUrl) { videoRef.current.srcObject=null; videoRef.current.src=localUrl; videoRef.current.controls=true; videoRef.current.loop=false; videoRef.current.muted=false; videoRef.current.autoplay=false; videoRef.current.playsInline=true; } }, [stage, previewReady, audioMode, localUrl]);
+  const startCountdown = (ff = false) => {
+    followupRef.current = ff;
+    const q = ff ? followups[Math.min(followIdx, followups.length - 1)] : question;
+    questionRef.current = q;
+    setStage("countdown");
+    setCountdown(3);
+    const tmr = setInterval(() => {
+      setCountdown((p) => {
+        if (p === 1) {
+          clearInterval(tmr);
+          chunksRef.current = [];
+          mr?.start(100);
+          setStage("recording");
+          setElapsed(0);
+          setEstSize("0 KB");
+          elapsedRef.current = setInterval(() => {
+            setElapsed((e) => {
+              const n = e + 1;
+              setEstSize(estimateFileSize(n, audioMode));
+              return n;
+            });
+          }, 1000);
+          hardCapRef.current = setTimeout(() => {
+            handleStop();
+          }, MAX_DURATION_SECONDS * 1000);
+          posterTimerRef.current = setTimeout(async () => {
+            if (!audioMode && videoRef.current) {
+              const bl = await capturePosterFrame(videoRef.current);
+              if (bl) posterRef.current = bl;
+            }
+          }, 2000);
+          return 3;
+        }
+        return p - 1;
+      });
+    }, 1000);
+  };
 
-  const startCountdown = (fromFollowup=false) => { isFollowupRec.current=fromFollowup; const q=fromFollowup?followups[Math.min(followupIdx,followups.length-1)]:question; currentQuestion.current=q; setStage("countdown"); setCountdown(3); const timer=setInterval(()=>{setCountdown((prev)=>{if(prev===1){clearInterval(timer);recordedChunks.current=[];mediaRecorder?.start(100);setStage("recording");setElapsed(0);setEstimatedSize("0 KB");elapsedTimer.current=setInterval(()=>{setElapsed((e)=>{const next=e+1;setEstimatedSize(estimateFileSize(next,audioMode));return next;});},1000);hardCapTimer.current=setTimeout(()=>{handleStop();},MAX_DURATION_SECONDS*1000);return 3;}return prev-1;});},1000);};
-  const handleStop = async () => { if(!mediaRecorder)return; if(hardCapTimer.current)clearTimeout(hardCapTimer.current);if(elapsedTimer.current)clearInterval(elapsedTimer.current);cancelAnimationFrame(animFrameRef.current);mediaRecorder.requestData();latestPosterBlob.current=null;if(!audioMode&&videoRef.current)latestPosterBlob.current=await capturePosterFrame(videoRef.current);mediaRecorder.onstop=()=>{try{const mimeType=getMimeType(audioMode);const blob=new Blob(recordedChunks.current,{type:mimeType});if(blob.size===0){toast.error("Nothing recorded.");setStage("recording");return;}setLocalBlob(blob);const url=URL.createObjectURL(blob);setLocalUrl(url);setPreviewReady(true);setStage("preview");}catch(err){console.error(err);toast.error("Error preparing preview.");setStage("recording");}};mediaRecorder.stop();};
-  const handleRetake = () => { if(localUrl)URL.revokeObjectURL(localUrl);setLocalBlob(null);setLocalUrl("");setPreviewReady(false);recordedChunks.current=[];setStage("question"); };
-  const handleConfirm = () => { if(!localBlob)return; setPreviewReady(false); memoryClips.current.push({blob:localBlob,question:currentQuestion.current,posterBlob:latestPosterBlob.current}); setStage("uploading"); if(isFollowupRec.current){isFollowupRec.current=false;setFollowIdx((i)=>{const next=i+1;if(next>=followups.length){setStage("title");}else{setStage("followup");}return next;});}else{setStage("followup");} };
+  const handleStop = async () => {
+    if (!mr) return;
+    if (hardCapRef.current) clearTimeout(hardCapRef.current);
+    if (elapsedRef.current) clearInterval(elapsedRef.current);
+    cancelAnimationFrame(animRef.current);
+    mr.requestData();
+    mr.onstop = () => {
+      try {
+        const m = getMimeType(audioMode);
+        const bl = new Blob(chunksRef.current, { type: m });
+        if (bl.size === 0) {
+          toast.error("Nothing recorded.");
+          setStage("recording");
+          return;
+        }
+        setLocalBlob(bl);
+        const u = URL.createObjectURL(bl);
+        setLocalUrl(u);
+        setPreviewReady(true);
+        setStage("preview");
+      } catch (err) {
+        console.error(err);
+        toast.error("Error preparing preview.");
+        setStage("recording");
+      }
+    };
+    mr.stop();
+  };
+  const handleRetake = () => {
+    if (localUrl) URL.revokeObjectURL(localUrl);
+    setLocalBlob(null);
+    setLocalUrl("");
+    setPreviewReady(false);
+    chunksRef.current = [];
+    setStage("question");
+  };
+  const handleConfirm = () => {
+    if (!localBlob) return;
+    setPreviewReady(false);
+    clipsRef.current.push({ blob: localBlob, question: questionRef.current, posterBlob: posterRef.current });
+    setStage("uploading");
+    setTimeout(() => setStage("thumbnail"), 300);
+  };
+
+  const handleThumbSelect = (idx: number) => {
+    setSelectedThumb(idx);
+    setCustomThumb(null);
+    if (thumbScrollRef.current) {
+      const cw = thumbScrollRef.current.children[0]?.clientWidth || 200;
+      thumbScrollRef.current.scrollTo({ left: idx * (cw + 12), behavior: "smooth" });
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      const u = URL.createObjectURL(f);
+      setCustomThumb(u);
+    }
+  };
+
+  const handleThumbValidate = () => {
+    if (customThumb) {
+      const img = new Image();
+      img.src = customThumb;
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = 320;
+        c.height = 180;
+        const x = c.getContext("2d")!;
+        x.drawImage(img, 0, 0, 320, 180);
+        c.toBlob(
+          (b) => {
+            if (b) posterRef.current = b;
+          },
+          "image/jpeg",
+          0.7,
+        );
+      };
+    } else if (!audioMode && posterRef.current) {
+    } else {
+      imageUrlToBlob(thumbCards[selectedThumb]).then((b) => {
+        posterRef.current = b;
+      });
+    }
+    setTitle(generateTitleFromQuestion(question));
+    setStage("title");
+  };
 
   const uploadAllClips = async (): Promise<string[]> => {
-    const { data: { session } } = await supabase.auth.getSession(); const userId = session?.user?.id || "anonymous"; userIdRef.current = userId; const urls: string[] = [];
-    for (const clip of memoryClips.current) {
-      const mimeType = getMimeType(audioMode); const ts = Date.now() + Math.random(); const ext = mimeType.includes("mp4") ? "mp4" : "webm"; const fileName = userId + "/" + ts + "_memory." + ext; const posterName = userId + "/" + ts + "_poster.jpg";
-      try { const { data, error } = await supabase.storage.from("memories").upload(fileName, clip.blob, { contentType: mimeType, upsert: true }); if (error) { console.error("Storage upload error:", error); continue; } const { data: urlData } = supabase.storage.from("memories").getPublicUrl(fileName); if (urlData?.publicUrl) { urls.push(urlData.publicUrl); } uploadedThumbUrl.current = ""; if (clip.posterBlob) { const { data: posterData } = await supabase.storage.from("memories").upload(posterName, clip.posterBlob, { contentType: "image/jpeg", upsert: true }); if (posterData) { const { data: thumbData } = supabase.storage.from("memories").getPublicUrl(posterName); if (thumbData?.publicUrl) { uploadedThumbUrl.current = thumbData.publicUrl; } } } } catch (err) { console.error("Upload failed:", err); }
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const uid = session?.user?.id || "anonymous";
+    userIdRef.current = uid;
+    const urls: string[] = [];
+    for (const cl of clipsRef.current) {
+      const m = getMimeType(audioMode);
+      const ts = Date.now() + Math.random();
+      const ext = m.includes("mp4") ? "mp4" : "webm";
+      const fn = uid + "/" + ts + "_memory." + ext;
+      const pn = uid + "/" + ts + "_poster.jpg";
+      try {
+        const { data, error } = await supabase.storage
+          .from("memories")
+          .upload(fn, cl.blob, { contentType: m, upsert: true });
+        if (error) {
+          console.error("Upload err:", error);
+          continue;
+        }
+        const { data: ud } = supabase.storage.from("memories").getPublicUrl(fn);
+        if (ud?.publicUrl) urls.push(ud.publicUrl);
+        thumbUrlRef.current = "";
+        if (cl.posterBlob) {
+          const { data: pd } = await supabase.storage
+            .from("memories")
+            .upload(pn, cl.posterBlob, { contentType: "image/jpeg", upsert: true });
+          if (pd) {
+            const { data: td } = supabase.storage.from("memories").getPublicUrl(pn);
+            if (td?.publicUrl) thumbUrlRef.current = td.publicUrl;
+          }
+        }
+      } catch (err) {
+        console.error("Upload failed:", err);
+      }
     }
     return urls;
   };
 
-  const handleVisibilityChoice = (choice: "family" | "community" | "anonymous") => {
-    if (choice === "family") { isCommunity.current = false; isAnonymous.current = false; sparkReward.current = 0; }
-    else if (choice === "community") { isCommunity.current = true; isAnonymous.current = false; sparkReward.current = 2; }
-    else { isCommunity.current = true; isAnonymous.current = true; sparkReward.current = 2; }
+  const handleVisibilityChoice = (ch: "family" | "community" | "anonymous") => {
+    if (ch === "family") {
+      isCommunityRef.current = false;
+      isAnonymousRef.current = false;
+      sparkRewardRef.current = 0;
+    } else if (ch === "community") {
+      isCommunityRef.current = true;
+      isAnonymousRef.current = false;
+      sparkRewardRef.current = 2;
+    } else {
+      isCommunityRef.current = true;
+      isAnonymousRef.current = true;
+      sparkRewardRef.current = 2;
+    }
     setStage("share");
   };
 
@@ -174,59 +513,403 @@ const Record = () => {
     stream?.getTracks().forEach((t) => t.stop());
     try {
       const urls = await uploadAllClips();
-      if (urls.length === 0) { toast.error("Upload failed. Please try again."); setStage("share"); return; }
-      uploadedFileUrl.current = urls[urls.length - 1]; uploadedType.current = audioMode ? "audio" : "video";
-      const { data: { session } } = await supabase.auth.getSession(); const userId = session?.user?.id;
-      if (userId && userId !== "anonymous") {
-        userIdRef.current = userId;
-        const insertPromises = urls.map((url) => supabase.from("memories").insert({ user_id: userId, title: memoryTitle || "A memory", description: null, file_url: url, file_type: uploadedType.current, thumbnail_url: uploadedThumbUrl.current || null, timeline: "memories", is_public: isCommunity.current, is_community: isCommunity.current, is_anonymous: isAnonymous.current, spark_reward: sparkReward.current, created_at: new Date().toISOString() } as any));
-        const results = await Promise.all(insertPromises); const errors = results.filter((r) => r.error);
-        if (errors.length > 0) { console.error("Insert errors:", errors); toast.error("Error saving to your space. Please try again."); setStage("share"); return; }
+      if (urls.length === 0) {
+        toast.error("Upload failed.");
+        setStage("share");
+        return;
       }
-      if (fromSpark.current || sparkReward.current > 0) {
-        const bal = Number(localStorage.getItem("infeelit_spark_balance") || 0); localStorage.setItem("infeelit_spark_balance", String(bal + sparkReward.current + (fromSpark.current ? 1 : 0))); fromSpark.current = false;
-        const sparkTotal = sparkReward.current + (fromSpark.current ? 1 : 0);
-        toast.success(userName ? (lang === "ar" ? `${userName}، صوتك للتو عبر العالم. ✦ +${sparkTotal}` : lang === "fr" ? `${userName}, ta voix vient de traverser le monde. ✦ +${sparkTotal}` : `${userName}, your voice just crossed the world. ✦ +${sparkTotal}`) : (lang === "ar" ? `صوتك للتو عبر العالم. ✦ +${sparkTotal}` : lang === "fr" ? `Ta voix vient de traverser le monde. ✦ +${sparkTotal}` : `Your voice just crossed the world. ✦ +${sparkTotal}`), { duration: 4000 });
+      fileUrlRef.current = urls[urls.length - 1];
+      typeRef.current = audioMode ? "audio" : "video";
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const uid = session?.user?.id;
+      if (uid && uid !== "anonymous") {
+        userIdRef.current = uid;
+        const ips = urls.map((u) =>
+          supabase
+            .from("memories")
+            .insert({
+              user_id: uid,
+              title: memoryTitle || "A memory",
+              description: null,
+              file_url: u,
+              file_type: typeRef.current,
+              thumbnail_url: thumbUrlRef.current || null,
+              timeline: "memories",
+              is_public: isCommunityRef.current,
+              is_community: isCommunityRef.current,
+              is_anonymous: isAnonymousRef.current,
+              spark_reward: sparkRewardRef.current,
+              created_at: new Date().toISOString(),
+            }),
+        );
+        const res = await Promise.all(ips);
+        const errs = res.filter((r) => r.error);
+        if (errs.length > 0) {
+          console.error("Insert errors:", errs);
+          toast.error("Error saving.");
+          setStage("share");
+          return;
+        }
       }
-      if (!hasSession) { setStage("share"); return; }
+      if (fromSparkRef.current || sparkRewardRef.current > 0) {
+        const bal = Number(localStorage.getItem("infeelit_spark_balance") || 0);
+        const tot = sparkRewardRef.current + (fromSparkRef.current ? 1 : 0);
+        localStorage.setItem("infeelit_spark_balance", String(bal + tot));
+        fromSparkRef.current = false;
+        toast.success(
+          userName
+            ? lang === "ar"
+              ? `${userName}، صوتك للتو عبر العالم. ✦ +${tot}`
+              : lang === "fr"
+                ? `${userName}, ta voix vient de traverser le monde. ✦ +${tot}`
+                : `${userName}, your voice just crossed the world. ✦ +${tot}`
+            : lang === "ar"
+              ? `صوتك للتو عبر العالم. ✦ +${tot}`
+              : lang === "fr"
+                ? `Ta voix vient de traverser le monde. ✦ +${tot}`
+                : `Your voice just crossed the world. ✦ +${tot}`,
+          { duration: 4000 },
+        );
+      }
+      if (!hasSession) {
+        setStage("share");
+        return;
+      }
       navigate("/");
-    } catch (err) { console.error("Global flow error:", err); toast.error("An unexpected error occurred."); setStage("share"); }
+    } catch (err) {
+      console.error(err);
+      toast.error("An unexpected error occurred.");
+      setStage("share");
+    }
   };
 
   const handleNativeShare = async () => {
-    const allBlobs = memoryClips.current.map((c) => c.blob); const combinedBlob = new Blob(allBlobs, { type: getMimeType(audioMode) });
-    const memoryTopic = memoryTitle || "un souvenir précieux";
-    const shareText = lang === "fr" ? `${userName || "Quelqu'un"} a raconté ${memoryTopic}. Certains souvenirs méritent de durer. Découvre son histoire sur Infeelit.` : lang === "ar" ? `${userName || "شخص ما"} حكى ${memoryTopic}. بعض الذكريات تستحق أن تدوم. اكتشف قصته على Infeelit.` : `${userName || "Someone"} shared ${memoryTopic}. Some memories deserve to last forever. Discover their story on Infeelit.`;
-    const shareUrl = "https://infeelit.com";
-    if (navigator.canShare && combinedBlob.size > 0) { const file = new File([combinedBlob], "memory." + (audioMode ? "webm" : "mp4"), { type: combinedBlob.type }); if (navigator.canShare({ files: [file] })) { try { await navigator.share({ title: memoryTitle || "A memory on Infeelit", text: shareText, files: [file] }); return; } catch (err: any) { if (err?.name === "AbortError") return; } } }
-    if (navigator.share) { try { await navigator.share({ title: memoryTitle || "A memory on Infeelit", text: shareText, url: shareUrl }); } catch (err: any) { if (err?.name === "AbortError") return; navigator.clipboard.writeText(shareText + " " + shareUrl); toast.success(lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!"); } }
-    else { navigator.clipboard.writeText(shareText + " " + shareUrl); toast.success(lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!"); }
+    const all = clipsRef.current.map((c) => c.blob);
+    const cb = new Blob(all, { type: getMimeType(audioMode) });
+    const topic = memoryTitle || "un souvenir précieux";
+    const txt =
+      lang === "fr"
+        ? `${userName || "Quelqu'un"} a raconté ${topic}. Certains souvenirs méritent de durer. Découvre son histoire sur Infeelit.`
+        : lang === "ar"
+          ? `${userName || "شخص ما"} حكى ${topic}. بعض الذكريات تستحق أن تدوم. اكتشف قصته على Infeelit.`
+          : `${userName || "Someone"} shared ${topic}. Some memories deserve to last forever. Discover their story on Infeelit.`;
+    const url = "https://infeelit.com";
+    if (navigator.canShare && cb.size > 0) {
+      const f = new File([cb], "memory." + (audioMode ? "webm" : "mp4"), { type: cb.type });
+      if (navigator.canShare({ files: [f] })) {
+        try {
+          await navigator.share({ title: memoryTitle || "A memory on Infeelit", text: txt, files: [f] });
+          return;
+        } catch (er: any) {
+          if (er?.name === "AbortError") return;
+        }
+      }
+    }
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: memoryTitle || "A memory on Infeelit", text: txt, url });
+      } catch (er: any) {
+        if (er?.name === "AbortError") return;
+        navigator.clipboard.writeText(txt + " " + url);
+        toast.success(lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!");
+      }
+    } else {
+      navigator.clipboard.writeText(txt + " " + url);
+      toast.success(lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!");
+    }
   };
 
-  const handleDownload = () => { const allBlobs = memoryClips.current.map((c) => c.blob); const combinedBlob = new Blob(allBlobs, { type: getMimeType(audioMode) }); if (combinedBlob.size === 0) return; const downloadUrl = URL.createObjectURL(combinedBlob); const a = document.createElement("a"); a.href = downloadUrl; a.download = "infeelit-memory-" + Date.now() + "." + (audioMode ? "webm" : "mp4"); a.click(); URL.revokeObjectURL(downloadUrl); };
+  const handleDownload = () => {
+    const all = clipsRef.current.map((c) => c.blob);
+    const cb = new Blob(all, { type: getMimeType(audioMode) });
+    if (cb.size === 0) return;
+    const u = URL.createObjectURL(cb);
+    const a = document.createElement("a");
+    a.href = u;
+    a.download = "infeelit-memory-" + Date.now() + "." + (audioMode ? "webm" : "mp4");
+    a.click();
+    URL.revokeObjectURL(u);
+  };
 
   const formatTime = (s: number) => Math.floor(s / 60) + ":" + (s % 60).toString().padStart(2, "0");
   const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans" dir={rtl ? "rtl" : "ltr"}>
-      {!audioMode && stage !== "preview" && <video ref={videoRef} autoPlay muted playsInline className={"absolute inset-0 w-full h-full object-cover transition-opacity duration-500 " + (stage === "recording" ? "opacity-80" : "opacity-20")} />}
-      {stage === "preview" && !audioMode && <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover opacity-90" />}
-      {audioMode && stage !== "preview" && <div className="absolute inset-0" style={{ background: "linear-gradient(180deg,#0a0a0a 0%,#1a0a2e 50%,#0a0a0a 100%)" }} />}
+      {!audioMode && stage !== "preview" && (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className={
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-500 " +
+            (stage === "recording" ? "opacity-80" : "opacity-20")
+          }
+        />
+      )}
+      {stage === "preview" && !audioMode && (
+        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover opacity-90" />
+      )}
+      {audioMode && stage !== "preview" && (
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg,#0a0a0a 0%,#1a0a2e 50%,#0a0a0a 100%)" }}
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
       <div className="relative z-10 p-6 flex justify-between items-center">
-        <button onClick={() => { stream?.getTracks().forEach((t) => t.stop()); if (localUrl) URL.revokeObjectURL(localUrl); navigate(-1); }} className="p-3 bg-white/10 backdrop-blur-xl rounded-full text-white border border-white/20"><X size={24} /></button>
+        <button
+          onClick={() => {
+            stream?.getTracks().forEach((t) => t.stop());
+            if (localUrl) URL.revokeObjectURL(localUrl);
+            navigate(-1);
+          }}
+          className="p-3 bg-white/10 backdrop-blur-xl rounded-full text-white border border-white/20"
+        >
+          <X size={24} />
+        </button>
         <div className="flex items-center gap-3">
-          {stage === "recording" && <div className="flex flex-col items-end gap-0.5"><span className="font-black text-lg tabular-nums" style={{ color: timerColor }}>{formatTime(elapsed)} / 3:00</span><span className="text-[10px] text-white/40 tabular-nums">~{estimatedSize}</span></div>}
-          {(stage === "recording" || stage === "countdown") && <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">{audioMode ? <Mic size={14} className="text-[#E8742A]" /> : <Video size={14} className="text-[#E8742A]" />}<span className="text-[10px] text-white/70 font-bold uppercase tracking-widest">{audioMode ? t.voiceLabel : t.videoLabel}</span></div>}
+          {stage === "recording" && (
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="font-black text-lg tabular-nums" style={{ color: timerColor }}>
+                {formatTime(elapsed)} / 3:00
+              </span>
+              <span className="text-[10px] text-white/40 tabular-nums">~{estSize}</span>
+            </div>
+          )}
+          {(stage === "recording" || stage === "countdown") && (
+            <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
+              {audioMode ? (
+                <Mic size={14} className="text-[#E8742A]" />
+              ) : (
+                <Video size={14} className="text-[#E8742A]" />
+              )}
+              <span className="text-[10px] text-white/70 font-bold uppercase tracking-widest">
+                {audioMode ? t.voiceLabel : t.videoLabel}
+              </span>
+            </div>
+          )}
         </div>
       </div>
-      {stage === "question" && <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6"><p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.yourStory}</p><h2 className="text-white text-2xl font-bold leading-tight italic">"{question}"</h2>{userName && <p style={{ color: "#E8742A", fontSize: "12px", fontStyle: "italic", fontFamily: "Georgia, serif", textAlign: "center", marginTop: "8px" }}>{lang === "fr" ? `${userName}, raconte-leur.` : lang === "ar" ? `${userName}، احكِ لهم.` : `${userName}, tell them.`}</p>}<p className="text-white/50 text-sm">{t.breathe}</p>{!stream ? <div className="flex flex-col gap-4 w-full max-w-xs mt-4"><p className="text-white/70 text-xs uppercase tracking-widest text-center">{t.howShare}</p><button onClick={() => { setAudioMode(false); startMedia(false); }} className="w-full py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-3" style={{ color: "#fff" }}><Video size={20} /> {t.videoShowFace}</button><button onClick={() => { setAudioMode(true); startMedia(true); }} className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base flex items-center justify-center gap-3"><Mic size={20} /> {t.voiceOnly}</button></div> : <button onClick={() => startCountdown(false)} className="mt-2 px-10 py-4 rounded-full gradient-orange font-bold text-lg" style={{ color: "#fff" }}>{t.imReady}</button>}</div>}
-      {stage === "countdown" && <div className="relative z-20 flex-1 flex items-center justify-center"><div className="text-white text-9xl font-black animate-pulse">{countdown}</div></div>}
-      {stage === "recording" && <><div className="relative z-10 flex justify-end px-6 -mt-16"><div className="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full animate-pulse"><div className="w-2 h-2 bg-white rounded-full" /><span className="text-[10px] text-white font-black uppercase tracking-widest">{audioMode ? t.listening : t.recording}</span></div></div>{audioMode && <div className="flex-1 flex flex-col items-center justify-center gap-8"><div className="w-32 h-32 rounded-full flex items-center justify-center" style={{ background: "radial-gradient(circle,rgba(107,78,155,.4) 0%,rgba(232,116,42,.2) 100%)", boxShadow: "0 0 40px rgba(232,116,42,.3)" }}><Mic size={48} className="text-[#E8742A]" /></div><canvas ref={canvasRef} width={300} height={80} className="opacity-90" /></div>}<div className="mt-auto relative z-20 px-10 pb-8 text-center"><h2 className="text-white text-lg font-bold leading-tight italic opacity-60">"{currentQuestion.current}"</h2></div><div className="relative z-20 pb-20 flex justify-center"><button onClick={handleStop} className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"><StopCircle size={48} className="text-red-600" /></button></div></>}
-      {stage === "preview" && <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6"><p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{lang === "ar" ? "استمع إلى تسجيلك" : lang === "fr" ? "Réécoutez votre souvenir" : "Listen to your recording"}</p><h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{currentQuestion.current}"</h2>{audioMode ? <audio src={localUrl} controls className="w-full max-w-xs mt-4" autoPlay /> : <video src={localUrl} controls className="w-full max-w-xs rounded-2xl border border-white/20 mt-4" autoPlay playsInline />}<p className="text-white/50 text-xs mt-4">{lang === "ar" ? "هل تريد الاحتفاظ بهذا التسجيل؟" : lang === "fr" ? "Voulez-vous garder cet enregistrement ?" : "Do you want to keep this recording?"}</p><div className="flex gap-4 w-full max-w-xs mt-4"><button onClick={handleRetake} className="flex-1 py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20 flex items-center justify-center gap-2"><RotateCcw size={18} />{lang === "ar" ? "إعادة" : lang === "fr" ? "Refaire" : "Retake"}</button><button onClick={handleConfirm} className="flex-1 py-4 rounded-full gradient-orange text-white font-bold text-base flex items-center justify-center gap-2" style={{ color: "#fff" }}><Check size={18} />{lang === "ar" ? "احتفاظ" : lang === "fr" ? "Garder" : "Keep"}</button></div></div>}
-      {stage === "uploading" && <div className="relative z-20 flex-1 flex flex-col items-center justify-center gap-6"><Loader2 size={48} className="text-[#E8742A] animate-spin" /><p className="text-white text-sm font-bold uppercase tracking-widest">{t.weaving}</p><p className="text-white/40 text-xs">~{estimatedSize}</p></div>}
-      {stage === "followup" && <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8"><p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.oneMoreQuestion}</p><p className="text-white/40 text-xs uppercase tracking-widest">{followupIdx + 1} / {followups.length}</p><h2 className="text-white text-2xl font-bold leading-tight">{followups[Math.min(followupIdx, followups.length - 1)]}</h2><div className="flex flex-col gap-3 w-full max-w-xs"><button onClick={() => startCountdown(true)} className="w-full py-4 rounded-full gradient-orange font-bold text-base" style={{ color: "#fff" }}>{t.answerToo}</button><button onClick={() => setStage("title")} className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base">{t.seeMyMemory}</button></div></div>}
+      {stage === "question" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.yourStory}</p>
+          <h2 className="text-white text-2xl font-bold leading-tight italic">"{question}"</h2>
+          {userName && (
+            <p
+              style={{
+                color: "#E8742A",
+                fontSize: "12px",
+                fontStyle: "italic",
+                fontFamily: "Georgia,serif",
+                textAlign: "center",
+                marginTop: "8px",
+              }}
+            >
+              {lang === "fr"
+                ? `${userName}, raconte-leur.`
+                : lang === "ar"
+                  ? `${userName}، احكِ لهم.`
+                  : `${userName}, tell them.`}
+            </p>
+          )}
+          <p className="text-white/50 text-sm">{t.breathe}</p>
+          {!stream ? (
+            <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
+              <p className="text-white/70 text-xs uppercase tracking-widest text-center">{t.howShare}</p>
+              <button
+                onClick={() => {
+                  setAudioMode(false);
+                  startMedia(false);
+                }}
+                className="w-full py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-3"
+                style={{ color: "#fff" }}
+              >
+                <Video size={20} /> {t.videoShowFace}
+              </button>
+              <button
+                onClick={() => {
+                  setAudioMode(true);
+                  startMedia(true);
+                }}
+                className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base flex items-center justify-center gap-3"
+              >
+                <Mic size={20} /> {t.voiceOnly}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => startCountdown(false)}
+              className="mt-2 px-10 py-4 rounded-full gradient-orange font-bold text-lg"
+              style={{ color: "#fff" }}
+            >
+              {t.imReady}
+            </button>
+          )}
+        </div>
+      )}
+      {stage === "countdown" && (
+        <div className="relative z-20 flex-1 flex items-center justify-center">
+          <div className="text-white text-9xl font-black animate-pulse">{countdown}</div>
+        </div>
+      )}
+      {stage === "recording" && (
+        <>
+          <div className="relative z-10 flex justify-end px-6 -mt-16">
+            <div className="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full animate-pulse">
+              <div className="w-2 h-2 bg-white rounded-full" />
+              <span className="text-[10px] text-white font-black uppercase tracking-widest">
+                {audioMode ? t.listening : t.recording}
+              </span>
+            </div>
+          </div>
+          {audioMode && (
+            <div className="flex-1 flex flex-col items-center justify-center gap-8">
+              <div
+                className="w-32 h-32 rounded-full flex items-center justify-center"
+                style={{
+                  background: "radial-gradient(circle,rgba(107,78,155,.4) 0%,rgba(232,116,42,.2) 100%)",
+                  boxShadow: "0 0 40px rgba(232,116,42,.3)",
+                }}
+              >
+                <Mic size={48} className="text-[#E8742A]" />
+              </div>
+              <canvas ref={canvasRef} width={300} height={80} className="opacity-90" />
+            </div>
+          )}
+          <div className="mt-auto relative z-20 px-10 pb-8 text-center">
+            <h2 className="text-white text-lg font-bold leading-tight italic opacity-60">"{questionRef.current}"</h2>
+          </div>
+          <div className="relative z-20 pb-20 flex justify-center">
+            <button
+              onClick={handleStop}
+              className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
+            >
+              <StopCircle size={48} className="text-red-600" />
+            </button>
+          </div>
+        </>
+      )}
+      {stage === "preview" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
+            {lang === "ar"
+              ? "استمع إلى تسجيلك"
+              : lang === "fr"
+                ? "Réécoutez votre souvenir"
+                : "Listen to your recording"}
+          </p>
+          <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{questionRef.current}"</h2>
+          {audioMode ? (
+            <audio src={localUrl} controls className="w-full max-w-xs mt-4" autoPlay />
+          ) : (
+            <video
+              src={localUrl}
+              controls
+              className="w-full max-w-xs rounded-2xl border border-white/20 mt-4"
+              autoPlay
+              playsInline
+            />
+          )}
+          <p className="text-white/50 text-xs mt-4">
+            {lang === "ar"
+              ? "هل تريد الاحتفاظ بهذا التسجيل؟"
+              : lang === "fr"
+                ? "Voulez-vous garder cet enregistrement ?"
+                : "Do you want to keep this recording?"}
+          </p>
+          <div className="flex gap-4 w-full max-w-xs mt-4">
+            <button
+              onClick={handleRetake}
+              className="flex-1 py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20 flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={18} />
+              {lang === "ar" ? "إعادة" : lang === "fr" ? "Refaire" : "Retake"}
+            </button>
+            <button
+              onClick={handleConfirm}
+              className="flex-1 py-4 rounded-full gradient-orange text-white font-bold text-base flex items-center justify-center gap-2"
+              style={{ color: "#fff" }}
+            >
+              <Check size={18} />
+              {lang === "ar" ? "احتفاظ" : lang === "fr" ? "Garder" : "Keep"}
+            </button>
+          </div>
+        </div>
+      )}
+      {stage === "uploading" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center gap-6">
+          <Loader2 size={48} className="text-[#E8742A] animate-spin" />
+          <p className="text-white text-sm font-bold uppercase tracking-widest">{t.weaving}</p>
+          <p className="text-white/40 text-xs">~{estSize}</p>
+        </div>
+      )}
+      {stage === "thumbnail" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
+            {lang === "ar"
+              ? "اختر صورة لهذه الذكرى"
+              : lang === "fr"
+                ? "Quelle image pour ce souvenir ?"
+                : "Choose an image for this memory"}
+          </p>
+          <div
+            ref={thumbScrollRef}
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 max-w-full hide-scroll"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {thumbCards.map((img, idx) => {
+              const isSel = selectedThumb === idx && !customThumb;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleThumbSelect(idx)}
+                  className={`snap-center shrink-0 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${isSel ? "border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]" : "border-transparent opacity-70"}`}
+                  style={{ width: "180px", height: "180px", transform: `rotate(${(idx - 1) * 4}deg)` }}
+                >
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    style={{ filter: "sepia(40%) brightness(0.85)" }}
+                  />
+                </button>
+              );
+            })}
+            {customThumb && (
+              <button
+                onClick={() => {
+                  setCustomThumb(null);
+                  setSelectedThumb(0);
+                }}
+                className="snap-center shrink-0 rounded-2xl overflow-hidden border-2 border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]"
+                style={{ width: "180px", height: "180px" }}
+              >
+                <img src={customThumb} alt="" className="w-full h-full object-cover" />
+              </button>
+            )}
+          </div>
+          <label className="flex items-center gap-2 text-white/40 text-xs cursor-pointer hover:text-white/60 transition-colors">
+            <Camera size={14} />
+            {lang === "ar" ? "📷 استخدام صورتي" : lang === "fr" ? "📷 Utiliser ma photo" : "📷 Use my photo"}
+            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+          </label>
+          <button
+            onClick={handleThumbValidate}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] mt-2"
+            style={{
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
+            }}
+          >
+            {lang === "ar" ? "اختيار هذه الصورة" : lang === "fr" ? "Choisir cette image" : "Choose this image"}
+          </button>
+        </div>
+      )}
       {stage === "title" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.memoryReady}</p>
@@ -239,7 +922,7 @@ const Record = () => {
             dir={rtl ? "rtl" : "ltr"}
           />
           <button
-            onClick={() => setStage("share")}
+            onClick={() => setStage("visibility")}
             className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-2"
             style={{ color: "#fff" }}
           >
@@ -247,23 +930,115 @@ const Record = () => {
           </button>
         </div>
       )}
+      {stage === "visibility" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
+            {lang === "ar"
+              ? userName
+                ? `${userName}، لمن هذا الصوت؟`
+                : "لمن هذا الصوت؟"
+              : lang === "fr"
+                ? userName
+                  ? `${userName}, à qui appartient cette voix ?`
+                  : "À qui appartient cette voix ?"
+                : userName
+                  ? `${userName}, who is this voice for?`
+                  : "Who is this voice for?"}
+          </p>
+          <button
+            onClick={() => handleVisibilityChoice("family")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.1)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
+          >
+            <Lock size={18} />
+            {lang === "ar" ? "لعائلتي فقط." : lang === "fr" ? "Pour ma famille uniquement." : "For my family only."}
+          </button>
+          <button
+            onClick={() => handleVisibilityChoice("community")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3"
+            style={{
+              background: "linear-gradient(135deg,#E8742A,#D4621A)",
+              color: "#fff",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
+            }}
+          >
+            <Users size={18} />
+            {lang === "ar"
+              ? "لمن فقدوا صوتاً أيضاً."
+              : lang === "fr"
+                ? "Pour ceux qui ont aussi perdu une voix."
+                : "For those who also lost a voice."}
+          </button>
+          <button
+            onClick={() => handleVisibilityChoice("anonymous")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3"
+            style={{ backgroundColor: "rgba(107,78,155,0.3)", color: "#fff", border: "1px solid rgba(107,78,155,0.4)" }}
+          >
+            <UserPlus size={18} />
+            {lang === "ar"
+              ? "للجميع، دون كشف هويتي."
+              : lang === "fr"
+                ? "Pour tout le monde, anonymement."
+                : "For everyone, anonymously."}
+          </button>
+        </div>
+      )}
       {stage === "share" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.whoHears}</p>
           <h2 className="text-white text-lg font-bold leading-tight italic mb-2">"{memoryTitle}"</h2>
-          <button onClick={() => handleShare("circle")} className="w-full max-w-xs py-4 rounded-full font-bold text-white text-base" style={{ backgroundColor: "#6B4E9B" }}>{t.myFamilyCircle}</button>
-          <button onClick={() => handleShare("public")} className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base" style={{ color: "#fff" }}>{t.shareInOcean}</button>
-          <button onClick={() => handleShare("private")} className="w-full max-w-xs py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base">{t.keepPrivate}</button>
+          <button
+            onClick={() => handleShare("circle")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-white text-base"
+            style={{ backgroundColor: "#6B4E9B" }}
+          >
+            {t.myFamilyCircle}
+          </button>
+          <button
+            onClick={() => handleShare("public")}
+            className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base"
+            style={{ color: "#fff" }}
+          >
+            {t.shareInOcean}
+          </button>
+          <button
+            onClick={() => handleShare("private")}
+            className="w-full max-w-xs py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base"
+          >
+            {t.keepPrivate}
+          </button>
           <div className="flex items-center gap-3 w-full max-w-xs my-1">
             <div className="flex-1 h-px bg-white/15" />
-            <span className="text-white/30 text-xs uppercase tracking-widest">{lang === "ar" ? "أو" : lang === "fr" ? "ou" : "or"}</span>
+            <span className="text-white/30 text-xs uppercase tracking-widest">
+              {lang === "ar" ? "أو" : lang === "fr" ? "ou" : "or"}
+            </span>
             <div className="flex-1 h-px bg-white/15" />
           </div>
-          <button onClick={() => setShowShareModal(true)} className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2" style={{ backgroundColor: "rgba(255,255,255,.12)", color: "#fff", border: "1px solid rgba(255,255,255,.2)" }}>
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2"
+            style={{
+              backgroundColor: "rgba(255,255,255,.12)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,.2)",
+            }}
+          >
             <Share2 size={18} />
-            {lang === "ar" ? "مشاركة على وسائل التواصل" : lang === "fr" ? "Partager sur les réseaux" : "Share on social media"}
+            {lang === "ar"
+              ? "مشاركة على وسائل التواصل"
+              : lang === "fr"
+                ? "Partager sur les réseaux"
+                : "Share on social media"}
           </button>
-          <button onClick={handleDownload} className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2" style={{ color: "rgba(255,255,255,.4)" }}>
+          <button
+            onClick={handleDownload}
+            className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2"
+            style={{ color: "rgba(255,255,255,.4)" }}
+          >
             <Download size={16} />
             {lang === "ar" ? "تحميل الذكرى" : lang === "fr" ? "Télécharger le souvenir" : "Download memory"}
           </button>
@@ -273,7 +1048,7 @@ const Record = () => {
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         title={memoryTitle || "A memory"}
-        url={uploadedFileUrl.current || "https://infeelit.com"}
+        url={fileUrlRef.current || "https://infeelit.com"}
         text={`I preserved a memory on Infeelit: "${memoryTitle}"`}
       />
     </div>
