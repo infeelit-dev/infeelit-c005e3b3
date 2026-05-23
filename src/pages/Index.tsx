@@ -34,6 +34,7 @@ const Index = () => {
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
   const [sparkForced, setSparkForced] = useState(false);
+  const [circleBadge, setCircleBadge] = useState(0);
 
   useEffect(() => {
     const savedName = localStorage.getItem("infeelit_user_name");
@@ -46,6 +47,35 @@ const Index = () => {
         localStorage.setItem("infeelit_onboarding_done", "true");
       }, 500);
     }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const { data: memberships } = await supabase
+        .from("circle_members")
+        .select("circle_id, user_id")
+        .eq("user_id", session.user.id)
+        .limit(1);
+      const m = memberships?.[0];
+      if (!m) return;
+      const { data: allMembers } = await supabase
+        .from("circle_members")
+        .select("user_id")
+        .eq("circle_id", m.circle_id);
+      const ids = (allMembers ?? []).map((x: any) => x.user_id).filter((u: string) => u !== session.user.id);
+      if (ids.length === 0) return;
+      const since = localStorage.getItem("infeelit_circle_last_visit") || new Date(Date.now() - 7 * 86400000).toISOString();
+      const { count } = await supabase
+        .from("memories")
+        .select("id", { count: "exact", head: true })
+        .in("user_id", ids)
+        .gt("created_at", since);
+      if (!cancelled) setCircleBadge(count ?? 0);
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const handleTimelineChange = async (timeline: Timeline) => {
@@ -281,7 +311,7 @@ const Index = () => {
           </span>
         </button>
       )}
-      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} />
+      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
       {showForeverOverlay && (
         <div
           className="absolute inset-0 z-50 flex items-center justify-center"
