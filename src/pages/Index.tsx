@@ -29,6 +29,7 @@ const Index = () => {
   const [showForeverOverlay, setShowForeverOverlay] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
+  const [sparkForced, setSparkForced] = useState(false);
 
   const handleTimelineChange = async (timeline: Timeline) => {
     if (timeline === "forever") {
@@ -182,7 +183,7 @@ const Index = () => {
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
-      <SparkBubble />
+      <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
 
       {activeTimeline === "memories" && (
         <button
@@ -310,7 +311,7 @@ const Index = () => {
         </button>
       )}
 
-      <CurvedBottomNav />
+      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} />
 
       {showForeverOverlay && (
         <div
