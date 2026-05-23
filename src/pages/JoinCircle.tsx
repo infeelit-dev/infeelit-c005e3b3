@@ -16,7 +16,7 @@ const JoinCircle = () => {
   useEffect(() => {
     const loadCircle = async () => {
       if (!code) return;
-      const { data, error } = await supabase.rpc("lookup_circle_by_invite_code", { code }).single();
+      const { data, error } = await supabase.rpc("lookup_circle_by_invite_code", { _code: code }).single();
       if (error || !data) { setNotFound(true); }
       else { setCircle(data); }
       setLoading(false);
