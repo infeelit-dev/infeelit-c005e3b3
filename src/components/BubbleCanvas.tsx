@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Play, Volume2, Video, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useUserName } from "@/hooks/useUserName";
+import useUserName from "@/hooks/useUserName";
 import type { Timeline } from "@/types/timeline";
 
 import imgGrandfather from "@/assets/grandfather.jpg";
@@ -439,7 +439,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         .order("created_at", { ascending: false })
         .limit(30);
 
-      const realMemories = (memories as MemoryFromDB[]) || [];
+      const realMemories = (memories as unknown as MemoryFromDB[]) || [];
 
       if (realMemories.length >= REAL_CONTENT_THRESHOLD) {
         const realBubbles = realMemories.slice(0, 8).map((mem, i) => createBubbleFromMemory(mem, i));
