@@ -5,6 +5,8 @@ import Header from "@/components/Header";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
+import NamePrompt from "@/components/NamePrompt";
+import OnboardingChoice from "@/components/OnboardingChoice";
 import imgMarry from "@/assets/marry.jpg";
 import type { Timeline } from "@/types/timeline";
 import type { BubbleCategory } from "@/components/MemoryBubble";
@@ -27,9 +29,21 @@ const Index = () => {
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showForeverOverlay, setShowForeverOverlay] = useState(false);
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [showOnboardingChoice, setShowOnboardingChoice] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
-  const [sparkForced, setSparkForced] = useState(false);
+
+  useEffect(() => {
+    const savedName = localStorage.getItem("infeelit_user_name");
+    const hasSeenOnboarding = localStorage.getItem("infeelit_onboarding_done");
+    if (!savedName) {
+      setShowNamePrompt(true);
+    } else if (!hasSeenOnboarding) {
+      setShowOnboardingChoice(true);
+      localStorage.setItem("infeelit_onboarding_done", "true");
+    }
+  }, []);
 
   const handleTimelineChange = async (timeline: Timeline) => {
     if (timeline === "forever") {
@@ -106,62 +120,19 @@ const Index = () => {
       className="relative w-full h-screen overflow-hidden transition-all duration-700"
       style={{ background: getBackground() }}
     >
-      <style>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.5); }
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideUp {
-          from { transform: translateY(60px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes wander1 {
-          0%   { transform: translate(0px, 0px); }
-          20%  { transform: translate(50px, -60px); }
-          40%  { transform: translate(90px, -20px); }
-          60%  { transform: translate(60px, 55px); }
-          80%  { transform: translate(-30px, 40px); }
-          100% { transform: translate(0px, 0px); }
-        }
-        @keyframes wander3 {
-          0%   { transform: translate(0px, 0px); }
-          25%  { transform: translate(70px, 55px); }
-          50%  { transform: translate(30px, -70px); }
-          75%  { transform: translate(-55px, -40px); }
-          100% { transform: translate(0px, 0px); }
-        }
-        @keyframes pulseViolet {
-          0%, 100% { box-shadow: 0 0 15px rgba(107,78,155,0.6), 0 0 30px rgba(107,78,155,0.3); }
-          50%       { box-shadow: 0 0 30px rgba(107,78,155,1), 0 0 60px rgba(107,78,155,0.5); }
-        }
-        @keyframes pulseGold {
-          0%, 100% { box-shadow: 0 0 15px rgba(232,116,42,0.5); }
-          50%       { box-shadow: 0 0 30px rgba(232,116,42,0.9); }
-        }
-        .fade-in-up { animation: fadeInUp 0.4s ease forwards; }
-        .slide-up { animation: slideUp 0.4s ease forwards; }
-        .bubble-demo-violet {
-          animation: wander3 10s ease-in-out infinite, pulseViolet 2.5s ease-in-out infinite;
-        }
-        .bubble-demo-gold {
-          animation: wander1 14s ease-in-out infinite, pulseGold 2.5s ease-in-out infinite;
-        }
-      `}</style>
-
+      {" "}
+      <style>{` @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } } @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } } @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } } @keyframes wander1 { 0% { transform: translate(0px, 0px); } 20% { transform: translate(50px, -60px); } 40% { transform: translate(90px, -20px); } 60% { transform: translate(60px, 55px); } 80% { transform: translate(-30px, 40px); } 100% { transform: translate(0px, 0px); } } @keyframes wander3 { 0% { transform: translate(0px, 0px); } 25% { transform: translate(70px, 55px); } 50% { transform: translate(30px, -70px); } 75% { transform: translate(-55px, -40px); } 100% { transform: translate(0px, 0px); } } @keyframes pulseViolet { 0%, 100% { box-shadow: 0 0 15px rgba(107,78,155,0.6), 0 0 30px rgba(107,78,155,0.3); } 50% { box-shadow: 0 0 30px rgba(107,78,155,1), 0 0 60px rgba(107,78,155,0.5); } } @keyframes pulseGold { 0%, 100% { box-shadow: 0 0 15px rgba(232,116,42,0.5); } 50% { box-shadow: 0 0 30px rgba(232,116,42,0.9); } } .fade-in-up { animation: fadeInUp 0.4s ease forwards; } .slide-up { animation: slideUp 0.4s ease forwards; } .bubble-demo-violet { animation: wander3 10s ease-in-out infinite, pulseViolet 2.5s ease-in-out infinite; } .bubble-demo-gold { animation: wander1 14s ease-in-out infinite, pulseGold 2.5s ease-in-out infinite; } `}</style>{" "}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl" />
+        {" "}
+        <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl" />{" "}
         <div
           className="absolute top-1/4 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl"
           style={{ animationDelay: "4s" }}
-        />
+        />{" "}
         <div
           className="absolute bottom-1/3 -left-10 w-56 h-56 rounded-full bg-white/5 blur-3xl"
           style={{ animationDelay: "8s" }}
-        />
+        />{" "}
         {activeTimeline === "forever" &&
           [...Array(30)].map((_, i) => (
             <div
@@ -177,14 +148,11 @@ const Index = () => {
                 animationDelay: Math.random() * 3 + "s",
               }}
             />
-          ))}
-      </div>
-
-      <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
+          ))}{" "}
+      </div>{" "}
+      <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />{" "}
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
-
-      <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
-
+      <SparkBubble forceOpen={false} onSparkClose={() => {}} />
       {activeTimeline === "memories" && (
         <button
           onClick={() => handleDemoBubbleClick("forever-in-memories")}
@@ -217,14 +185,14 @@ const Index = () => {
               inset: 0,
               background: "linear-gradient(160deg, rgba(107,78,155,0.65), rgba(2,8,40,0.45))",
             }}
-          />
+          />{" "}
           <div
             style={{
               position: "absolute",
               inset: 0,
               background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%)",
             }}
-          />
+          />{" "}
           <div
             style={{
               position: "absolute",
@@ -236,6 +204,7 @@ const Index = () => {
               gap: "4px",
             }}
           >
+            {" "}
             <span
               style={{
                 fontSize: "6px",
@@ -249,7 +218,7 @@ const Index = () => {
               }}
             >
               FOR 2045
-            </span>
+            </span>{" "}
             <span
               style={{
                 fontSize: "20px",
@@ -259,11 +228,10 @@ const Index = () => {
               }}
             >
               ✦
-            </span>
-          </div>
+            </span>{" "}
+          </div>{" "}
         </button>
       )}
-
       {activeTimeline === "forever" && (
         <button
           onClick={() => handleDemoBubbleClick("legacy-in-forever")}
@@ -310,35 +278,35 @@ const Index = () => {
           </span>
         </button>
       )}
-
-      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} />
-
+      <CurvedBottomNav onPlusClick={() => {}} />
       {showForeverOverlay && (
         <div
           className="absolute inset-0 z-50 flex items-center justify-center"
           style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}
           onClick={() => setShowForeverOverlay(false)}
         >
+          {" "}
           <div
             className="fade-in-up w-full max-w-sm mx-6 rounded-3xl px-8 py-8 text-center"
             style={{ backgroundColor: "#020818", border: "1px solid rgba(56,189,248,0.3)" }}
             onClick={(e) => e.stopPropagation()}
           >
+            {" "}
             <span className="text-4xl mb-4 block" style={{ textShadow: "0 0 20px rgba(56,189,248,0.8)" }}>
               ✦
-            </span>
+            </span>{" "}
             <p
               className="font-black text-[10px] uppercase tracking-[0.3em] mb-3"
               style={{ color: "rgba(56,189,248,0.9)" }}
             >
               The Forever timeline
-            </p>
+            </p>{" "}
             <h2 className="text-white font-bold text-xl leading-tight mb-4">
               Messages to the future are created by members.
-            </h2>
+            </h2>{" "}
             <p className="text-white/50 text-sm mb-6 leading-relaxed">
               You can listen to any message in Forever. To send your own voice to the future, create your account.
-            </p>
+            </p>{" "}
             <button
               onClick={() => {
                 setShowForeverOverlay(false);
@@ -350,7 +318,7 @@ const Index = () => {
               style={{ background: "linear-gradient(135deg, #38bdf8, #6B4E9B)", color: "#FFFFFF" }}
             >
               Create my legacy — it's free
-            </button>
+            </button>{" "}
             <button
               onClick={() => {
                 setShowForeverOverlay(false);
@@ -359,47 +327,49 @@ const Index = () => {
               className="w-full py-3 text-white/40 text-sm font-medium"
             >
               Just listen for now
-            </button>
-          </div>
+            </button>{" "}
+          </div>{" "}
         </div>
       )}
-
       {showInterstitial && (
         <div
           className="absolute inset-0 z-50 flex items-end justify-center pb-12"
           style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(10px)" }}
           onClick={() => setShowInterstitial(false)}
         >
+          {" "}
           <div
             className="fade-in-up w-full max-w-sm mx-6 rounded-3xl px-8 py-8 text-center"
             style={{ backgroundColor: "#0f0f0f", border: "1px solid rgba(255,255,255,0.1)" }}
             onClick={(e) => e.stopPropagation()}
           >
+            {" "}
             <p className="font-black text-[10px] uppercase tracking-[0.3em] mb-3" style={{ color: "#E8742A" }}>
               {getInterstitialTitle()}
-            </p>
+            </p>{" "}
             {pendingQuestion && (
               <p className="text-white font-bold text-base italic leading-snug mb-4">"{pendingQuestion}"</p>
-            )}
-            <p className="text-white/50 text-sm mb-6 leading-relaxed">{getInterstitialBody()}</p>
+            )}{" "}
+            <p className="text-white/50 text-sm mb-6 leading-relaxed">{getInterstitialBody()}</p>{" "}
             <button
               onClick={handleJoin}
               className="w-full py-4 rounded-full gradient-orange font-bold text-base mb-3"
               style={{ color: "#FFFFFF" }}
             >
               {getInterstitialCTA()}
-            </button>
+            </button>{" "}
             <button
               onClick={() => setShowInterstitial(false)}
               className="w-full py-3 text-white/40 text-sm font-medium"
             >
               Continue exploring
-            </button>
-          </div>
+            </button>{" "}
+          </div>{" "}
         </div>
       )}
+      {showNamePrompt && <NamePrompt onComplete={() => setShowNamePrompt(false)} />}
+      {showOnboardingChoice && <OnboardingChoice onClose={() => setShowOnboardingChoice(false)} />}
     </div>
   );
 };
-
 export default Index;
