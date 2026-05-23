@@ -382,13 +382,11 @@ const Record = () => {
   };
   const handleRetake = () => {
     if (localUrl) URL.revokeObjectURL(localUrl);
-    setLocalBlob(null);
-    setLocalUrl("");
-    setPreviewReady(false);
+    setLocalUrl(null);
     chunksRef.current = [];
     setStage("question");
   };
-  const handleConfirm = () => {
+  const handleUpload = () => {
     if (!localBlob) return;
     setPreviewReady(false);
     clipsRef.current.push({ blob: localBlob, question: questionRef.current, posterBlob: posterRef.current });
