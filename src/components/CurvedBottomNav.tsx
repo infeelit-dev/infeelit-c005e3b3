@@ -5,9 +5,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CurvedBottomNavProps {
   onPlusClick?: () => void;
+  circleBadge?: number;
 }
 
-const CurvedBottomNav = ({ onPlusClick }: CurvedBottomNavProps) => {
+const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -53,6 +54,7 @@ const CurvedBottomNav = ({ onPlusClick }: CurvedBottomNavProps) => {
 
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
+          const showBadge = item.path === "/connect" && circleBadge > 0;
 
           return (
             <button
@@ -61,14 +63,38 @@ const CurvedBottomNav = ({ onPlusClick }: CurvedBottomNavProps) => {
               className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
             >
               {Icon && (
-                <Icon
-                  size={22}
-                  style={{
-                    color: isActive ? "#E8742A" : "rgba(255,255,255,0.5)",
-                    filter: isActive ? "drop-shadow(0 0 6px rgba(232,116,42,0.7))" : "none",
-                    transition: "all 0.2s ease",
-                  }}
-                />
+                <div className="relative">
+                  <Icon
+                    size={22}
+                    style={{
+                      color: isActive ? "#E8742A" : "rgba(255,255,255,0.5)",
+                      filter: isActive ? "drop-shadow(0 0 6px rgba(232,116,42,0.7))" : "none",
+                      transition: "all 0.2s ease",
+                    }}
+                  />
+                  {showBadge && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: -4,
+                        right: -6,
+                        minWidth: 14,
+                        height: 14,
+                        padding: "0 4px",
+                        borderRadius: 999,
+                        background: "linear-gradient(135deg,#E8742A,#D4621A)",
+                        color: "#fff",
+                        fontSize: 9,
+                        fontWeight: 800,
+                        lineHeight: "14px",
+                        textAlign: "center",
+                        boxShadow: "0 0 8px rgba(232,116,42,0.7)",
+                      }}
+                    >
+                      {circleBadge > 9 ? "9+" : circleBadge}
+                    </span>
+                  )}
+                </div>
               )}
               <span
                 style={{
