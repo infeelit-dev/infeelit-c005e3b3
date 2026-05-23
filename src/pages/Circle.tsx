@@ -368,10 +368,10 @@ const Circle = () => {
     const who = userName || (lang === "fr" ? "Quelqu'un" : lang === "ar" ? "شخص ما" : "Someone");
     const msg =
       lang === "fr"
-        ? `${who} t'invite dans l'espace famille sur Infeelit. Rejoins-nous : ${url}`
+        ? `${who} t'a laissé quelque chose sur Infeelit. Ta famille t'attend. Rejoins-nous → ${url}`
         : lang === "ar"
-          ? `${who} يدعوك إلى مساحة العائلة على Infeelit : ${url}`
-          : `${who} invites you to join the family space on Infeelit: ${url}`;
+          ? `${who} ترك لك شيئاً على Infeelit. عائلتك تنتظرك. انضم إلينا ← ${url}`
+          : `${who} left something for you on Infeelit. Your family is waiting. Join us → ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
