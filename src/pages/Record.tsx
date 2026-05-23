@@ -1,26 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  X,
-  StopCircle,
-  Loader2,
-  Share2,
-  Video,
-  Mic,
-  Download,
-  RotateCcw,
-  Check,
-  Camera,
-  ChevronLeft,
-  ChevronRight,
-  Lock,
-  Users,
-  UserPlus,
-} from "lucide-react";
+import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw, Check, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import useUserName from "@/hooks/useUserName";
+import { useUserName } from "@/hooks/useUserName";
 import ShareModal from "@/components/ShareModal";
 
 import childImg from "@/assets/child.jpg";
@@ -200,6 +184,7 @@ const Record = () => {
   const isAnonymousRef = useRef(false);
   const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thumbScrollRef = useRef<HTMLDivElement>(null);
+  const auraRef = useRef(false);
 
   const [stage, setStage] = useState<Stage>("question");
   const [mr, setMR] = useState<MediaRecorder | null>(null);
@@ -217,6 +202,7 @@ const Record = () => {
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [customThumb, setCustomThumb] = useState<string | null>(null);
+  const [useAsAura, setUseAsAura] = useState(false);
 
   const question = loc.state?.question || "What smell instantly brings you back to your childhood home?";
   const theme = getTheme(question);
@@ -428,6 +414,7 @@ const Record = () => {
   };
 
   const handleThumbValidate = () => {
+    auraRef.current = useAsAura;
     if (customThumb) {
       const img = new Image();
       img.src = customThumb;
@@ -530,7 +517,7 @@ const Record = () => {
       if (uid && uid !== "anonymous") {
         userIdRef.current = uid;
         const ips = urls.map((u) =>
-          (supabase.from("memories") as any).insert({
+          supabase.from("memories").insert({
             user_id: uid,
             title: memoryTitle || "A memory",
             description: null,
@@ -542,6 +529,8 @@ const Record = () => {
             is_community: isCommunityRef.current,
             is_anonymous: isAnonymousRef.current,
             spark_reward: sparkRewardRef.current,
+            background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
+            aura_intensity: auraRef.current ? 35 : null,
             created_at: new Date().toISOString(),
           }),
         );
@@ -898,9 +887,67 @@ const Record = () => {
             {lang === "ar" ? "📷 استخدام صورتي" : lang === "fr" ? "📷 Utiliser ma photo" : "📷 Use my photo"}
             <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
           </label>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "14px 20px",
+              borderRadius: "14px",
+              backgroundColor: "rgba(232,116,42,0.08)",
+              border: "1px solid rgba(232,116,42,0.2)",
+              marginTop: "16px",
+              width: "100%",
+              maxWidth: "320px",
+            }}
+          >
+            <div>
+              <p style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>
+                {lang === "fr"
+                  ? "Montrer pendant ta vidéo"
+                  : lang === "ar"
+                    ? "إظهارها خلال الفيديو"
+                    : "Show during your video"}
+              </p>
+              <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>
+                {lang === "fr"
+                  ? "L'image apparaîtra derrière toi"
+                  : lang === "ar"
+                    ? "ستظهر الصورة خلفك"
+                    : "The image will appear behind you"}
+              </p>
+            </div>
+            <button
+              onClick={() => setUseAsAura(!useAsAura)}
+              style={{
+                width: "48px",
+                height: "26px",
+                borderRadius: "999px",
+                border: "none",
+                cursor: "pointer",
+                transition: "background 0.2s",
+                backgroundColor: useAsAura ? "#E8742A" : "rgba(255,255,255,0.2)",
+                position: "relative",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: "3px",
+                  left: useAsAura ? "25px" : "3px",
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  backgroundColor: "#fff",
+                  transition: "left 0.2s",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                }}
+              />
+            </button>
+          </div>
           <button
             onClick={handleThumbValidate}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] mt-2"
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] mt-4"
             style={{
               background: "linear-gradient(135deg, #E8742A, #D4621A)",
               color: "#fff",
