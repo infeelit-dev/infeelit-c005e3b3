@@ -264,15 +264,19 @@ const DEMO_QUESTIONS: Record<
 };
 
 const ZONES = [
-  { xMin: 5, xMax: 30, yMin: 10, yMax: 35 },
-  { xMin: 60, xMax: 90, yMin: 10, yMax: 35 },
-  { xMin: 5, xMax: 30, yMin: 40, yMax: 65 },
-  { xMin: 60, xMax: 90, yMin: 40, yMax: 65 },
-  { xMin: 5, xMax: 30, yMin: 70, yMax: 90 },
-  { xMin: 60, xMax: 90, yMin: 70, yMax: 90 },
-  { xMin: 30, xMax: 45, yMin: 10, yMax: 30 },
-  { xMin: 45, xMax: 65, yMin: 65, yMax: 90 },
+  { xMin: 5, xMax: 28, yMin: 10, yMax: 33 },
+  { xMin: 62, xMax: 88, yMin: 10, yMax: 33 },
+  { xMin: 5, xMax: 28, yMin: 38, yMax: 62 },
+  { xMin: 62, xMax: 88, yMin: 38, yMax: 62 },
+  { xMin: 5, xMax: 28, yMin: 67, yMax: 88 },
+  { xMin: 62, xMax: 88, yMin: 67, yMax: 88 },
+  { xMin: 32, xMax: 48, yMin: 10, yMax: 30 },
+  { xMin: 48, xMax: 65, yMin: 65, yMax: 88 },
 ];
+
+const BUBBLE_LIFETIME = 22000;
+const ROTATION_INTERVAL = 7000;
+const DYING_DURATION = 800;
 
 const ANIMS = ["bubble-float-1", "bubble-float-2", "bubble-float-3"];
 const LAYERS = [
@@ -296,7 +300,7 @@ interface MemoryFromDB {
   is_community: boolean;
   created_at: string;
   user_id: string;
-  profiles: { display_name: string | null } | null;
+  display_name?: string | null;
 }
 
 interface BubbleItem {
@@ -320,6 +324,7 @@ interface BubbleItem {
   isDemo: boolean;
   zoneIndex: number;
   bornAt: number;
+  dying?: boolean;
 }
 
 interface BubbleCanvasProps {
@@ -339,6 +344,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const usedZonesRef = useRef<Set<number>>(new Set());
   const bubbleIdCounter = useRef(0);
+  const memoryPoolRef = useRef<MemoryFromDB[]>([]);
+  const memoryCursorRef = useRef(0);
+  const usingRealRef = useRef(false);
 
   const getThemedImage = useCallback((title: string): string => {
     const lower = title.toLowerCase();
@@ -395,7 +403,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       const y = zone.yMin + Math.random() * (zone.yMax - zone.yMin);
       const dur = layer.durMin + Math.random() * (layer.durMax - layer.durMin);
       const image = mem.thumbnail_url || getThemedImage(mem.title || "");
-      const displayName = mem.is_anonymous ? "Un Gardien" : mem.profiles?.display_name?.split(" ")[0] || "Un Gardien";
+      const displayName = mem.is_anonymous
+        ? "Un Gardien"
+        : mem.display_name?.split(" ")[0] || "Un Gardien";
       bubbleIdCounter.current += 1;
       return {
         id: `mem-${bubbleIdCounter.current}`,
@@ -424,71 +434,148 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   );
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadMemories = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      const currentUserId = session?.user?.id || "";
 
-      const { data: memories } = await supabase
+      const selectCols =
+        "id, title, file_url, file_type, thumbnail_url, is_anonymous, is_community, created_at, user_id";
+
+      const { data: communityMems } = await supabase
         .from("memories")
-        .select(
-          "id, title, file_url, file_type, thumbnail_url, is_anonymous, is_community, created_at, user_id, profiles(display_name)",
-        )
-        .or(currentUserId ? `is_community.eq.true,user_id.eq.${currentUserId}` : "is_community.eq.true")
+        .select(selectCols)
+        .eq("is_community", true)
         .order("created_at", { ascending: false })
-        .limit(30);
+        .limit(20);
 
-      const realMemories = (memories as unknown as MemoryFromDB[]) || [];
+      let circleMems: MemoryFromDB[] = [];
+      if (session?.user) {
+        const { data: memberOf } = await supabase
+          .from("circle_members")
+          .select("circle_id")
+          .eq("user_id", session.user.id);
 
-      if (realMemories.length >= REAL_CONTENT_THRESHOLD) {
-        const realBubbles = realMemories.slice(0, 8).map((mem, i) => createBubbleFromMemory(mem, i));
-        realBubbles.forEach((b) => usedZonesRef.current.add(b.zoneIndex));
-        setBubbles(realBubbles);
-      } else {
-        const demoBubbles = getDemoBubbles();
-        demoBubbles.forEach((b) => usedZonesRef.current.add(b.zoneIndex));
-        const mixedBubbles = [...demoBubbles];
-        realMemories.forEach((mem, i) => {
-          const freeZone = ZONES.findIndex((_, zi) => !usedZonesRef.current.has(zi));
-          if (freeZone !== -1) {
-            usedZonesRef.current.add(freeZone);
-            mixedBubbles.push(createBubbleFromMemory(mem, freeZone));
+        if (memberOf?.length) {
+          const circleIds = memberOf.map((m) => m.circle_id);
+          const { data: memberRows } = await supabase
+            .from("circle_members")
+            .select("user_id")
+            .in("circle_id", circleIds);
+          const peerIds = Array.from(new Set((memberRows || []).map((r) => r.user_id)));
+          if (peerIds.length) {
+            const { data: cMems } = await supabase
+              .from("memories")
+              .select(selectCols)
+              .in("user_id", peerIds)
+              .order("created_at", { ascending: false })
+              .limit(10);
+            circleMems = (cMems as unknown as MemoryFromDB[]) || [];
           }
+        }
+      }
+
+      const all = [...circleMems, ...((communityMems as unknown as MemoryFromDB[]) || [])];
+      const unique = all.filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i);
+
+      // Resolve display names in one batch
+      const authorIds = Array.from(
+        new Set(unique.filter((m) => !m.is_anonymous).map((m) => m.user_id)),
+      );
+      if (authorIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("user_id, display_name")
+          .in("user_id", authorIds);
+        const nameMap = new Map((profs || []).map((p) => [p.user_id, p.display_name]));
+        unique.forEach((m) => {
+          m.display_name = nameMap.get(m.user_id) ?? null;
         });
-        setBubbles(mixedBubbles.slice(0, 8));
+      }
+
+      if (cancelled) return;
+
+      if (unique.length >= REAL_CONTENT_THRESHOLD) {
+        usingRealRef.current = true;
+        memoryPoolRef.current = unique;
+        memoryCursorRef.current = 0;
+        usedZonesRef.current = new Set();
+        const initial: BubbleItem[] = [];
+        const slots = Math.min(8, unique.length);
+        for (let i = 0; i < slots; i++) {
+          usedZonesRef.current.add(i);
+          const b = createBubbleFromMemory(unique[i], i);
+          b.bornAt = Date.now() - i * 2000;
+          initial.push(b);
+        }
+        memoryCursorRef.current = slots;
+        setBubbles(initial);
+      } else {
+        usingRealRef.current = false;
+        usedZonesRef.current = new Set();
+        const demoBubbles = getDemoBubbles();
+        demoBubbles.forEach((b, i) => {
+          b.bornAt = Date.now() - i * 2000;
+          usedZonesRef.current.add(b.zoneIndex);
+        });
+        setBubbles(demoBubbles.slice(0, 8));
       }
     };
 
     loadMemories();
+    return () => {
+      cancelled = true;
+    };
   }, [activeTimeline, createBubbleFromMemory, getDemoBubbles]);
 
+  // Lifecycle: rotate one bubble every ROTATION_INTERVAL — mark dying, then replace
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setBubbles((prev) => {
-        if (prev.length === 0) return prev;
-        const oldest = prev.reduce((a, b) => (a.bornAt < b.bornAt ? a : b));
-        const newZoneIndex = oldest.zoneIndex;
-        const remaining = prev.filter((b) => b.id !== oldest.id);
-        usedZonesRef.current.delete(newZoneIndex);
+        const alive = prev.filter((b) => !b.dying);
+        if (alive.length === 0) return prev;
+        const oldest = alive.reduce((a, b) => (a.bornAt < b.bornAt ? a : b));
+        if (Date.now() - oldest.bornAt < BUBBLE_LIFETIME * 0.4) return prev;
+        return prev.map((b) => (b.id === oldest.id ? { ...b, dying: true } : b));
+      });
 
-        if (remaining.length < 8 && oldest.isDemo) {
+      // After dying animation, swap in a fresh bubble in the freed zone
+      setTimeout(() => {
+        setBubbles((prev) => {
+          const dying = prev.find((b) => b.dying);
+          if (!dying) return prev;
+          const remaining = prev.filter((b) => b.id !== dying.id);
+          usedZonesRef.current.delete(dying.zoneIndex);
+
+          if (usingRealRef.current && memoryPoolRef.current.length) {
+            const pool = memoryPoolRef.current;
+            const nextMem = pool[memoryCursorRef.current % pool.length];
+            memoryCursorRef.current += 1;
+            usedZonesRef.current.add(dying.zoneIndex);
+            const fresh = createBubbleFromMemory(nextMem, dying.zoneIndex);
+            return [...remaining, fresh];
+          }
+
+          // Demo fallback: refresh a demo bubble in that zone
           const newDemo = getDemoBubbles().find(
-            (d) => !usedZonesRef.current.has(d.zoneIndex) && !remaining.some((r) => r.zoneIndex === d.zoneIndex),
+            (d) => !remaining.some((r) => r.zoneIndex === d.zoneIndex),
           );
           if (newDemo) {
-            usedZonesRef.current.add(newDemo.zoneIndex);
+            newDemo.zoneIndex = dying.zoneIndex;
+            usedZonesRef.current.add(dying.zoneIndex);
             return [...remaining, newDemo];
           }
-        }
-        return remaining;
-      });
-    }, 10000);
+          return remaining;
+        });
+      }, DYING_DURATION);
+    }, ROTATION_INTERVAL);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [getDemoBubbles]);
+  }, [createBubbleFromMemory, getDemoBubbles]);
 
   const handleBubbleTap = (bubble: BubbleItem) => {
     if (bubble.isDemo) {
@@ -573,14 +660,16 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         <button
           key={bubble.id}
           onClick={() => handleBubbleTap(bubble)}
-          className={`absolute rounded-full overflow-hidden cursor-pointer transition-all ${bubble.animClass}`}
+          className={`absolute rounded-full overflow-hidden cursor-pointer ${bubble.dying ? "bubble-dying" : bubble.animClass}`}
           style={
             {
               width: `${bubble.size}px`,
               height: `${bubble.size}px`,
               left: `${bubble.x}%`,
               top: `${bubble.y}%`,
-              opacity: bubble.opacity,
+              opacity: selectedBubble && selectedBubble.id !== bubble.id ? 0.25 : bubble.opacity,
+              filter: selectedBubble && selectedBubble.id !== bubble.id ? "blur(3px)" : undefined,
+              transition: "opacity 0.4s ease, filter 0.4s ease",
               zIndex: bubble.zIndex,
               border: bubble.isDemo ? "2px solid rgba(232,116,42,0.55)" : "2.5px solid rgba(107,78,155,0.7)",
               boxShadow: bubble.isDemo ? "0 0 20px rgba(232,116,42,0.2)" : "0 0 20px rgba(107,78,155,0.25)",
