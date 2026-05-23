@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw, Check, Lock, Users, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useUserName } from "@/hooks/useUserName";
+import useUserName from "@/hooks/useUserName";
 import ShareModal from "@/components/ShareModal";
 
 const MAX_DURATION_SECONDS = 180;
@@ -179,7 +179,7 @@ const Record = () => {
       const { data: { session } } = await supabase.auth.getSession(); const userId = session?.user?.id;
       if (userId && userId !== "anonymous") {
         userIdRef.current = userId;
-        const insertPromises = urls.map((url) => supabase.from("memories").insert({ user_id: userId, title: memoryTitle || "A memory", description: null, file_url: url, file_type: uploadedType.current, thumbnail_url: uploadedThumbUrl.current || null, timeline: "memories", is_public: isCommunity.current, is_community: isCommunity.current, is_anonymous: isAnonymous.current, spark_reward: sparkReward.current, created_at: new Date().toISOString() }));
+        const insertPromises = urls.map((url) => supabase.from("memories").insert({ user_id: userId, title: memoryTitle || "A memory", description: null, file_url: url, file_type: uploadedType.current, thumbnail_url: uploadedThumbUrl.current || null, timeline: "memories", is_public: isCommunity.current, is_community: isCommunity.current, is_anonymous: isAnonymous.current, spark_reward: sparkReward.current, created_at: new Date().toISOString() } as any));
         const results = await Promise.all(insertPromises); const errors = results.filter((r) => r.error);
         if (errors.length > 0) { console.error("Insert errors:", errors); toast.error("Error saving to your space. Please try again."); setStage("share"); return; }
       }
@@ -227,4 +227,57 @@ const Record = () => {
       {stage === "preview" && <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6"><p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{lang === "ar" ? "استمع إلى تسجيلك" : lang === "fr" ? "Réécoutez votre souvenir" : "Listen to your recording"}</p><h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{currentQuestion.current}"</h2>{audioMode ? <audio src={localUrl} controls className="w-full max-w-xs mt-4" autoPlay /> : <video src={localUrl} controls className="w-full max-w-xs rounded-2xl border border-white/20 mt-4" autoPlay playsInline />}<p className="text-white/50 text-xs mt-4">{lang === "ar" ? "هل تريد الاحتفاظ بهذا التسجيل؟" : lang === "fr" ? "Voulez-vous garder cet enregistrement ?" : "Do you want to keep this recording?"}</p><div className="flex gap-4 w-full max-w-xs mt-4"><button onClick={handleRetake} className="flex-1 py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20 flex items-center justify-center gap-2"><RotateCcw size={18} />{lang === "ar" ? "إعادة" : lang === "fr" ? "Refaire" : "Retake"}</button><button onClick={handleConfirm} className="flex-1 py-4 rounded-full gradient-orange text-white font-bold text-base flex items-center justify-center gap-2" style={{ color: "#fff" }}><Check size={18} />{lang === "ar" ? "احتفاظ" : lang === "fr" ? "Garder" : "Keep"}</button></div></div>}
       {stage === "uploading" && <div className="relative z-20 flex-1 flex flex-col items-center justify-center gap-6"><Loader2 size={48} className="text-[#E8742A] animate-spin" /><p className="text-white text-sm font-bold uppercase tracking-widest">{t.weaving}</p><p className="text-white/40 text-xs">~{estimatedSize}</p></div>}
       {stage === "followup" && <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8"><p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.oneMoreQuestion}</p><p className="text-white/40 text-xs uppercase tracking-widest">{followupIdx + 1} / {followups.length}</p><h2 className="text-white text-2xl font-bold leading-tight">{followups[Math.min(followupIdx, followups.length - 1)]}</h2><div className="flex flex-col gap-3 w-full max-w-xs"><button onClick={() => startCountdown(true)} className="w-full py-4 rounded-full gradient-orange font-bold text-base" style={{ color: "#fff" }}>{t.answerToo}</button><button onClick={() => setStage("title")} className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base">{t.seeMyMemory}</button></div></div>}
-      {stage === "title" && <div className="relative z-20 flex-1 flex flex
+      {stage === "title" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.memoryReady}</p>
+          <h2 className="text-white text-2xl font-bold leading-tight italic">"{memoryTitle}"</h2>
+          <input
+            type="text"
+            value={memoryTitle}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full max-w-xs bg-white/10 border border-white/20 rounded-full px-6 py-3 text-white text-center text-sm outline-none"
+            dir={rtl ? "rtl" : "ltr"}
+          />
+          <button
+            onClick={() => setStage("share")}
+            className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-2"
+            style={{ color: "#fff" }}
+          >
+            <Share2 size={18} /> {t.shareMemory}
+          </button>
+        </div>
+      )}
+      {stage === "share" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.whoHears}</p>
+          <h2 className="text-white text-lg font-bold leading-tight italic mb-2">"{memoryTitle}"</h2>
+          <button onClick={() => handleShare("circle")} className="w-full max-w-xs py-4 rounded-full font-bold text-white text-base" style={{ backgroundColor: "#6B4E9B" }}>{t.myFamilyCircle}</button>
+          <button onClick={() => handleShare("public")} className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base" style={{ color: "#fff" }}>{t.shareInOcean}</button>
+          <button onClick={() => handleShare("private")} className="w-full max-w-xs py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base">{t.keepPrivate}</button>
+          <div className="flex items-center gap-3 w-full max-w-xs my-1">
+            <div className="flex-1 h-px bg-white/15" />
+            <span className="text-white/30 text-xs uppercase tracking-widest">{lang === "ar" ? "أو" : lang === "fr" ? "ou" : "or"}</span>
+            <div className="flex-1 h-px bg-white/15" />
+          </div>
+          <button onClick={() => setShowShareModal(true)} className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2" style={{ backgroundColor: "rgba(255,255,255,.12)", color: "#fff", border: "1px solid rgba(255,255,255,.2)" }}>
+            <Share2 size={18} />
+            {lang === "ar" ? "مشاركة على وسائل التواصل" : lang === "fr" ? "Partager sur les réseaux" : "Share on social media"}
+          </button>
+          <button onClick={handleDownload} className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2" style={{ color: "rgba(255,255,255,.4)" }}>
+            <Download size={16} />
+            {lang === "ar" ? "تحميل الذكرى" : lang === "fr" ? "Télécharger le souvenir" : "Download memory"}
+          </button>
+        </div>
+      )}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title={memoryTitle || "A memory"}
+        url={uploadedFileUrl.current || "https://infeelit.com"}
+        text={`I preserved a memory on Infeelit: "${memoryTitle}"`}
+      />
+    </div>
+  );
+};
+
+export default Record;
