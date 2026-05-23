@@ -197,7 +197,7 @@ const Record = () => {
   const [estSize, setEstSize] = useState("0 KB");
   const [showShareModal, setShowShareModal] = useState(false);
   const [localBlob, setLocalBlob] = useState<Blob | null>(null);
-  const [localUrl, setLocalUrl] = useState("");
+  const [localUrl, setLocalUrl] = useState<string | null>(null);
   const [previewReady, setPreviewReady] = useState(false);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [selectedThumb, setSelectedThumb] = useState(0);
@@ -382,13 +382,11 @@ const Record = () => {
   };
   const handleRetake = () => {
     if (localUrl) URL.revokeObjectURL(localUrl);
-    setLocalBlob(null);
-    setLocalUrl("");
-    setPreviewReady(false);
+    setLocalUrl(null);
     chunksRef.current = [];
     setStage("question");
   };
-  const handleConfirm = () => {
+  const handleUpload = () => {
     if (!localBlob) return;
     setPreviewReady(false);
     clipsRef.current.push({ blob: localBlob, question: questionRef.current, posterBlob: posterRef.current });
@@ -847,45 +845,38 @@ const Record = () => {
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
             {lang === "ar"
-              ? "استمع إلى تسجيلك"
+              ? "استمع إلى ذكراك..."
               : lang === "fr"
-                ? "Réécoutez votre souvenir"
-                : "Listen to your recording"}
+                ? "Réécoutez votre souvenir..."
+                : "Listen to your memory..."}
           </p>
           <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{questionRef.current}"</h2>
           {audioMode ? (
-            <audio src={localUrl} controls className="w-full max-w-xs mt-4" autoPlay />
+            <audio src={localUrl || undefined} controls style={{ width: "100%" }} autoPlay />
           ) : (
             <video
-              src={localUrl}
+              src={localUrl || undefined}
               controls
-              className="w-full max-w-xs rounded-2xl border border-white/20 mt-4"
+              style={{ width: "100%", borderRadius: "16px" }}
               autoPlay
               playsInline
             />
           )}
-          <p className="text-white/50 text-xs mt-4">
-            {lang === "ar"
-              ? "هل تريد الاحتفاظ بهذا التسجيل؟"
-              : lang === "fr"
-                ? "Voulez-vous garder cet enregistrement ?"
-                : "Do you want to keep this recording?"}
-          </p>
           <div className="flex gap-4 w-full max-w-xs mt-4">
             <button
               onClick={handleRetake}
               className="flex-1 py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20 flex items-center justify-center gap-2"
             >
               <RotateCcw size={18} />
-              {lang === "ar" ? "إعادة" : lang === "fr" ? "Refaire" : "Retake"}
+              {lang === "ar" ? "حاول مجدداً" : lang === "fr" ? "Recommencer" : "Try again"}
             </button>
             <button
-              onClick={handleConfirm}
+              onClick={handleUpload}
               className="flex-1 py-4 rounded-full gradient-orange text-white font-bold text-base flex items-center justify-center gap-2"
               style={{ color: "#fff" }}
             >
               <Check size={18} />
-              {lang === "ar" ? "احتفاظ" : lang === "fr" ? "Garder" : "Keep"}
+              {lang === "ar" ? "هذا رائع ✦" : lang === "fr" ? "C'est parfait ✦" : "This is perfect ✦"}
             </button>
           </div>
         </div>
