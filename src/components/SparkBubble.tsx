@@ -1,9 +1,8 @@
-```tsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useUserName } from "@/hooks/useUserName";
+import useUserName from "@/hooks/useUserName";
 import infeeilitSymbol from "@/assets/logo_sparkl_final_Infeelit.png";
 
 const SPARK_INVITATIONS = {
@@ -44,7 +43,7 @@ const getSparkBalance = (): number => Number(localStorage.getItem("infeelit_spar
 const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const userName = useUserName();
+  const { userName } = useUserName();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 50, y: 30 });
   const [expanded, setExpanded] = useState(false);
@@ -239,4 +238,3 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
 };
 
 export default SparkBubble;
-```
