@@ -32,7 +32,7 @@ const AuthCallback = () => {
           localStorage.removeItem("pending_circle_code");
           const { data: circle } = await supabase
             .rpc("lookup_circle_by_invite_code", { _code: pendingCode })
-            .maybeSingle();
+            .single();
 
           if (circle) {
             await supabase.from("circle_members").insert({
