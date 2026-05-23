@@ -1,9 +1,10 @@
+```tsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import useUserName from "@/hooks/useUserName";
-import infeeilitSymbol from "@/assets/logo_sparkl_4.png";
+import { useUserName } from "@/hooks/useUserName";
+import infeeilitSymbol from "@/assets/logo_sparkl_final_Infeelit.png";
 
 const SPARK_INVITATIONS = {
   objet: {
@@ -43,7 +44,7 @@ const getSparkBalance = (): number => Number(localStorage.getItem("infeelit_spar
 const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const { userName } = useUserName();
+  const userName = useUserName();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 50, y: 30 });
   const [expanded, setExpanded] = useState(false);
@@ -166,7 +167,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
           <div className="heartbeat-pulse absolute rounded-full" style={{ width: "90px", height: "90px", background: "radial-gradient(circle at 45% 45%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.85) 25%, rgba(232,116,42,0.5) 55%, rgba(180,70,10,0.15) 100%)", border: "2px solid rgba(255,200,60,0.7)" }}>
             <div className="inner-glow-rotate absolute inset-0 rounded-full" style={{ background: "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.4) 25%, transparent 50%, rgba(255,255,255,0.2) 75%, transparent 100%)", opacity: 0.7 }} />
             <div className="absolute inset-0 flex items-center justify-center">
-              <img src={infeeilitSymbol} alt="Infeelit" style={{ width: "200px", height: "200px", objectFit: "contain", animation: "heartbeat 0.86s ease-in-out infinite", filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))", mixBlendMode: "screen", position: "absolute" }} />
+              <img src={infeeilitSymbol} alt="Infeelit" style={{ width: "54px", height: "54px", objectFit: "contain", animation: "heartbeat 0.86s ease-in-out infinite", filter: "drop-shadow(0 0 10px rgba(255,200,60,0.9))", mixBlendMode: "screen", position: "absolute" }} />
             </div>
             {sparkBalance > 0 && (
               <div className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,200,60,0.6)", boxShadow: "0 0 8px rgba(255,200,60,0.4)" }}><span style={{ fontSize: "9px", color: "#FFD700", fontWeight: 700, lineHeight: 1, textShadow: "0 0 4px rgba(255,200,60,0.8)" }}>✦{sparkBalance}</span></div>
@@ -181,7 +182,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
             <button onClick={handleClose} className="absolute top-4 right-4 p-2 rounded-full bg-[#3D2B1F]/[.05] text-[#3D2B1F]/40 hover:bg-[#3D2B1F]/[.1] transition-colors border-none cursor-pointer"><X size={18} /></button>
 
             <div className="flex justify-center mb-4">
-              <img src={infeeilitSymbol} alt="Infeelit" style={{ width: "200px", height: "200px", objectFit: "contain", animation: "heartbeat 0.86s ease-in-out infinite", filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))", mixBlendMode: "screen" }} />
+              <img src={infeeilitSymbol} alt="Infeelit" style={{ width: "62px", height: "62px", objectFit: "contain", animation: "heartbeat 0.86s ease-in-out infinite", filter: "drop-shadow(0 0 12px rgba(255,200,60,0.9))", mixBlendMode: "screen" }} />
             </div>
 
             {showNameInput ? (
@@ -238,3 +239,4 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
 };
 
 export default SparkBubble;
+```
