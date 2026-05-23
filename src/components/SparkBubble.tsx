@@ -68,13 +68,13 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   }, [forceOpen]);
 
   useEffect(() => {
-    if (!userName) return;
     const categories = getCardsForHour();
+    const displayName = userName || (lang === "fr" ? "ami(e)" : lang === "ar" ? "صديقي" : "friend");
     const langKey = (lang === "fr" ? "fr" : lang === "ar" ? "ar" : "en") as "fr" | "en" | "ar";
     const selectedCards = categories.map((cat) => {
       const pool = SPARK_INVITATIONS[cat][langKey];
       const randomText = pool[Math.floor(Math.random() * pool.length)];
-      return { category: cat, text: randomText.replace("{name}", userName) };
+      return { category: cat, text: randomText.replace("{name}", displayName) };
     });
     setCards(selectedCards);
   }, [lang, userName, expanded]);
