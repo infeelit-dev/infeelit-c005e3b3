@@ -845,10 +845,10 @@ const Record = () => {
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
             {lang === "ar"
-              ? "استمع إلى ذكراك..."
+              ? "استمع قبل الحفظ..."
               : lang === "fr"
-                ? "Réécoutez votre souvenir..."
-                : "Listen to your memory..."}
+                ? "Réécoutez avant de garder..."
+                : "Listen before keeping..."}
           </p>
           <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{questionRef.current}"</h2>
           {audioMode ? (
