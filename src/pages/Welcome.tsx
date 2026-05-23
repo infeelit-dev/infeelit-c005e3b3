@@ -24,7 +24,15 @@ const Welcome = () => {
         },
       });
       if (error) throw error;
-      toast.success(t.welcomeSuccess);
+      toast.success(t.welcomeSuccess, {
+        description:
+          lang === "fr"
+            ? "Vérifie tes spams si tu ne vois rien"
+            : lang === "ar"
+              ? "تحقق من البريد العشوائي"
+              : "Check your spam if you don't see it",
+        duration: 8000,
+      });
     } catch (error: any) {
       toast.error(error.message || "An error occurred");
     } finally {
