@@ -80,6 +80,8 @@ export type Database = {
           file_type: string | null
           file_url: string | null
           id: string
+          is_anonymous: boolean
+          is_community: boolean
           is_public: boolean
           thumbnail_url: string | null
           timeline: string
@@ -93,6 +95,8 @@ export type Database = {
           file_type?: string | null
           file_url?: string | null
           id?: string
+          is_anonymous?: boolean
+          is_community?: boolean
           is_public?: boolean
           thumbnail_url?: string | null
           timeline?: string
@@ -106,6 +110,8 @@ export type Database = {
           file_type?: string | null
           file_url?: string | null
           id?: string
+          is_anonymous?: boolean
+          is_community?: boolean
           is_public?: boolean
           thumbnail_url?: string | null
           timeline?: string
