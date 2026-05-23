@@ -14,10 +14,13 @@ import {
   Camera,
   ChevronLeft,
   ChevronRight,
+  Lock,
+  Users,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useUserName } from "@/hooks/useUserName";
+import useUserName from "@/hooks/useUserName";
 import ShareModal from "@/components/ShareModal";
 
 import childImg from "@/assets/child.jpg";
@@ -527,22 +530,20 @@ const Record = () => {
       if (uid && uid !== "anonymous") {
         userIdRef.current = uid;
         const ips = urls.map((u) =>
-          supabase
-            .from("memories")
-            .insert({
-              user_id: uid,
-              title: memoryTitle || "A memory",
-              description: null,
-              file_url: u,
-              file_type: typeRef.current,
-              thumbnail_url: thumbUrlRef.current || null,
-              timeline: "memories",
-              is_public: isCommunityRef.current,
-              is_community: isCommunityRef.current,
-              is_anonymous: isAnonymousRef.current,
-              spark_reward: sparkRewardRef.current,
-              created_at: new Date().toISOString(),
-            }),
+          (supabase.from("memories") as any).insert({
+            user_id: uid,
+            title: memoryTitle || "A memory",
+            description: null,
+            file_url: u,
+            file_type: typeRef.current,
+            thumbnail_url: thumbUrlRef.current || null,
+            timeline: "memories",
+            is_public: isCommunityRef.current,
+            is_community: isCommunityRef.current,
+            is_anonymous: isAnonymousRef.current,
+            spark_reward: sparkRewardRef.current,
+            created_at: new Date().toISOString(),
+          }),
         );
         const res = await Promise.all(ips);
         const errs = res.filter((r) => r.error);
