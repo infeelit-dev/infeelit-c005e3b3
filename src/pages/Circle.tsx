@@ -311,6 +311,41 @@ const fetchNotifications = async (circleId: string | null): Promise<CircleNotifi
   return (data as CircleNotification[]) || [];
 };
 
+interface CircleMemberInfo {
+  user_id: string;
+  display_name: string;
+  memory_count: number;
+}
+
+const fetchCircleMembersWithCounts = async (circleId: string | null): Promise<CircleMemberInfo[]> => {
+  if (!circleId) return [];
+  const { data: members } = await supabase
+    .from("circle_members")
+    .select("user_id")
+    .eq("circle_id", circleId);
+  const ids = (members ?? []).map((m: any) => m.user_id);
+  if (ids.length === 0) return [];
+  const [{ data: profiles }, counts] = await Promise.all([
+    supabase.from("profiles").select("user_id, display_name").in("user_id", ids),
+    Promise.all(
+      ids.map(async (uid) => {
+        const { count } = await supabase
+          .from("memories")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", uid);
+        return { user_id: uid, count: count ?? 0 };
+      }),
+    ),
+  ]);
+  const nameMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p.display_name]));
+  const countMap = new Map(counts.map((c) => [c.user_id, c.count]));
+  return ids.map((uid) => ({
+    user_id: uid,
+    display_name: nameMap.get(uid) || "Member",
+    memory_count: countMap.get(uid) ?? 0,
+  }));
+};
+
 const Circle = () => {
   const navigate = useNavigate();
   const { t, lang, rtl } = useLanguage();
@@ -334,6 +369,27 @@ const Circle = () => {
     enabled: !!circleData?.circleId,
     staleTime: 30_000,
   });
+  const { data: realMembers = [] } = useQuery({
+    queryKey: ["circle-members-counts", circleData?.circleId],
+    queryFn: () => fetchCircleMembersWithCounts(circleData?.circleId ?? null),
+    enabled: !!circleData?.circleId,
+    staleTime: 30_000,
+  });
+
+  const memberSubtitle = (count: number) => {
+    if (lang === "fr") return `${count} souvenir${count > 1 ? "s" : ""}`;
+    if (lang === "ar") return `${count} ذكرى`;
+    return `${count} ${count === 1 ? "memory" : "memories"}`;
+  };
+
+  const constellationMembers = realMembers.length > 0
+    ? DEMO_MEMBERS.map((m, i) => {
+        const real = realMembers[i];
+        return real
+          ? { ...m, name: real.display_name, subtitle: memberSubtitle(real.memory_count), id: real.user_id }
+          : null;
+      }).filter(Boolean) as DemoMember[]
+    : DEMO_MEMBERS;
 
   const FILTERS: { id: FilterType; label: string }[] = [
     { id: "all", label: t.tabAll },
