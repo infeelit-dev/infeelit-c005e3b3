@@ -407,6 +407,10 @@ const Circle = () => {
     };
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("infeelit_circle_last_visit", new Date().toISOString());
+  }, []);
+
   const inviteUrl = circleData?.inviteCode
     ? `https://infeelit.com/join/${circleData.inviteCode}`
     : "https://infeelit.com";
