@@ -34,7 +34,12 @@ const getCardsForHour = (): Category[] => {
 
 const getSparkBalance = (): number => Number(localStorage.getItem("infeelit_spark_balance") || 0);
 
-const SparkBubble = () => {
+interface SparkBubbleProps {
+  forceOpen?: boolean;
+  onSparkClose?: () => void;
+}
+
+const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps = {}) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -87,7 +92,14 @@ const SparkBubble = () => {
     }
   };
 
-  const handleClose = () => setExpanded(false);
+  useEffect(() => {
+    if (forceOpen) setExpanded(true);
+  }, [forceOpen]);
+
+  const handleClose = () => {
+    setExpanded(false);
+    onSparkClose?.();
+  };
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
