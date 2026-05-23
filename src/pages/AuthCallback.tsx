@@ -30,7 +30,9 @@ const AuthCallback = () => {
         const pendingCode = localStorage.getItem("pending_circle_code");
         if (pendingCode) {
           localStorage.removeItem("pending_circle_code");
-          const { data: circle } = await supabase.from("circles").select("id").eq("invite_code", pendingCode).single();
+          const { data: circle } = await supabase
+            .rpc("lookup_circle_by_invite_code", { _code: pendingCode })
+            .maybeSingle();
 
           if (circle) {
             await supabase.from("circle_members").insert({
