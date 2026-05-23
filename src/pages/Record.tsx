@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw, Check, Camera } from "lucide-react";
+import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw, Check, Camera, Lock, Users, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useUserName } from "@/hooks/useUserName";
+import useUserName from "@/hooks/useUserName";
 import ShareModal from "@/components/ShareModal";
 
 import childImg from "@/assets/child.jpg";
@@ -517,7 +517,7 @@ const Record = () => {
       if (uid && uid !== "anonymous") {
         userIdRef.current = uid;
         const ips = urls.map((u) =>
-          supabase.from("memories").insert({
+          (supabase.from("memories") as any).insert({
             user_id: uid,
             title: memoryTitle || "A memory",
             description: null,
