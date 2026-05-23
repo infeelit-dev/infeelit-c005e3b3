@@ -197,7 +197,7 @@ const Record = () => {
   const [estSize, setEstSize] = useState("0 KB");
   const [showShareModal, setShowShareModal] = useState(false);
   const [localBlob, setLocalBlob] = useState<Blob | null>(null);
-  const [localUrl, setLocalUrl] = useState("");
+  const [localUrl, setLocalUrl] = useState<string | null>(null);
   const [previewReady, setPreviewReady] = useState(false);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [selectedThumb, setSelectedThumb] = useState(0);
