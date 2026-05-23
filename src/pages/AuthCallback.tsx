@@ -27,6 +27,23 @@ const AuthCallback = () => {
 
         if (cancelled) return;
 
+        const pendingCode = localStorage.getItem("pending_circle_code");
+        if (pendingCode) {
+          localStorage.removeItem("pending_circle_code");
+          const { data: circle } = await supabase.from("circles").select("id").eq("invite_code", pendingCode).single();
+
+          if (circle) {
+            await supabase.from("circle_members").insert({
+              circle_id: circle.id,
+              user_id: userId,
+              role: "member",
+            });
+          }
+          setStatus("Welcome to the family");
+          navigate("/circle", { replace: true });
+          return;
+        }
+
         if (hasName) {
           setStatus("Welcome back");
           navigate("/treasure", { replace: true });
