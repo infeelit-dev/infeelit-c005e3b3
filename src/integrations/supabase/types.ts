@@ -75,6 +75,8 @@ export type Database = {
       }
       memories: {
         Row: {
+          aura_intensity: number | null
+          background_image_url: string | null
           created_at: string
           description: string | null
           file_type: string | null
@@ -83,6 +85,7 @@ export type Database = {
           is_anonymous: boolean
           is_community: boolean
           is_public: boolean
+          spark_reward: number | null
           thumbnail_url: string | null
           timeline: string
           title: string | null
@@ -90,6 +93,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          aura_intensity?: number | null
+          background_image_url?: string | null
           created_at?: string
           description?: string | null
           file_type?: string | null
@@ -98,6 +103,7 @@ export type Database = {
           is_anonymous?: boolean
           is_community?: boolean
           is_public?: boolean
+          spark_reward?: number | null
           thumbnail_url?: string | null
           timeline?: string
           title?: string | null
@@ -105,6 +111,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          aura_intensity?: number | null
+          background_image_url?: string | null
           created_at?: string
           description?: string | null
           file_type?: string | null
@@ -113,6 +121,7 @@ export type Database = {
           is_anonymous?: boolean
           is_community?: boolean
           is_public?: boolean
+          spark_reward?: number | null
           thumbnail_url?: string | null
           timeline?: string
           title?: string | null
@@ -120,6 +129,51 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          circle_id: string
+          created_at: string
+          from_user_id: string
+          id: string
+          memory_id: string | null
+          message: string
+          read: boolean
+        }
+        Insert: {
+          circle_id: string
+          created_at?: string
+          from_user_id: string
+          id?: string
+          memory_id?: string | null
+          message: string
+          read?: boolean
+        }
+        Update: {
+          circle_id?: string
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          memory_id?: string | null
+          message?: string
+          read?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

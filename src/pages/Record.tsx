@@ -517,7 +517,8 @@ const Record = () => {
       if (uid && uid !== "anonymous") {
         userIdRef.current = uid;
         const ips = urls.map((u) =>
-          (supabase.from("memories") as any).insert({
+          (supabase.from("memories") as any)
+            .insert({
             user_id: uid,
             title: memoryTitle || "A memory",
             description: null,
@@ -532,7 +533,8 @@ const Record = () => {
             background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
             aura_intensity: auraRef.current ? 35 : null,
             created_at: new Date().toISOString(),
-          }),
+            })
+            .select("id"),
         );
         const res = await Promise.all(ips);
         const errs = res.filter((r) => r.error);
@@ -541,6 +543,40 @@ const Record = () => {
           toast.error("Error saving.");
           setStage("share");
           return;
+        }
+
+        // Notify the user's circle(s) about the new memory
+        try {
+          const insertedIds = (res
+            .map((r: any) => r?.data?.[0]?.id)
+            .filter(Boolean)) as string[];
+          const newMemoryId = insertedIds[insertedIds.length - 1] || null;
+          if (type === "circle" || type === "public") {
+            const { data: memberships } = await supabase
+              .from("circle_members")
+              .select("circle_id")
+              .eq("user_id", uid);
+            if (memberships?.length) {
+              const msg =
+                lang === "fr"
+                  ? `${userName || "Quelqu'un"} a laissé quelque chose pour vous.`
+                  : lang === "ar"
+                    ? `${userName || "شخص ما"} ترك شيئاً لكم.`
+                    : `${userName || "Someone"} left something for you.`;
+              await Promise.all(
+                memberships.map((m: { circle_id: string }) =>
+                  supabase.from("notifications").insert({
+                    circle_id: m.circle_id,
+                    from_user_id: uid,
+                    memory_id: newMemoryId,
+                    message: msg,
+                  }),
+                ),
+              );
+            }
+          }
+        } catch (notifErr) {
+          console.error("Notification insert failed:", notifErr);
         }
       }
       if (fromSparkRef.current || sparkRewardRef.current > 0) {
@@ -567,7 +603,11 @@ const Record = () => {
         setStage("share");
         return;
       }
-      navigate("/");
+      if (type === "private") {
+        navigate("/treasure", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err) {
       console.error(err);
       toast.error("An unexpected error occurred.");
