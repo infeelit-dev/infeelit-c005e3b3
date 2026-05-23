@@ -33,6 +33,7 @@ const Index = () => {
   const [showOnboardingChoice, setShowOnboardingChoice] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
+  const [sparkForced, setSparkForced] = useState(false);
 
   useEffect(() => {
     const savedName = localStorage.getItem("infeelit_user_name");
@@ -40,8 +41,10 @@ const Index = () => {
     if (!savedName) {
       setShowNamePrompt(true);
     } else if (!hasSeenOnboarding) {
-      setShowOnboardingChoice(true);
-      localStorage.setItem("infeelit_onboarding_done", "true");
+      setTimeout(() => {
+        setShowOnboardingChoice(true);
+        localStorage.setItem("infeelit_onboarding_done", "true");
+      }, 500);
     }
   }, []);
 
@@ -152,7 +155,7 @@ const Index = () => {
       </div>{" "}
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />{" "}
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
-      <SparkBubble forceOpen={false} onSparkClose={() => {}} />
+      <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
       {activeTimeline === "memories" && (
         <button
           onClick={() => handleDemoBubbleClick("forever-in-memories")}
@@ -278,7 +281,7 @@ const Index = () => {
           </span>
         </button>
       )}
-      <CurvedBottomNav onPlusClick={() => {}} />
+      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} />
       {showForeverOverlay && (
         <div
           className="absolute inset-0 z-50 flex items-center justify-center"

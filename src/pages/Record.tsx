@@ -545,6 +545,26 @@ const Record = () => {
           return;
         }
 
+        // First-memory welcome toast
+        try {
+          const { count } = await supabase
+            .from("memories")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", uid);
+          if (count === 1) {
+            const who = userName || (lang === "fr" ? "toi" : lang === "ar" ? "أنت" : "you");
+            const msg =
+              lang === "fr"
+                ? `${who}, ton premier souvenir est préservé pour toujours. ✦`
+                : lang === "ar"
+                  ? `${who}، ذكراك الأولى محفوظة للأبد. ✦`
+                  : `${who}, your first memory is preserved forever. ✦`;
+            toast.success(msg, { duration: 5000 });
+          }
+        } catch (e) {
+          console.error("First-memory count failed:", e);
+        }
+
         // Notify the user's circle(s) about the new memory
         try {
           const insertedIds = (res
