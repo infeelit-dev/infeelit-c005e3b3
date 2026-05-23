@@ -162,6 +162,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_circle_invite_code: { Args: { _circle_id: string }; Returns: string }
       is_circle_admin: {
         Args: { _circle_id: string; _user_id: string }
         Returns: boolean
@@ -169,6 +170,14 @@ export type Database = {
       is_circle_member: {
         Args: { _circle_id: string; _user_id: string }
         Returns: boolean
+      }
+      lookup_circle_by_invite_code: {
+        Args: { _code: string }
+        Returns: {
+          id: string
+          member_count: number
+          name: string
+        }[]
       }
     }
     Enums: {
