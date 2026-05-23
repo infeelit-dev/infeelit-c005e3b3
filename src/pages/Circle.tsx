@@ -749,7 +749,7 @@ const Circle = () => {
           />
         </div>
 
-        {DEMO_MEMBERS.map((m) => {
+        {constellationMembers.map((m) => {
           const isNew = m.hasNew && !seenMembers.has(m.id);
           return (
             <div
