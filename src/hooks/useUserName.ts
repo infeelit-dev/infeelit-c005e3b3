@@ -14,3 +14,4 @@ const useUserName = () => {
 };
 
 export default useUserName;
+export { useUserName };
