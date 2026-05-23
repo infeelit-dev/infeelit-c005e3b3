@@ -43,7 +43,7 @@ const getSparkBalance = (): number => Number(localStorage.getItem("infeelit_spar
 const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const { userName } = useUserName();
+  const userName = useUserName();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 50, y: 30 });
   const [expanded, setExpanded] = useState(false);
