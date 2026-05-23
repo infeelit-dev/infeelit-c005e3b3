@@ -1,5 +1,11 @@
-import type { Timeline } from "@/types/timeline";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { Play, Volume2, Video, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUserName } from "@/hooks/useUserName";
+import type { Timeline } from "@/types/timeline";
+
 import imgGrandfather from "@/assets/grandfather.jpg";
 import imgChild from "@/assets/child.jpg";
 import imgMarry from "@/assets/marry.jpg";
@@ -10,29 +16,54 @@ import imgHouse from "@/assets/house.jpg";
 import imgPicnic from "@/assets/picnic.jpg";
 import imgTravel from "@/assets/travel.jpg";
 import imgGraduate from "@/assets/graduate.jpg";
-import type { BubbleCategory } from "./MemoryBubble";
 
-type Lang = "fr" | "en" | "ar";
+const REAL_CONTENT_THRESHOLD = 3;
 
-interface InfeeilitQuestion {
-  title: Record<Lang, string>;
-  narrative: Record<Lang, string>;
-  image: string;
-  size: number;
-  x: number;
-  y: number;
-  colorMode: "sepia" | "color";
-}
+const THEME_IMAGES: Record<string, string> = {
+  enfant: imgChild,
+  child: imgChild,
+  طفل: imgChild,
+  père: imgGrandfather,
+  father: imgGrandfather,
+  أب: imgGrandfather,
+  mère: imgGrandfather,
+  mother: imgGrandfather,
+  أم: imgGrandfather,
+  maison: imgHouse,
+  home: imgHouse,
+  بيت: imgHouse,
+  amour: imgLove,
+  love: imgLove,
+  حب: imgLove,
+  voyage: imgTravel,
+  travel: imgTravel,
+  سفر: imgTravel,
+  mariage: imgMarry,
+  marry: imgMarry,
+  زواج: imgMarry,
+  naissance: imgBirth,
+  birth: imgBirth,
+  ولادة: imgBirth,
+  diplôme: imgGraduate,
+  graduate: imgGraduate,
+  تخرج: imgGraduate,
+  pique: imgPicnic,
+  picnic: imgPicnic,
+  نزهة: imgPicnic,
+  repos: imgRelax,
+  relax: imgRelax,
+  راحة: imgRelax,
+};
 
-const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
+const DEMO_QUESTIONS: Record<
+  string,
+  { fr: string; en: string; ar: string; image: string; size: number; x: number; y: number; colorMode: string }[]
+> = {
   memories: [
     {
-      title: { fr: "L'odeur de sa cuisine", en: "The scent of her kitchen", ar: "رائحة مطبخها" },
-      narrative: {
-        fr: "Décris-moi l'ambiance de la cuisine quand ta mère préparait ton plat préféré : les bruits des casseroles, les parfums et ce qui se disait entre vous.",
-        en: "Describe the atmosphere of the kitchen when your mother prepared your favorite dish: the clinking pots, the aromas, and the words shared between you.",
-        ar: "صف لي أجواء المطبخ عندما كانت والدتك تحضر طبقك المفضل: أصوات الأواني والروائح التي كانت تملأ المكان.",
-      },
+      fr: "L'odeur de sa cuisine",
+      en: "The scent of her kitchen",
+      ar: "رائحة مطبخها",
       image: imgGrandfather,
       size: 130,
       x: 5,
@@ -40,12 +71,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "sepia",
     },
     {
-      title: { fr: "Ton plus vieux fou rire", en: "Your earliest belly laugh", ar: "أول ضحكة من القلب" },
-      narrative: {
-        fr: "Raconte-moi ton plus vieux souvenir de fou rire partagé avec les tiens : les visages qui s'illuminaient, le bruit des éclats de rire.",
-        en: "Tell me about your earliest memory of a shared belly laugh with your family: the faces lighting up, the sound of the laughter.",
-        ar: "احكِ لي عن أقدم ذكرى لضحك من القلب شاركتها مع أهلك: كيف كانت تضيء وجوههم وصوت الضحكات.",
-      },
+      fr: "Ton plus vieux fou rire",
+      en: "Your earliest belly laugh",
+      ar: "أول ضحكة من القلب",
       image: imgChild,
       size: 110,
       x: 55,
@@ -53,12 +81,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "Leur geste d'amour muet", en: "Their silent act of love", ar: "لفتة حب صامتة" },
-      narrative: {
-        fr: "Raconte-moi ce geste silencieux qu'ils faisaient pour te dire 'je t'aime' sans utiliser les mots : ce regard ou cette main sur ton épaule.",
-        en: "Tell me about that silent gesture they made to say 'I love you' without words: that look or that hand on your shoulder.",
-        ar: "احكِ لي عن تلك اللفتة الصامتة التي كانوا يقومون بها ليقولوا لك 'أحبك' دون كلمات.",
-      },
+      fr: "Leur geste d'amour muet",
+      en: "Their silent act of love",
+      ar: "لفتة حب صامتة",
       image: imgMarry,
       size: 140,
       x: 25,
@@ -66,12 +91,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "sepia",
     },
     {
-      title: { fr: "Le bruit de la maison", en: "The sound of home", ar: "صوت البيت" },
-      narrative: {
-        fr: "Raconte-moi le bruit unique de la maison de ton enfance : le craquement d'un parquet, le chant des oiseaux au matin ou le bourdonnement d'une radio lointaine.",
-        en: "Tell me about the unique sound of your childhood home: the creaking floorboards, the morning birdsong, or the hum of a distant radio.",
-        ar: "احكِ لي عن الصوت المميز لمنزل طفولتك: صرير الأرضية الخشبية، زقزقة العصافير في الصباح.",
-      },
+      fr: "Le bruit de la maison",
+      en: "The sound of home",
+      ar: "صوت البيت",
       image: imgPicnic,
       size: 90,
       x: 5,
@@ -79,12 +101,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "Le café des matins", en: "The morning coffee", ar: "قهوة الصباح" },
-      narrative: {
-        fr: "Décris-moi l'odeur du café ou du thé dans la maison le matin : le bruit de la cuillère, la lumière sur la table et cette voix qui te réveillait doucement.",
-        en: "Describe the smell of coffee or tea in the house in the morning: the sound of the spoon, the light on the table, and that voice waking you gently.",
-        ar: "صف لي رائحة القهوة أو الشاي في المنزل صباحاً: صوت الملعقة، الضوء على الطاولة وذاك الصوت الذي كان يوقظك.",
-      },
+      fr: "Le café des matins",
+      en: "The morning coffee",
+      ar: "قهوة الصباح",
       image: imgLove,
       size: 115,
       x: 45,
@@ -92,12 +111,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "sepia",
     },
     {
-      title: { fr: "Le vêtement de ton père", en: "Your father's old coat", ar: "رداء والدك القديم" },
-      narrative: {
-        fr: "Décris-moi ce vêtement que ton père portait tout le temps et que tu n'oseras jamais jeter : sa texture sous tes doigts et l'odeur qui y est restée.",
-        en: "Describe that piece of clothing your father wore constantly and that you'll never throw away: its texture under your fingers and the scent still lingering.",
-        ar: "صف لي تلك القطعة من الملابس التي كان يرتديها والدك دائماً والتي لن تجرؤ على رميها أبداً.",
-      },
+      fr: "Le vêtement de ton père",
+      en: "Your father's old coat",
+      ar: "رداء والدك القديم",
       image: imgTravel,
       size: 100,
       x: 65,
@@ -105,46 +121,23 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "sepia",
     },
     {
-      title: { fr: "Leur secret de bonheur", en: "Their secret to happiness", ar: "سر سعادتهم" },
-      narrative: {
-        fr: "Raconte-moi ce secret de bonheur simple que tes aînés possédaient : comment ils savouraient l'instant et quelle phrase ils répétaient pour garder le sourire.",
-        en: "Tell me about that simple secret to happiness your elders possessed: how they savored the moment and what phrase they repeated to keep smiling.",
-        ar: "احكِ لي عن سر السعادة البسيط الذي كان يمتلكه كبار عائلتك وكيف كانوا يستمتعون باللحظة.",
-      },
+      fr: "Leur secret de bonheur",
+      en: "Their secret to happiness",
+      ar: "سر سعادتهم",
       image: imgRelax,
       size: 95,
       x: 70,
       y: 20,
       colorMode: "color",
     },
-    {
-      title: { fr: "", en: "", ar: "" },
-      narrative: { fr: "", en: "", ar: "" },
-      image: imgBirth,
-      size: 40,
-      x: 88,
-      y: 8,
-      colorMode: "sepia",
-    },
-    {
-      title: { fr: "", en: "", ar: "" },
-      narrative: { fr: "", en: "", ar: "" },
-      image: imgGraduate,
-      size: 35,
-      x: 3,
-      y: 88,
-      colorMode: "sepia",
-    },
+    { fr: "", en: "", ar: "", image: imgBirth, size: 40, x: 88, y: 8, colorMode: "sepia" },
+    { fr: "", en: "", ar: "", image: imgGraduate, size: 35, x: 3, y: 88, colorMode: "sepia" },
   ],
-
   instant: [
     {
-      title: { fr: "Ton doudou fétiche", en: "Your favorite plushie", ar: "دميتك المفضلة" },
-      narrative: {
-        fr: "Décris-moi ton premier compagnon de sommeil : sa douceur usée par les années, son nom secret et la sécurité que sa présence t'apportait chaque nuit.",
-        en: "Describe your first sleep companion: its softness worn by the years, its secret name, and the security its presence brought you every night.",
-        ar: "صف لي رفيق نومك الأول: ملمسه الذي استهلكته السنون، اسمه السري والأمان الذي كان يمنحك وجوده.",
-      },
+      fr: "Ton doudou fétiche",
+      en: "Your favorite plushie",
+      ar: "دميتك المفضلة",
       image: imgLove,
       size: 130,
       x: 10,
@@ -152,12 +145,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "Votre langage secret", en: "Your secret language", ar: "لغتكم السرية" },
-      narrative: {
-        fr: "Raconte-moi ce langage ou ces codes secrets que tu partageais avec tes frères et sœurs : ces regards qui disaient tout et cette complicité que personne ne pouvait briser.",
-        en: "Tell me about that secret language or codes you shared with your siblings: those looks that said everything and that bond no one could break.",
-        ar: "احكِ لي عن تلك اللغة أو الرموز السرية التي كنت تشاركها مع إخوتك وتلك الرابطة التي لا يمكن لأحد كسرها.",
-      },
+      fr: "Votre langage secret",
+      en: "Your secret language",
+      ar: "لغتكم السرية",
       image: imgChild,
       size: 110,
       x: 55,
@@ -165,12 +155,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "Ta première cabane", en: "Your first secret fort", ar: "مخبؤك الأول" },
-      narrative: {
-        fr: "Décris-moi la première cabane que tu as construite avec tes amis : l'odeur du bois ou des draps, et ce sentiment d'être les seuls maîtres du monde.",
-        en: "Describe the first secret fort you built with your friends: the scent of wood or sheets, and that feeling of being the only masters of the world.",
-        ar: "صف لي أول مخبأ بنيته مع أصدقائك: رائحة الخشب أو الملاءات وشعوركم بأنكم أسياد العالم الوحيدون.",
-      },
+      fr: "Ta première cabane",
+      en: "Your first secret fort",
+      ar: "مخبؤك الأول",
       image: imgPicnic,
       size: 95,
       x: 70,
@@ -178,12 +165,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "sepia",
     },
     {
-      title: { fr: "Le pacte de sang", en: "The childhood pact", ar: "عهد الطفولة" },
-      narrative: {
-        fr: "Raconte-moi ce pacte ou cette promesse solennelle que tu as faite à ton meilleur ami d'enfance : le sérieux de vos visages et l'importance que cela avait pour vous.",
-        en: "Tell me about that pact or solemn promise you made to your childhood best friend: the seriousness on your faces and how much it meant to you.",
-        ar: "احكِ لي عن ذلك الميثاق أو الوعد الجاد الذي قطعته لأفضل صديق لك في طفولتك.",
-      },
+      fr: "Le pacte de sang",
+      en: "The childhood pact",
+      ar: "عهد الطفولة",
       image: imgTravel,
       size: 120,
       x: 20,
@@ -191,46 +175,23 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "Ton goûter d'enfance", en: "Your childhood snack", ar: "وجبة طفولتك الخفيفة" },
-      narrative: {
-        fr: "Décris-moi ton goûter préféré après l'école : le goût du pain frais, le craquement du chocolat et cette sensation de réconfort en rentrant à la maison.",
-        en: "Describe your favorite after-school snack: the taste of fresh bread, the snap of chocolate, and that feeling of immediate comfort coming home.",
-        ar: "صف لي وجبتك الخفيفة المفضلة بعد المدرسة: طعم الخبز الطازج وشعور الراحة عند العودة إلى المنزل.",
-      },
+      fr: "Ton goûter d'enfance",
+      en: "Your childhood snack",
+      ar: "وجبة طفولتك الخفيفة",
       image: imgMarry,
       size: 100,
       x: 60,
       y: 65,
       colorMode: "color",
     },
-    {
-      title: { fr: "", en: "", ar: "" },
-      narrative: { fr: "", en: "", ar: "" },
-      image: imgRelax,
-      size: 45,
-      x: 85,
-      y: 70,
-      colorMode: "sepia",
-    },
-    {
-      title: { fr: "", en: "", ar: "" },
-      narrative: { fr: "", en: "", ar: "" },
-      image: imgHouse,
-      size: 35,
-      x: 5,
-      y: 80,
-      colorMode: "color",
-    },
+    { fr: "", en: "", ar: "", image: imgRelax, size: 45, x: 85, y: 70, colorMode: "sepia" },
+    { fr: "", en: "", ar: "", image: imgHouse, size: 35, x: 5, y: 80, colorMode: "color" },
   ],
-
   forever: [
     {
-      title: { fr: "S'ils t'écoutaient ce soir", en: "If they heard you tonight", ar: "لو سمعوك الليلة" },
-      narrative: {
-        fr: "Si la personne que tu as perdue pouvait t'écouter ce soir, que lui raconterais-tu en souriant ? Décris la joie que tu aurais à partager tes victoires.",
-        en: "If the person you lost could hear you tonight, what would you tell them with a smile? Describe the joy of sharing your victories with them.",
-        ar: "لو كان الشخص الذي فقدته يسمعك الليلة، ماذا ستحكي له وأنت تبتسم؟ صف لي الفرحة التي ستشعر بها.",
-      },
+      fr: "S'ils t'écoutaient ce soir",
+      en: "If they heard you tonight",
+      ar: "لو سمعوك الليلة",
       image: imgGraduate,
       size: 140,
       x: 8,
@@ -238,12 +199,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "Le merci suspendu", en: "The unspoken thank you", ar: "شكر لم يُقل بعد" },
-      narrative: {
-        fr: "Raconte-moi ce 'merci' que tu n'as jamais pris le temps de dire à tes parents : le poids de cette gratitude et la chaleur que tu ressens en le formulant enfin.",
-        en: "Tell me about that 'thank you' you never took the time to say to your parents: the weight of this gratitude and the warmth you feel finally putting it into words.",
-        ar: "احكِ لي عن كلمة 'شكراً' التي لم تجد الوقت لتقولها لوالديك: ثقل هذا الامتنان والدفء الذي تشعر به.",
-      },
+      fr: "Le merci suspendu",
+      en: "The unspoken thank you",
+      ar: "شكر لم يُقل بعد",
       image: imgHouse,
       size: 120,
       x: 58,
@@ -251,12 +209,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "sepia",
     },
     {
-      title: { fr: "Le nom que tu portes", en: "The name you carry", ar: "الاسم الذي تحمله" },
-      narrative: {
-        fr: "Raconte-moi l'histoire de ton prénom : la fierté que tu as ressentie en comprenant de qui tu héritais et quelle force ce nom te donne aujourd'hui.",
-        en: "Tell me the story of your name: the pride you felt realizing who you inherited it from and what strength that name gives you today.",
-        ar: "احكِ لي قصة اسمك: الفخر الذي شعرت به عندما أدركت من ورثته وما القوة التي يمنحك إياها هذا الاسم.",
-      },
+      fr: "Le nom que tu portes",
+      en: "The name you carry",
+      ar: "الاسم الذي تحمله",
       image: imgRelax,
       size: 130,
       x: 22,
@@ -264,12 +219,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "La maison quittée", en: "The house left behind", ar: "البيت الذي غادرته" },
-      narrative: {
-        fr: "Décris-moi la dernière fois que tu as fermé la porte d'une maison que tu aimais : le silence des pièces vides et ce que tu as emporté dans ton cœur.",
-        en: "Describe the last time you closed the door of a house you loved: the silence of the empty rooms and what you carried away in your heart.",
-        ar: "صف لي آخر مرة أغلقت فيها باب منزل كنت تحبه: صمت الغرف الفارغة وما الذي حملته معك في قلبك.",
-      },
+      fr: "La maison quittée",
+      en: "The house left behind",
+      ar: "البيت الذي غادرته",
       image: imgMarry,
       size: 105,
       x: 68,
@@ -277,12 +229,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "La valeur héritée", en: "The inherited value", ar: "القيمة الموروثة" },
-      narrative: {
-        fr: "Raconte-moi la valeur morale la plus forte que tes parents t'ont transmise : le moment précis où tu as compris son importance et comment elle guide tes pas.",
-        en: "Tell me about the strongest moral value your parents passed on to you: the exact moment you realized its importance and how it guides your steps today.",
-        ar: "احكِ لي عن أقوى قيمة أخلاقية نقلها إليك والداك: اللحظة التي أدركت فيها أهميتها وكيف توجه خطواتك.",
-      },
+      fr: "La valeur héritée",
+      en: "The inherited value",
+      ar: "القيمة الموروثة",
       image: imgLove,
       size: 115,
       x: 12,
@@ -290,12 +239,9 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "sepia",
     },
     {
-      title: { fr: "Leur sacrifice invisible", en: "Their invisible sacrifice", ar: "تضحيتهم غير المرئية" },
-      narrative: {
-        fr: "Raconte-moi ce sacrifice que tes parents ont fait pour toi et que tu n'as compris que bien plus tard : l'émotion de cette réalisation et la force qu'elle t'a donnée.",
-        en: "Tell me about a sacrifice your parents made for you that you only understood much later: the emotion of that realization and the strength it gave you.",
-        ar: "احكِ لي عن تضحية قدمها والداك لأجلك ولم تدركها إلا بعد فوات الأوان: شعورك عند إدراك ذلك.",
-      },
+      fr: "Leur sacrifice invisible",
+      en: "Their invisible sacrifice",
+      ar: "تضحيتهم غير المرئية",
       image: imgBirth,
       size: 100,
       x: 55,
@@ -303,191 +249,554 @@ const QUESTIONS: Record<string, InfeeilitQuestion[]> = {
       colorMode: "color",
     },
     {
-      title: { fr: "Le fauteuil de ton grand-père", en: "Your grandfather's chair", ar: "كرسي جدك المفضل" },
-      narrative: {
-        fr: "Décris-moi la place exacte où ton grand-père s'asseyait toujours : la forme de ce fauteuil, le bruit qu'il faisait et l'image de lui, paisible.",
-        en: "Describe the exact spot where your grandfather always sat: the shape of that chair, the creak it made, and the image of him, peaceful, in the room.",
-        ar: "صف لي المكان الذي كان يجلس فيه جدك دائماً: شكل ذلك الكرسي وصريره وصورته وهو جالس بسلام.",
-      },
+      fr: "Le fauteuil de ton grand-père",
+      en: "Your grandfather's chair",
+      ar: "كرسي جدك المفضل",
       image: imgGrandfather,
       size: 110,
       x: 72,
       y: 28,
       colorMode: "sepia",
     },
-    {
-      title: { fr: "", en: "", ar: "" },
-      narrative: { fr: "", en: "", ar: "" },
-      image: imgTravel,
-      size: 38,
-      x: 85,
-      y: 55,
-      colorMode: "color",
-    },
-    {
-      title: { fr: "", en: "", ar: "" },
-      narrative: { fr: "", en: "", ar: "" },
-      image: imgChild,
-      size: 30,
-      x: 3,
-      y: 75,
-      colorMode: "sepia",
-    },
+    { fr: "", en: "", ar: "", image: imgTravel, size: 38, x: 85, y: 55, colorMode: "color" },
+    { fr: "", en: "", ar: "", image: imgChild, size: 30, x: 3, y: 75, colorMode: "sepia" },
   ],
 };
 
-const ANIMS = ["animate-float-slow", "animate-float-medium", "animate-float-fast"];
-const DELAYS = ["0s", "1.2s", "0.5s", "0.8s", "2s", "1.8s", "2.8s", "1.5s", "2.5s"];
+const ZONES = [
+  { xMin: 5, xMax: 30, yMin: 10, yMax: 35 },
+  { xMin: 60, xMax: 90, yMin: 10, yMax: 35 },
+  { xMin: 5, xMax: 30, yMin: 40, yMax: 65 },
+  { xMin: 60, xMax: 90, yMin: 40, yMax: 65 },
+  { xMin: 5, xMax: 30, yMin: 70, yMax: 90 },
+  { xMin: 60, xMax: 90, yMin: 70, yMax: 90 },
+  { xMin: 30, xMax: 45, yMin: 10, yMax: 30 },
+  { xMin: 45, xMax: 65, yMin: 65, yMax: 90 },
+];
+
+const ANIMS = ["bubble-float-1", "bubble-float-2", "bubble-float-3"];
+const LAYERS = [
+  { label: "large", sizeMin: 130, sizeMax: 155, opacity: 1, zIndex: 10, durMin: 18, durMax: 22 },
+  { label: "large", sizeMin: 130, sizeMax: 155, opacity: 1, zIndex: 10, durMin: 18, durMax: 22 },
+  { label: "medium", sizeMin: 90, sizeMax: 115, opacity: 0.9, zIndex: 8, durMin: 14, durMax: 18 },
+  { label: "medium", sizeMin: 90, sizeMax: 115, opacity: 0.9, zIndex: 8, durMin: 14, durMax: 18 },
+  { label: "medium", sizeMin: 90, sizeMax: 115, opacity: 0.9, zIndex: 8, durMin: 14, durMax: 18 },
+  { label: "small", sizeMin: 55, sizeMax: 80, opacity: 0.7, zIndex: 6, durMin: 10, durMax: 14 },
+  { label: "small", sizeMin: 55, sizeMax: 80, opacity: 0.7, zIndex: 6, durMin: 10, durMax: 14 },
+  { label: "small", sizeMin: 55, sizeMax: 80, opacity: 0.7, zIndex: 6, durMin: 10, durMax: 14 },
+];
+
+interface MemoryFromDB {
+  id: string;
+  title: string | null;
+  file_url: string;
+  file_type: string | null;
+  thumbnail_url: string | null;
+  is_anonymous: boolean;
+  is_community: boolean;
+  created_at: string;
+  user_id: string;
+  profiles: { display_name: string | null } | null;
+}
+
+interface BubbleItem {
+  id: string;
+  title: string;
+  file_url: string;
+  file_type: string;
+  thumbnail_url: string | null;
+  isAnonymous: boolean;
+  displayName: string;
+  createdAt: string;
+  image: string;
+  size: number;
+  x: number;
+  y: number;
+  opacity: number;
+  zIndex: number;
+  animClass: string;
+  animDuration: string;
+  animDelay: string;
+  isDemo: boolean;
+  zoneIndex: number;
+  bornAt: number;
+}
 
 interface BubbleCanvasProps {
-  onBubbleClick: (question: string, category: BubbleCategory) => void;
+  onBubbleClick?: (question: string, category: "past") => void;
   activeTimeline: Timeline;
 }
 
 const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
+  const navigate = useNavigate();
   const { lang } = useLanguage();
-  const bubbles = QUESTIONS[activeTimeline] ?? QUESTIONS.memories;
+  const userName = useUserName();
+  const [bubbles, setBubbles] = useState<BubbleItem[]>([]);
+  const [selectedBubble, setSelectedBubble] = useState<BubbleItem | null>(null);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [showMirror, setShowMirror] = useState(false);
+  const [mirrorQuestion, setMirrorQuestion] = useState("");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const usedZonesRef = useRef<Set<number>>(new Set());
+  const bubbleIdCounter = useRef(0);
+
+  const getThemedImage = useCallback((title: string): string => {
+    const lower = title.toLowerCase();
+    for (const [keyword, img] of Object.entries(THEME_IMAGES)) {
+      if (lower.includes(keyword)) return img;
+    }
+    return imgRelax;
+  }, []);
+
+  const getDemoBubbles = useCallback((): BubbleItem[] => {
+    const questions = DEMO_QUESTIONS[activeTimeline] || DEMO_QUESTIONS.memories;
+    const langKey = (lang === "fr" ? "fr" : lang === "ar" ? "ar" : "en") as "fr" | "en" | "ar";
+    return questions
+      .filter((q) => q[langKey] && q[langKey].length > 0)
+      .map((q, i) => {
+        const zone = ZONES[i % ZONES.length];
+        const layer = LAYERS[i % LAYERS.length];
+        const size = layer.sizeMin + Math.random() * (layer.sizeMax - layer.sizeMin);
+        const x = zone.xMin + Math.random() * (zone.xMax - zone.xMin);
+        const y = zone.yMin + Math.random() * (zone.yMax - zone.yMin);
+        const dur = layer.durMin + Math.random() * (layer.durMax - layer.durMin);
+        bubbleIdCounter.current += 1;
+        return {
+          id: `demo-${bubbleIdCounter.current}`,
+          title: q[langKey] || q.en || "",
+          file_url: "",
+          file_type: "question",
+          thumbnail_url: null,
+          isAnonymous: false,
+          displayName: "",
+          createdAt: "",
+          image: q.image,
+          size,
+          x,
+          y,
+          opacity: layer.opacity,
+          zIndex: layer.zIndex,
+          animClass: ANIMS[i % 3],
+          animDuration: `${dur}s`,
+          animDelay: `${Math.random() * 8}s`,
+          isDemo: true,
+          zoneIndex: i,
+          bornAt: Date.now(),
+        };
+      });
+  }, [activeTimeline, lang]);
+
+  const createBubbleFromMemory = useCallback(
+    (mem: MemoryFromDB, zoneIndex: number): BubbleItem => {
+      const zone = ZONES[zoneIndex % ZONES.length];
+      const layer = LAYERS[zoneIndex % LAYERS.length];
+      const size = layer.sizeMin + Math.random() * (layer.sizeMax - layer.sizeMin);
+      const x = zone.xMin + Math.random() * (zone.xMax - zone.xMin);
+      const y = zone.yMin + Math.random() * (zone.yMax - zone.yMin);
+      const dur = layer.durMin + Math.random() * (layer.durMax - layer.durMin);
+      const image = mem.thumbnail_url || getThemedImage(mem.title || "");
+      const displayName = mem.is_anonymous ? "Un Gardien" : mem.profiles?.display_name?.split(" ")[0] || "Un Gardien";
+      bubbleIdCounter.current += 1;
+      return {
+        id: `mem-${bubbleIdCounter.current}`,
+        title: mem.title || "A memory",
+        file_url: mem.file_url,
+        file_type: mem.file_type || "audio",
+        thumbnail_url: mem.thumbnail_url,
+        isAnonymous: mem.is_anonymous,
+        displayName,
+        createdAt: mem.created_at,
+        image,
+        size,
+        x,
+        y,
+        opacity: layer.opacity,
+        zIndex: layer.zIndex,
+        animClass: ANIMS[zoneIndex % 3],
+        animDuration: `${dur}s`,
+        animDelay: `${Math.random() * 8}s`,
+        isDemo: false,
+        zoneIndex,
+        bornAt: Date.now(),
+      };
+    },
+    [getThemedImage],
+  );
+
+  useEffect(() => {
+    const loadMemories = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const currentUserId = session?.user?.id || "";
+
+      const { data: memories } = await supabase
+        .from("memories")
+        .select(
+          "id, title, file_url, file_type, thumbnail_url, is_anonymous, is_community, created_at, user_id, profiles(display_name)",
+        )
+        .or(currentUserId ? `is_community.eq.true,user_id.eq.${currentUserId}` : "is_community.eq.true")
+        .order("created_at", { ascending: false })
+        .limit(30);
+
+      const realMemories = (memories as MemoryFromDB[]) || [];
+
+      if (realMemories.length >= REAL_CONTENT_THRESHOLD) {
+        const realBubbles = realMemories.slice(0, 8).map((mem, i) => createBubbleFromMemory(mem, i));
+        realBubbles.forEach((b) => usedZonesRef.current.add(b.zoneIndex));
+        setBubbles(realBubbles);
+      } else {
+        const demoBubbles = getDemoBubbles();
+        demoBubbles.forEach((b) => usedZonesRef.current.add(b.zoneIndex));
+        const mixedBubbles = [...demoBubbles];
+        realMemories.forEach((mem, i) => {
+          const freeZone = ZONES.findIndex((_, zi) => !usedZonesRef.current.has(zi));
+          if (freeZone !== -1) {
+            usedZonesRef.current.add(freeZone);
+            mixedBubbles.push(createBubbleFromMemory(mem, freeZone));
+          }
+        });
+        setBubbles(mixedBubbles.slice(0, 8));
+      }
+    };
+
+    loadMemories();
+  }, [activeTimeline, createBubbleFromMemory, getDemoBubbles]);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setBubbles((prev) => {
+        if (prev.length === 0) return prev;
+        const oldest = prev.reduce((a, b) => (a.bornAt < b.bornAt ? a : b));
+        const newZoneIndex = oldest.zoneIndex;
+        const remaining = prev.filter((b) => b.id !== oldest.id);
+        usedZonesRef.current.delete(newZoneIndex);
+
+        if (remaining.length < 8 && oldest.isDemo) {
+          const newDemo = getDemoBubbles().find(
+            (d) => !usedZonesRef.current.has(d.zoneIndex) && !remaining.some((r) => r.zoneIndex === d.zoneIndex),
+          );
+          if (newDemo) {
+            usedZonesRef.current.add(newDemo.zoneIndex);
+            return [...remaining, newDemo];
+          }
+        }
+        return remaining;
+      });
+    }, 10000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [getDemoBubbles]);
+
+  const handleBubbleTap = (bubble: BubbleItem) => {
+    if (bubble.isDemo) {
+      if (onBubbleClick && bubble.title) {
+        onBubbleClick(bubble.title, "past");
+      }
+      return;
+    }
+    setSelectedBubble(bubble);
+    setShowOverlay(true);
+    setTimeout(() => setShowOverlay(false), 3000);
+  };
+
+  const handleClosePlayer = () => {
+    setSelectedBubble(null);
+    setShowMirror(false);
+    setMirrorQuestion("");
+  };
+
+  const handleMediaEnded = () => {
+    if (!selectedBubble) return;
+    const name = userName || (lang === "fr" ? "toi" : lang === "ar" ? "أنت" : "you");
+    const mirror =
+      lang === "fr"
+        ? `Et toi ${name}, qu'as-tu ressenti en écoutant "${selectedBubble.title}" ?`
+        : lang === "ar"
+          ? `وأنت ${name}، ماذا شعرت وأنت تستمع إلى "${selectedBubble.title}" ؟`
+          : `And you ${name}, what did you feel listening to "${selectedBubble.title}"?`;
+    setMirrorQuestion(mirror);
+    setShowMirror(true);
+  };
+
+  const handleRecordMirror = () => {
+    navigate("/record", { state: { question: mirrorQuestion, category: "past", fromMemory: true } });
+    handleClosePlayer();
+  };
+
+  const getShortTitle = (title: string): string => {
+    const words = title.split(" ").slice(0, 4);
+    return words.join(" ") + (words.length < title.split(" ").length ? "..." : "");
+  };
 
   return (
     <div className="absolute inset-0 z-[1] overflow-hidden">
       <style>{`
-        @keyframes float-slow {
-          0%   { transform: translate(0px, 0px); }
-          20%  { transform: translate(50px, -60px); }
-          40%  { transform: translate(90px, -20px); }
-          60%  { transform: translate(60px, 55px); }
-          80%  { transform: translate(-30px, 40px); }
-          100% { transform: translate(0px, 0px); }
+        @keyframes bubble-float-1 {
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          20%  { transform: translate3d(12px, -18px, 0) scale(1.02); }
+          40%  { transform: translate3d(-8px, -12px, 0) scale(0.98); }
+          60%  { transform: translate3d(15px, 8px, 0) scale(1.01); }
+          80%  { transform: translate3d(-10px, 15px, 0) scale(0.99); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
-        @keyframes float-medium {
-          0%   { transform: translate(0px, 0px); }
-          20%  { transform: translate(-60px, -50px); }
-          40%  { transform: translate(-90px, 30px); }
-          60%  { transform: translate(-45px, 80px); }
-          80%  { transform: translate(40px, 50px); }
-          100% { transform: translate(0px, 0px); }
+        @keyframes bubble-float-2 {
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          25%  { transform: translate3d(-15px, -20px, 0) scale(1.03); }
+          50%  { transform: translate3d(10px, -8px, 0) scale(0.97); }
+          75%  { transform: translate3d(-12px, 12px, 0) scale(1.02); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
-        @keyframes float-fast {
-          0%   { transform: translate(0px, 0px); }
-          25%  { transform: translate(70px, 55px); }
-          50%  { transform: translate(30px, -70px); }
-          75%  { transform: translate(-55px, -40px); }
-          100% { transform: translate(0px, 0px); }
+        @keyframes bubble-float-3 {
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          33%  { transform: translate3d(18px, -15px, 0) scale(0.98); }
+          66%  { transform: translate3d(-14px, 10px, 0) scale(1.03); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
-        .animate-float-slow   { animation: float-slow   18s ease-in-out infinite; }
-        .animate-float-medium { animation: float-medium  14s ease-in-out infinite; }
-        .animate-float-fast   { animation: float-fast    10s ease-in-out infinite; }
+        @keyframes bubble-born {
+          from { opacity: 0; transform: scale(0.3); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes bubble-die {
+          from { opacity: 1; transform: scale(1); }
+          to   { opacity: 0; transform: scale(0.3); }
+        }
+        .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
+        .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
+        .bubble-float-3 { animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
+        .bubble-dying { animation: bubble-die 0.8s ease-in forwards; }
       `}</style>
 
-      {bubbles.map((b, i) => {
-        const displayTitle = b.title[lang as Lang] || b.title.en;
-        const displayQuestion = b.narrative[lang as Lang] || b.narrative.en;
-        const isClickable = !!displayQuestion;
-
-        return (
-          <button
-            key={`${activeTimeline}-${i}`}
-            onClick={() => isClickable && onBubbleClick(displayQuestion, "past")}
-            className={`absolute rounded-full overflow-hidden ${ANIMS[i % 3]} ${isClickable ? "cursor-pointer" : "pointer-events-none"}`}
-            style={{
-              width: `${b.size}px`,
-              height: `${b.size}px`,
-              left: `${b.x}%`,
-              top: `${b.y}%`,
-              animationDelay: DELAYS[i] || "0s",
+      {bubbles.map((bubble) => (
+        <button
+          key={bubble.id}
+          onClick={() => handleBubbleTap(bubble)}
+          className={`absolute rounded-full overflow-hidden cursor-pointer transition-all ${bubble.animClass}`}
+          style={
+            {
+              width: `${bubble.size}px`,
+              height: `${bubble.size}px`,
+              left: `${bubble.x}%`,
+              top: `${bubble.y}%`,
+              opacity: bubble.opacity,
+              zIndex: bubble.zIndex,
+              border: bubble.isDemo ? "2px solid rgba(232,116,42,0.55)" : "2.5px solid rgba(107,78,155,0.7)",
+              boxShadow: bubble.isDemo ? "0 0 20px rgba(232,116,42,0.2)" : "0 0 20px rgba(107,78,155,0.25)",
+              "--dur": bubble.animDuration,
+              "--delay": bubble.animDelay,
               willChange: "transform",
-              border: b.colorMode === "color" ? "2.5px solid rgba(232,116,42,0.7)" : "2px solid rgba(255,255,255,0.5)",
-              boxShadow: b.colorMode === "color" ? "0 0 20px rgba(232,116,42,0.3)" : "0 4px 16px rgba(0,0,0,0.2)",
+            } as React.CSSProperties
+          }
+        >
+          <img
+            src={bubble.image}
+            alt=""
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center top",
+              filter: bubble.isDemo ? "grayscale(60%) sepia(40%) brightness(0.85)" : "sepia(30%) brightness(0.9)",
             }}
-          >
-            {/* Background image */}
-            <img
-              src={b.image}
-              alt=""
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "center top",
-                filter:
-                  b.colorMode === "sepia"
-                    ? "grayscale(60%) sepia(40%) brightness(0.85)"
-                    : "saturate(1.1) brightness(0.95)",
-              }}
-            />
+          />
 
-            {/* Gradient overlay */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
+            }}
+          />
+
+          {!bubble.isDemo && bubble.file_type === "audio" && (
             <div
               style={{
                 position: "absolute",
                 inset: 0,
-                background:
-                  b.colorMode === "color"
-                    ? "linear-gradient(to top, rgba(232,116,42,0.55) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)"
-                    : "linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "3px",
+                paddingBottom: "20px",
               }}
-            />
+            >
+              {[14, 22, 10, 18, 26].map((h, k) => (
+                <div
+                  key={k}
+                  style={{
+                    width: "3px",
+                    height: `${h}px`,
+                    backgroundColor: "#c4b5fd",
+                    borderRadius: "2px",
+                    opacity: 0.8,
+                    animation: `audioWaveGlow ${0.7 + (k % 3) * 0.2}s ease-in-out infinite`,
+                    animationDelay: `${k * 0.06}s`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
-            {/* Glass gloss */}
+          <div style={{ position: "absolute", top: "6px", right: "6px" }}>
             <div
               style={{
-                position: "absolute",
-                inset: 0,
-                background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
+                width: "20px",
+                height: "20px",
+                borderRadius: "50%",
+                backgroundColor: "rgba(0,0,0,0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-            />
+            >
+              {bubble.isDemo ? (
+                <span style={{ fontSize: "10px", color: "#E8742A", fontWeight: 900 }}>?</span>
+              ) : bubble.file_type === "video" ? (
+                <Play size={10} color="#fff" fill="#fff" />
+              ) : (
+                <Volume2 size={10} color="#c4b5fd" />
+              )}
+            </div>
+          </div>
 
-            {/* Short title on bubble — only for large enough bubbles */}
-            {displayTitle && b.size >= 90 && (
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "8px",
-                  left: 0,
-                  right: 0,
-                  padding: "0 6px",
-                  textAlign: "center",
-                }}
-              >
+          {bubble.size >= 90 && (
+            <div
+              style={{ position: "absolute", bottom: "8px", left: 0, right: 0, padding: "0 8px", textAlign: "center" }}
+            >
+              {!bubble.isDemo && (
                 <p
                   style={{
-                    fontSize: b.size >= 120 ? "10px" : "8px",
-                    fontWeight: 900,
+                    fontSize: "8px",
+                    fontWeight: 700,
                     color: "#fff",
-                    lineHeight: 1.2,
+                    textTransform: "uppercase",
+                    marginBottom: "1px",
                     textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-                    letterSpacing: "0.02em",
-                    overflow: "hidden",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
                   }}
                 >
-                  {displayTitle}
+                  {bubble.displayName}
                 </p>
+              )}
+              <p
+                style={{
+                  fontSize: "7px",
+                  fontStyle: "italic",
+                  color: "rgba(255,255,255,0.7)",
+                  lineHeight: 1.2,
+                  textShadow: "0 1px 3px rgba(0,0,0,0.7)",
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                {getShortTitle(bubble.title)}
+              </p>
+            </div>
+          )}
+        </button>
+      ))}
+
+      {selectedBubble && !selectedBubble.isDemo && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6"
+          onClick={handleClosePlayer}
+        >
+          <div
+            className="relative w-full max-w-[340px] rounded-full overflow-hidden"
+            style={{ aspectRatio: selectedBubble.file_type === "audio" ? "16/9" : "4/5" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {selectedBubble.file_type === "video" && selectedBubble.file_url ? (
+              <video
+                src={selectedBubble.file_url}
+                controls
+                autoPlay
+                onEnded={handleMediaEnded}
+                className="w-full h-full object-cover"
+                style={{ borderRadius: "50%" }}
+              />
+            ) : selectedBubble.file_type === "audio" && selectedBubble.file_url ? (
+              <audio
+                src={selectedBubble.file_url}
+                controls
+                autoPlay
+                onEnded={handleMediaEnded}
+                className="w-[80%] mx-auto mt-[40%]"
+              />
+            ) : (
+              <img
+                src={selectedBubble.image}
+                alt=""
+                className="w-full h-full object-cover"
+                style={{ borderRadius: "50%", filter: "sepia(30%) brightness(0.8)" }}
+              />
+            )}
+
+            {showOverlay && (
+              <div
+                className="absolute top-0 left-0 right-0 px-5 py-4 z-10"
+                style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)" }}
+              >
+                <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-1.5">
+                  {lang === "fr" ? "Ils ont demandé..." : lang === "ar" ? "سألوا..." : "They asked..."}
+                </p>
+                <p className="text-[15px] text-white italic font-serif leading-relaxed">"{selectedBubble.title}"</p>
               </div>
             )}
 
-            {/* Decorative star for small bubbles without question */}
-            {!isClickable && (
+            <div className="absolute bottom-4 left-0 right-0 text-center">
+              <p className="text-white/60 text-xs font-bold">
+                {selectedBubble.displayName} · {new Date(selectedBubble.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+
+            {showMirror && (
               <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-6 px-6 z-20"
+                style={{ borderRadius: "50%" }}
               >
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "18px" }}>✦</span>
+                <p className="text-white text-lg italic font-serif text-center leading-relaxed">"{mirrorQuestion}"</p>
+                <button
+                  onClick={handleRecordMirror}
+                  className="px-6 py-3 rounded-full font-bold text-sm"
+                  style={{
+                    background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                    color: "#fff",
+                    boxShadow: "0 0 24px rgba(232,116,42,0.5)",
+                  }}
+                >
+                  {lang === "fr" ? "Je veux raconter ça" : lang === "ar" ? "أريد أن أحكي هذا" : "I want to tell this"}
+                </button>
+                <button onClick={handleClosePlayer} className="text-white/30 text-xs">
+                  {lang === "fr" ? "Plus tard" : lang === "ar" ? "لاحقاً" : "Later"}
+                </button>
               </div>
             )}
+          </div>
+
+          <button
+            onClick={handleClosePlayer}
+            className="absolute top-6 right-6 p-3 rounded-full bg-white/10 text-white"
+          >
+            <X size={22} />
           </button>
-        );
-      })}
+        </div>
+      )}
+
+      <style>{`@keyframes audioWaveGlow{0%,100%{opacity:.7}50%{opacity:1}}`}</style>
     </div>
   );
 };
