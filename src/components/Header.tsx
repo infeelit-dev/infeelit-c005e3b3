@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/contexts/LanguageContext";
-import logo from "@/assets/infeelit-logo.png";
 import type { Timeline } from "@/types/timeline";
+import infeelit from "@/assets/infeelit-logo.png";
 
 interface HeaderProps {
   activeTimeline: Timeline;
@@ -12,7 +11,6 @@ interface HeaderProps {
 
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
-  const { t, lang } = useLanguage();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("M");
 
@@ -28,18 +26,16 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           .select("display_name")
           .eq("user_id", session.user.id)
           .single();
-        if (profile?.display_name) {
-          setUserInitial(profile.display_name[0].toUpperCase());
-        }
+        if (profile?.display_name) setUserInitial(profile.display_name[0].toUpperCase());
       }
     };
     checkSession();
   }, []);
 
   const tabs = [
-    { id: "memories" as Timeline, label: t.memories },
-    { id: "instant" as Timeline, label: t.instant },
-    { id: "forever" as Timeline, label: t.forever },
+    { id: "memories" as Timeline, label: "Memories" },
+    { id: "instant" as Timeline, label: "Instant" },
+    { id: "forever" as Timeline, label: "Forever" },
   ];
 
   const underlineColor = (id: Timeline) => (id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : "#ffffff");
@@ -70,22 +66,19 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           marginBottom: "10px",
         }}
       >
-        {/* Left spacer — same width as right button for centering */}
         <div style={{ width: "80px" }} />
-
-        {/* Logo — perfectly centered */}
         <img
-          src={logo}
+          src={infeelit}
           alt="Infeelit"
+          onClick={() => navigate("/")}
           style={{
             height: "64px",
             width: "auto",
             maxWidth: "160px",
             filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
+            cursor: "pointer",
           }}
         />
-
-        {/* Right — Begin my story or avatar */}
         {isLoggedIn ? (
           <button
             onClick={() => navigate("/treasure")}
@@ -121,15 +114,12 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               cursor: "pointer",
               boxShadow: "0 2px 12px rgba(232,116,42,0.5)",
               whiteSpace: "nowrap",
-              fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
             }}
           >
-            {t.beginMyStory}
+            Begin my story
           </button>
         )}
       </div>
-
-      {/* Timeline tabs */}
       <nav style={{ display: "flex", justifyContent: "center", gap: "32px" }}>
         {tabs.map((tab) => {
           const isActive = activeTimeline === tab.id;
@@ -149,7 +139,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                 transition: "all 0.2s",
                 whiteSpace: "nowrap",
-                fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
               }}
             >
               {tab.label}
