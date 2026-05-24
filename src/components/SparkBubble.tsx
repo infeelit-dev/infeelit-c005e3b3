@@ -155,16 +155,6 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   }, []);
 
   useEffect(() => {
-    if (triggerApproach && !expanded) {
-      const timer = setTimeout(() => {
-        setExpanded(true);
-        setTriggerApproach(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [triggerApproach, expanded]);
-
-  useEffect(() => {
     if (expanded) {
       const timer = setTimeout(() => setShowButton(true), 2000);
       return () => clearTimeout(timer);
@@ -239,12 +229,10 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
         @keyframes particleUp{0%{transform:translateY(0) translateX(0) scale(1);opacity:1}100%{transform:translateY(-50px) translateX(var(--dx)) scale(0);opacity:0}}
         @keyframes innerGlowRotate{0%{opacity:.6;transform:rotate(0deg)}100%{opacity:1;transform:rotate(360deg)}}
         @keyframes expandIn{0%{transform:scale(.2);opacity:0}60%{transform:scale(1.05);opacity:1}100%{transform:scale(1);opacity:1}}
-        @keyframes gentleApproach{0%{transform:translate(-50%,-50%) scale(1);box-shadow:0 0 25px rgba(255,180,40,0.5)}50%{transform:translate(-50%,-50%) scale(1.4);box-shadow:0 0 60px rgba(255,180,40,0.8),0 0 120px rgba(232,116,42,0.4)}100%{transform:translate(-50%,-50%) scale(1.2);box-shadow:0 0 80px rgba(255,200,60,0.9),0 0 150px rgba(232,116,42,0.5)}}
         .heartbeat-pulse{animation:heartbeatPulse 2.5s ease-in-out infinite}
         .heartbeat-symbol{animation:heartbeat 0.86s ease-in-out infinite}
         .inner-glow-rotate{animation:innerGlowRotate 6s linear infinite}
         .expand-in{animation:expandIn .5s cubic-bezier(0.175,0.885,0.32,1.275) forwards}
-        .gentle-approach{animation:gentleApproach 3s ease-in-out infinite}
         .snap-scroll{scroll-snap-type:x mandatory}
         .snap-card{scroll-snap-align:center}
         .hide-scroll{scrollbar-width:none}
@@ -254,7 +242,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
       {!expanded && !forceOpen && (
         <button
           onClick={handleBubbleClick}
-          className={`absolute z-[15] cursor-pointer transition-transform active:scale-90 bg-transparent border-none p-0 ${triggerApproach ? "gentle-approach" : ""}`}
+          className="absolute z-[15] cursor-pointer transition-transform active:scale-90 bg-transparent border-none p-0"
           style={{
             left: `${position.x}%`,
             top: `${position.y}%`,
