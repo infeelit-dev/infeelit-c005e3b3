@@ -1,4 +1,3 @@
-```tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Users, MapPin, Plus, MessageCircle } from "lucide-react";
@@ -95,4 +94,3 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
 };
 
 export default CurvedBottomNav;
-```
