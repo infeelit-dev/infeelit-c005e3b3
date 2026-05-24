@@ -287,6 +287,54 @@ const About = () => {
         ))}
       </div>
 
+      {/* Section Tokenomics mystérieuse */}
+      <div
+        style={{
+          margin: "0 24px 32px",
+          padding: "24px",
+          borderRadius: "20px",
+          background: "rgba(232,116,42,0.06)",
+          border: "1px solid rgba(232,116,42,0.15)",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            fontSize: "20px",
+            marginBottom: "12px",
+          }}
+        >
+          ✦
+        </p>
+        <p
+          style={{
+            fontSize: "13px",
+            fontWeight: 900,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "#E8742A",
+            marginBottom: "12px",
+          }}
+        >
+          {lang === "fr" ? "Les Étincelles" : lang === "ar" ? "الشرارات" : "The Sparks"}
+        </p>
+        <p
+          style={{
+            fontSize: "14px",
+            color: "#3D2B1F",
+            fontFamily: "Georgia, serif",
+            fontStyle: "italic",
+            lineHeight: 1.7,
+          }}
+        >
+          {lang === "fr"
+            ? "Chaque souvenir partagé allume une étincelle. Bientôt, ces étincelles auront une valeur réelle."
+            : lang === "ar"
+              ? "كل ذكرى مشتركة تُشعل شرارة. قريباً، ستكون لهذه الشرارات قيمة حقيقية."
+              : "Every shared memory lights a spark. Soon, these sparks will have real value."}
+        </p>
+      </div>
+
       <div style={{ textAlign: "center", padding: "16px 24px 40px" }}>
         <div style={{ fontSize: "48px", marginBottom: "16px", animation: "flamePulse 2s ease-in-out infinite" }}>
           🔥
