@@ -278,8 +278,9 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
               width: "90px",
               height: "90px",
               background:
-                "radial-gradient(circle at 45% 45%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.85) 25%, rgba(232,116,42,0.5) 55%, rgba(180,70,10,0.15) 100%)",
+                "radial-gradient(circle at 45% 45%, rgba(255,235,140,1) 0%, rgba(255,200,70,0.95) 35%, rgba(232,140,50,0.75) 70%, rgba(232,116,42,0.45) 100%)",
               border: "2px solid rgba(255,200,60,0.7)",
+              overflow: "hidden",
             }}
           >
             <div
@@ -295,8 +296,8 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                 src={infeeilitSymbol}
                 alt="Infeelit"
                 style={{
-                  width: "54px",
-                  height: "54px",
+                  width: "200px",
+                  height: "200px",
                   objectFit: "contain",
                   animation: "heartbeat 0.86s ease-in-out infinite",
                   filter: "drop-shadow(0 0 10px rgba(255,200,60,0.9))",
