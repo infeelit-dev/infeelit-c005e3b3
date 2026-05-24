@@ -45,6 +45,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         }}
         dir="ltr"
       >
+        {/* Première ligne : menu, logo, langue/recherche */}
         <div
           style={{
             width: "100%",
@@ -57,7 +58,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             direction: "ltr",
           }}
         >
-          {/* Toujours à gauche */}
           <button
             onClick={() => setMenuOpen(true)}
             style={{
@@ -76,7 +76,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             <Menu size={18} color="#fff" />
           </button>
 
-          {/* Toujours au centre */}
           <img
             src={infeelit}
             alt="Infeelit"
@@ -90,7 +89,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             }}
           />
 
-          {/* Toujours à droite */}
           <div
             style={{
               display: "flex",
@@ -140,58 +138,64 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        <nav
+        {/* Deuxième ligne : navigation centrée */}
+        <div
           style={{
+            width: "100%",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: "32px",
-            direction: "ltr",
-            width: "100%",
-            paddingLeft: 0,
-            paddingRight: 0,
-            margin: 0,
           }}
         >
-          {tabs.map((tab) => {
-            const isActive = activeTimeline === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onTimelineChange(tab.id)}
-                style={{
-                  position: "relative",
-                  paddingBottom: "6px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
-                  fontWeight: isActive ? 900 : 700,
-                  fontSize: isActive ? "16px" : "13px",
-                  textShadow: "0 1px 8px rgba(0,0,0,0.9)",
-                  transition: "all 0.2s",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {tab.label}
-                {isActive && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: "2.5px",
-                      borderRadius: "999px",
-                      backgroundColor: underlineColor(tab.id),
-                      boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </nav>
+          <nav
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "32px",
+              direction: "ltr",
+            }}
+          >
+            {tabs.map((tab) => {
+              const isActive = activeTimeline === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onTimelineChange(tab.id)}
+                  style={{
+                    position: "relative",
+                    paddingBottom: "6px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
+                    fontWeight: isActive ? 900 : 700,
+                    fontSize: isActive ? "16px" : "13px",
+                    textShadow: "0 1px 8px rgba(0,0,0,0.9)",
+                    transition: "all 0.2s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {tab.label}
+                  {isActive && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: "2.5px",
+                        borderRadius: "999px",
+                        backgroundColor: underlineColor(tab.id),
+                        boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
       </header>
 
       {menuOpen && (
@@ -253,7 +257,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               }}
             />
 
-            {/* Seulement ces deux liens - PAS de sélecteur de langue */}
             <button
               onClick={() => {
                 navigate("/about");
