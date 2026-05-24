@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +24,7 @@ import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import CreateCircle from "./pages/CreateCircle";
 import JoinCircle from "./pages/JoinCircle";
+import Chats from "./pages/Chats";
 
 const queryClient = new QueryClient();
 
@@ -48,12 +49,14 @@ const App = () => (
             <Route path="/loading" element={<Loading />} />
             <Route path="/record" element={<Record />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/circle" element={<Circle />} />
+            <Route path="/circle" element={<Navigate to="/circles" replace />} />
+            <Route path="/circles" element={<Circle />} />
             <Route path="/about" element={<About />} />
             <Route path="/treasure" element={<Treasure />} />
             <Route path="/places" element={<Places />} />
             <Route path="/create-circle" element={<CreateCircle />} />
             <Route path="/join/:code" element={<JoinCircle />} />
+            <Route path="/chats" element={<Chats />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
