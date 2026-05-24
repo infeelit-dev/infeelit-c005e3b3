@@ -39,26 +39,31 @@ const App = () => (
         <BrowserRouter>
           <LangBadge />
           <Routes>
+            {/* Routes principales */}
             <Route path="/" element={<Index />} />
-            <Route path="/feed" element={<Index />} />
+            <Route path="/treasure" element={<Treasure />} />
+            <Route path="/whispers" element={<Whispers />} />
+
+            {/* Redirects pour les routes obsolètes */}
+            <Route path="/feed" element={<Navigate to="/" replace />} />
+            <Route path="/portrait" element={<Navigate to="/" replace />} />
+            <Route path="/login" element={<Navigate to="/welcome" replace />} />
+            <Route path="/chats" element={<Navigate to="/whispers" replace />} />
+            <Route path="/circles" element={<Circle />} />
+
+            {/* Routes fonctionnelles */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
             <Route path="/verify" element={<Verify />} />
             <Route path="/identity" element={<FamilyIdentity />} />
-            <Route path="/portrait" element={<Portrait />} />
             <Route path="/loading" element={<Loading />} />
             <Route path="/record" element={<Record />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/circle" element={<Navigate to="/circles" replace />} />
-            <Route path="/circles" element={<Circle />} />
             <Route path="/about" element={<About />} />
-            <Route path="/treasure" element={<Treasure />} />
             <Route path="/places" element={<Places />} />
             <Route path="/create-circle" element={<CreateCircle />} />
             <Route path="/join/:code" element={<JoinCircle />} />
-            <Route path="/whispers" element={<Whispers />} />
             <Route path="/search" element={<Search />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />
