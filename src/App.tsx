@@ -67,7 +67,7 @@ const App = () => (
             <Route path="/join/:code" element={<JoinCircle />} />
             <Route path="/search" element={<Search />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/admin/upload" element={<AdminUpload />} />
+            <Route path="/admin" element={<AdminUpload />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
