@@ -1,236 +1,699 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { Upload, Loader2, ShieldAlert } from "lucide-react";
+import { Upload, ArrowLeft, Check } from "lucide-react";
 
-type Timeline = "memories" | "past" | "future" | "community";
+const ADMIN_PASSWORD = "infeelit2024admin";
+
+const THEMATIC_CATEGORIES = [
+  { id: "enfance", label: "Enfance / Childhood / طفولة" },
+  { id: "famille", label: "Famille / Family / عائلة" },
+  { id: "amour", label: "Amour / Love / حب" },
+  { id: "maison", label: "Maison / Home / بيت" },
+  { id: "voyage", label: "Voyage / Travel / سفر" },
+  { id: "sport", label: "Sport / Match / رياضة" },
+  { id: "travail", label: "Travail / Work / عمل" },
+  { id: "transmission", label: "Transmission / Legacy / إرث" },
+];
 
 const AdminUpload = () => {
   const navigate = useNavigate();
-  const [checking, setChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
 
-  const [file, setFile] = useState<File | null>(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [timeline, setTimeline] = useState<Timeline>("community");
+  // Auth state
+  const [password, setPassword] = useState("");
+  const [authenticated, setAuthenticated] = useState(false);
+  const [authError, setAuthError] = useState("");
+
+  // Form state
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [city, setCity] = useState("");
+  const [question, setQuestion] = useState("");
+  const [category, setCategory] = useState("enfance");
   const [isPublic, setIsPublic] = useState(true);
-  const [isCommunity, setIsCommunity] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [auraIntensity, setAuraIntensity] = useState(35);
+
+  // Upload state
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        navigate("/welcome");
-        return;
-      }
-      setUserId(session.user.id);
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      setIsAdmin(!!data && !error);
-      setChecking(false);
-    })();
-  }, [navigate]);
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setAuthenticated(true);
+      setAuthError("");
+    } else {
+      setAuthError("Mot de passe incorrect.");
+    }
+  };
 
-  const handleUpload = async () => {
-    if (!file || !userId) {
-      toast.error("Sélectionne un fichier d'abord.");
-      return;
-    }
-    if (title.trim().length === 0 || title.length > 120) {
-      toast.error("Titre requis (1-120 caractères).");
-      return;
-    }
-    if (description.length > 2000) {
-      toast.error("Description trop longue (max 2000).");
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!videoFile || !firstName || !question) {
+      setError("Remplis tous les champs requis.");
       return;
     }
 
     setUploading(true);
+    setProgress(10);
+    setError("");
+
     try {
-      const ext = (file.name.match(/\.([a-zA-Z0-9]{1,5})$/)?.[1] || "bin").toLowerCase();
-      const key = `${userId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      // 1. Récupérer la session admin
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      const { error: upErr } = await supabase.storage
-        .from("memories")
-        .upload(key, file, { contentType: file.type, upsert: false });
-      if (upErr) throw upErr;
+      if (!session) {
+        setError("Tu dois être connecté comme admin.");
+        setUploading(false);
+        return;
+      }
 
-      const fileType = file.type.startsWith("video/")
-        ? "video"
-        : file.type.startsWith("audio/")
-          ? "audio"
-          : file.type.startsWith("image/")
-            ? "image"
-            : "file";
+      setProgress(20);
 
-      const { error: insErr } = await supabase.from("memories").insert({
-        user_id: userId,
-        title: title.trim(),
-        description: description.trim() || null,
-        file_url: key,
-        file_type: fileType,
-        timeline,
-        is_public: isPublic,
-        is_community: isCommunity,
-        is_anonymous: isAnonymous,
-        aura_intensity: auraIntensity,
+      // 2. Upload de la vidéo dans Supabase Storage
+      const fileExt = videoFile.name.split(".").pop();
+      const fileName = `${session.user.id}/${Date.now()}_street_interview.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage.from("memories").upload(fileName, videoFile, {
+        cacheControl: "3600",
+        upsert: false,
       });
-      if (insErr) throw insErr;
 
-      toast.success("Mémoire publiée ✦");
-      setFile(null);
-      setTitle("");
-      setDescription("");
+      if (uploadError) throw uploadError;
+
+      setProgress(60);
+
+      // 3. Obtenir l'URL signée
+      const { data: signedData } = await supabase.storage
+        .from("memories")
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+
+      setProgress(75);
+
+      // 4. Créer le titre affiché
+      const displayTitle = question.length > 60 ? question.substring(0, 60) + "..." : question;
+
+      // 5. Insérer dans la table memories
+      const { error: insertError } = await supabase.from("memories").insert({
+        user_id: session.user.id,
+        title: displayTitle,
+        description: city ? `${firstName} · ${city}` : firstName,
+        file_url: fileName,
+        file_type: "video",
+        thumbnail_url: null,
+        is_public: isPublic,
+        is_community: true,
+        is_anonymous: isAnonymous,
+        timeline: "memories",
+        spark_reward: 0,
+        created_at: new Date().toISOString(),
+      });
+
+      if (insertError) throw insertError;
+
+      setProgress(100);
+      setDone(true);
+
+      // Reset form
+      setTimeout(() => {
+        setVideoFile(null);
+        setFirstName("");
+        setCity("");
+        setQuestion("");
+        setCategory("enfance");
+        setIsPublic(true);
+        setIsAnonymous(false);
+        setDone(false);
+        setProgress(0);
+        setUploading(false);
+      }, 3000);
     } catch (err: any) {
-      toast.error(err.message || "Erreur lors de l'upload");
-    } finally {
+      setError(err.message || "Erreur upload.");
       setUploading(false);
+      setProgress(0);
     }
   };
 
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#FFF9F2" }}>
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#E8742A" }} />
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
+  // Écran de mot de passe
+  if (!authenticated) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center px-6 text-center gap-4"
-        style={{ backgroundColor: "#FFF9F2" }}
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "#0E1A20",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "24px",
+        }}
       >
-        <ShieldAlert className="w-12 h-12" style={{ color: "#E8742A" }} />
-        <h1 className="text-xl font-bold" style={{ color: "#3D2B1F", fontFamily: "Georgia, serif" }}>
-          Accès restreint
-        </h1>
-        <p className="text-sm" style={{ color: "rgba(61,43,31,0.6)" }}>
-          Cette page est réservée aux administrateurs.
-        </p>
-        <Button onClick={() => navigate("/")} variant="outline">Retour</Button>
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "360px",
+            backgroundColor: "#1A2530",
+            borderRadius: "24px",
+            padding: "32px 24px",
+            border: "1px solid rgba(232,116,42,0.2)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "10px",
+              fontWeight: 900,
+              letterSpacing: "0.3em",
+              color: "#E8742A",
+              textTransform: "uppercase",
+              textAlign: "center",
+              marginBottom: "8px",
+            }}
+          >
+            Admin Infeelit
+          </p>
+          <h1
+            style={{
+              fontSize: "20px",
+              fontWeight: 700,
+              color: "#fff",
+              textAlign: "center",
+              marginBottom: "24px",
+              fontFamily: "Georgia, serif",
+            }}
+          >
+            Upload d'interviews
+          </h1>
+
+          <form
+            onSubmit={handleAuth}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            }}
+          >
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mot de passe admin"
+              style={{
+                padding: "14px 16px",
+                borderRadius: "12px",
+                border: "1px solid rgba(255,255,255,0.1)",
+                backgroundColor: "rgba(255,255,255,0.05)",
+                color: "#fff",
+                fontSize: "14px",
+                outline: "none",
+              }}
+            />
+            {authError && (
+              <p
+                style={{
+                  color: "#ff6b6b",
+                  fontSize: "12px",
+                  textAlign: "center",
+                }}
+              >
+                {authError}
+              </p>
+            )}
+            <button
+              type="submit"
+              style={{
+                padding: "14px",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "15px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Entrer
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
 
+  // Écran de succès
+  if (done) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: "#0E1A20",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "16px",
+        }}
+      >
+        <div
+          style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            backgroundColor: "rgba(34,197,94,0.2)",
+            border: "2px solid #22c55e",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Check size={36} color="#22c55e" />
+        </div>
+        <p
+          style={{
+            color: "#fff",
+            fontSize: "20px",
+            fontWeight: 700,
+            fontFamily: "Georgia, serif",
+          }}
+        >
+          Vidéo uploadée ✦
+        </p>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.4)",
+            fontSize: "13px",
+          }}
+        >
+          Elle apparaît dans le feed.
+        </p>
+      </div>
+    );
+  }
+
+  // Formulaire principal
   return (
-    <div className="min-h-screen px-6 py-10" style={{ backgroundColor: "#FFF9F2" }}>
-      <div className="max-w-xl mx-auto space-y-6">
-        <header className="text-center space-y-2">
-          <h1 className="text-2xl font-bold" style={{ color: "#3D2B1F", fontFamily: "Georgia, serif" }}>
-            Admin · Upload
-          </h1>
-          <p className="text-sm" style={{ color: "rgba(61,43,31,0.55)" }}>
-            Ajoute une mémoire dans le sanctuaire Infeelit.
-          </p>
-        </header>
-
-        <div className="space-y-4 rounded-2xl border border-[#D4A853]/30 bg-white p-6">
-          <div className="space-y-2">
-            <Label>Fichier (vidéo / audio / image)</Label>
-            <Input
-              type="file"
-              accept="video/*,audio/*,image/*"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-            {file && (
-              <p className="text-xs" style={{ color: "rgba(61,43,31,0.5)" }}>
-                {file.name} · {(file.size / 1024 / 1024).toFixed(1)} MB
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Titre</Label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={120}
-              placeholder="Un titre poétique"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Description</Label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={2000}
-              rows={4}
-              placeholder="Raconte ce moment…"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Timeline</Label>
-            <select
-              value={timeline}
-              onChange={(e) => setTimeline(e.target.value as Timeline)}
-              className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-            >
-              <option value="memories">Memories</option>
-              <option value="past">Past</option>
-              <option value="future">Future</option>
-              <option value="community">Community</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 text-sm">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-              Public
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={isCommunity} onChange={(e) => setIsCommunity(e.target.checked)} />
-              Communauté
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} />
-              Anonyme
-            </label>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Intensité d'aura : {auraIntensity}</Label>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={auraIntensity}
-              onChange={(e) => setAuraIntensity(Number(e.target.value))}
-              className="w-full accent-[#E8742A]"
-            />
-          </div>
-
-          <Button
-            onClick={handleUpload}
-            disabled={uploading || !file}
-            className="w-full"
-            style={{ background: "linear-gradient(135deg, #E8742A, #D4621A)", color: "#fff" }}
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#0E1A20",
+        paddingBottom: "100px",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          padding: "56px 20px 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <ArrowLeft size={22} color="#fff" />
+        </button>
+        <div>
+          <h1
+            style={{
+              fontSize: "18px",
+              fontWeight: 700,
+              color: "#fff",
+              fontFamily: "Georgia, serif",
+            }}
           >
-            {uploading ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Upload…</>
-            ) : (
-              <><Upload className="w-4 h-4" /> Publier</>
-            )}
-          </Button>
+            Upload Interview de rue
+          </h1>
+          <p
+            style={{
+              fontSize: "11px",
+              color: "rgba(255,255,255,0.3)",
+            }}
+          >
+            Infeelit Admin ✦
+          </p>
         </div>
       </div>
+
+      {/* Formulaire */}
+      <form
+        onSubmit={handleUpload}
+        style={{
+          padding: "24px 20px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+        }}
+      >
+        {/* Upload vidéo */}
+        <div>
+          <label
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "#E8742A",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              display: "block",
+              marginBottom: "8px",
+            }}
+          >
+            Vidéo *
+          </label>
+          <label
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "32px",
+              borderRadius: "16px",
+              border: videoFile ? "2px solid #E8742A" : "2px dashed rgba(255,255,255,0.2)",
+              backgroundColor: videoFile ? "rgba(232,116,42,0.08)" : "rgba(255,255,255,0.03)",
+              cursor: "pointer",
+            }}
+          >
+            <Upload size={24} color={videoFile ? "#E8742A" : "rgba(255,255,255,0.3)"} />
+            <span
+              style={{
+                fontSize: "13px",
+                color: videoFile ? "#E8742A" : "rgba(255,255,255,0.4)",
+                textAlign: "center",
+              }}
+            >
+              {videoFile ? videoFile.name : "Appuie pour choisir une vidéo"}
+            </span>
+            <input
+              type="file"
+              accept="video/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) setVideoFile(f);
+              }}
+            />
+          </label>
+        </div>
+
+        {/* Prénom */}
+        <div>
+          <label
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "#E8742A",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              display: "block",
+              marginBottom: "8px",
+            }}
+          >
+            Prénom de la personne *
+          </label>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Thomas, Fatima, Ahmed..."
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.1)",
+              backgroundColor: "rgba(255,255,255,0.05)",
+              color: "#fff",
+              fontSize: "14px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* Ville */}
+        <div>
+          <label
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "#E8742A",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              display: "block",
+              marginBottom: "8px",
+            }}
+          >
+            Ville
+          </label>
+          <input
+            type="text"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Dubai, Paris, Alger..."
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.1)",
+              backgroundColor: "rgba(255,255,255,0.05)",
+              color: "#fff",
+              fontSize: "14px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* Question */}
+        <div>
+          <label
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "#E8742A",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              display: "block",
+              marginBottom: "8px",
+            }}
+          >
+            Question posée *
+          </label>
+          <textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Ex: Quel est ton souvenir d'enfance le plus fort ?"
+            rows={3}
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.1)",
+              backgroundColor: "rgba(255,255,255,0.05)",
+              color: "#fff",
+              fontSize: "14px",
+              outline: "none",
+              resize: "none",
+              boxSizing: "border-box",
+              fontFamily: "inherit",
+            }}
+          />
+        </div>
+
+        {/* Catégorie */}
+        <div>
+          <label
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "#E8742A",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              display: "block",
+              marginBottom: "8px",
+            }}
+          >
+            Thème
+          </label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.1)",
+              backgroundColor: "#1A2530",
+              color: "#fff",
+              fontSize: "14px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          >
+            {THEMATIC_CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Options */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+            padding: "16px",
+            borderRadius: "16px",
+            backgroundColor: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          {[
+            {
+              label: "Visible dans le feed public",
+              value: isPublic,
+              set: setIsPublic,
+            },
+            {
+              label: "Anonyme (sans prénom affiché)",
+              value: isAnonymous,
+              set: setIsAnonymous,
+            },
+          ].map((opt, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "13px",
+                  color: "rgba(255,255,255,0.7)",
+                }}
+              >
+                {opt.label}
+              </span>
+              <button
+                type="button"
+                onClick={() => opt.set(!opt.value)}
+                style={{
+                  width: "48px",
+                  height: "26px",
+                  borderRadius: "999px",
+                  border: "none",
+                  cursor: "pointer",
+                  backgroundColor: opt.value ? "#E8742A" : "rgba(255,255,255,0.15)",
+                  position: "relative",
+                  transition: "background 0.2s",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "3px",
+                    left: opt.value ? "25px" : "3px",
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    backgroundColor: "#fff",
+                    transition: "left 0.2s",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                  }}
+                />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Barre de progression */}
+        {uploading && (
+          <div>
+            <div
+              style={{
+                height: "4px",
+                backgroundColor: "rgba(255,255,255,0.1)",
+                borderRadius: "999px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${progress}%`,
+                  backgroundColor: "#E8742A",
+                  borderRadius: "999px",
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </div>
+            <p
+              style={{
+                fontSize: "11px",
+                color: "rgba(255,255,255,0.4)",
+                textAlign: "center",
+                marginTop: "8px",
+              }}
+            >
+              Upload en cours... {progress}%
+            </p>
+          </div>
+        )}
+
+        {/* Erreur */}
+        {error && (
+          <p
+            style={{
+              color: "#ff6b6b",
+              fontSize: "13px",
+              textAlign: "center",
+              padding: "12px",
+              borderRadius: "12px",
+              backgroundColor: "rgba(255,107,107,0.1)",
+            }}
+          >
+            {error}
+          </p>
+        )}
+
+        {/* Bouton submit */}
+        <button
+          type="submit"
+          disabled={uploading || !videoFile || !firstName || !question}
+          style={{
+            padding: "17px",
+            borderRadius: "18px",
+            background: uploading ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #E8742A, #D4621A)",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "15px",
+            border: "none",
+            cursor: uploading ? "not-allowed" : "pointer",
+            opacity: !videoFile || !firstName || !question ? 0.4 : 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            boxShadow: uploading ? "none" : "0 0 0 1px rgba(232,116,42,0.3), 0 8px 28px rgba(232,116,42,0.45)",
+          }}
+        >
+          <Upload size={18} />
+          {uploading ? "Upload en cours..." : "Publier dans le feed ✦"}
+        </button>
+      </form>
     </div>
   );
 };
