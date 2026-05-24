@@ -223,6 +223,13 @@ export type Database = {
     }
     Functions: {
       get_circle_invite_code: { Args: { _circle_id: string }; Returns: string }
+      get_circle_member_profiles: {
+        Args: { _circle_id: string }
+        Returns: {
+          display_name: string
+          user_id: string
+        }[]
+      }
       is_circle_admin: {
         Args: { _circle_id: string; _user_id: string }
         Returns: boolean
