@@ -245,4 +245,22 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     padding: "6px 12px",
                     borderRadius: "999px",
                     border: "1px solid rgba(232,116,42,0.3)",
-                    background: lang === l ? "#E8742A" :
+                    background: lang === l ? "#E8742A" : "transparent",
+                    color: lang === l ? "#fff" : "#3D2B1F",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Header;
