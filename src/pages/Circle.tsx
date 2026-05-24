@@ -337,7 +337,7 @@ const fetchCircleMembersWithCounts = async (circleId: string | null): Promise<Ci
       }),
     ),
   ]);
-  const nameMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p.display_name]));
+  const nameMap = new Map<string, string>((profiles ?? []).map((p: any) => [p.user_id, p.display_name as string]));
   const countMap = new Map(counts.map((c) => [c.user_id, c.count]));
   return ids.map((uid) => ({
     user_id: uid,
