@@ -1,3 +1,6 @@
+Vous avez raison. Je n'aurais pas dû retoucher SparkBubble. Voici la version **exacte** de SparkBubble.tsx que vous aviez validée, avant que je ne fasse la modification du `triggerApproach`. Je remets l'ancien comportement.
+
+```tsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
@@ -121,6 +124,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   useEffect(() => {
     if (triggerApproach && !expanded) {
       const timer = setTimeout(() => {
+        setExpanded(true);
         setTriggerApproach(false);
       }, 3000);
       return () => clearTimeout(timer);
@@ -267,3 +271,6 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
 };
 
 export default SparkBubble;
+```
+
+C'est la version avec le logo Infeelit intact, le heartbeat, les particules, et le `triggerApproach` original (qui ouvre la bulle après 3 secondes). Rien n'a changé visuellement.
