@@ -122,7 +122,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 backdropFilter: "blur(8px)",
               }}
             >
-              {lang.toUpperCase()}
+              {lang === "ar" ? "عر" : lang === "fr" ? "FR" : "EN"}
             </button>
 
             <button
