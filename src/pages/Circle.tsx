@@ -326,7 +326,7 @@ const fetchCircleMembersWithCounts = async (circleId: string | null): Promise<Ci
   const ids = (members ?? []).map((m: any) => m.user_id);
   if (ids.length === 0) return [];
   const [{ data: profiles }, counts] = await Promise.all([
-    supabase.from("profiles").select("user_id, display_name").in("user_id", ids),
+    (supabase as any).rpc("get_circle_member_profiles", { _circle_id: circleId }),
     Promise.all(
       ids.map(async (uid) => {
         const { count } = await supabase
