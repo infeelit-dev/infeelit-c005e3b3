@@ -12,7 +12,7 @@ interface HeaderProps {
 
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
-  const { lang } = useLanguage();
+  const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const tabs = [
@@ -22,6 +22,11 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   ];
 
   const underlineColor = (id: Timeline) => (id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : "#ffffff");
+
+  const cycleLanguage = () => {
+    const next = lang === "fr" ? "en" : lang === "en" ? "ar" : "fr";
+    setLang(next as any);
+  };
 
   return (
     <>
@@ -67,6 +72,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           >
             <Menu size={18} color="#fff" />
           </button>
+
           <img
             src={infeelit}
             alt="Infeelit"
@@ -79,24 +85,55 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               cursor: "pointer",
             }}
           />
-          <button
-            onClick={() => navigate("/search")}
+
+          <div
             style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.15)",
-              border: "1px solid rgba(255,255,255,0.2)",
               display: "flex",
+              gap: "8px",
               alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
             }}
           >
-            <Search size={16} color="#fff" />
-          </button>
+            <button
+              onClick={cycleLanguage}
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "50%",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "#fff",
+                fontSize: "10px",
+                fontWeight: 900,
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {lang.toUpperCase()}
+            </button>
+
+            <button
+              onClick={() => navigate("/search")}
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "50%",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <Search size={16} color="#fff" />
+            </button>
+          </div>
         </div>
+
         <nav style={{ display: "flex", justifyContent: "center", gap: "32px" }}>
           {tabs.map((tab) => {
             const isActive = activeTimeline === tab.id;
@@ -185,6 +222,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             >
               <X size={20} />
             </button>
+
             <img
               src={infeelit}
               alt="Infeelit"
@@ -195,6 +233,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 mixBlendMode: "multiply",
               }}
             />
+
             {[
               {
                 icon: "✦",
@@ -236,26 +275,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 {lang === "fr" ? item.fr : lang === "ar" ? item.ar : item.en}
               </button>
             ))}
-            <div style={{ height: "1px", background: "rgba(61,43,31,0.1)", margin: "8px 0" }} />
-            <div style={{ display: "flex", gap: "8px", padding: "8px 16px" }}>
-              {["fr", "en", "ar"].map((l) => (
-                <button
-                  key={l}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "999px",
-                    border: "1px solid rgba(232,116,42,0.3)",
-                    background: lang === l ? "#E8742A" : "transparent",
-                    color: lang === l ? "#fff" : "#3D2B1F",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  {l.toUpperCase()}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       )}
