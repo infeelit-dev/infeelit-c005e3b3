@@ -153,7 +153,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: "32px",
+            gap: "24px",
           }}
         >
           {tabs.map((tab) => {
