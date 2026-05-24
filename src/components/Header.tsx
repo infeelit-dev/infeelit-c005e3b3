@@ -248,47 +248,54 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               }}
             />
 
-            {[
-              {
-                icon: "✦",
-                fr: "À propos d'Infeelit",
-                en: "About Infeelit",
-                ar: "عن Infeelit",
-                route: "/about",
-              },
-              {
-                icon: "💬",
-                fr: "Nous contacter",
-                en: "Contact us",
-                ar: "اتصل بنا",
-                route: "/contact",
-              },
-            ].map((item) => (
-              <button
-                key={item.route}
-                onClick={() => {
-                  navigate(item.route);
-                  setMenuOpen(false);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "14px 16px",
-                  borderRadius: "14px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  color: "#3D2B1F",
-                }}
-              >
-                <span>{item.icon}</span>
-                {lang === "fr" ? item.fr : lang === "ar" ? item.ar : item.en}
-              </button>
-            ))}
+            {/* Seulement ces deux liens - PAS de sélecteur de langue */}
+            <button
+              onClick={() => {
+                navigate("/about");
+                setMenuOpen(false);
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "14px 16px",
+                borderRadius: "14px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textAlign: "left",
+                fontSize: "15px",
+                fontWeight: 600,
+                color: "#3D2B1F",
+              }}
+            >
+              <span>✦</span>
+              {lang === "fr" ? "À propos d'Infeelit" : lang === "ar" ? "عن Infeelit" : "About Infeelit"}
+            </button>
+
+            <button
+              onClick={() => {
+                navigate("/contact");
+                setMenuOpen(false);
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "14px 16px",
+                borderRadius: "14px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textAlign: "left",
+                fontSize: "15px",
+                fontWeight: 600,
+                color: "#3D2B1F",
+              }}
+            >
+              <span>💬</span>
+              {lang === "fr" ? "Nous contacter" : lang === "ar" ? "اتصل بنا" : "Contact us"}
+            </button>
           </div>
         </div>
       )}
