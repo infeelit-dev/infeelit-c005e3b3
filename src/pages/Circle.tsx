@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import useUserName from "@/hooks/useUserName";
 
 import grandfatherImg from "@/assets/grandfather.jpg";
 import marryImg from "@/assets/marry.jpg";
@@ -248,11 +249,16 @@ const fetchMemories = async (): Promise<Memory[]> => {
 const Circle = () => {
   const navigate = useNavigate();
   const { t, lang, rtl } = useLanguage();
+  const userName = useUserName();
   const sphereTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [copied, setCopied] = useState(false);
   const [sphereMode, setSphereMode] = useState<SphereMode>("question");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [seenMembers, setSeenMembers] = useState<Set<string>>(new Set());
+  const [circleCode, setCircleCode] = useState("");
+  const [showGroupImport, setShowGroupImport] = useState(false);
+  const [groupNames, setGroupNames] = useState("");
+  const [generatedMessage, setGeneratedMessage] = useState("");
 
   const { data: memories = [] } = useQuery({ queryKey: ["memories"], queryFn: fetchMemories, staleTime: 30_000 });
 
@@ -262,6 +268,30 @@ const Circle = () => {
     { id: "moments", label: t.tabVideo },
     { id: "chronicles", label: "📖 Chronicles" },
   ];
+
+  // Charger le code d'invitation du cercle
+  useEffect(() => {
+    const loadCircleCode = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      // Récupérer le premier cercle de l'utilisateur
+      const { data: memberships } = await supabase
+        .from("circle_members")
+        .select("circle_id")
+        .eq("user_id", session.user.id)
+        .limit(1);
+
+      if (!memberships?.length) return;
+
+      const circleId = memberships[0].circle_id;
+      const { data: code } = await supabase.rpc("get_circle_invite_code", { _circle_id: circleId });
+      if (code) setCircleCode(code);
+    };
+    loadCircleCode();
+  }, []);
 
   useEffect(() => {
     sphereTimerRef.current = setInterval(() => {
@@ -282,6 +312,40 @@ const Circle = () => {
   const handleWhatsApp = () => {
     const msg = `Join our Family Circle on Infeelit 🕯️\nhttps://infeelit.com/join/demo`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
+  const generateGroupMessage = () => {
+    const names = groupNames
+      .split(/[,;\n]+/)
+      .map((n) => n.trim())
+      .filter((n) => n.length > 0);
+
+    if (names.length === 0) return;
+
+    const inviteUrl = `infeelit.com/join/${circleCode || "demo"}`;
+
+    const displayed = names.slice(0, 3);
+    const remaining = names.length - 3;
+
+    let namesPart = "";
+    if (names.length === 1) {
+      namesPart = displayed[0];
+    } else if (names.length === 2) {
+      namesPart = `${displayed[0]} et ${displayed[1]}`;
+    } else if (names.length === 3) {
+      namesPart = `${displayed[0]}, ${displayed[1]} et ${displayed[2]}`;
+    } else {
+      namesPart = `${displayed[0]}, ${displayed[1]}, ${displayed[2]} et ${remaining} autre${remaining > 1 ? "s" : ""}`;
+    }
+
+    const msg =
+      lang === "fr"
+        ? `${namesPart} — votre espace famille vous attend sur Infeelit.\n\n${userName || "Quelqu'un que tu aimes"} a créé un sanctuaire pour préserver vos souvenirs ensemble.\n\nRejoignez-nous maintenant 👇\n${inviteUrl}`
+        : lang === "ar"
+          ? `${namesPart} — مساحة عائلتكم تنتظركم على Infeelit.\n\n${userName || "شخص تحبه"} أنشأ مكاناً للحفاظ على ذكرياتكم معاً.\n\nانضموا إلينا الآن 👇\n${inviteUrl}`
+          : `${namesPart} — your family space is waiting for you on Infeelit.\n\n${userName || "Someone you love"} created a sanctuary to preserve your memories together.\n\nJoin us now 👇\n${inviteUrl}`;
+
+    setGeneratedMessage(msg);
   };
 
   const latestMem = memories[0] ?? null;
@@ -904,6 +968,8 @@ const Circle = () => {
             )}
           </button>
         </div>
+
+        {/* Bouton WhatsApp existant */}
         <button
           onClick={handleWhatsApp}
           className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2"
@@ -911,6 +977,35 @@ const Circle = () => {
         >
           <span>💬</span> {t.inviteWhatsApp}
         </button>
+
+        {/* NOUVEAU : Bouton Importer mon groupe WhatsApp */}
+        <button
+          onClick={() => setShowGroupImport(true)}
+          style={{
+            width: "100%",
+            padding: "14px 20px",
+            borderRadius: "16px",
+            background: "rgba(37,211,102,0.12)",
+            border: "1px solid rgba(37,211,102,0.3)",
+            color: "#25D366",
+            fontWeight: 700,
+            fontSize: "14px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            marginTop: "8px",
+          }}
+        >
+          <span style={{ fontSize: "18px" }}>👥</span>
+          {lang === "fr"
+            ? "Importer mon groupe WhatsApp"
+            : lang === "ar"
+              ? "استيراد مجموعة واتساب"
+              : "Import my WhatsApp group"}
+        </button>
+
         <p className="text-center text-xs" style={{ color: "rgba(61,43,26,.28)" }}>
           {t.circlePrivate}
         </p>
@@ -932,6 +1027,240 @@ const Circle = () => {
           <Mic size={20} /> {t.addVoice}
         </button>
       </div>
+
+      {/* Modal d'import de groupe WhatsApp */}
+      {showGroupImport && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 100,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(8px)",
+          }}
+          onClick={() => {
+            setShowGroupImport(false);
+            setGeneratedMessage("");
+            setGroupNames("");
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "480px",
+              backgroundColor: "#0E1A20",
+              borderRadius: "24px 24px 0 0",
+              padding: "24px 20px 40px",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle */}
+            <div
+              style={{
+                width: "40px",
+                height: "4px",
+                backgroundColor: "rgba(255,255,255,0.2)",
+                borderRadius: "999px",
+                margin: "0 auto 20px",
+              }}
+            />
+
+            <p
+              style={{
+                fontSize: "10px",
+                fontWeight: 900,
+                letterSpacing: "0.3em",
+                color: "#25D366",
+                textTransform: "uppercase",
+                textAlign: "center",
+                marginBottom: "6px",
+              }}
+            >
+              {lang === "fr" ? "Groupe WhatsApp" : lang === "ar" ? "مجموعة واتساب" : "WhatsApp Group"}
+            </p>
+
+            <h2
+              style={{
+                fontSize: "18px",
+                fontWeight: 700,
+                color: "#fff",
+                textAlign: "center",
+                fontFamily: "Georgia, serif",
+                marginBottom: "20px",
+                lineHeight: 1.4,
+              }}
+            >
+              {lang === "fr"
+                ? "Entre les prénoms de ta famille"
+                : lang === "ar"
+                  ? "أدخل أسماء أفراد عائلتك"
+                  : "Enter your family members' names"}
+            </h2>
+
+            {!generatedMessage ? (
+              <>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "rgba(255,255,255,0.4)",
+                    textAlign: "center",
+                    marginBottom: "16px",
+                    lineHeight: 1.5,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {lang === "fr"
+                    ? "Séparés par des virgules\nEx: Ahmed, Fatima, Karim, Mama"
+                    : lang === "ar"
+                      ? "مفصولة بفواصل\nمثال: أحمد، فاطمة، كريم"
+                      : "Separated by commas\nEx: Ahmed, Fatima, Karim, Mom"}
+                </p>
+
+                <textarea
+                  value={groupNames}
+                  onChange={(e) => setGroupNames(e.target.value)}
+                  placeholder={
+                    lang === "fr"
+                      ? "Ahmed, Fatima, Karim, Mama, Papa, Leila..."
+                      : lang === "ar"
+                        ? "أحمد، فاطمة، كريم، ماما، بابا..."
+                        : "Ahmed, Fatima, Karim, Mom, Dad, Leila..."
+                  }
+                  rows={3}
+                  style={{
+                    width: "100%",
+                    padding: "14px 16px",
+                    borderRadius: "14px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    backgroundColor: "rgba(255,255,255,0.05)",
+                    color: "#fff",
+                    fontSize: "14px",
+                    outline: "none",
+                    resize: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                    marginBottom: "16px",
+                  }}
+                />
+
+                <button
+                  onClick={generateGroupMessage}
+                  disabled={groupNames.trim().length < 2}
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    borderRadius: "14px",
+                    background: "linear-gradient(135deg, #25D366, #128C7E)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: "15px",
+                    border: "none",
+                    cursor: groupNames.trim().length < 2 ? "not-allowed" : "pointer",
+                    opacity: groupNames.trim().length < 2 ? 0.4 : 1,
+                  }}
+                >
+                  {lang === "fr" ? "Générer le message ✦" : lang === "ar" ? "إنشاء الرسالة ✦" : "Generate message ✦"}
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Message généré */}
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "14px",
+                    backgroundColor: "rgba(37,211,102,0.08)",
+                    border: "1px solid rgba(37,211,102,0.2)",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: "rgba(255,255,255,0.85)",
+                      lineHeight: 1.6,
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {generatedMessage}
+                  </p>
+                </div>
+
+                {/* Bouton WhatsApp */}
+                <button
+                  onClick={() => {
+                    window.open(`https://wa.me/?text=${encodeURIComponent(generatedMessage)}`, "_blank");
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    borderRadius: "14px",
+                    background: "linear-gradient(135deg, #25D366, #128C7E)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: "15px",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    marginBottom: "10px",
+                    boxShadow: "0 4px 20px rgba(37,211,102,0.3)",
+                  }}
+                >
+                  <span style={{ fontSize: "20px" }}>💬</span>
+                  {lang === "fr" ? "Envoyer sur WhatsApp" : lang === "ar" ? "إرسال عبر واتساب" : "Send on WhatsApp"}
+                </button>
+
+                {/* Copier le message */}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(generatedMessage);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    borderRadius: "14px",
+                    background: "rgba(255,255,255,0.08)",
+                    color: "rgba(255,255,255,0.6)",
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {lang === "fr" ? "Copier le message" : lang === "ar" ? "نسخ الرسالة" : "Copy message"}
+                </button>
+
+                {/* Recommencer */}
+                <button
+                  onClick={() => {
+                    setGeneratedMessage("");
+                    setGroupNames("");
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    background: "none",
+                    border: "none",
+                    color: "rgba(255,255,255,0.3)",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    marginTop: "4px",
+                  }}
+                >
+                  {lang === "fr" ? "← Modifier les prénoms" : lang === "ar" ? "← تعديل الأسماء" : "← Edit names"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
