@@ -1,4 +1,3 @@
-```tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Users, MapPin, Plus, MessageCircle } from "lucide-react";
@@ -89,15 +88,9 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
           );
         })}
       </div>
-      <style>{`
-        @keyframes flameAlive {
-          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(232,116,42,0.6)); }
-          50% { transform: scale(1.08); filter: drop-shadow(0 0 8px rgba(232,116,42,0.9)); }
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes flameAlive { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(232,116,42,0.6)); } 50% { transform: scale(1.08); filter: drop-shadow(0 0 8px rgba(232,116,42,0.9)); } }" }} />
     </div>
   );
 };
 
 export default CurvedBottomNav;
-```
