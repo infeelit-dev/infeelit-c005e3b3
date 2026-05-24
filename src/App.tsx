@@ -27,6 +27,7 @@ import JoinCircle from "./pages/JoinCircle";
 import Whispers from "./pages/Whispers";
 import Search from "./pages/Search";
 import Contact from "./pages/Contact";
+import AdminUpload from "./pages/AdminUpload";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const App = () => (
             <Route path="/join/:code" element={<JoinCircle />} />
             <Route path="/search" element={<Search />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/admin/upload" element={<AdminUpload />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
