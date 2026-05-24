@@ -145,7 +145,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Tabs : parfaitement centrés sous le logo */}
+        {/* Tabs : largeur fixe pour rester centrés */}
         <div
           dir="ltr"
           style={{
@@ -153,7 +153,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: "24px",
+            gap: "0px",
           }}
         >
           {tabs.map((tab) => {
@@ -164,6 +164,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 onClick={() => onTimelineChange(tab.id)}
                 style={{
                   position: "relative",
+                  width: "110px",
                   paddingBottom: "6px",
                   background: "none",
                   border: "none",
@@ -174,6 +175,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                   textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                   transition: "all 0.2s",
                   whiteSpace: "nowrap",
+                  textAlign: "center",
                   lineHeight: 1,
                 }}
               >
@@ -183,8 +185,9 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     style={{
                       position: "absolute",
                       bottom: 0,
-                      left: 0,
-                      right: 0,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      width: "60%",
                       height: "2.5px",
                       borderRadius: "999px",
                       backgroundColor: underlineColor(tab.id),
@@ -198,7 +201,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         </div>
       </header>
 
-      {/* Menu burger — hors du header pour éviter les conflits z-index */}
+      {/* Menu burger — hors du header */}
       {menuOpen && (
         <div
           style={{
@@ -208,7 +211,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           }}
           onClick={() => setMenuOpen(false)}
         >
-          {/* Backdrop */}
           <div
             style={{
               position: "absolute",
@@ -218,7 +220,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             }}
           />
 
-          {/* Panel */}
           <div
             dir="ltr"
             style={{
