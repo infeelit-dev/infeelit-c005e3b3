@@ -1,4 +1,3 @@
-```tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
@@ -78,4 +77,3 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
 };
 
 export default Header;
-```
