@@ -24,7 +24,9 @@ import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import CreateCircle from "./pages/CreateCircle";
 import JoinCircle from "./pages/JoinCircle";
-import Chats from "./pages/Chats";
+import Whispers from "./pages/Whispers";
+import Search from "./pages/Search";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +58,9 @@ const App = () => (
             <Route path="/places" element={<Places />} />
             <Route path="/create-circle" element={<CreateCircle />} />
             <Route path="/join/:code" element={<JoinCircle />} />
-            <Route path="/chats" element={<Chats />} />
+            <Route path="/whispers" element={<Whispers />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
