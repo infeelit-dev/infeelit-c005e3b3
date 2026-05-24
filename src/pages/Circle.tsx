@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Copy, Check, Mic, Play, Volume2, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
