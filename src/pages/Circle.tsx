@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Copy, Check, Mic, Play, Volume2, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import useUserName from "@/hooks/useUserName";
 
 import grandfatherImg from "@/assets/grandfather.jpg";
 import marryImg from "@/assets/marry.jpg";
@@ -232,8 +231,6 @@ const DEMO_SHELF = [
   },
 ];
 
-import { resolveMemoryFields } from "@/lib/memoryUrl";
-
 const fetchMemories = async (): Promise<Memory[]> => {
   const {
     data: { session },
@@ -245,112 +242,12 @@ const fetchMemories = async (): Promise<Memory[]> => {
     .eq("user_id", session.user.id)
     .order("created_at", { ascending: false })
     .limit(10);
-  const rows = (mems as Memory[]) || [];
-  return rows.length > 0 ? await resolveMemoryFields(rows) : [];
-};
-
-interface CircleData {
-  circleId: string;
-  circleName: string;
-  role: string;
-  memberCount: number;
-  inviteCode: string | null;
-}
-
-interface CircleNotification {
-  id: string;
-  message: string;
-  memory_id: string | null;
-  created_at: string;
-  from_user_id: string;
-}
-
-const fetchCircleData = async (): Promise<CircleData | null> => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) return null;
-
-  const { data: memberships } = await supabase
-    .from("circle_members")
-    .select("circle_id, role")
-    .eq("user_id", session.user.id)
-    .limit(1);
-
-  const m = memberships?.[0];
-  if (!m) return null;
-
-  const [{ data: circle }, { count }, { data: codeData }] = await Promise.all([
-    supabase.from("circles").select("name").eq("id", m.circle_id).maybeSingle(),
-    supabase
-      .from("circle_members")
-      .select("user_id", { count: "exact", head: true })
-      .eq("circle_id", m.circle_id),
-    supabase.rpc("get_circle_invite_code", { _circle_id: m.circle_id }),
-  ]);
-
-  return {
-    circleId: m.circle_id,
-    circleName: circle?.name || "Our Family",
-    role: m.role,
-    memberCount: count ?? 1,
-    inviteCode: (codeData as unknown as string) || null,
-  };
-};
-
-const fetchNotifications = async (circleId: string | null): Promise<CircleNotification[]> => {
-  if (!circleId) return [];
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data } = await supabase
-    .from("notifications")
-    .select("id, message, memory_id, created_at, from_user_id")
-    .eq("circle_id", circleId)
-    .gte("created_at", since)
-    .order("created_at", { ascending: false })
-    .limit(5);
-  return (data as CircleNotification[]) || [];
-};
-
-interface CircleMemberInfo {
-  user_id: string;
-  display_name: string;
-  memory_count: number;
-}
-
-const fetchCircleMembersWithCounts = async (circleId: string | null): Promise<CircleMemberInfo[]> => {
-  if (!circleId) return [];
-  const { data: members } = await supabase
-    .from("circle_members")
-    .select("user_id")
-    .eq("circle_id", circleId);
-  const ids = (members ?? []).map((m: any) => m.user_id);
-  if (ids.length === 0) return [];
-  const [{ data: profiles }, counts] = await Promise.all([
-    (supabase as any).rpc("get_circle_member_profiles", { _circle_id: circleId }),
-    Promise.all(
-      ids.map(async (uid) => {
-        const { count } = await supabase
-          .from("memories")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", uid);
-        return { user_id: uid, count: count ?? 0 };
-      }),
-    ),
-  ]);
-  const nameMap = new Map<string, string>((profiles ?? []).map((p: any) => [p.user_id, p.display_name as string]));
-  const countMap = new Map(counts.map((c) => [c.user_id, c.count]));
-  return ids.map((uid) => ({
-    user_id: uid,
-    display_name: nameMap.get(uid) || "Member",
-    memory_count: countMap.get(uid) ?? 0,
-  }));
+  return (mems as Memory[]) || [];
 };
 
 const Circle = () => {
   const navigate = useNavigate();
   const { t, lang, rtl } = useLanguage();
-  const userName = useUserName();
-  const [joinCode, setJoinCode] = useState("");
   const sphereTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [copied, setCopied] = useState(false);
   const [sphereMode, setSphereMode] = useState<SphereMode>("question");
@@ -358,38 +255,6 @@ const Circle = () => {
   const [seenMembers, setSeenMembers] = useState<Set<string>>(new Set());
 
   const { data: memories = [] } = useQuery({ queryKey: ["memories"], queryFn: fetchMemories, staleTime: 30_000 });
-  const { data: circleData, isLoading: circleLoading } = useQuery({
-    queryKey: ["circle-data"],
-    queryFn: fetchCircleData,
-    staleTime: 30_000,
-  });
-  const { data: notifications = [] } = useQuery({
-    queryKey: ["circle-notifications", circleData?.circleId],
-    queryFn: () => fetchNotifications(circleData?.circleId ?? null),
-    enabled: !!circleData?.circleId,
-    staleTime: 30_000,
-  });
-  const { data: realMembers = [] } = useQuery({
-    queryKey: ["circle-members-counts", circleData?.circleId],
-    queryFn: () => fetchCircleMembersWithCounts(circleData?.circleId ?? null),
-    enabled: !!circleData?.circleId,
-    staleTime: 30_000,
-  });
-
-  const memberSubtitle = (count: number) => {
-    if (lang === "fr") return `${count} souvenir${count > 1 ? "s" : ""}`;
-    if (lang === "ar") return `${count} ذكرى`;
-    return `${count} ${count === 1 ? "memory" : "memories"}`;
-  };
-
-  const constellationMembers = realMembers.length > 0
-    ? DEMO_MEMBERS.map((m, i) => {
-        const real = realMembers[i];
-        return real
-          ? { ...m, name: real.display_name, subtitle: memberSubtitle(real.memory_count), id: real.user_id }
-          : null;
-      }).filter(Boolean) as DemoMember[]
-    : DEMO_MEMBERS;
 
   const FILTERS: { id: FilterType; label: string }[] = [
     { id: "all", label: t.tabAll },
@@ -407,137 +272,19 @@ const Circle = () => {
     };
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("infeelit_circle_last_visit", new Date().toISOString());
-  }, []);
-
-  const inviteUrl = circleData?.inviteCode
-    ? `https://infeelit.com/join/${circleData.inviteCode}`
-    : "https://infeelit.com";
-
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(inviteUrl);
+    navigator.clipboard.writeText("https://infeelit.com/join/demo");
     setCopied(true);
-    toast.success(lang === "fr" ? "Lien copié !" : lang === "ar" ? "تم نسخ الرابط!" : "Link copied!");
+    toast.success(t.comingSoon);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = () => {
-    const code = circleData?.inviteCode || "";
-    const url = `infeelit.com/join/${code}`;
-    const who = userName || (lang === "fr" ? "Quelqu'un" : lang === "ar" ? "شخص ما" : "Someone");
-    const msg =
-      lang === "fr"
-        ? `${who} t'a laissé quelque chose sur Infeelit. Ta famille t'attend. Rejoins-nous → ${url}`
-        : lang === "ar"
-          ? `${who} ترك لك شيئاً على Infeelit. عائلتك تنتظرك. انضم إلينا ← ${url}`
-          : `${who} left something for you on Infeelit. Your family is waiting. Join us → ${url}`;
+    const msg = `Join our Family Circle on Infeelit 🕯️\nhttps://infeelit.com/join/demo`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
-  const handleJoin = async () => {
-    const code = joinCode.trim().toUpperCase();
-    if (!code) return;
-    navigate(`/join/${code}`);
-  };
-
-  const handleOpenNotification = (n: CircleNotification) => {
-    if (n.memory_id) {
-      navigate("/treasure", { state: { memoryId: n.memory_id } });
-    } else {
-      navigate("/treasure");
-    }
-  };
-
-  const timeAgo = (iso: string): string => {
-    const diff = Math.max(0, Date.now() - new Date(iso).getTime());
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return lang === "fr" ? "à l'instant" : lang === "ar" ? "الآن" : "just now";
-    if (mins < 60) return lang === "fr" ? `il y a ${mins} min` : lang === "ar" ? `قبل ${mins} د` : `${mins} min ago`;
-    const hrs = Math.floor(mins / 60);
-    return lang === "fr" ? `il y a ${hrs} h` : lang === "ar" ? `قبل ${hrs} س` : `${hrs}h ago`;
-  };
-
   const latestMem = memories[0] ?? null;
-
-  // Empty state — user is not in any circle yet
-  if (!circleLoading && !circleData) {
-    const title =
-      lang === "fr"
-        ? `${userName ? userName + ", ton" : "Ton"} espace familial t'attend.`
-        : lang === "ar"
-          ? `${userName ? userName + "، مساحتك" : "مساحتك"} العائلية تنتظرك.`
-          : `${userName ? userName + ", your" : "Your"} family space is waiting.`;
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center px-8 text-center gap-6 relative overflow-hidden"
-        dir={rtl ? "rtl" : "ltr"}
-        style={{
-          background: "radial-gradient(ellipse at 50% 36%, #F5E6CC 0%, #D2B48C 100%)",
-          fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
-        }}
-      >
-        <p className="text-5xl">✦</p>
-        <h1
-          className="text-2xl font-bold leading-snug"
-          style={{ color: "#3D2B1F", fontFamily: "Georgia, serif" }}
-        >
-          {title}
-        </h1>
-        <p className="text-sm" style={{ color: "rgba(61,43,31,0.5)" }}>
-          {lang === "fr"
-            ? "Créez votre cercle ou rejoignez celui d'un proche."
-            : lang === "ar"
-              ? "أنشئ دائرتك أو انضم إلى دائرة قريب."
-              : "Create your circle or join a loved one's."}
-        </p>
-        <button
-          onClick={() => navigate("/create-circle")}
-          className="w-full max-w-xs py-4 rounded-full font-bold text-base"
-          style={{
-            background: "linear-gradient(135deg, #E8742A, #D4621A)",
-            color: "#fff",
-            boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
-          }}
-        >
-          {lang === "fr" ? "Créer notre espace ✦" : lang === "ar" ? "أنشئ مساحتنا ✦" : "Create our space ✦"}
-        </button>
-        <div className="flex items-center gap-3 w-full max-w-xs my-1">
-          <div className="flex-1 h-px bg-[#3D2B1F]/15" />
-          <span className="text-xs uppercase tracking-widest" style={{ color: "rgba(61,43,31,0.4)" }}>
-            {lang === "fr" ? "ou" : lang === "ar" ? "أو" : "or"}
-          </span>
-          <div className="flex-1 h-px bg-[#3D2B1F]/15" />
-        </div>
-        <div className="w-full max-w-xs flex flex-col gap-3">
-          <input
-            type="text"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
-            placeholder={lang === "fr" ? "Code d'invitation" : lang === "ar" ? "رمز الدعوة" : "Invite code"}
-            className="w-full rounded-full px-6 py-3 bg-white border text-center font-serif text-lg outline-none"
-            style={{ borderColor: "rgba(212,168,83,0.4)", color: "#3D2B1F" }}
-          />
-          <button
-            onClick={handleJoin}
-            disabled={!joinCode.trim()}
-            className="w-full py-3 rounded-full font-bold text-sm disabled:opacity-50"
-            style={{
-              backgroundColor: "rgba(61,43,31,0.06)",
-              color: "#3D2B1F",
-              border: "1px solid rgba(61,43,31,0.12)",
-            }}
-          >
-            {lang === "fr"
-              ? "J'ai un code d'invitation →"
-              : lang === "ar"
-                ? "لدي رمز دعوة ←"
-                : "I have an invite code →"}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -617,11 +364,10 @@ const Circle = () => {
         </button>
         <div className="text-center">
           <h1 className="font-bold text-lg font-serif" style={{ color: "#3D2B1A" }}>
-            {circleData?.circleName || "Our Family"}
+            {lang === "ar" ? "دوائري" : lang === "fr" ? "Mes Cercles" : "My Circles"}
           </h1>
           <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(61,43,26,.42)" }}>
-            {t.ourCircle} · {circleData?.memberCount ?? 1}{" "}
-            {lang === "fr" ? "membres" : lang === "ar" ? "أعضاء" : "members"}
+            {t.ourCircle} · 12 members
           </p>
         </div>
         <div
@@ -635,46 +381,6 @@ const Circle = () => {
           {t.privateLabel}
         </div>
       </div>
-
-      {notifications.length > 0 && (
-        <div className="relative z-10 px-5 mt-2 space-y-2">
-          {notifications.map((n) => (
-            <button
-              key={n.id}
-              onClick={() => handleOpenNotification(n)}
-              className="w-full flex items-center gap-3 p-3 rounded-2xl text-left transition-transform active:scale-[0.98]"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.5)",
-                border: "1px solid rgba(232,116,42,0.35)",
-                backdropFilter: "blur(6px)",
-              }}
-            >
-              <div
-                className="shrink-0 rounded-full flex items-center justify-center"
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                  color: "#fff",
-                  fontSize: "14px",
-                }}
-              >
-                ✦
-              </div>
-              <div className="min-w-0 flex-1">
-                <p
-                  className="truncate"
-                  style={{ fontSize: "12px", fontWeight: 700, color: "#3D2B1A", fontFamily: "Georgia, serif" }}
-                >
-                  {n.message}
-                </p>
-                <p style={{ fontSize: "10px", color: "rgba(61,43,26,0.5)" }}>{timeAgo(n.created_at)}</p>
-              </div>
-              <Play size={14} style={{ color: "#E8742A" }} />
-            </button>
-          ))}
-        </div>
-      )}
 
       <div className="relative mx-auto z-10 w-full max-w-[90vw] aspect-[3.7/5.1] max-h-[55vh]">
         {[108, 132, 156].map((r, i) => (
@@ -753,7 +459,7 @@ const Circle = () => {
           />
         </div>
 
-        {constellationMembers.map((m) => {
+        {DEMO_MEMBERS.map((m) => {
           const isNew = m.hasNew && !seenMembers.has(m.id);
           return (
             <div
@@ -1179,7 +885,7 @@ const Circle = () => {
               {t.inviteLink}
             </p>
             <p className="font-mono text-sm truncate" style={{ color: "#3D2B1A" }}>
-              {circleData?.inviteCode ? `infeelit.com/join/${circleData.inviteCode}` : "infeelit.com"}
+              infeelit.com/join/demo
             </p>
           </div>
           <button
