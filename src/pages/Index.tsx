@@ -1,3 +1,4 @@
+```tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,6 @@ import Header from "@/components/Header";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
-import OnboardingChoice from "@/components/OnboardingChoice";
 import imgMarry from "@/assets/marry.jpg";
 import type { Timeline } from "@/types/timeline";
 import type { BubbleCategory } from "@/components/MemoryBubble";
@@ -28,7 +28,6 @@ const Index = () => {
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showForeverOverlay, setShowForeverOverlay] = useState(false);
-  const [showOnboardingChoice, setShowOnboardingChoice] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
   const [sparkForced, setSparkForced] = useState(false);
@@ -36,14 +35,6 @@ const Index = () => {
 
   useEffect(() => {
     const entryTime = Date.now();
-    const savedName = localStorage.getItem("infeelit_user_name");
-    const hasSeenOnboarding = localStorage.getItem("infeelit_onboarding_done");
-    if (savedName && !hasSeenOnboarding) {
-      setTimeout(() => {
-        setShowOnboardingChoice(true);
-        localStorage.setItem("infeelit_onboarding_done", "true");
-      }, 500);
-    }
     return () => {
       const timeSpent = Date.now() - entryTime;
       const prev = Number(localStorage.getItem("infeelit_feed_time") || 0);
@@ -56,25 +47,14 @@ const Index = () => {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
-      const { data: memberships } = await supabase
-        .from("circle_members")
-        .select("circle_id, user_id")
-        .eq("user_id", session.user.id)
-        .limit(1);
+      const { data: memberships } = await supabase.from("circle_members").select("circle_id, user_id").eq("user_id", session.user.id).limit(1);
       const m = memberships?.[0];
       if (!m) return;
-      const { data: allMembers } = await supabase
-        .from("circle_members")
-        .select("user_id")
-        .eq("circle_id", m.circle_id);
+      const { data: allMembers } = await supabase.from("circle_members").select("user_id").eq("circle_id", m.circle_id);
       const ids = (allMembers ?? []).map((x: any) => x.user_id).filter((u: string) => u !== session.user.id);
       if (ids.length === 0) return;
       const since = localStorage.getItem("infeelit_circle_last_visit") || new Date(Date.now() - 7 * 86400000).toISOString();
-      const { count } = await supabase
-        .from("memories")
-        .select("id", { count: "exact", head: true })
-        .in("user_id", ids)
-        .gt("created_at", since);
+      const { count } = await supabase.from("memories").select("id", { count: "exact", head: true }).in("user_id", ids).gt("created_at", since);
       if (!cancelled) setCircleBadge(count ?? 0);
     })();
     return () => { cancelled = true; };
@@ -83,10 +63,7 @@ const Index = () => {
   const handleTimelineChange = async (timeline: Timeline) => {
     if (timeline === "forever") {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setShowForeverOverlay(true);
-        return;
-      }
+      if (!session) { setShowForeverOverlay(true); return; }
     }
     setActiveTimeline(timeline);
   };
@@ -94,10 +71,7 @@ const Index = () => {
   const handleBubbleClick = async (question: string, category: BubbleCategory) => {
     if (!question) return;
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      navigate("/record", { state: { question, category } });
-      return;
-    }
+    if (session) { navigate("/record", { state: { question, category } }); return; }
     setPendingQuestion(question);
     setInterstitialContext("answer");
     setShowInterstitial(true);
@@ -106,10 +80,7 @@ const Index = () => {
   const handleDemoBubbleClick = async (type: "forever-in-memories" | "legacy-in-forever") => {
     const { data: { session } } = await supabase.auth.getSession();
     const q = type === "forever-in-memories" ? DEMO_BUBBLES.foreverInMemories.question : DEMO_BUBBLES.legacyInForever.question;
-    if (session) {
-      navigate("/record", { state: { question: q } });
-      return;
-    }
+    if (session) { navigate("/record", { state: { question: q } }); return; }
     setPendingQuestion(q);
     setInterstitialContext(type === "forever-in-memories" ? "forever" : "answer");
     setShowInterstitial(true);
@@ -162,9 +133,7 @@ const Index = () => {
         <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/5 blur-3xl" />
         <div className="absolute top-1/4 -right-16 w-64 h-64 rounded-full bg-white/5 blur-3xl" style={{ animationDelay: "4s" }} />
         <div className="absolute bottom-1/3 -left-10 w-56 h-56 rounded-full bg-white/5 blur-3xl" style={{ animationDelay: "8s" }} />
-        {activeTimeline === "forever" && [...Array(30)].map((_, i) => (
-          <div key={i} className="absolute rounded-full bg-white" style={{ width: Math.random() * 2 + 1 + "px", height: Math.random() * 2 + 1 + "px", left: Math.random() * 100 + "%", top: Math.random() * 70 + "%", opacity: Math.random() * 0.7 + 0.3, animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`, animationDelay: Math.random() * 3 + "s" }} />
-        ))}
+        {activeTimeline === "forever" && [...Array(30)].map((_, i) => (<div key={i} className="absolute rounded-full bg-white" style={{ width: Math.random() * 2 + 1 + "px", height: Math.random() * 2 + 1 + "px", left: Math.random() * 100 + "%", top: Math.random() * 70 + "%", opacity: Math.random() * 0.7 + 0.3, animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`, animationDelay: Math.random() * 3 + "s" }} />))}
       </div>
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
@@ -182,7 +151,6 @@ const Index = () => {
           </div>
         </button>
       )}
-
       {activeTimeline === "forever" && (
         <button onClick={() => handleDemoBubbleClick("legacy-in-forever")} className="absolute z-[2] cursor-pointer bubble-demo-gold" style={{ width: "75px", height: "75px", left: "12%", top: "58%", borderRadius: "50%", border: "2px solid rgba(232,116,42,0.9)", background: "radial-gradient(circle at 35% 35%, rgba(232,116,42,0.4), rgba(20,10,5,0.9))", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "3px", padding: "8px" }}>
           <span style={{ fontSize: "7px", color: "#FFFFFF", fontWeight: 900, backgroundColor: "rgba(232,116,42,0.9)", padding: "1px 5px", borderRadius: "999px", whiteSpace: "nowrap", lineHeight: 1.5 }}>LEGACY</span>
@@ -216,10 +184,9 @@ const Index = () => {
           </div>
         </div>
       )}
-
-      {showOnboardingChoice && <OnboardingChoice onClose={() => setShowOnboardingChoice(false)} />}
     </div>
   );
 };
 
 export default Index;
+```
