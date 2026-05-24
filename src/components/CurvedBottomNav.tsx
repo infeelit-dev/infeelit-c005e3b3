@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Waves, MapPin, Plus, Users2, Gem } from "lucide-react";
+import { Users, MapPin, Plus, MessageCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CurvedBottomNavProps {
@@ -11,15 +12,34 @@ interface CurvedBottomNavProps {
 const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsConnected(!!session);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsConnected(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const NAV_ITEMS = [
-    { icon: Waves, label: t.navFeels, path: "/" },
-    { icon: MapPin, label: t.navPlaces, path: "/places" },
+    { icon: Users, label: lang === "ar" ? "دوائر" : lang === "fr" ? "Cercles" : "Circles", path: "/circles" },
+    { icon: MapPin, label: lang === "ar" ? "أماكن" : lang === "fr" ? "Lieux" : "Places", path: "/places" },
     { icon: null, label: "", path: "/record" },
-    { icon: Users2, label: t.navConnect, path: "/connect" },
-    { icon: Gem, label: t.navTreasure, path: "/treasure" },
+    { icon: MessageCircle, label: lang === "ar" ? "محادثات" : lang === "fr" ? "Chats" : "Chats", path: "/chats" },
+    { icon: "flame", label: lang === "ar" ? "أنا" : lang === "fr" ? "Moi" : "Me", path: "/treasure" },
   ];
+
+  const isActive = (path: string) => {
+    if (path === "/record") return false;
+    if (path === "/circles" && (location.pathname === "/circles" || location.pathname === "/circle")) return true;
+    return location.pathname === path;
+  };
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-20">
@@ -52,9 +72,69 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
             );
           }
 
-          const isActive = location.pathname === item.path;
+          if (item.icon === "flame") {
+            return (
+              <button
+                key="flame"
+                onClick={() => navigate(item.path)}
+                className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
+              >
+                <div style={{ position: "relative" }}>
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={isConnected ? "#E8742A" : "rgba(255,255,255,0.3)"}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      filter: isConnected ? "none" : "grayscale(1)",
+                      animation: isConnected && isActive(item.path) ? "flameAlive 2s ease-in-out infinite" : "none",
+                    }}
+                  >
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                  </svg>
+                  {circleBadge > 0 && isActive(item.path) && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "-4px",
+                        right: "-8px",
+                        minWidth: "14px",
+                        height: "14px",
+                        borderRadius: "7px",
+                        backgroundColor: "#E8742A",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "0 3px",
+                      }}
+                    >
+                      <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>
+                        {circleBadge}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <span
+                  style={{
+                    fontSize: "8px",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.12em",
+                    color: isActive(item.path) ? "#E8742A" : "rgba(255,255,255,0.35)",
+                  }}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          }
+
           const Icon = item.icon;
-          const showBadge = item.path === "/connect" && circleBadge > 0;
+          const active = isActive(item.path);
 
           return (
             <button
@@ -62,47 +142,46 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
               onClick={() => navigate(item.path)}
               className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
             >
-              {Icon && (
-                <div className="relative">
+              <div style={{ position: "relative" }}>
+                {Icon && (
                   <Icon
                     size={22}
                     style={{
-                      color: isActive ? "#E8742A" : "rgba(255,255,255,0.5)",
-                      filter: isActive ? "drop-shadow(0 0 6px rgba(232,116,42,0.7))" : "none",
+                      color: active ? "#E8742A" : "rgba(255,255,255,0.5)",
+                      filter: active ? "drop-shadow(0 0 6px rgba(232,116,42,0.7))" : "none",
                       transition: "all 0.2s ease",
                     }}
                   />
-                  {showBadge && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: -4,
-                        right: -6,
-                        minWidth: 14,
-                        height: 14,
-                        padding: "0 4px",
-                        borderRadius: 999,
-                        background: "linear-gradient(135deg,#E8742A,#D4621A)",
-                        color: "#fff",
-                        fontSize: 9,
-                        fontWeight: 800,
-                        lineHeight: "14px",
-                        textAlign: "center",
-                        boxShadow: "0 0 8px rgba(232,116,42,0.7)",
-                      }}
-                    >
-                      {circleBadge > 9 ? "9+" : circleBadge}
+                )}
+                {index === 0 && circleBadge > 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "-4px",
+                      right: "-8px",
+                      minWidth: "14px",
+                      height: "14px",
+                      borderRadius: "7px",
+                      backgroundColor: "#E8742A",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0 3px",
+                    }}
+                  >
+                    <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>
+                      {circleBadge}
                     </span>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
               <span
                 style={{
                   fontSize: "8px",
                   fontWeight: 700,
                   textTransform: "uppercase",
                   letterSpacing: "0.12em",
-                  color: isActive ? "#E8742A" : "rgba(255,255,255,0.35)",
+                  color: active ? "#E8742A" : "rgba(255,255,255,0.35)",
                 }}
               >
                 {item.label}
@@ -111,6 +190,12 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
           );
         })}
       </div>
+      <style>{`
+        @keyframes flameAlive {
+          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(232,116,42,0.6)); }
+          50% { transform: scale(1.08); filter: drop-shadow(0 0 8px rgba(232,116,42,0.9)); }
+        }
+      `}</style>
     </div>
   );
 };
