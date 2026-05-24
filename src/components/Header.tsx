@@ -10,10 +10,23 @@ interface HeaderProps {
   onTimelineChange: (t: Timeline) => void | Promise<void>;
 }
 
+const LANGS = [
+  { id: "en" as const, flag: "🇬🇧", label: "English" },
+  { id: "fr" as const, flag: "🇫🇷", label: "Français" },
+  { id: "ar" as const, flag: "🇦🇪", label: "العربية" },
+];
+
+const langLabel: Record<string, string> = {
+  en: "EN",
+  fr: "FR",
+  ar: "عر",
+};
+
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
   const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
 
   const tabs = [
     { id: "memories" as Timeline, label: lang === "fr" ? "Souvenirs" : lang === "ar" ? "ذكريات" : "Memories" },
@@ -22,11 +35,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   ];
 
   const underlineColor = (id: Timeline) => (id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : "#ffffff");
-
-  const cycleLanguage = () => {
-    const next = lang === "fr" ? "en" : lang === "en" ? "ar" : "fr";
-    setLang(next as any);
-  };
 
   return (
     <>
@@ -45,7 +53,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           paddingBottom: "8px",
         }}
       >
-        {/* Ligne du haut : burger | logo | lang + search */}
+        {/* Ligne du haut */}
         <div
           dir="ltr"
           style={{
@@ -79,7 +87,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             </button>
           </div>
 
-          {/* Centre : logo parfaitement centré */}
+          {/* Centre : logo */}
           <div style={{ display: "flex", justifyContent: "center" }}>
             <img
               src={infeelit}
@@ -95,36 +103,109 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             />
           </div>
 
-          {/* Droite : langue + loupe */}
+          {/* Droite : langue dropdown + loupe */}
           <div
             style={{
               display: "flex",
               justifyContent: "flex-end",
               gap: "8px",
               alignItems: "center",
+              position: "relative",
             }}
           >
-            <button
-              onClick={cycleLanguage}
-              style={{
-                width: "34px",
-                height: "34px",
-                borderRadius: "50%",
-                backgroundColor: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                color: "#fff",
-                fontSize: "10px",
-                fontWeight: 900,
-                backdropFilter: "blur(8px)",
-              }}
-            >
-              {lang === "ar" ? "عر" : lang === "fr" ? "FR" : "EN"}
-            </button>
+            {/* Bouton langue avec dropdown */}
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setLangOpen((v) => !v)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "6px 10px",
+                  borderRadius: "999px",
+                  backgroundColor: "rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  backdropFilter: "blur(8px)",
+                  cursor: "pointer",
+                  color: "#fff",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  height: "34px",
+                }}
+              >
+                <span>{LANGS.find((l) => l.id === lang)?.flag}</span>
+                <span>{langLabel[lang]}</span>
+                <span style={{ fontSize: "7px", opacity: 0.6 }}>▼</span>
+              </button>
 
+              {/* Dropdown */}
+              {langOpen && (
+                <>
+                  <div style={{ position: "fixed", inset: 0, zIndex: 98 }} onClick={() => setLangOpen(false)} />
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      right: 0,
+                      backgroundColor: "rgba(10,17,40,0.97)",
+                      backdropFilter: "blur(16px)",
+                      borderRadius: "14px",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      overflow: "hidden",
+                      minWidth: "130px",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                      zIndex: 99,
+                    }}
+                  >
+                    {LANGS.map((l, i) => (
+                      <button
+                        key={l.id}
+                        onClick={() => {
+                          setLang(l.id);
+                          setLangOpen(false);
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "11px 14px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          backgroundColor: lang === l.id ? "rgba(232,116,42,0.2)" : "transparent",
+                          border: "none",
+                          borderBottom: i < LANGS.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <span style={{ fontSize: "16px" }}>{l.flag}</span>
+                        <span
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            color: "#fff",
+                            fontFamily: l.id === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+                          }}
+                        >
+                          {l.label}
+                        </span>
+                        {lang === l.id && (
+                          <span
+                            style={{
+                              marginLeft: "auto",
+                              color: "#E8742A",
+                              fontSize: "13px",
+                            }}
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Loupe */}
             <button
               onClick={() => navigate("/search")}
               style={{
@@ -145,7 +226,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Tabs : largeur fixe pour rester centrés */}
+        {/* Tabs centrés avec largeur fixe */}
         <div
           dir="ltr"
           style={{
@@ -201,16 +282,9 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         </div>
       </header>
 
-      {/* Menu burger — hors du header */}
+      {/* Menu burger */}
       {menuOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 200,
-          }}
-          onClick={() => setMenuOpen(false)}
-        >
+        <div style={{ position: "fixed", inset: 0, zIndex: 200 }} onClick={() => setMenuOpen(false)}>
           <div
             style={{
               position: "absolute",
@@ -219,7 +293,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               backdropFilter: "blur(4px)",
             }}
           />
-
           <div
             dir="ltr"
             style={{
