@@ -368,8 +368,8 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                 src={infeeilitSymbol}
                 alt="Infeelit"
                 style={{
-                  width: "62px",
-                  height: "62px",
+                  width: "200px",
+                  height: "200px",
                   objectFit: "contain",
                   animation: "heartbeat 0.86s ease-in-out infinite",
                   filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
