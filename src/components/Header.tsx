@@ -43,6 +43,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           paddingTop: "12px",
           paddingBottom: "8px",
         }}
+        dir="ltr"
       >
         <div
           style={{
@@ -53,8 +54,10 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             paddingLeft: "16px",
             paddingRight: "16px",
             marginBottom: "10px",
+            direction: "ltr",
           }}
         >
+          {/* Toujours à gauche */}
           <button
             onClick={() => setMenuOpen(true)}
             style={{
@@ -73,6 +76,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             <Menu size={18} color="#fff" />
           </button>
 
+          {/* Toujours au centre */}
           <img
             src={infeelit}
             alt="Infeelit"
@@ -86,11 +90,13 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             }}
           />
 
+          {/* Toujours à droite */}
           <div
             style={{
               display: "flex",
               gap: "8px",
               alignItems: "center",
+              direction: "ltr",
             }}
           >
             <button
@@ -134,7 +140,14 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        <nav style={{ display: "flex", justifyContent: "center", gap: "32px" }}>
+        <nav
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "32px",
+            direction: "ltr",
+          }}
+        >
           {tabs.map((tab) => {
             const isActive = activeTimeline === tab.id;
             return (
@@ -205,6 +218,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               flexDirection: "column",
               gap: "4px",
               boxShadow: "4px 0 24px rgba(0,0,0,0.2)",
+              direction: "ltr",
             }}
             onClick={(e) => e.stopPropagation()}
           >
