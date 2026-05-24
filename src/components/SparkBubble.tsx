@@ -34,7 +34,7 @@ const SPARK_INVITATIONS = {
       "{name}, tell us about the family celebration you'll never forget.",
     ],
     ar: [
-      "{name}، احكِ لنا عن أول عرض قدمته أمام الجميع.",
+      "{name}، احكِ لنا عن أول عرض قدمته أمام الجمهور.",
       "{name}، احكِ لنا عن المباراة أو اليوم الذي تفخر به أكثر.",
       "{name}، احكِ لنا عن احتفال العائلة الذي لن تنساه أبداً.",
     ],
@@ -154,15 +154,18 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     };
   }, []);
 
+  // ============================================================
+  // MODIFICATION UNIQUE : suppression de setExpanded(true)
+  // ============================================================
   useEffect(() => {
     if (triggerApproach && !expanded) {
       const timer = setTimeout(() => {
-        setExpanded(true);
         setTriggerApproach(false);
       }, 3000);
       return () => clearTimeout(timer);
     }
   }, [triggerApproach, expanded]);
+  // ============================================================
 
   useEffect(() => {
     if (expanded) {
