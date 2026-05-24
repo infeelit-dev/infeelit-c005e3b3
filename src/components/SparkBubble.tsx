@@ -278,8 +278,8 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
               width: "90px",
               height: "90px",
               background:
-                "radial-gradient(circle at 45% 45%, rgba(255,235,140,1) 0%, rgba(255,200,70,0.95) 35%, rgba(232,140,50,0.75) 70%, rgba(232,116,42,0.45) 100%)",
-              border: "2px solid rgba(255,200,60,0.7)",
+                "radial-gradient(circle at 45% 45%, rgba(255,252,210,0.72) 0%, rgba(255,236,142,0.46) 38%, rgba(255,205,84,0.24) 72%, rgba(232,116,42,0.10) 100%)",
+              border: "2px solid rgba(255,220,110,0.42)",
               overflow: "hidden",
             }}
           >
