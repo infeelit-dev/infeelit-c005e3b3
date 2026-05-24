@@ -16,15 +16,16 @@ const LangBadge = () => {
 
   const current = LANGS.find((l) => l.id === lang)!;
 
-  // On Index/feed le badge se place en haut à gauche sans conflit
-  // car on a supprimé le sélecteur du Header
   const isOnFeed = location.pathname === "/" || location.pathname === "/feed";
+
+  // Le Header gère déjà la langue sur le feed
+  if (isOnFeed) return null;
 
   return (
     <div
       style={{
         position: "fixed",
-        top: isOnFeed ? "14px" : "14px",
+        top: "14px",
         left: "14px",
         zIndex: 9999,
       }}
@@ -38,7 +39,7 @@ const LangBadge = () => {
           gap: "5px",
           padding: "6px 12px",
           borderRadius: "999px",
-          backgroundColor: isOnFeed ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,.45)",
+          backgroundColor: "rgba(0,0,0,.45)",
           border: "1px solid rgba(255,255,255,.25)",
           backdropFilter: "blur(10px)",
           cursor: "pointer",
