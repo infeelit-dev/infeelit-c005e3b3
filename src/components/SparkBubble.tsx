@@ -312,7 +312,6 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                   objectFit: "contain",
                   animation: "heartbeat 0.86s ease-in-out infinite",
                   filter: "drop-shadow(0 0 10px rgba(255,200,60,0.9))",
-                  mixBlendMode: "screen",
                   position: "absolute",
                 }}
               />
@@ -384,7 +383,6 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                   objectFit: "contain",
                   animation: "heartbeat 0.86s ease-in-out infinite",
                   filter: "drop-shadow(0 0 12px rgba(255,200,60,0.9))",
-                  mixBlendMode: "screen",
                 }}
               />
             </div>
