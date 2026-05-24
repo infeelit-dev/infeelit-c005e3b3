@@ -83,11 +83,17 @@ const getPersonalizedCategory = (): Category => {
   return "objet";
 };
 
+const getRandomPosition = () => {
+  const newX = Math.random() > 0.5 ? 10 + Math.random() * 25 : 65 + Math.random() * 25;
+  const newY = 15 + Math.random() * 45;
+  return { x: newX, y: newY };
+};
+
 const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ x: 50, y: 30 });
+  const [position, setPosition] = useState(getRandomPosition);
   const [expanded, setExpanded] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [sparkBalance, setSparkBalance] = useState(0);
@@ -154,9 +160,6 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     };
   }, []);
 
-  // ============================================================
-  // MODIFICATION UNIQUE : suppression de setExpanded(true)
-  // ============================================================
   useEffect(() => {
     if (triggerApproach && !expanded) {
       const timer = setTimeout(() => {
@@ -165,7 +168,6 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
       return () => clearTimeout(timer);
     }
   }, [triggerApproach, expanded]);
-  // ============================================================
 
   useEffect(() => {
     if (expanded) {
