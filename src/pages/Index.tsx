@@ -1,3 +1,4 @@
+```tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,10 +26,7 @@ const DEMO_BUBBLES = {
 const Index = () => {
   const navigate = useNavigate();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
-  const [showInterstitial, setShowInterstitial] = useState(false);
   const [showForeverOverlay, setShowForeverOverlay] = useState(false);
-  const [pendingQuestion, setPendingQuestion] = useState("");
-  const [interstitialContext, setInterstitialContext] = useState<"answer" | "forever" | "timer">("answer");
   const [sparkForced, setSparkForced] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
 
@@ -70,46 +68,32 @@ const Index = () => {
   const handleBubbleClick = async (question: string, category: BubbleCategory) => {
     if (!question) return;
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) { navigate("/record", { state: { question, category } }); return; }
-    setPendingQuestion(question);
-    setInterstitialContext("answer");
-    setShowInterstitial(true);
+    if (session) {
+      navigate("/record", { state: { question, category } });
+      return;
+    }
+    navigate("/welcome", { state: { question, context: "answer" } });
   };
 
   const handleDemoBubbleClick = async (type: "forever-in-memories" | "legacy-in-forever") => {
     const { data: { session } } = await supabase.auth.getSession();
     const q = type === "forever-in-memories" ? DEMO_BUBBLES.foreverInMemories.question : DEMO_BUBBLES.legacyInForever.question;
-    if (session) { navigate("/record", { state: { question: q } }); return; }
-    setPendingQuestion(q);
-    setInterstitialContext(type === "forever-in-memories" ? "forever" : "answer");
-    setShowInterstitial(true);
+    if (session) {
+      navigate("/record", { state: { question: q } });
+      return;
+    }
+    navigate("/welcome", { state: { question: q, context: type === "forever-in-memories" ? "forever" : "answer" } });
   };
 
   const handleJoin = () => {
-    setShowInterstitial(false);
     setShowForeverOverlay(false);
-    navigate("/welcome", { state: { question: pendingQuestion, context: interstitialContext } });
+    navigate("/welcome");
   };
 
   const getBackground = () => {
     if (activeTimeline === "forever") return "linear-gradient(180deg, #020818 0%, #041434 40%, #0a1628 70%, #1a1040 100%)";
     if (activeTimeline === "instant") return "linear-gradient(180deg, #1A3B47 0%, #2d6a4f 40%, #E8742A 100%)";
     return "linear-gradient(180deg, #7ec8c8 0%, #a8d8c8 30%, #f0e6d3 70%, #E8742A 100%)";
-  };
-
-  const getInterstitialTitle = () => {
-    if (interstitialContext === "forever") return "You wanted to create a legacy";
-    return "You wanted to answer";
-  };
-
-  const getInterstitialBody = () => {
-    if (interstitialContext === "forever") return "Create your account to record your own message to the future.";
-    return "Create your account to record this memory and share it with your family circle.";
-  };
-
-  const getInterstitialCTA = () => {
-    if (interstitialContext === "forever") return "Create my legacy — it's free";
-    return "Record this memory — it's free";
   };
 
   return (
@@ -166,20 +150,8 @@ const Index = () => {
             <p className="font-black text-[10px] uppercase tracking-[0.3em] mb-3" style={{ color: "rgba(56,189,248,0.9)" }}>The Forever timeline</p>
             <h2 className="text-white font-bold text-xl leading-tight mb-4">Messages to the future are created by members.</h2>
             <p className="text-white/50 text-sm mb-6 leading-relaxed">You can listen to any message in Forever. To send your own voice to the future, create your account.</p>
-            <button onClick={() => { setShowForeverOverlay(false); setInterstitialContext("forever"); setPendingQuestion(""); handleJoin(); }} className="w-full py-4 rounded-full font-bold text-base mb-3" style={{ background: "linear-gradient(135deg, #38bdf8, #6B4E9B)", color: "#FFFFFF" }}>Create my legacy — it's free</button>
+            <button onClick={() => { setShowForeverOverlay(false); handleJoin(); }} className="w-full py-4 rounded-full font-bold text-base mb-3" style={{ background: "linear-gradient(135deg, #38bdf8, #6B4E9B)", color: "#FFFFFF" }}>Create my legacy — it's free</button>
             <button onClick={() => { setShowForeverOverlay(false); setActiveTimeline("forever"); }} className="w-full py-3 text-white/40 text-sm font-medium">Just listen for now</button>
-          </div>
-        </div>
-      )}
-
-      {showInterstitial && (
-        <div className="absolute inset-0 z-50 flex items-end justify-center pb-12" style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(10px)" }} onClick={() => setShowInterstitial(false)}>
-          <div className="fade-in-up w-full max-w-sm mx-6 rounded-3xl px-8 py-8 text-center" style={{ backgroundColor: "#0f0f0f", border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
-            <p className="font-black text-[10px] uppercase tracking-[0.3em] mb-3" style={{ color: "#E8742A" }}>{getInterstitialTitle()}</p>
-            {pendingQuestion && <p className="text-white font-bold text-base italic leading-snug mb-4">"{pendingQuestion}"</p>}
-            <p className="text-white/50 text-sm mb-6 leading-relaxed">{getInterstitialBody()}</p>
-            <button onClick={handleJoin} className="w-full py-4 rounded-full gradient-orange font-bold text-base mb-3" style={{ color: "#FFFFFF" }}>{getInterstitialCTA()}</button>
-            <button onClick={() => setShowInterstitial(false)} className="w-full py-3 text-white/40 text-sm font-medium">Continue exploring</button>
           </div>
         </div>
       )}
@@ -188,3 +160,4 @@ const Index = () => {
 };
 
 export default Index;
+```
