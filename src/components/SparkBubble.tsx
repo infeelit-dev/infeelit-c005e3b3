@@ -361,13 +361,13 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
       {(expanded || forceOpen) && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(20px)" }}
+          style={{ background: "rgba(253,248,240,0.97)", backdropFilter: "blur(20px)" }}
           onClick={handleClose}
         >
           <div
             className="expand-in w-full max-w-md mx-6 rounded-3xl px-6 py-8 text-center relative"
             style={{
-              background: "#FFF9F2",
+              background: "linear-gradient(160deg, rgba(232,116,42,0.08) 0%, #FFF9F2 40%)",
               border: "1px solid rgba(212,168,83,0.2)",
               boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
             }}
@@ -379,6 +379,54 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
             >
               <X size={18} />
             </button>
+
+            {/* Image thématique en haut */}
+            <div
+              style={{
+                width: "100%",
+                height: "120px",
+                borderRadius: "16px",
+                overflow: "hidden",
+                marginBottom: "16px",
+                position: "relative",
+              }}
+            >
+              <img
+                src={infeeilitSymbol}
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  opacity: 0.15,
+                  filter: "blur(8px)",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "radial-gradient(circle, rgba(232,116,42,0.2), transparent)",
+                }}
+              >
+                <img
+                  src={infeeilitSymbol}
+                  alt="Infeelit"
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    objectFit: "contain",
+                    animation: "heartbeat 0.86s ease-in-out infinite",
+                    filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
+                    mixBlendMode: "screen",
+                  }}
+                />
+              </div>
+            </div>
+
             <div className="flex justify-center mb-4">
               <img
                 src={infeeilitSymbol}
