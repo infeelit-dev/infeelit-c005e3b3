@@ -5,23 +5,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
 import infeelit from "@/assets/infeelit-logo.png";
 
-interface HeaderProps {
-  activeTimeline: Timeline;
-  onTimelineChange: (t: Timeline) => void | Promise<void>;
-}
-
-const LANGS = [
-  { id: "en" as const, flag: "🇬🇧", label: "English" },
-  { id: "fr" as const, flag: "🇫🇷", label: "Français" },
-  { id: "ar" as const, flag: "🇦🇪", label: "العربية" },
-];
-
-const langLabel: Record<string, string> = {
-  en: "EN",
-  fr: "FR",
-  ar: "عر",
-};
-
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
   const { lang, setLang } = useLanguage();
@@ -29,17 +12,22 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const [langOpen, setLangOpen] = useState(false);
 
   const tabs = [
-    { id: "memories" as Timeline, label: lang === "fr" ? "Souvenirs" : lang === "ar" ? "ذكريات" : "Memories" },
-    { id: "instant" as Timeline, label: lang === "fr" ? "Instant" : lang === "ar" ? "لحظة" : "Instant" },
-    { id: "forever" as Timeline, label: lang === "fr" ? "Pour toujours" : lang === "ar" ? "للأبد" : "Forever" },
+    { id: "memories" as Timeline, label: "Memories" },
+    { id: "instant" as Timeline, label: "Instant" },
+    { id: "forever" as Timeline, label: "Forever" },
   ];
 
   const underlineColor = (id: Timeline) => (id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : "#ffffff");
 
+  const LANGS = [
+    { id: "fr", label: "Français" },
+    { id: "en", label: "English" },
+    { id: "ar", label: "العربية" },
+  ];
+
   return (
     <>
       <header
-        dir="ltr"
         style={{
           position: "absolute",
           top: 0,
@@ -52,109 +40,111 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           paddingTop: "12px",
           paddingBottom: "8px",
         }}
+        dir="ltr"
       >
-        {/* Ligne du haut */}
         <div
-          dir="ltr"
           style={{
             width: "100%",
-            display: "grid",
-            gridTemplateColumns: "72px 1fr 72px",
+            display: "flex",
+            justifyContent: "space-between",
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
             marginBottom: "10px",
+            direction: "ltr",
           }}
         >
-          {/* Gauche : burger */}
-          <div style={{ display: "flex", justifyContent: "flex-start" }}>
-            <button
-              onClick={() => setMenuOpen(true)}
-              style={{
-                width: "34px",
-                height: "34px",
-                borderRadius: "50%",
-                backgroundColor: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                backdropFilter: "blur(8px)",
-              }}
-            >
-              <Menu size={18} color="#fff" />
-            </button>
-          </div>
+          <button
+            onClick={() => setMenuOpen(true)}
+            style={{
+              width: "34px",
+              height: "34px",
+              borderRadius: "50%",
+              backgroundColor: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <Menu size={18} color="#fff" />
+          </button>
 
-          {/* Centre : logo */}
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <img
-              src={infeelit}
-              alt="Infeelit"
-              onClick={() => navigate("/")}
-              style={{
-                height: "64px",
-                width: "auto",
-                maxWidth: "160px",
-                filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
-                cursor: "pointer",
-              }}
-            />
-          </div>
+          <img
+            src={infeelit}
+            alt="Infeelit"
+            onClick={() => navigate("/")}
+            style={{
+              height: "64px",
+              width: "auto",
+              maxWidth: "160px",
+              filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
+              cursor: "pointer",
+            }}
+          />
 
-          {/* Droite : langue dropdown + loupe */}
           <div
             style={{
               display: "flex",
-              justifyContent: "flex-end",
               gap: "8px",
               alignItems: "center",
-              position: "relative",
+              direction: "ltr",
             }}
           >
-            {/* Bouton langue avec dropdown */}
+            {/* Bouton langue */}
             <div style={{ position: "relative" }}>
               <button
-                onClick={() => setLangOpen((v) => !v)}
+                onClick={() => setLangOpen(!langOpen)}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  padding: "6px 10px",
-                  borderRadius: "999px",
+                  width: "34px",
+                  height: "34px",
+                  borderRadius: "50%",
                   backgroundColor: "rgba(255,255,255,0.15)",
                   border: "1px solid rgba(255,255,255,0.2)",
-                  backdropFilter: "blur(8px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   cursor: "pointer",
-                  color: "#fff",
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  height: "34px",
+                  backdropFilter: "blur(8px)",
                 }}
               >
-                <span>{LANGS.find((l) => l.id === lang)?.flag}</span>
-                <span>{langLabel[lang]}</span>
-                <span style={{ fontSize: "7px", opacity: 0.6 }}>▼</span>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 900,
+                    color: "#fff",
+                    fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+                  }}
+                >
+                  {lang === "fr" ? "FR" : lang === "en" ? "EN" : "عر"}
+                </span>
               </button>
 
-              {/* Dropdown */}
               {langOpen && (
                 <>
-                  <div style={{ position: "fixed", inset: 0, zIndex: 98 }} onClick={() => setLangOpen(false)} />
+                  <div
+                    style={{
+                      position: "fixed",
+                      inset: 0,
+                      zIndex: -1,
+                    }}
+                    onClick={() => setLangOpen(false)}
+                  />
                   <div
                     style={{
                       position: "absolute",
-                      top: "calc(100% + 6px)",
+                      top: "calc(100% + 8px)",
                       right: 0,
-                      backgroundColor: "rgba(10,17,40,0.97)",
+                      backgroundColor: "rgba(10,17,40,.97)",
                       backdropFilter: "blur(16px)",
                       borderRadius: "14px",
-                      border: "1px solid rgba(255,255,255,0.12)",
+                      border: "1px solid rgba(255,255,255,.12)",
                       overflow: "hidden",
-                      minWidth: "130px",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                      zIndex: 99,
+                      minWidth: "160px",
+                      boxShadow: "0 8px 32px rgba(0,0,0,.5)",
+                      zIndex: 200,
                     }}
                   >
                     {LANGS.map((l, i) => (
@@ -176,11 +166,21 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                           cursor: "pointer",
                         }}
                       >
-                        <span style={{ fontSize: "16px" }}>{l.flag}</span>
                         <span
                           style={{
                             fontSize: "12px",
-                            fontWeight: 700,
+                            fontWeight: 900,
+                            color: lang === l.id ? "#E8742A" : "rgba(255,255,255,0.5)",
+                            width: "28px",
+                            fontFamily: l.id === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+                          }}
+                        >
+                          {l.id === "fr" ? "FR" : l.id === "en" ? "EN" : "عر"}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: 600,
                             color: "#fff",
                             fontFamily: l.id === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
                           }}
@@ -205,7 +205,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               )}
             </div>
 
-            {/* Loupe */}
             <button
               onClick={() => navigate("/search")}
               style={{
@@ -226,65 +225,74 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Tabs centrés avec largeur fixe */}
         <div
-          dir="ltr"
           style={{
             width: "100%",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: "0px",
           }}
         >
-          {tabs.map((tab) => {
-            const isActive = activeTimeline === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onTimelineChange(tab.id)}
-                style={{
-                  position: "relative",
-                  width: "110px",
-                  paddingBottom: "6px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
-                  fontWeight: isActive ? 900 : 700,
-                  fontSize: isActive ? "16px" : "13px",
-                  textShadow: "0 1px 8px rgba(0,0,0,0.9)",
-                  transition: "all 0.2s",
-                  whiteSpace: "nowrap",
-                  textAlign: "center",
-                  lineHeight: 1,
-                }}
-              >
-                {tab.label}
-                {isActive && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      width: "60%",
-                      height: "2.5px",
-                      borderRadius: "999px",
-                      backgroundColor: underlineColor(tab.id),
-                      boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
-                    }}
-                  />
-                )}
-              </button>
-            );
-          })}
+          <nav
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "32px",
+              direction: "ltr",
+            }}
+          >
+            {tabs.map((tab) => {
+              const isActive = activeTimeline === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onTimelineChange(tab.id)}
+                  style={{
+                    position: "relative",
+                    paddingBottom: "6px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
+                    fontWeight: isActive ? 900 : 700,
+                    fontSize: isActive ? "16px" : "13px",
+                    textShadow: "0 1px 8px rgba(0,0,0,0.9)",
+                    transition: "all 0.2s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {tab.label}
+                  {isActive && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: "2.5px",
+                        borderRadius: "999px",
+                        backgroundColor: underlineColor(tab.id),
+                        boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </div>
       </header>
 
-      {/* Menu burger */}
       {menuOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200 }} onClick={() => setMenuOpen(false)}>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 200,
+          }}
+          onClick={() => setMenuOpen(false)}
+        >
           <div
             style={{
               position: "absolute",
@@ -294,7 +302,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             }}
           />
           <div
-            dir="ltr"
             style={{
               position: "relative",
               width: "75%",
@@ -306,6 +313,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               flexDirection: "column",
               gap: "4px",
               boxShadow: "4px 0 24px rgba(0,0,0,0.2)",
+              direction: "ltr",
             }}
             onClick={(e) => e.stopPropagation()}
           >
