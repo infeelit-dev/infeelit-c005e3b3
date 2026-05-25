@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,6 +20,12 @@ const About = () => {
   const navigate = useNavigate();
   const [whyLang, setWhyLang] = useState(lang as "fr" | "en" | "ar");
   const [whatLang, setWhatLang] = useState(lang as "fr" | "en" | "ar");
+
+  // Synchroniser les sélecteurs de vidéos quand la langue change
+  useEffect(() => {
+    setWhyLang(lang as "fr" | "en" | "ar");
+    setWhatLang(lang as "fr" | "en" | "ar");
+  }, [lang]);
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#FFF9F2", paddingBottom: "120px" }}>
