@@ -5,6 +5,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
 import infeelit from "@/assets/infeelit-logo.png";
 
+interface HeaderProps {
+  activeTimeline: Timeline;
+  onTimelineChange: (t: Timeline) => void;
+}
+
 const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
   const { lang, setLang } = useLanguage();
@@ -151,7 +156,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                       <button
                         key={l.id}
                         onClick={() => {
-                          setLang(l.id);
+                          setLang(l.id as import("@/lib/i18n").Lang);
                           setLangOpen(false);
                         }}
                         style={{
