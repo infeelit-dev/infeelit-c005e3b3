@@ -1,7 +1,21 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw, Check, Camera, Lock, Users, UserPlus } from "lucide-react";
+import {
+  X,
+  StopCircle,
+  Loader2,
+  Share2,
+  Video,
+  Mic,
+  Download,
+  RotateCcw,
+  Check,
+  Camera,
+  Lock,
+  Users,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import useUserName from "@/hooks/useUserName";
@@ -517,20 +531,20 @@ const Record = () => {
         const ips = urls.map((u) =>
           (supabase.from("memories") as any)
             .insert({
-            user_id: uid,
-            title: memoryTitle || "A memory",
-            description: null,
-            file_url: u,
-            file_type: typeRef.current,
-            thumbnail_url: thumbUrlRef.current || null,
-            timeline: "memories",
-            is_public: isCommunityRef.current,
-            is_community: isCommunityRef.current,
-            is_anonymous: isAnonymousRef.current,
-            spark_reward: sparkRewardRef.current,
-            background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
-            aura_intensity: auraRef.current ? 35 : null,
-            created_at: new Date().toISOString(),
+              user_id: uid,
+              title: memoryTitle || "A memory",
+              description: null,
+              file_url: u,
+              file_type: typeRef.current,
+              thumbnail_url: thumbUrlRef.current || null,
+              timeline: "memories",
+              is_public: isCommunityRef.current,
+              is_community: isCommunityRef.current,
+              is_anonymous: isAnonymousRef.current,
+              spark_reward: sparkRewardRef.current,
+              background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
+              aura_intensity: auraRef.current ? 35 : null,
+              created_at: new Date().toISOString(),
             })
             .select("id"),
         );
@@ -565,15 +579,10 @@ const Record = () => {
 
         // Notify the user's circle(s) about the new memory
         try {
-          const insertedIds = (res
-            .map((r: any) => r?.data?.[0]?.id)
-            .filter(Boolean)) as string[];
+          const insertedIds = res.map((r: any) => r?.data?.[0]?.id).filter(Boolean) as string[];
           const newMemoryId = insertedIds[insertedIds.length - 1] || null;
           if (type === "circle" || type === "public") {
-            const { data: memberships } = await supabase
-              .from("circle_members")
-              .select("circle_id")
-              .eq("user_id", uid);
+            const { data: memberships } = await supabase.from("circle_members").select("circle_id").eq("user_id", uid);
             if (memberships?.length) {
               const msg =
                 lang === "fr"
@@ -685,7 +694,13 @@ const Record = () => {
   const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
   return (
-    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans" dir={rtl ? "rtl" : "ltr"}>
+    <div
+      className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans"
+      dir={rtl ? "rtl" : "ltr"}
+      style={{
+        background: "linear-gradient(160deg, #1A3B47 0%, #2D5A4F 30%, #3D2B1F 70%, #E8742A 100%)",
+      }}
+    >
       {!audioMode && stage !== "preview" && (
         <video
           ref={videoRef}
@@ -704,10 +719,29 @@ const Record = () => {
       {audioMode && stage !== "preview" && (
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(180deg,#0a0a0a 0%,#1a0a2e 50%,#0a0a0a 100%)" }}
+          style={{
+            background: "linear-gradient(160deg, #1A3B47 0%, #2D5A4F 30%, #3D2B1F 70%, #E8742A 100%)",
+          }}
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
+
+      {/* Stage Question avec image thématique */}
+      {stage === "question" && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `url(${thumbCards[0]})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.08,
+            filter: "blur(20px) sepia(50%)",
+            zIndex: 0,
+          }}
+        />
+      )}
+
       <div className="relative z-10 p-6 flex justify-between items-center">
         <button
           onClick={() => {
