@@ -2,134 +2,59 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import useUserName from "@/hooks/useUserName";
+import { CHAPTERS } from "@/data/questions";
 import infeeilitSymbol from "@/assets/logo_sparkl_4.png";
 
-const SPARK_INVITATIONS = {
-  objet: {
-    fr: [
-      "{name}, raconte-nous le jouet que tu n'aurais jamais voulu perdre.",
-      "{name}, raconte-nous le cadeau qui t'a laissé sans voix.",
-      "{name}, raconte-nous l'objet que tu gardes encore aujourd'hui.",
-    ],
-    en: [
-      "{name}, tell us about the toy you never wanted to lose.",
-      "{name}, tell us about the gift that left you speechless.",
-      "{name}, tell us about the object you still keep to this day.",
-    ],
-    ar: [
-      "{name}، احكِ لنا عن اللعبة التي لم تكن تريد أن تفقدها أبداً.",
-      "{name}، احكِ لنا عن الهدية التي أبهرتك وتركتك بلا كلام.",
-      "{name}، احكِ لنا عن الشيء الذي لا تزال تحتفظ به حتى اليوم.",
-    ],
-  },
-  moment: {
-    fr: [
-      "{name}, raconte-nous ton premier spectacle devant tout le monde.",
-      "{name}, raconte-nous le match ou le jour dont tu es le plus fier.",
-      "{name}, raconte-nous la fête de famille que tu n'oublieras jamais.",
-    ],
-    en: [
-      "{name}, tell us about your first performance in front of everyone.",
-      "{name}, tell us about the game or the day you are most proud of.",
-      "{name}, tell us about the family celebration you'll never forget.",
-    ],
-    ar: [
-      "{name}، احكِ لنا عن أول عرض قدمته أمام الجمهور.",
-      "{name}، احكِ لنا عن المباراة أو اليوم الذي تفخر به أكثر.",
-      "{name}، احكِ لنا عن احتفال العائلة الذي لن تنساه أبداً.",
-    ],
-  },
-  personne: {
-    fr: [
-      "{name}, raconte-nous le geste de tes parents qui valait mille mots.",
-      "{name}, raconte-nous la personne qui t'a appris quelque chose d'essentiel.",
-      "{name}, raconte-nous le moment où tu as senti que tu étais vraiment aimé.",
-    ],
-    en: [
-      "{name}, tell us about the gesture of your parents that said everything.",
-      "{name}, tell us about the person who taught you something essential.",
-      "{name}, tell us about the moment you felt truly loved.",
-    ],
-    ar: [
-      "{name}، احكِ لنا عن لفتة والديك التي كانت تساوي ألف كلمة.",
-      "{name}، احكِ لنا عن الشخص الذي علّمك شيئاً لا يُنسى.",
-      "{name}، احكِ لنا عن اللحظة التي شعرت فيها بالحب الحقيقي.",
-    ],
-  },
-};
-
-type Category = "objet" | "moment" | "personne";
+type Step = "chapters" | "categories" | "questions";
 
 interface SparkBubbleProps {
   forceOpen?: boolean;
   onSparkClose?: () => void;
 }
 
-const getCardsForHour = (): Category[] => {
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) return ["objet", "moment", "personne"];
-  if (hour >= 12 && hour < 18) return ["moment", "personne", "objet"];
-  if (hour >= 18 && hour < 24) return ["personne", "objet", "moment"];
-  return ["personne", "personne", "personne"];
-};
-
-const getSparkBalance = (): number => Number(localStorage.getItem("infeelit_spark_balance") || 0);
-
-const getPersonalizedCategory = (): Category => {
-  const watched = localStorage.getItem("infeelit_last_themes") || "";
-  if (watched.includes("enfance") || watched.includes("child") || watched.includes("طفل")) return "objet";
-  if (watched.includes("famille") || watched.includes("family") || watched.includes("عائلة")) return "personne";
-  if (watched.includes("moment")) return "moment";
-  return "objet";
-};
-
-const getRandomPosition = () => {
-  const newX = Math.random() > 0.5 ? 10 + Math.random() * 25 : 65 + Math.random() * 25;
-  const newY = 15 + Math.random() * 45;
-  return { x: newX, y: newY };
-};
-
 const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
+  const userName = useUserName();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState(getRandomPosition);
+  
+  const [position, setPosition] = useState(() => {
+    const newX = Math.random() > 0.5 ? 10 + Math.random() * 25 : 65 + Math.random() * 25;
+    const newY = 15 + Math.random() * 45;
+    return { x: newX, y: newY };
+  });
   const [expanded, setExpanded] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [sparkBalance, setSparkBalance] = useState(0);
-  const [userName, setUserName] = useState("");
-  const [selectedCard, setSelectedCard] = useState(0);
-  const [cards, setCards] = useState<{ category: Category; text: string }[]>([]);
   const [showNameInput, setShowNameInput] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [triggerApproach, setTriggerApproach] = useState(false);
+  
+  // Nouveaux states pour le système à 3 étapes
+  const [currentStep, setCurrentStep] = useState<Step>("chapters");
+  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [cards, setCards] = useState<{ category: string; text: string }[]>([]);
+  const [selectedCard, setSelectedCard] = useState(0);
 
   useEffect(() => {
     const savedName = localStorage.getItem("infeelit_user_name") || "";
-    setUserName(savedName);
-    setSparkBalance(getSparkBalance());
+    if (savedName) {
+      // Ne pas setUserName ici car useUserName le fait déjà
+    }
+    setSparkBalance(Number(localStorage.getItem("infeelit_spark_balance") || 0));
   }, []);
 
   useEffect(() => {
     if (forceOpen) {
       setExpanded(true);
+      setCurrentStep("chapters");
+      setSelectedChapter(null);
+      setSelectedCategory(null);
       if (!localStorage.getItem("infeelit_user_name")) setShowNameInput(true);
     }
   }, [forceOpen]);
-
-  useEffect(() => {
-    if (!userName) return;
-    const categories = getCardsForHour();
-    const personalized = getPersonalizedCategory();
-    const ordered = [personalized, ...categories.filter((c) => c !== personalized)].slice(0, 3) as Category[];
-    const langKey = (lang === "fr" ? "fr" : lang === "ar" ? "ar" : "en") as "fr" | "en" | "ar";
-    const selectedCards = ordered.map((cat) => {
-      const pool = SPARK_INVITATIONS[cat][langKey];
-      const randomText = pool[Math.floor(Math.random() * pool.length)];
-      return { category: cat, text: randomText.replace("{name}", userName) };
-    });
-    setCards(selectedCards);
-  }, [lang, userName, expanded]);
 
   useEffect(() => {
     const moveInterval = setInterval(() => {
@@ -178,16 +103,76 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
       setSelectedCard(0);
       setShowNameInput(false);
       setNameInput("");
+      setCurrentStep("chapters");
+      setSelectedChapter(null);
+      setSelectedCategory(null);
     }
   }, [expanded]);
 
-  const handleBubbleClick = () => {
-    setExpanded(true);
-    if (!localStorage.getItem("infeelit_user_name")) setShowNameInput(true);
+  const getRandomQuestions = (categoryId: string, language: string, name: string) => {
+    const chapter = CHAPTERS.find(ch => ch.categories.some(cat => cat.id === categoryId));
+    const category = chapter?.categories.find(cat => cat.id === categoryId);
+    if (!category) return [];
+
+    const langKey = language as "fr" | "en" | "ar";
+    const seenKey = `infeelit_seen_${categoryId}`;
+    const seen = JSON.parse(localStorage.getItem(seenKey) || "[]");
+
+    let available = category.questions.filter((_, i) => !seen.includes(i));
+
+    if (available.length < 3) {
+      localStorage.removeItem(seenKey);
+      available = category.questions;
+    }
+
+    const shuffled = [...available].sort(() => Math.random() - 0.5).slice(0, 3);
+    const indices = shuffled.map(q => category.questions.indexOf(q));
+    localStorage.setItem(seenKey, JSON.stringify([...seen, ...indices]));
+
+    const displayName = name || (language === "fr" ? "ami(e)" : language === "ar" ? "صديقي" : "friend");
+
+    return shuffled.map(q => ({
+      text: q[langKey].replace("{name}", displayName),
+      bubble: q[`bubble_${langKey}` as keyof typeof q] as string,
+    }));
+  };
+
+  const handleChapterSelect = (chapterId: string) => {
+    setSelectedChapter(chapterId);
+    setCurrentStep("categories");
+  };
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    const questions = getRandomQuestions(categoryId, lang, userName);
+    setCards(questions.map((q, i) => ({ category: categoryId, text: q.text })));
+    setCurrentStep("questions");
+  };
+
+  const handleRecord = () => {
+    const card = cards[selectedCard];
+    if (!card) return;
+    setExpanded(false);
+    if (onSparkClose) onSparkClose();
+    navigate("/record", { state: { question: card.text, category: "past", fromSpark: true } });
+  };
+
+  const handleBackToChapters = () => {
+    setCurrentStep("chapters");
+    setSelectedChapter(null);
+    setSelectedCategory(null);
+  };
+
+  const handleBackToCategories = () => {
+    setCurrentStep("categories");
+    setSelectedCategory(null);
   };
 
   const handleClose = () => {
     setExpanded(false);
+    setCurrentStep("chapters");
+    setSelectedChapter(null);
+    setSelectedCategory(null);
     if (onSparkClose) onSparkClose();
   };
 
@@ -196,39 +181,15 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     const trimmed = nameInput.trim();
     if (trimmed.length < 1) return;
     localStorage.setItem("infeelit_user_name", trimmed);
-    setUserName(trimmed);
     setShowNameInput(false);
     setShowButton(false);
     const timer = setTimeout(() => setShowButton(true), 2000);
     return () => clearTimeout(timer);
   };
 
-  const handleCardSelect = (idx: number) => {
-    setSelectedCard(idx);
-    if (scrollRef.current) {
-      const cw = scrollRef.current.children[0]?.clientWidth || 280;
-      scrollRef.current.scrollTo({ left: idx * (cw + 16), behavior: "smooth" });
-    }
-  };
-
-  const handleRecord = () => {
-    const card = cards[selectedCard];
-    setExpanded(false);
-    if (onSparkClose) onSparkClose();
-    navigate("/record", { state: { question: card?.text || "", category: "past", fromSpark: true } });
-  };
-
-  const getButtonText = () => {
-    if (lang === "ar") return userName ? `${userName}، احكِ لهم` : "احكِ لهم";
-    if (lang === "fr") return userName ? `${userName}, raconte-leur` : "Raconte-leur";
-    return userName ? `${userName}, tell them` : "Tell them";
-  };
-
-  const getBadgeText = (cat: Category) => {
-    if (lang === "ar") return cat === "objet" ? "✦ مستوى النور" : cat === "moment" ? "✦ مستوى الكنز" : "✦ مستوى الجوهر";
-    if (lang === "fr")
-      return cat === "objet" ? "✦ Niveau Lumière" : cat === "moment" ? "✦ Niveau Trésor" : "✦ Niveau Essence";
-    return cat === "objet" ? "✦ Light Level" : cat === "moment" ? "✦ Treasure Level" : "✦ Essence Level";
+  const getLangText = (chapter: any, field: string) => {
+    const key = `${field}_${lang}` as keyof typeof chapter;
+    return chapter[key] || chapter[`${field}_en`];
   };
 
   const watched = Number(localStorage.getItem("infeelit_videos_watched") || 0);
@@ -258,7 +219,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
 
       {!expanded && !forceOpen && (
         <button
-          onClick={handleBubbleClick}
+          onClick={() => setExpanded(true)}
           className={`absolute z-[15] cursor-pointer transition-transform active:scale-90 bg-transparent border-none p-0 ${triggerApproach ? "gentle-approach" : ""}`}
           style={{
             left: `${position.x}%`,
@@ -331,17 +292,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                   boxShadow: "0 0 8px rgba(255,200,60,0.4)",
                 }}
               >
-                <span
-                  style={{
-                    fontSize: "9px",
-                    color: "#FFD700",
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    textShadow: "0 0 4px rgba(255,200,60,0.8)",
-                  }}
-                >
-                  ✦{sparkBalance}
-                </span>
+                <span style={{ fontSize: "9px", color: "#FFD700", fontWeight: 700, lineHeight: 1, textShadow: "0 0 4px rgba(255,200,60,0.8)" }}>✦{sparkBalance}</span>
               </div>
             )}
             {showBadge && (
@@ -349,9 +300,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                 className="absolute -top-2 -left-2 px-1.5 py-0.5 rounded-full flex items-center justify-center"
                 style={{ background: "rgba(232,116,42,0.9)", boxShadow: "0 0 6px rgba(232,116,42,0.4)" }}
               >
-                <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>
-                  {progress}/{threshold} ✦
-                </span>
+                <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>{progress}/{threshold} ✦</span>
               </div>
             )}
           </div>
@@ -427,20 +376,6 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
               </div>
             </div>
 
-            <div className="flex justify-center mb-4">
-              <img
-                src={infeeilitSymbol}
-                alt="Infeelit"
-                style={{
-                  width: "200px",
-                  height: "200px",
-                  objectFit: "contain",
-                  animation: "heartbeat 0.86s ease-in-out infinite",
-                  filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
-                  mixBlendMode: "screen",
-                }}
-              />
-            </div>
             {showNameInput ? (
               <form onSubmit={handleNameSubmit} className="flex flex-col items-center gap-5">
                 <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
@@ -471,96 +406,211 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
               </form>
             ) : (
               <>
-                <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
-                  {lang === "ar" ? "اختر قصتك" : lang === "fr" ? "Choisis ton histoire" : "Choose your story"}
-                </p>
-                <p
-                  style={{
-                    color: "#E8742A",
-                    fontSize: "13px",
-                    fontStyle: "italic",
-                    fontFamily: "Georgia, serif",
-                    marginBottom: "16px",
-                  }}
-                >
-                  {lang === "ar"
-                    ? userName
-                      ? `${userName}، احكِ لهم.`
-                      : "احكِ لهم."
-                    : lang === "fr"
-                      ? userName
-                        ? `${userName}, raconte-leur.`
-                        : "Raconte-leur."
-                      : userName
-                        ? `${userName}, tell them.`
-                        : "Tell them."}
-                </p>
-                <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-scroll pb-4 pt-2 hide-scroll">
-                  {cards.map((card, idx) => {
-                    const isSelected = selectedCard === idx;
-                    return (
+                {/* ÉTAPE 1 — Chapitres */}
+                {currentStep === "chapters" && (
+                  <>
+                    <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+                      {lang === "ar" ? "عم تريد أن تتحدث ؟" : lang === "fr" ? "De quoi tu veux parler ?" : "What do you want to talk about?"}
+                    </p>
+                    <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
+                      {CHAPTERS.map((chapter) => (
+                        <button
+                          key={chapter.id}
+                          onClick={() => handleChapterSelect(chapter.id)}
+                          style={{
+                            width: "100%",
+                            padding: "16px",
+                            borderRadius: "16px",
+                            background: "rgba(255,255,255,0.06)",
+                            border: "1px solid rgba(232,116,42,0.2)",
+                            cursor: "pointer",
+                            textAlign: "left",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "14px",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          <span style={{ fontSize: "28px" }}>{chapter.icon}</span>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px" }}>
+                              <p style={{ fontSize: "16px", fontWeight: 700, color: "#3D2B1F" }}>
+                                {chapter[lang as "fr" | "en" | "ar"]}
+                              </p>
+                              <span style={{ fontSize: "10px", color: "rgba(61,43,31,0.4)", backgroundColor: "rgba(61,43,31,0.06)", padding: "2px 8px", borderRadius: "999px" }}>
+                                {chapter[`age_${lang}` as keyof typeof chapter]}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: "11px", color: "rgba(61,43,31,0.5)", fontStyle: "italic", fontFamily: "Georgia, serif" }}>
+                              {chapter[`tagline_${lang}` as keyof typeof chapter]}
+                            </p>
+                          </div>
+                          <span style={{ marginLeft: "auto", color: "rgba(61,43,31,0.3)", fontSize: "16px" }}>›</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* ÉTAPE 2 — Catégories */}
+                {currentStep === "categories" && selectedChapter && (
+                  <>
+                    <button
+                      onClick={handleBackToChapters}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "rgba(61,43,31,0.5)",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        marginBottom: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      ← {lang === "ar" ? "رجوع" : lang === "fr" ? "Retour" : "Back"}
+                    </button>
+                    <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+                      {lang === "ar" ? "أي مرحلة من حياتك ؟" : lang === "fr" ? "Quel moment de ta vie ?" : "Which part of your life?"}
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center max-h-[400px] overflow-y-auto pb-2">
+                      {(() => {
+                        const chapter = CHAPTERS.find(ch => ch.id === selectedChapter);
+                        return chapter?.categories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            onClick={() => handleCategorySelect(cat.id)}
+                            style={{
+                              padding: "10px 18px",
+                              borderRadius: "999px",
+                              background: "rgba(61,43,31,0.06)",
+                              border: "1px solid rgba(61,43,31,0.12)",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              fontSize: "13px",
+                              fontWeight: 600,
+                              color: "#3D2B1F",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <span>{cat.icon}</span>
+                            <span>{cat[lang as "fr" | "en" | "ar]}</span>
+                          </button>
+                        ));
+                      })()}
+                    </div>
+                  </>
+                )}
+
+                {/* ÉTAPE 3 — Questions */}
+                {currentStep === "questions" && selectedCategory && (
+                  <>
+                    <button
+                      onClick={handleBackToCategories}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "rgba(61,43,31,0.5)",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        marginBottom: "12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      ← {lang === "ar" ? "رجوع" : lang === "fr" ? "Retour" : "Back"}
+                    </button>
+                    <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+                      {lang === "ar" ? "اختر قصتك" : lang === "fr" ? "Choisis ton histoire" : "Choose your story"}
+                    </p>
+                    <p
+                      style={{
+                        color: "#E8742A",
+                        fontSize: "13px",
+                        fontStyle: "italic",
+                        fontFamily: "Georgia, serif",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      {lang === "ar"
+                        ? userName ? `${userName}، احكِ لهم.` : "احكِ لهم."
+                        : lang === "fr"
+                          ? userName ? `${userName}, raconte-leur.` : "Raconte-leur."
+                          : userName ? `${userName}, tell them.` : "Tell them."}
+                    </p>
+
+                    <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-scroll pb-4 pt-2 hide-scroll">
+                      {cards.map((card, idx) => {
+                        const isSelected = selectedCard === idx;
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => setSelectedCard(idx)}
+                            className={`snap-card shrink-0 flex flex-col justify-center items-start text-left p-5 rounded-[20px] transition-all duration-300 cursor-pointer border-none ${isSelected ? "scale-[1.02]" : ""}`}
+                            style={{
+                              width: "85%",
+                              maxWidth: "300px",
+                              background: isSelected ? "rgba(232,116,42,0.06)" : "#FFFFFF",
+                              border: isSelected ? "1px solid rgba(232,116,42,0.6)" : "1px solid rgba(232,116,42,0.25)",
+                              boxShadow: isSelected ? "0 4px 16px rgba(232,116,42,0.1)" : "none",
+                            }}
+                          >
+                            <span
+                              className="text-[8px] font-black uppercase tracking-widest mb-2"
+                              style={{ color: isSelected ? "#E8742A" : "rgba(61,43,31,0.4)" }}
+                            >
+                              {lang === "ar" ? "✦ مستوى النور" : lang === "fr" ? "✦ Niveau Essence" : "✦ Level"}
+                            </span>
+                            <p className="text-sm font-serif leading-relaxed italic" style={{ color: "#3D2B1F" }}>
+                              "{card.text}"
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex justify-center gap-2 mt-2 mb-4">
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className="w-2 h-2 rounded-full transition-all duration-300"
+                          style={{
+                            background: selectedCard === i ? "#E8742A" : "rgba(61,43,31,0.15)",
+                            transform: selectedCard === i ? "scale(1.3)" : "scale(1)",
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    {showButton && (
                       <button
-                        key={idx}
-                        onClick={() => handleCardSelect(idx)}
-                        className={`snap-card shrink-0 flex flex-col justify-center items-start text-left p-5 rounded-[20px] transition-all duration-300 cursor-pointer border-none ${isSelected ? "scale-[1.02]" : ""}`}
+                        onClick={handleRecord}
+                        className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] border-none cursor-pointer"
                         style={{
-                          width: "85%",
-                          maxWidth: "300px",
-                          background: isSelected ? "rgba(232,116,42,0.06)" : "#FFFFFF",
-                          border: isSelected ? "1px solid rgba(232,116,42,0.6)" : "1px solid rgba(232,116,42,0.25)",
-                          boxShadow: isSelected ? "0 4px 16px rgba(232,116,42,0.1)" : "none",
+                          background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                          color: "#fff",
+                          boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
                         }}
                       >
-                        <span
-                          className="text-[8px] font-black uppercase tracking-widest mb-2"
-                          style={{ color: isSelected ? "#E8742A" : "rgba(61,43,31,0.4)" }}
-                        >
-                          {getBadgeText(card.category)}
-                        </span>
-                        <p className="text-sm font-serif leading-relaxed italic" style={{ color: "#3D2B1F" }}>
-                          "{card.text}"
-                        </p>
+                        {lang === "ar" ? (userName ? `${userName}، احكِ لهم` : "احكِ لهم") : lang === "fr" ? (userName ? `${userName}, raconte-leur` : "Raconte-leur") : (userName ? `${userName}, tell them` : "Tell them")}
                       </button>
-                    );
-                  })}
-                </div>
-                <div className="flex justify-center gap-2 mt-2 mb-4">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="w-2 h-2 rounded-full transition-all duration-300"
-                      style={{
-                        background: selectedCard === i ? "#E8742A" : "rgba(61,43,31,0.15)",
-                        transform: selectedCard === i ? "scale(1.3)" : "scale(1)",
-                      }}
-                    />
-                  ))}
-                </div>
-                {showButton && (
-                  <button
-                    onClick={handleRecord}
-                    className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] border-none cursor-pointer"
-                    style={{
-                      background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                      color: "#fff",
-                      boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
-                    }}
-                  >
-                    {getButtonText()}
-                  </button>
+                    )}
+
+                    {!showButton && (
+                      <div className="flex justify-center">
+                        <div className="w-8 h-8 border-2 border-[#E8742A]/20 border-t-[#E8742A] rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </>
                 )}
-                {!showButton && (
-                  <div className="flex justify-center">
-                    <div className="w-8 h-8 border-2 border-[#E8742A]/20 border-t-[#E8742A] rounded-full animate-spin" />
-                  </div>
-                )}
-                {sparkBalance > 0 && (
+
+                {sparkBalance > 0 && currentStep === "chapters" && (
                   <p className="text-[#3D2B1F]/30 text-[9px] mt-3">
-                    {lang === "ar"
-                      ? `لديك ${sparkBalance} شرارات`
-                      : lang === "fr"
-                        ? `Tu as ${sparkBalance} étincelles`
-                        : `You have ${sparkBalance} sparks`}
+                    {lang === "ar" ? `لديك ${sparkBalance} شرارات` : lang === "fr" ? `Tu as ${sparkBalance} étincelles` : `You have ${sparkBalance} sparks`}
                   </p>
                 )}
               </>
