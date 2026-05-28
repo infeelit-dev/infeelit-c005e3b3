@@ -1,10 +1,3 @@
-Tu as raison. Voici le contenu complet du fichier `src/data/questions.ts` à copier-coller directement dans Lovable.
-
----
-
-## Copie ce code dans `src/data/questions.ts`
-
-```typescript
 export const CHAPTERS = [
   {
     id: "enfance",
@@ -261,4 +254,9 @@ export const CHAPTERS = [
           { fr: "{name}, raconte-nous le moment le plus précieux avec un petit-enfant.", en: "{name}, tell us about the most precious moment with a grandchild.", ar: "{name}، احكِ لنا عن أثمن لحظة مع أحد أحفادك.", bubble_fr: "Mon trésor avec mes petits-enfants", bubble_en: "My treasure with grandchildren", bubble_ar: "كنزي مع أحفادي" },
           { fr: "{name}, raconte-nous l'histoire que tu veux absolument leur raconter.", en: "{name}, tell us the story you absolutely want to tell your grandchildren.", ar: "{name}، احكِ لنا القصة التي تريد بالتأكيد أن ترويها لأحفادك.", bubble_fr: "L'histoire que je dois leur raconter", bubble_en: "The story I must tell them", bubble_ar: "القصة التي يجب أن أرويها" },
           { fr: "{name}, raconte-nous ce que tu veux qu'ils retiennent de toi.", en: "{name}, tell us what you want them to remember about you.", ar: "{name}، احكِ لنا ما تريد أن يتذكروه عنك.", bubble_fr: "Ce qu'ils retiendront de moi", bubble_en: "What they will remember", bubble_ar: "ما سيتذكرونه عني" },
-          { fr: "{name}, raconte-nous comment tu vois le monde à travers leurs yeux.", en: "{name}, tell us how you see the world through their eyes.", ar: "{name}، احكِ لنا كيف ترى العالم من خلال عيونهم.", bubble_fr: "Le monde à travers leurs yeux", bubble_en: "World through their eyes", bubble_ar: "العالم
+          { fr: "{name}, raconte-nous comment tu vois le monde à travers leurs yeux.", en: "{name}, tell us how you see the world through their eyes.", ar: "{name}، احكِ لنا كيف ترى العالم من خلال عيونهم.", bubble_fr: "Le monde à travers leurs yeux", bubble_en: "World through their eyes", bubble_ar: "العالم من خلال عيونهم" }
+        ]
+      }
+    ]
+  }
+];

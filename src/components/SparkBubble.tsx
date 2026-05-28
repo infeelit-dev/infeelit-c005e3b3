@@ -438,11 +438,11 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                                 {chapter[lang as "fr" | "en" | "ar"]}
                               </p>
                               <span style={{ fontSize: "10px", color: "rgba(61,43,31,0.4)", backgroundColor: "rgba(61,43,31,0.06)", padding: "2px 8px", borderRadius: "999px" }}>
-                                {chapter[`age_${lang}` as keyof typeof chapter]}
+                                {chapter[`age_${lang}` as keyof typeof chapter] as string}
                               </span>
                             </div>
                             <p style={{ fontSize: "11px", color: "rgba(61,43,31,0.5)", fontStyle: "italic", fontFamily: "Georgia, serif" }}>
-                              {chapter[`tagline_${lang}` as keyof typeof chapter]}
+                              {chapter[`tagline_${lang}` as keyof typeof chapter] as string}
                             </p>
                           </div>
                           <span style={{ marginLeft: "auto", color: "rgba(61,43,31,0.3)", fontSize: "16px" }}>›</span>
@@ -497,7 +497,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                             }}
                           >
                             <span>{cat.icon}</span>
-                            <span>{cat[lang as "fr" | "en" | "ar]}</span>
+                            <span>{cat[lang as "fr" | "en" | "ar"]}</span>
                           </button>
                         ));
                       })()}
