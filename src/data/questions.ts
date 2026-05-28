@@ -259,4 +259,4 @@ export const CHAPTERS = [
       }
     ]
   }
-] as const;
+];
