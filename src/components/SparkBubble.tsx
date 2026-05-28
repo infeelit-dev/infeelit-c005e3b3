@@ -497,7 +497,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                             }}
                           >
                             <span>{cat.icon}</span>
-                            <span>{cat[lang as "fr" | "en" | "ar]}</span>
+                            <span>{cat[lang as "fr" | "en" | "ar"]}</span>
                           </button>
                         ));
                       })()}

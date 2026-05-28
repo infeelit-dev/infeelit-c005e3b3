@@ -1,10 +1,3 @@
-Tu as raison. Voici le contenu complet du fichier `src/data/questions.ts` à copier-coller directement dans Lovable.
-
----
-
-## Copie ce code dans `src/data/questions.ts`
-
-```typescript
 export const CHAPTERS = [
   {
     id: "enfance",
