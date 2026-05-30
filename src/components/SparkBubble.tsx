@@ -13,24 +13,26 @@ interface SparkBubbleProps {
   onSparkClose?: () => void;
 }
 
+const getRandomPosition = () => {
+  const newX = Math.random() > 0.5 ? 10 + Math.random() * 25 : 65 + Math.random() * 25;
+  const newY = 15 + Math.random() * 45;
+  return { x: newX, y: newY };
+};
+
 const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
   const userName = useUserName();
   const scrollRef = useRef<HTMLDivElement>(null);
-  
-  const [position, setPosition] = useState(() => {
-    const newX = Math.random() > 0.5 ? 10 + Math.random() * 25 : 65 + Math.random() * 25;
-    const newY = 15 + Math.random() * 45;
-    return { x: newX, y: newY };
-  });
+
+  const [position, setPosition] = useState(getRandomPosition);
   const [expanded, setExpanded] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [sparkBalance, setSparkBalance] = useState(0);
   const [showNameInput, setShowNameInput] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [triggerApproach, setTriggerApproach] = useState(false);
-  
+
   // Nouveaux states pour le système à 3 étapes
   const [currentStep, setCurrentStep] = useState<Step>("chapters");
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
@@ -85,6 +87,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     };
   }, []);
 
+  // FIX: Trigger approach ne doit PAS ouvrir la popup automatiquement
   useEffect(() => {
     if (triggerApproach && !expanded) {
       const timer = setTimeout(() => {
@@ -110,8 +113,8 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   }, [expanded]);
 
   const getRandomQuestions = (categoryId: string, language: string, name: string) => {
-    const chapter = CHAPTERS.find(ch => ch.categories.some(cat => cat.id === categoryId));
-    const category = chapter?.categories.find(cat => cat.id === categoryId);
+    const chapter = CHAPTERS.find((ch) => ch.categories.some((cat) => cat.id === categoryId));
+    const category = chapter?.categories.find((cat) => cat.id === categoryId);
     if (!category) return [];
 
     const langKey = language as "fr" | "en" | "ar";
@@ -126,12 +129,12 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     }
 
     const shuffled = [...available].sort(() => Math.random() - 0.5).slice(0, 3);
-    const indices = shuffled.map(q => category.questions.indexOf(q));
+    const indices = shuffled.map((q) => category.questions.indexOf(q));
     localStorage.setItem(seenKey, JSON.stringify([...seen, ...indices]));
 
     const displayName = name || (language === "fr" ? "ami(e)" : language === "ar" ? "صديقي" : "friend");
 
-    return shuffled.map(q => ({
+    return shuffled.map((q) => ({
       text: q[langKey].replace("{name}", displayName),
       bubble: q[`bubble_${langKey}` as keyof typeof q] as string,
     }));
@@ -292,7 +295,17 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                   boxShadow: "0 0 8px rgba(255,200,60,0.4)",
                 }}
               >
-                <span style={{ fontSize: "9px", color: "#FFD700", fontWeight: 700, lineHeight: 1, textShadow: "0 0 4px rgba(255,200,60,0.8)" }}>✦{sparkBalance}</span>
+                <span
+                  style={{
+                    fontSize: "9px",
+                    color: "#FFD700",
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    textShadow: "0 0 4px rgba(255,200,60,0.8)",
+                  }}
+                >
+                  ✦{sparkBalance}
+                </span>
               </div>
             )}
             {showBadge && (
@@ -300,7 +313,9 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                 className="absolute -top-2 -left-2 px-1.5 py-0.5 rounded-full flex items-center justify-center"
                 style={{ background: "rgba(232,116,42,0.9)", boxShadow: "0 0 6px rgba(232,116,42,0.4)" }}
               >
-                <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>{progress}/{threshold} ✦</span>
+                <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>
+                  {progress}/{threshold} ✦
+                </span>
               </div>
             )}
           </div>
@@ -410,7 +425,11 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                 {currentStep === "chapters" && (
                   <>
                     <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
-                      {lang === "ar" ? "عم تريد أن تتحدث ؟" : lang === "fr" ? "De quoi tu veux parler ?" : "What do you want to talk about?"}
+                      {lang === "ar"
+                        ? "عم تريد أن تتحدث ؟"
+                        : lang === "fr"
+                          ? "De quoi tu veux parler ?"
+                          : "What do you want to talk about?"}
                     </p>
                     <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
                       {CHAPTERS.map((chapter) => (
@@ -437,11 +456,26 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                               <p style={{ fontSize: "16px", fontWeight: 700, color: "#3D2B1F" }}>
                                 {chapter[lang as "fr" | "en" | "ar"]}
                               </p>
-                              <span style={{ fontSize: "10px", color: "rgba(61,43,31,0.4)", backgroundColor: "rgba(61,43,31,0.06)", padding: "2px 8px", borderRadius: "999px" }}>
+                              <span
+                                style={{
+                                  fontSize: "10px",
+                                  color: "rgba(61,43,31,0.4)",
+                                  backgroundColor: "rgba(61,43,31,0.06)",
+                                  padding: "2px 8px",
+                                  borderRadius: "999px",
+                                }}
+                              >
                                 {chapter[`age_${lang}` as keyof typeof chapter] as string}
                               </span>
                             </div>
-                            <p style={{ fontSize: "11px", color: "rgba(61,43,31,0.5)", fontStyle: "italic", fontFamily: "Georgia, serif" }}>
+                            <p
+                              style={{
+                                fontSize: "11px",
+                                color: "rgba(61,43,31,0.5)",
+                                fontStyle: "italic",
+                                fontFamily: "Georgia, serif",
+                              }}
+                            >
                               {chapter[`tagline_${lang}` as keyof typeof chapter] as string}
                             </p>
                           </div>
@@ -472,11 +506,15 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                       ← {lang === "ar" ? "رجوع" : lang === "fr" ? "Retour" : "Back"}
                     </button>
                     <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
-                      {lang === "ar" ? "أي مرحلة من حياتك ؟" : lang === "fr" ? "Quel moment de ta vie ?" : "Which part of your life?"}
+                      {lang === "ar"
+                        ? "أي مرحلة من حياتك ؟"
+                        : lang === "fr"
+                          ? "Quel moment de ta vie ?"
+                          : "Which part of your life?"}
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center max-h-[400px] overflow-y-auto pb-2">
                       {(() => {
-                        const chapter = CHAPTERS.find(ch => ch.id === selectedChapter);
+                        const chapter = CHAPTERS.find((ch) => ch.id === selectedChapter);
                         return chapter?.categories.map((cat) => (
                           <button
                             key={cat.id}
@@ -537,10 +575,16 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                       }}
                     >
                       {lang === "ar"
-                        ? userName ? `${userName}، احكِ لهم.` : "احكِ لهم."
+                        ? userName
+                          ? `${userName}، احكِ لهم.`
+                          : "احكِ لهم."
                         : lang === "fr"
-                          ? userName ? `${userName}, raconte-leur.` : "Raconte-leur."
-                          : userName ? `${userName}, tell them.` : "Tell them."}
+                          ? userName
+                            ? `${userName}, raconte-leur.`
+                            : "Raconte-leur."
+                          : userName
+                            ? `${userName}, tell them.`
+                            : "Tell them."}
                     </p>
 
                     <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-scroll pb-4 pt-2 hide-scroll">
@@ -596,7 +640,17 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                           boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
                         }}
                       >
-                        {lang === "ar" ? (userName ? `${userName}، احكِ لهم` : "احكِ لهم") : lang === "fr" ? (userName ? `${userName}, raconte-leur` : "Raconte-leur") : (userName ? `${userName}, tell them` : "Tell them")}
+                        {lang === "ar"
+                          ? userName
+                            ? `${userName}، احكِ لهم`
+                            : "احكِ لهم"
+                          : lang === "fr"
+                            ? userName
+                              ? `${userName}, raconte-leur`
+                              : "Raconte-leur"
+                            : userName
+                              ? `${userName}, tell them`
+                              : "Tell them"}
                       </button>
                     )}
 
@@ -610,7 +664,11 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
 
                 {sparkBalance > 0 && currentStep === "chapters" && (
                   <p className="text-[#3D2B1F]/30 text-[9px] mt-3">
-                    {lang === "ar" ? `لديك ${sparkBalance} شرارات` : lang === "fr" ? `Tu as ${sparkBalance} étincelles` : `You have ${sparkBalance} sparks`}
+                    {lang === "ar"
+                      ? `لديك ${sparkBalance} شرارات`
+                      : lang === "fr"
+                        ? `Tu as ${sparkBalance} étincelles`
+                        : `You have ${sparkBalance} sparks`}
                   </p>
                 )}
               </>
