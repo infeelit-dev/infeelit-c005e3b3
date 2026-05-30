@@ -95,7 +95,6 @@ const Places = () => {
   const [pins, setPins] = useState<MemoryPin[]>(DEMO_PINS);
   const [selectedPin, setSelectedPin] = useState<MemoryPin | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [userMarker, setUserMarker] = useState<mapboxgl.Marker | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(true);
 
@@ -104,10 +103,6 @@ const Places = () => {
     const loadGeoMemories = async () => {
       setLoading(true);
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
         const { data: memories, error } = await supabase
           .from("memories")
           .select(
@@ -149,7 +144,6 @@ const Places = () => {
           }));
           setPins(formattedPins);
         } else {
-          // Utiliser les démos
           setPins(DEMO_PINS);
         }
       } catch (err) {
@@ -179,53 +173,73 @@ const Places = () => {
     map.current.on("load", () => {
       const m = map.current!;
 
-      // Style de la carte émotionnelle
-      try {
-        if (m.getLayer("background")) {
-          m.setPaintProperty("background", "background-color", "#FDF8F0");
-        }
-      } catch {}
+      // Définir les couleurs personnalisées après le chargement
+      // Utiliser setPaintProperty sur les couches existantes
 
+      // Fond de la carte
       try {
-        if (m.getLayer("water")) {
-          m.setPaintProperty("water", "fill-color", "#E8DCC8");
-        }
-      } catch {}
+        m.setPaintProperty("background", "background-color", "#FDF8F0");
+      } catch (e) {
+        console.warn("background layer not found");
+      }
 
+      // Eau
       try {
-        if (m.getLayer("building")) {
-          m.setPaintProperty("building", "fill-color", "#F0E6D3");
-          m.setPaintProperty("building", "fill-opacity", 0.6);
-        }
-      } catch {}
+        m.setPaintProperty("water", "fill-color", "#E8DCC8");
+      } catch (e) {
+        console.warn("water layer not found");
+      }
 
+      // Bâtiments
       try {
-        if (m.getLayer("road-primary")) {
-          m.setPaintProperty("road-primary", "line-color", "#D4AF37");
-          m.setPaintProperty("road-primary", "line-opacity", 0.4);
-          m.setPaintProperty("road-primary", "line-width", 1.5);
-        }
-      } catch {}
+        m.setPaintProperty("building", "fill-color", "#F0E6D3");
+        m.setPaintProperty("building", "fill-opacity", 0.6);
+      } catch (e) {
+        console.warn("building layer not found");
+      }
 
-      try {
-        if (m.getLayer("road-secondary-tertiary")) {
-          m.setPaintProperty("road-secondary-tertiary", "line-color", "#D4AF37");
-          m.setPaintProperty("road-secondary-tertiary", "line-opacity", 0.2);
-        }
-      } catch {}
+      // Routes (essayer plusieurs noms de couches possibles)
+      const roadLayers = ["road", "road-primary", "road-secondary", "road-street", "road-path"];
+      roadLayers.forEach((layer) => {
+        try {
+          m.setPaintProperty(layer, "line-color", "#D4AF37");
+          m.setPaintProperty(layer, "line-opacity", 0.3);
+        } catch (e) {}
+      });
 
-      try {
-        if (m.getLayer("poi-label")) {
-          m.setLayoutProperty("poi-label", "visibility", "none");
-        }
-      } catch {}
-      try {
-        if (m.getLayer("transit-label")) {
-          m.setLayoutProperty("transit-label", "visibility", "none");
-        }
-      } catch {}
+      // Masquer les labels POI
+      const labelLayers = [
+        "poi-label",
+        "road-label",
+        "waterway-label",
+        "natural-line-label",
+        "water-label",
+        "landuse-label",
+        "state-label",
+        "country-label",
+        "settlement-label",
+      ];
+      labelLayers.forEach((layer) => {
+        try {
+          m.setLayoutProperty(layer, "visibility", "none");
+        } catch (e) {}
+      });
 
-      // Ajouter la heatmap des émotions
+      // Ajouter une couche de fond beige si besoin
+      if (!m.getLayer("custom-background")) {
+        m.addLayer(
+          {
+            id: "custom-background",
+            type: "background",
+            paint: {
+              "background-color": "#FDF8F0",
+            },
+          },
+          "water",
+        );
+      }
+
+      // Ajouter la source de données pour la heatmap
       m.addSource("memories-heat", {
         type: "geojson",
         data: {
@@ -241,6 +255,7 @@ const Places = () => {
         },
       });
 
+      // Ajouter la couche heatmap
       m.addLayer({
         id: "memories-heatmap",
         type: "heatmap",
@@ -281,11 +296,11 @@ const Places = () => {
   useEffect(() => {
     if (!map.current || loading) return;
 
-    // Nettoyer les anciens markers
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
     const addMarkers = () => {
+      // Nettoyer les anciens markers
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+
       pins.forEach((pin) => {
         const el = document.createElement("div");
         el.style.cssText = `
@@ -306,12 +321,7 @@ const Places = () => {
           animation: pinPulse 3s ease-in-out infinite;
         `;
 
-        el.innerHTML = `
-          <span style="
-            font-size: 18px;
-            filter: drop-shadow(0 0 4px rgba(255,200,60,0.8));
-          ">✦</span>
-        `;
+        el.innerHTML = `<span style="font-size: 18px; filter: drop-shadow(0 0 4px rgba(255,200,60,0.8));">✦</span>`;
 
         el.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -327,12 +337,9 @@ const Places = () => {
 
         markersRef.current.push(marker);
       });
-    };
 
-    if (map.current.loaded()) {
-      addMarkers();
       // Mettre à jour la heatmap
-      const source = map.current.getSource("memories-heat") as mapboxgl.GeoJSONSource;
+      const source = map.current?.getSource("memories-heat") as mapboxgl.GeoJSONSource;
       if (source) {
         source.setData({
           type: "FeatureCollection",
@@ -346,12 +353,16 @@ const Places = () => {
           })),
         });
       }
+    };
+
+    if (map.current.loaded()) {
+      addMarkers();
     } else {
       map.current.once("load", addMarkers);
     }
   }, [pins, loading]);
 
-  // Géolocalisation de l'utilisateur
+  // Géolocalisation de l'utilisateur avec radar
   useEffect(() => {
     if (!map.current) return;
 
@@ -361,7 +372,7 @@ const Places = () => {
           const { latitude, longitude } = pos.coords;
           setUserLocation({ lat: latitude, lng: longitude });
 
-          // Créer le radar émotionnel
+          // Radar émotionnel
           const radarEl = document.createElement("div");
           radarEl.style.cssText = `
             width: 80px;
@@ -385,13 +396,9 @@ const Places = () => {
             box-shadow: 0 0 10px rgba(232,116,42,0.8);
           `;
 
-          const marker = new mapboxgl.Marker({ element: radarEl }).setLngLat([longitude, latitude]).addTo(map.current!);
+          new mapboxgl.Marker({ element: radarEl }).setLngLat([longitude, latitude]).addTo(map.current!);
 
-          const centerMarker = new mapboxgl.Marker({ element: centerEl })
-            .setLngLat([longitude, latitude])
-            .addTo(map.current!);
-
-          setUserMarker(marker);
+          new mapboxgl.Marker({ element: centerEl }).setLngLat([longitude, latitude]).addTo(map.current!);
         },
         (err) => {
           console.warn("Geolocation error:", err);
@@ -410,7 +417,6 @@ const Places = () => {
         },
       });
     } else {
-      // Si pas de géolocalisation, demander
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           navigate("/record", {
@@ -422,7 +428,6 @@ const Places = () => {
           });
         },
         () => {
-          // Fallback: enregistrer sans géolocalisation
           navigate("/record", { state: { fromPlaces: true } });
         },
       );
@@ -439,38 +444,18 @@ const Places = () => {
     <div className="relative w-full h-screen overflow-hidden" dir={rtl ? "rtl" : "ltr"}>
       <style>{`
         @keyframes pinPulse {
-          0%, 100% {
-            transform: scale(1);
-            box-shadow: 0 0 20px rgba(232,116,42,0.5), 0 0 40px rgba(232,116,42,0.2);
-          }
-          50% {
-            transform: scale(1.15);
-            box-shadow: 0 0 30px rgba(232,116,42,0.7), 0 0 60px rgba(232,116,42,0.3);
-          }
+          0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(232,116,42,0.5), 0 0 40px rgba(232,116,42,0.2); }
+          50% { transform: scale(1.15); box-shadow: 0 0 30px rgba(232,116,42,0.7), 0 0 60px rgba(232,116,42,0.3); }
         }
         @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-          }
+          from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
         @keyframes radar {
-          0% {
-            transform: scale(0.5);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(2.5);
-            opacity: 0;
-          }
+          0% { transform: scale(0.5); opacity: 1; }
+          100% { transform: scale(2.5); opacity: 0; }
         }
-        .mapboxgl-ctrl-attrib, .mapboxgl-ctrl-logo {
-          display: none !important;
-        }
+        .mapboxgl-ctrl-attrib, .mapboxgl-ctrl-logo { display: none !important; }
       `}</style>
 
       {/* Header flottant */}
@@ -539,7 +524,6 @@ const Places = () => {
             animation: "slideUp 0.3s ease",
           }}
         >
-          {/* Titre du souvenir */}
           <p
             style={{
               fontSize: "16px",
@@ -552,8 +536,6 @@ const Places = () => {
           >
             "{selectedPin.title}"
           </p>
-
-          {/* Auteur */}
           <p
             style={{
               fontSize: "12px",
@@ -564,8 +546,6 @@ const Places = () => {
             {selectedPin.name} ·{" "}
             {selectedPin.city || (lang === "fr" ? "Lieu inconnu" : lang === "ar" ? "مكان غير معروف" : "Unknown place")}
           </p>
-
-          {/* Bouton écouter */}
           <button
             onClick={() => handleListen(selectedPin)}
             style={{
@@ -588,8 +568,6 @@ const Places = () => {
             <span>▶</span>
             {lang === "fr" ? "Écouter ce souvenir" : lang === "ar" ? "استمع لهذه الذكرى" : "Listen to this memory"}
           </button>
-
-          {/* Bouton épingler le mien */}
           <button
             onClick={handlePinHere}
             style={{
@@ -611,8 +589,6 @@ const Places = () => {
                 ? "أنا أيضاً لدي ذكرى هنا ✦"
                 : "I also have a memory here ✦"}
           </button>
-
-          {/* Bouton fermer */}
           <button
             onClick={() => setSelectedPin(null)}
             style={{
@@ -682,11 +658,7 @@ const Places = () => {
               animation: "spin 0.8s linear infinite",
             }}
           />
-          <style>{`
-            @keyframes spin {
-              to { transform: rotate(360deg); }
-            }
-          `}</style>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
 
