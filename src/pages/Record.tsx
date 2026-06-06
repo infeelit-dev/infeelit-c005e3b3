@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import useUserName from "@/hooks/useUserName";
 import ShareModal from "@/components/ShareModal";
+import MemoryCard from "@/components/MemoryCard";
+import html2canvas from "html2canvas";
 
 import childImg from "@/assets/child.jpg";
 import grandfatherImg from "@/assets/grandfather.jpg";
@@ -199,6 +201,7 @@ const Record = () => {
   const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thumbScrollRef = useRef<HTMLDivElement>(null);
   const auraRef = useRef(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const [stage, setStage] = useState<Stage>("question");
   const [mr, setMR] = useState<MediaRecorder | null>(null);
@@ -511,6 +514,63 @@ const Record = () => {
     setStage("share");
   };
 
+  const generateCardImage = async (): Promise<Blob | null> => {
+    if (!cardRef.current) return null;
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: null,
+      });
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), "image/png", 1);
+      });
+    } catch (err) {
+      console.error("Error generating card image:", err);
+      return null;
+    }
+  };
+
+  const handleShareToWhatsApp = async () => {
+    const blob = await generateCardImage();
+    if (!blob) {
+      toast.error(lang === "fr" ? "Erreur lors de la génération de l'image" : "Error generating image");
+      return;
+    }
+
+    const file = new File([blob], "infeelit-memory.png", { type: "image/png" });
+    const text =
+      lang === "fr"
+        ? `J'ai préservé un souvenir de notre famille sur Infeelit. Écoute et ajoute le tien : https://infeelit.com`
+        : lang === "ar"
+          ? `حفظت ذكرى عائلية على Infeelit. استمع وأضف ذكراك: https://infeelit.com`
+          : `I preserved a family memory on Infeelit. Listen and add yours: https://infeelit.com`;
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: memoryTitle,
+          text: text,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.error("Share error:", err);
+        }
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "infeelit-memory.png";
+    a.click();
+    URL.revokeObjectURL(url);
+    await navigator.clipboard.writeText(text);
+    toast.success(lang === "fr" ? "Image téléchargée et lien copié" : "Image downloaded and link copied");
+  };
+
   const handleShare = async (type: "circle" | "public" | "private") => {
     stream?.getTracks().forEach((t) => t.stop());
     try {
@@ -557,7 +617,6 @@ const Record = () => {
           return;
         }
 
-        // First-memory welcome toast
         try {
           const { count } = await supabase
             .from("memories")
@@ -577,7 +636,6 @@ const Record = () => {
           console.error("First-memory count failed:", e);
         }
 
-        // Notify the user's circle(s) about the new memory
         try {
           const insertedIds = res.map((r: any) => r?.data?.[0]?.id).filter(Boolean) as string[];
           const newMemoryId = insertedIds[insertedIds.length - 1] || null;
@@ -726,7 +784,6 @@ const Record = () => {
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-      {/* Stage Question avec image thématique */}
       {stage === "question" && (
         <div
           style={{
@@ -1120,63 +1177,120 @@ const Record = () => {
           </button>
         </div>
       )}
+
+      {/* STAGE SHARE — avec MemoryCard et bouton WhatsApp */}
       {stage === "share" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
-          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.whoHears}</p>
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
+            {lang === "fr"
+              ? "Ta carte mémoire est prête"
+              : lang === "ar"
+                ? "بطاقة ذاكرتك جاهزة"
+                : "Your memory card is ready"}
+          </p>
           <h2 className="text-white text-lg font-bold leading-tight italic mb-2">"{memoryTitle}"</h2>
+
+          {/* Carte mémoire */}
+          <MemoryCard
+            ref={cardRef}
+            title={memoryTitle}
+            authorName={userName || (lang === "fr" ? "Quelqu'un" : lang === "ar" ? "شخص ما" : "Someone")}
+            city={undefined}
+            familyName={undefined}
+            memoryNumber={undefined}
+            backgroundImage={thumbUrlRef.current || undefined}
+            lang={lang}
+          />
+
+          {/* Bouton WhatsApp */}
           <button
-            onClick={() => handleShare("circle")}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-white text-base"
-            style={{ backgroundColor: "#6B4E9B" }}
-          >
-            {t.myFamilyCircle}
-          </button>
-          <button
-            onClick={() => handleShare("public")}
-            className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base"
-            style={{ color: "#fff" }}
-          >
-            {t.shareInOcean}
-          </button>
-          <button
-            onClick={() => handleShare("private")}
-            className="w-full max-w-xs py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base"
-          >
-            {t.keepPrivate}
-          </button>
-          <div className="flex items-center gap-3 w-full max-w-xs my-1">
-            <div className="flex-1 h-px bg-white/15" />
-            <span className="text-white/30 text-xs uppercase tracking-widest">
-              {lang === "ar" ? "أو" : lang === "fr" ? "ou" : "or"}
-            </span>
-            <div className="flex-1 h-px bg-white/15" />
-          </div>
-          <button
-            onClick={() => setShowShareModal(true)}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-2"
+            onClick={handleShareToWhatsApp}
             style={{
-              backgroundColor: "rgba(255,255,255,.12)",
+              width: "100%",
+              maxWidth: "320px",
+              padding: "16px",
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #25D366, #128C7E)",
               color: "#fff",
-              border: "1px solid rgba(255,255,255,.2)",
+              fontWeight: 700,
+              fontSize: "15px",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+              marginTop: "16px",
             }}
           >
-            <Share2 size={18} />
+            <span style={{ fontSize: "20px" }}>📱</span>
+            {lang === "fr" ? "Envoyer à ma famille" : lang === "ar" ? "أرسل لعائلتي" : "Send to my family"}
+          </button>
+
+          {/* Bouton secondaire de partage */}
+          <button
+            onClick={handleNativeShare}
+            style={{
+              width: "100%",
+              maxWidth: "320px",
+              padding: "14px",
+              borderRadius: "16px",
+              background: "none",
+              border: "1px solid rgba(232,116,42,0.3)",
+              color: "#E8742A",
+              fontWeight: 600,
+              fontSize: "13px",
+              cursor: "pointer",
+              marginTop: "8px",
+            }}
+          >
+            {lang === "fr"
+              ? "Autres options de partage"
+              : lang === "ar"
+                ? "خيارات مشاركة أخرى"
+                : "Other sharing options"}
+          </button>
+
+          {/* Bouton téléchargement */}
+          <button
+            onClick={handleDownload}
+            style={{
+              width: "100%",
+              maxWidth: "320px",
+              padding: "12px",
+              borderRadius: "16px",
+              background: "none",
+              border: "1px solid rgba(255,255,255,0.2)",
+              color: "rgba(255,255,255,0.5)",
+              fontWeight: 500,
+              fontSize: "12px",
+              cursor: "pointer",
+              marginTop: "4px",
+            }}
+          >
+            {lang === "fr" ? "Télécharger l'image" : lang === "ar" ? "تحميل الصورة" : "Download image"}
+          </button>
+
+          {/* Bouton de partage original (ShareModal) */}
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2 mt-2"
+            style={{
+              backgroundColor: "rgba(255,255,255,.1)",
+              color: "rgba(255,255,255,0.6)",
+              border: "1px solid rgba(255,255,255,0.15)",
+            }}
+          >
+            <Share2 size={16} />
             {lang === "ar"
               ? "مشاركة على وسائل التواصل"
               : lang === "fr"
                 ? "Partager sur les réseaux"
                 : "Share on social media"}
           </button>
-          <button
-            onClick={handleDownload}
-            className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2"
-            style={{ color: "rgba(255,255,255,.4)" }}
-          >
-            <Download size={16} />
-            {lang === "ar" ? "تحميل الذكرى" : lang === "fr" ? "Télécharger le souvenir" : "Download memory"}
-          </button>
         </div>
       )}
+
       <ShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
