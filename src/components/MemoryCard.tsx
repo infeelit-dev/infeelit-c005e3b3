@@ -25,7 +25,6 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
           fontFamily: "Georgia, serif",
         }}
       >
-        {/* Image de fond floue */}
         {backgroundImage && (
           <div
             style={{
@@ -39,7 +38,6 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
           />
         )}
 
-        {/* Overlay gradient */}
         <div
           style={{
             position: "absolute",
@@ -50,7 +48,6 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
           }}
         />
 
-        {/* Contenu */}
         <div
           style={{
             position: "relative",
@@ -62,7 +59,6 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
             padding: "28px 24px",
           }}
         >
-          {/* Logo en haut */}
           <div
             style={{
               display: "flex",
@@ -90,7 +86,6 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
             </span>
           </div>
 
-          {/* Le titre du souvenir (coupé pour créer la curiosité) */}
           <div>
             <p
               style={{
@@ -116,7 +111,6 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
             </p>
           </div>
 
-          {/* Compteur familial en bas */}
           <div
             style={{
               display: "flex",
