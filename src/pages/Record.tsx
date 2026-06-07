@@ -22,6 +22,7 @@ import useUserName from "@/hooks/useUserName";
 import ShareModal from "@/components/ShareModal";
 import MemoryCard from "@/components/MemoryCard";
 import html2canvas from "html2canvas";
+import { CHAPTERS } from "@/data/questions";
 
 import childImg from "@/assets/child.jpg";
 import grandfatherImg from "@/assets/grandfather.jpg";
@@ -221,12 +222,31 @@ const Record = () => {
   const [customThumb, setCustomThumb] = useState<string | null>(null);
   const [useAsAura, setUseAsAura] = useState(false);
 
+  // Follow-up questions states
+  const [currentFollowup, setCurrentFollowup] = useState(0);
+  const [followupQuestions, setFollowupQuestions] = useState<string[]>([]);
+
   const question = loc.state?.question || "What smell instantly brings you back to your childhood home?";
   const theme = getTheme(question);
   const followups =
     FOLLOWUP_QUESTIONS[lang as keyof typeof FOLLOWUP_QUESTIONS]?.[theme as keyof typeof FOLLOWUP_QUESTIONS.en] ??
     FOLLOWUP_QUESTIONS.en.default;
   const thumbCards = getThematicCards(question);
+  const auraBackground = useAsAura ? customThumb || thumbCards[selectedThumb] : null;
+
+  // Follow-up timer pendant l'enregistrement
+  useEffect(() => {
+    if (stage === "recording" && followupQuestions.length > 0 && currentFollowup === 0) {
+      const t1 = setTimeout(() => setCurrentFollowup(1), 20000);
+      const t2 = setTimeout(() => setCurrentFollowup(2), 45000);
+      const t3 = setTimeout(() => setCurrentFollowup(3), 70000);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
+  }, [stage, followupQuestions, currentFollowup]);
 
   useEffect(() => {
     if (loc.state?.fromSpark) fromSparkRef.current = true;
@@ -337,6 +357,7 @@ const Record = () => {
     questionRef.current = q;
     setStage("countdown");
     setCountdown(3);
+    setCurrentFollowup(0);
     const tmr = setInterval(() => {
       setCountdown((p) => {
         if (p === 1) {
@@ -752,29 +773,80 @@ const Record = () => {
   const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
   return (
-    <div
-      className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans"
-      dir={rtl ? "rtl" : "ltr"}
-      style={{
-        background: "linear-gradient(160deg, #1A3B47 0%, #2D5A4F 30%, #3D2B1F 70%, #E8742A 100%)",
-      }}
-    >
-      {!audioMode && stage !== "preview" && (
+    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans" dir={rtl ? "rtl" : "ltr"}>
+      <style>{`
+        @keyframes ambientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(15px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes floatPulse {
+          0%, 100% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.02); opacity: 1; }
+        }
+      `}</style>
+
+      {/* FOND PENDANT L'ENREGISTREMENT */}
+      {stage === "recording" && (
+        <div className="absolute inset-0 z-0">
+          {auraBackground ? (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url(${auraBackground})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "blur(20px) brightness(0.5) sepia(20%)",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(135deg, #2D1810 0%, #8B4513 25%, #D4621A 50%, #8B4513 75%, #2D1810 100%)",
+                backgroundSize: "400% 400%",
+                animation: "ambientShift 8s ease infinite",
+              }}
+            />
+          )}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)",
+            }}
+          />
+        </div>
+      )}
+
+      {/* Preview et autres stages */}
+      {!audioMode && stage !== "recording" && stage !== "preview" && (
         <video
           ref={videoRef}
           autoPlay
           muted
           playsInline
-          className={
-            "absolute inset-0 w-full h-full object-cover transition-opacity duration-500 " +
-            (stage === "recording" ? "opacity-80" : "opacity-20")
-          }
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${stage === "recording" ? "opacity-80" : "opacity-20"}`}
         />
       )}
       {stage === "preview" && !audioMode && (
         <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover opacity-90" />
       )}
-      {audioMode && stage !== "preview" && (
+      {audioMode && stage !== "recording" && stage !== "preview" && (
         <div
           className="absolute inset-0"
           style={{
@@ -784,21 +856,202 @@ const Record = () => {
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-      {stage === "question" && (
+      {/* QUESTION PRINCIPALE EN OVERLAY (pendant recording) */}
+      {stage === "recording" && (
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            backgroundImage: `url(${thumbCards[0]})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            opacity: 0.08,
-            filter: "blur(20px) sepia(50%)",
-            zIndex: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            padding: "56px 24px 20px",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)",
+            zIndex: 5,
           }}
-        />
+        >
+          <p
+            style={{
+              fontSize: "18px",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              color: "#fff",
+              textAlign: "center",
+              lineHeight: 1.5,
+              textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+            }}
+          >
+            "{questionRef.current}"
+          </p>
+        </div>
       )}
 
+      {/* INDICATEUR D'ENREGISTREMENT */}
+      {stage === "recording" && (
+        <div
+          style={{
+            position: "absolute",
+            top: "56px",
+            right: "20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            zIndex: 10,
+          }}
+        >
+          <div
+            style={{
+              width: "10px",
+              height: "10px",
+              borderRadius: "50%",
+              background: "#ef4444",
+              animation: "blink 1s ease-in-out infinite",
+            }}
+          />
+          <span
+            style={{
+              fontSize: "12px",
+              color: "rgba(255,255,255,0.7)",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+            }}
+          >
+            REC
+          </span>
+          <span
+            style={{
+              fontSize: "11px",
+              color: "rgba(255,255,255,0.4)",
+              fontFamily: "monospace",
+            }}
+          >
+            {formatTime(elapsed)} / 3:00
+          </span>
+        </div>
+      )}
+
+      {/* SOUS-QUESTIONS PENDANT L'ENREGISTREMENT */}
+      {stage === "recording" && currentFollowup > 0 && currentFollowup <= followupQuestions.length && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "120px",
+            left: "16px",
+            right: "16px",
+            padding: "16px 20px",
+            background: "rgba(0,0,0,0.75)",
+            borderRadius: "16px",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            zIndex: 5,
+            animation: "slideUp 0.5s ease",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "11px",
+              color: "rgba(232,116,42,0.8)",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              marginBottom: "8px",
+            }}
+          >
+            ✦ {lang === "fr" ? "Question suivante" : lang === "ar" ? "السؤال التالي" : "Next question"}
+          </p>
+          <p
+            style={{
+              fontSize: "16px",
+              color: "#fff",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              lineHeight: 1.5,
+            }}
+          >
+            {followupQuestions[currentFollowup - 1]}
+          </p>
+        </div>
+      )}
+
+      {/* TIMER PENDANT RECORDING (optionnel, pour l'ambiance) */}
+      {stage === "recording" && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "200px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "rgba(0,0,0,0.5)",
+            borderRadius: "999px",
+            padding: "4px 12px",
+            fontSize: "12px",
+            fontFamily: "monospace",
+            color: timerColor,
+            zIndex: 5,
+          }}
+        >
+          {formatTime(elapsed)} / 3:00
+        </div>
+      )}
+
+      {/* BOUTON STOP ÉNORME */}
+      {stage === "recording" && (
+        <button
+          onClick={handleStop}
+          style={{
+            position: "absolute",
+            bottom: "40px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            background: "rgba(220,38,38,0.9)",
+            border: "4px solid rgba(255,255,255,0.4)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 0 30px rgba(220,38,38,0.5)",
+            zIndex: 10,
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateX(-50%) scale(1.05)";
+            e.currentTarget.style.background = "rgba(220,38,38,1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+            e.currentTarget.style.background = "rgba(220,38,38,0.9)";
+          }}
+        >
+          <div
+            style={{
+              width: "28px",
+              height: "28px",
+              borderRadius: "4px",
+              backgroundColor: "#fff",
+            }}
+          />
+        </button>
+      )}
+
+      {/* VISUALISEUR AUDIO PENDANT RECORDING */}
+      {stage === "recording" && audioMode && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "180px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "200px",
+            height: "60px",
+            zIndex: 5,
+          }}
+        >
+          <canvas ref={canvasRef} width={200} height={60} style={{ width: "100%", opacity: 0.8 }} />
+        </div>
+      )}
+
+      {/* Header pour les autres stages */}
       <div className="relative z-10 p-6 flex justify-between items-center">
         <button
           onClick={() => {
@@ -811,15 +1064,7 @@ const Record = () => {
           <X size={24} />
         </button>
         <div className="flex items-center gap-3">
-          {stage === "recording" && (
-            <div className="flex flex-col items-end gap-0.5">
-              <span className="font-black text-lg tabular-nums" style={{ color: timerColor }}>
-                {formatTime(elapsed)} / 3:00
-              </span>
-              <span className="text-[10px] text-white/40 tabular-nums">~{estSize}</span>
-            </div>
-          )}
-          {(stage === "recording" || stage === "countdown") && (
+          {stage === "countdown" && (
             <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
               {audioMode ? (
                 <Mic size={14} className="text-[#E8742A]" />
@@ -833,105 +1078,95 @@ const Record = () => {
           )}
         </div>
       </div>
+
+      {/* STAGE QUESTION */}
       {stage === "question" && (
-        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
-          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.yourStory}</p>
-          <h2 className="text-white text-2xl font-bold leading-tight italic">"{question}"</h2>
-          {userName && (
-            <p
-              style={{
-                color: "#E8742A",
-                fontSize: "12px",
-                fontStyle: "italic",
-                fontFamily: "Georgia,serif",
-                textAlign: "center",
-                marginTop: "8px",
-              }}
-            >
-              {lang === "fr"
-                ? `${userName}, raconte-leur.`
-                : lang === "ar"
-                  ? `${userName}، احكِ لهم.`
-                  : `${userName}, tell them.`}
-            </p>
-          )}
-          <p className="text-white/50 text-sm">{t.breathe}</p>
-          {!stream ? (
-            <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
-              <p className="text-white/70 text-xs uppercase tracking-widest text-center">{t.howShare}</p>
-              <button
-                onClick={() => {
-                  setAudioMode(false);
-                  startMedia(false);
+        <>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${thumbCards[0]})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              opacity: 0.08,
+              filter: "blur(20px) sepia(50%)",
+              zIndex: 0,
+            }}
+          />
+          <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
+            <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.yourStory}</p>
+            <h2 className="text-white text-2xl font-bold leading-tight italic">"{question}"</h2>
+            {userName && (
+              <p
+                style={{
+                  color: "#E8742A",
+                  fontSize: "12px",
+                  fontStyle: "italic",
+                  fontFamily: "Georgia,serif",
+                  textAlign: "center",
+                  marginTop: "8px",
                 }}
-                className="w-full py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-3"
+              >
+                {lang === "fr"
+                  ? `${userName}, raconte-leur.`
+                  : lang === "ar"
+                    ? `${userName}، احكِ لهم.`
+                    : `${userName}, tell them.`}
+              </p>
+            )}
+            <p className="text-white/50 text-sm">{t.breathe}</p>
+            {!stream ? (
+              <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
+                <p className="text-white/70 text-xs uppercase tracking-widest text-center">{t.howShare}</p>
+                <button
+                  onClick={() => {
+                    setAudioMode(false);
+                    startMedia(false);
+                  }}
+                  className="w-full py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-3"
+                  style={{ color: "#fff" }}
+                >
+                  <Video size={20} /> {t.videoShowFace}
+                </button>
+                <button
+                  onClick={() => {
+                    setAudioMode(true);
+                    startMedia(true);
+                  }}
+                  className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base flex items-center justify-center gap-3"
+                >
+                  <Mic size={20} /> {t.voiceOnly}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => startCountdown(false)}
+                className="mt-2 px-10 py-4 rounded-full gradient-orange font-bold text-lg"
                 style={{ color: "#fff" }}
               >
-                <Video size={20} /> {t.videoShowFace}
+                {t.imReady}
               </button>
-              <button
-                onClick={() => {
-                  setAudioMode(true);
-                  startMedia(true);
-                }}
-                className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base flex items-center justify-center gap-3"
-              >
-                <Mic size={20} /> {t.voiceOnly}
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => startCountdown(false)}
-              className="mt-2 px-10 py-4 rounded-full gradient-orange font-bold text-lg"
-              style={{ color: "#fff" }}
-            >
-              {t.imReady}
-            </button>
-          )}
-        </div>
-      )}
-      {stage === "countdown" && (
-        <div className="relative z-20 flex-1 flex items-center justify-center">
-          <div className="text-white text-9xl font-black animate-pulse">{countdown}</div>
-        </div>
-      )}
-      {stage === "recording" && (
-        <>
-          <div className="relative z-10 flex justify-end px-6 -mt-16">
-            <div className="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full animate-pulse">
-              <div className="w-2 h-2 bg-white rounded-full" />
-              <span className="text-[10px] text-white font-black uppercase tracking-widest">
-                {audioMode ? t.listening : t.recording}
-              </span>
-            </div>
-          </div>
-          {audioMode && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-8">
-              <div
-                className="w-32 h-32 rounded-full flex items-center justify-center"
-                style={{
-                  background: "radial-gradient(circle,rgba(107,78,155,.4) 0%,rgba(232,116,42,.2) 100%)",
-                  boxShadow: "0 0 40px rgba(232,116,42,.3)",
-                }}
-              >
-                <Mic size={48} className="text-[#E8742A]" />
-              </div>
-              <canvas ref={canvasRef} width={300} height={80} className="opacity-90" />
-            </div>
-          )}
-          <div className="mt-auto relative z-20 px-10 pb-8 text-center">
-            <h2 className="text-white text-lg font-bold leading-tight italic opacity-60">"{questionRef.current}"</h2>
-          </div>
-          <div className="relative z-20 pb-20 flex justify-center">
-            <button
-              onClick={handleStop}
-              className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
-            >
-              <StopCircle size={48} className="text-red-600" />
-            </button>
+            )}
           </div>
         </>
       )}
+
+      {/* STAGE COUNTDOWN */}
+      {stage === "countdown" && (
+        <div className="relative z-20 flex-1 flex items-center justify-center">
+          <div
+            className="text-white text-9xl font-black animate-pulse"
+            style={{
+              textShadow: "0 0 30px rgba(232,116,42,0.5)",
+            }}
+          >
+            {countdown}
+          </div>
+        </div>
+      )}
+
+      {/* STAGE PREVIEW */}
       {stage === "preview" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
@@ -972,6 +1207,8 @@ const Record = () => {
           </div>
         </div>
       )}
+
+      {/* STAGE UPLOADING */}
       {stage === "uploading" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center gap-6">
           <Loader2 size={48} className="text-[#E8742A] animate-spin" />
@@ -979,6 +1216,8 @@ const Record = () => {
           <p className="text-white/40 text-xs">~{estSize}</p>
         </div>
       )}
+
+      {/* STAGE THUMBNAIL */}
       {stage === "thumbnail" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
@@ -1100,6 +1339,8 @@ const Record = () => {
           </button>
         </div>
       )}
+
+      {/* STAGE TITLE */}
       {stage === "title" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.memoryReady}</p>
@@ -1120,6 +1361,8 @@ const Record = () => {
           </button>
         </div>
       )}
+
+      {/* STAGE VISIBILITY */}
       {stage === "visibility" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
@@ -1178,7 +1421,7 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE SHARE — avec MemoryCard et bouton WhatsApp */}
+      {/* STAGE SHARE */}
       {stage === "share" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
@@ -1190,7 +1433,6 @@ const Record = () => {
           </p>
           <h2 className="text-white text-lg font-bold leading-tight italic mb-2">"{memoryTitle}"</h2>
 
-          {/* Carte mémoire */}
           <MemoryCard
             ref={cardRef}
             title={memoryTitle}
@@ -1202,7 +1444,6 @@ const Record = () => {
             lang={lang}
           />
 
-          {/* Bouton WhatsApp */}
           <button
             onClick={handleShareToWhatsApp}
             style={{
@@ -1227,7 +1468,6 @@ const Record = () => {
             {lang === "fr" ? "Envoyer à ma famille" : lang === "ar" ? "أرسل لعائلتي" : "Send to my family"}
           </button>
 
-          {/* Bouton secondaire de partage */}
           <button
             onClick={handleNativeShare}
             style={{
@@ -1251,7 +1491,6 @@ const Record = () => {
                 : "Other sharing options"}
           </button>
 
-          {/* Bouton téléchargement */}
           <button
             onClick={handleDownload}
             style={{
@@ -1271,7 +1510,6 @@ const Record = () => {
             {lang === "fr" ? "Télécharger l'image" : lang === "ar" ? "تحميل الصورة" : "Download image"}
           </button>
 
-          {/* Bouton de partage original (ShareModal) */}
           <button
             onClick={() => setShowShareModal(true)}
             className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2 mt-2"
