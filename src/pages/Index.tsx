@@ -2,31 +2,19 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
-import BubbleCanvas from "@/components/BubbleCanvas";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
-import imgMarry from "@/assets/marry.jpg";
+import ActionBar from "@/components/ActionBar";
 import type { Timeline } from "@/types/timeline";
-import type { BubbleCategory } from "@/components/MemoryBubble";
-
-const DEMO_BUBBLES = {
-  foreverInMemories: {
-    question: "On the day you get married, I want you to know that I am proud of every step you took to get there.",
-    badge: "FOR 2045",
-    type: "forever-in-memories" as const,
-  },
-  legacyInForever: {
-    question: "The day I understood that building a business is just another way of saying I love my family.",
-    badge: "LEGACY",
-    type: "legacy-in-forever" as const,
-  },
-};
 
 const Index = () => {
   const navigate = useNavigate();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
+  const [feedMemories, setFeedMemories] = useState<any[]>([]);
+  const [loadingFeed, setLoadingFeed] = useState(true);
+  const currentUserName = localStorage.getItem("infeelit_user_name") || "";
 
   useEffect(() => {
     const entryTime = Date.now();
@@ -68,33 +56,30 @@ const Index = () => {
     };
   }, []);
 
+  // Charger le feed des souvenirs communautaires
+  useEffect(() => {
+    const loadFeed = async () => {
+      setLoadingFeed(true);
+      const { data: memories } = await supabase
+        .from("memories")
+        .select(
+          `
+          *,
+          profiles (display_name)
+        `,
+        )
+        .eq("is_community", true)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      setFeedMemories(memories || []);
+      setLoadingFeed(false);
+    };
+    loadFeed();
+  }, []);
+
   const handleTimelineChange = async (timeline: Timeline) => {
     setActiveTimeline(timeline);
-  };
-
-  const handleBubbleClick = async (question: string, category: BubbleCategory) => {
-    if (!question) return;
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session) {
-      navigate("/record", { state: { question, category } });
-      return;
-    }
-    navigate("/welcome", { state: { question, context: "answer" } });
-  };
-
-  const handleDemoBubbleClick = async (type: "forever-in-memories" | "legacy-in-forever") => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const q =
-      type === "forever-in-memories" ? DEMO_BUBBLES.foreverInMemories.question : DEMO_BUBBLES.legacyInForever.question;
-    if (session) {
-      navigate("/record", { state: { question: q } });
-      return;
-    }
-    navigate("/welcome", { state: { question: q, context: type === "forever-in-memories" ? "forever" : "answer" } });
   };
 
   const getBackground = () => {
@@ -119,8 +104,6 @@ const Index = () => {
         @keyframes pulseGold { 0%, 100% { box-shadow: 0 0 15px rgba(232,116,42,0.5); } 50% { box-shadow: 0 0 30px rgba(232,116,42,0.9); } }
         .fade-in-up { animation: fadeInUp 0.4s ease forwards; }
         .slide-up { animation: slideUp 0.4s ease forwards; }
-        .bubble-demo-violet { animation: wander3 10s ease-in-out infinite, pulseViolet 2.5s ease-in-out infinite; }
-        .bubble-demo-gold { animation: wander1 14s ease-in-out infinite, pulseGold 2.5s ease-in-out infinite; }
       `}</style>
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -152,134 +135,159 @@ const Index = () => {
       </div>
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
-      <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
 
-      {activeTimeline === "memories" && (
-        <button
-          onClick={() => handleDemoBubbleClick("forever-in-memories")}
-          className="absolute z-[2] cursor-pointer bubble-demo-violet"
-          style={{
-            width: "85px",
-            height: "85px",
-            left: "68%",
-            top: "58%",
-            borderRadius: "50%",
-            overflow: "hidden",
-            border: "2px solid rgba(107,78,155,0.9)",
-          }}
-        >
-          <img
-            src={imgMarry}
-            alt=""
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              filter: "grayscale(20%) sepia(30%)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(160deg, rgba(107,78,155,0.65), rgba(2,8,40,0.45))",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "4px",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "6px",
-                color: "#FFFFFF",
-                fontWeight: 900,
-                backgroundColor: "rgba(107,78,155,0.9)",
-                padding: "2px 6px",
-                borderRadius: "999px",
-                whiteSpace: "nowrap",
-                letterSpacing: "0.05em",
-              }}
-            >
-              FOR 2045
-            </span>
-            <span
-              style={{
-                fontSize: "20px",
-                color: "rgba(200,160,255,1)",
-                textShadow: "0 0 15px rgba(107,78,155,1)",
-                lineHeight: 1,
-              }}
-            >
-              ✦
-            </span>
+      {/* FEED DE SOUVENIRS */}
+      <div className="relative z-20 flex-1 overflow-y-auto pb-32 pt-20 px-4">
+        {loadingFeed ? (
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-2 border-[#E8742A] border-t-transparent rounded-full animate-spin" />
           </div>
-        </button>
-      )}
+        ) : feedMemories.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-white/50 text-sm">Aucun souvenir pour l'instant</p>
+            <p className="text-white/30 text-xs mt-2">Sois le premier à en partager un</p>
+          </div>
+        ) : (
+          feedMemories.map((memory) => {
+            const displayName =
+              memory.profiles?.display_name?.split(" ")[0] || (memory.is_anonymous ? "Un Gardien" : "Quelqu'un");
 
-      {activeTimeline === "forever" && (
-        <button
-          onClick={() => handleDemoBubbleClick("legacy-in-forever")}
-          className="absolute z-[2] cursor-pointer bubble-demo-gold"
-          style={{
-            width: "75px",
-            height: "75px",
-            left: "12%",
-            top: "58%",
-            borderRadius: "50%",
-            border: "2px solid rgba(232,116,42,0.9)",
-            background: "radial-gradient(circle at 35% 35%, rgba(232,116,42,0.4), rgba(20,10,5,0.9))",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "3px",
-            padding: "8px",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "7px",
-              color: "#FFFFFF",
-              fontWeight: 900,
-              backgroundColor: "rgba(232,116,42,0.9)",
-              padding: "1px 5px",
-              borderRadius: "999px",
-              whiteSpace: "nowrap",
-              lineHeight: 1.5,
-            }}
-          >
-            LEGACY
-          </span>
-          <span
-            style={{
-              fontSize: "20px",
-              color: "rgba(232,116,42,1)",
-              textShadow: "0 0 15px rgba(232,116,42,0.9)",
-              lineHeight: 1,
-            }}
-          >
-            ?
-          </span>
-        </button>
-      )}
+            const questionObj = memory.question_data || {};
+            const lang = "fr";
+            const questionText =
+              lang === "fr" ? questionObj.fr : lang === "ar" ? questionObj.ar : questionObj.en || memory.title;
+
+            return (
+              <div
+                key={memory.id}
+                style={{
+                  borderRadius: "24px",
+                  overflow: "hidden",
+                  background: "#fff",
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
+                  marginBottom: "20px",
+                }}
+              >
+                {/* QUESTION EN HAUT */}
+                {questionText && (
+                  <div
+                    style={{
+                      padding: "12px 16px 0",
+                      background: "rgba(253,248,240,0.95)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "10px",
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        color: "rgba(232,116,42,0.6)",
+                        textTransform: "uppercase",
+                        fontFamily: "system-ui, sans-serif",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      La question
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        fontFamily: "Georgia, serif",
+                        fontStyle: "italic",
+                        color: "#3D2B1F",
+                        lineHeight: 1.4,
+                        marginBottom: "8px",
+                      }}
+                    >
+                      {questionText}
+                    </p>
+                  </div>
+                )}
+
+                {/* CONTENU VIDÉO / AUDIO */}
+                <div style={{ position: "relative", aspectRatio: "16/9", background: "#000" }}>
+                  {memory.file_type === "video" && memory.file_url ? (
+                    <video
+                      src={memory.file_url}
+                      controls
+                      playsInline
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : memory.file_type === "audio" && memory.file_url ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%",
+                        background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                      }}
+                    >
+                      <audio src={memory.file_url} controls style={{ width: "80%" }} />
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%",
+                        background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                      }}
+                    >
+                      <span style={{ fontSize: "48px" }}>🎙️</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* TITRE ET AUTEUR */}
+                <div style={{ padding: "12px 16px 0" }}>
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      color: "#3D2B1F",
+                      fontFamily: "Georgia, serif",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {memory.title || "Un souvenir"}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "rgba(61,43,31,0.5)",
+                      marginTop: "4px",
+                    }}
+                  >
+                    — {displayName}
+                  </p>
+                </div>
+
+                {/* ACTION BAR */}
+                <ActionBar
+                  memoryId={memory.id}
+                  memoryTitle={memory.title || "Souvenir"}
+                  authorName={displayName}
+                  initialSparks={memory.sparks_count || 0}
+                  lang={"fr" as "fr" | "en" | "ar"}
+                  userName={currentUserName}
+                  questionFr={questionObj?.fr}
+                  questionEn={questionObj?.en}
+                  questionAr={questionObj?.ar}
+                  questionBubbleFr={questionObj?.bubble_fr}
+                  questionBubbleEn={questionObj?.bubble_en}
+                  questionBubbleAr={questionObj?.bubble_ar}
+                  followupsFr={questionObj?.followups_fr}
+                  followupsEn={questionObj?.followups_en}
+                  followupsAr={questionObj?.followups_ar}
+                />
+              </div>
+            );
+          })
+        )}
+      </div>
 
       <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
     </div>
