@@ -86,6 +86,7 @@ export type Database = {
           is_community: boolean
           is_public: boolean
           spark_reward: number | null
+          sparks_count: number
           thumbnail_url: string | null
           timeline: string
           title: string | null
@@ -104,6 +105,7 @@ export type Database = {
           is_community?: boolean
           is_public?: boolean
           spark_reward?: number | null
+          sparks_count?: number
           thumbnail_url?: string | null
           timeline?: string
           title?: string | null
@@ -122,6 +124,7 @@ export type Database = {
           is_community?: boolean
           is_public?: boolean
           spark_reward?: number | null
+          sparks_count?: number
           thumbnail_url?: string | null
           timeline?: string
           title?: string | null
@@ -129,6 +132,64 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      memory_bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          memory_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          memory_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          memory_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memory_bookmarks_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memory_sparks: {
+        Row: {
+          created_at: string
+          id: string
+          memory_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          memory_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          memory_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memory_sparks_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
