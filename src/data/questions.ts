@@ -20,12 +20,122 @@ export const CHAPTERS = [
         en: "Early Childhood",
         ar: "الطفولة المبكرة",
         questions: [
-          { fr: "{name}, raconte-nous le jouet que tu n'aurais jamais voulu perdre.", en: "{name}, tell us about the toy you never wanted to lose.", ar: "{name}، احكِ لنا عن اللعبة التي لم تكن تريد أن تفقدها أبداً.", bubble_fr: "Le jouet perdu", bubble_en: "The lost toy", bubble_ar: "اللعبة الضائعة" },
-          { fr: "{name}, raconte-nous ton endroit secret quand tu étais petit.", en: "{name}, tell us about your secret hiding spot as a child.", ar: "{name}، احكِ لنا عن مكانك السري حين كنت صغيراً.", bubble_fr: "Mon endroit secret", bubble_en: "My secret place", bubble_ar: "مكاني السري" },
-          { fr: "{name}, raconte-nous le souvenir le plus fort chez tes grands-parents.", en: "{name}, tell us your strongest memory at your grandparents home.", ar: "{name}، احكِ لنا عن أقوى ذكرياتك في بيت أجدادك.", bubble_fr: "Chez les grands-parents", bubble_en: "At grandmas", bubble_ar: "عند الجدود" },
-          { fr: "{name}, raconte-nous la peur d'enfance que tu gardes encore.", en: "{name}, tell us about a childhood fear you still remember.", ar: "{name}، احكِ لنا عن خوف طفولتك الذي لا تزال تتذكره.", bubble_fr: "Ma grande peur", bubble_en: "My biggest fear", bubble_ar: "خوفي الكبير" },
-          { fr: "{name}, raconte-nous le cadeau d'enfance qui t'a laissé sans voix.", en: "{name}, tell us about the childhood gift that left you speechless.", ar: "{name}، احكِ لنا عن هدية طفولتك التي أبهرتك.", bubble_fr: "Le cadeau inoubliable", bubble_en: "The unforgettable gift", bubble_ar: "الهدية التي لا تُنسى" }
-        ]
+          {
+            fr: "{name}, raconte-nous le jouet que tu n'aurais jamais voulu perdre.",
+            en: "{name}, tell us about the toy you never wanted to lose.",
+            ar: "{name}، احكِ لنا عن اللعبة التي لم تكن تريد أن تفقدها أبداً.",
+            bubble_fr: "Le jouet perdu",
+            bubble_en: "The lost toy",
+            bubble_ar: "اللعبة الضائعة",
+            followups_fr: [
+              "Qui te l'a mise entre les mains — et c'était le jour dont tu rêvais, ou une vraie surprise ?",
+              "Si un enfant te disait aujourd'hui que c'est nul, qu'est-ce que tu lui dirais pour qu'il ait envie d'y jouer tout de suite ?",
+              "Si tu croisais aujourd'hui la personne qui a inventé ce jouet, qu'est-ce que tu lui dirais ?",
+            ],
+            followups_en: [
+              "Who gave it to you — and was it the day you'd been dreaming of, or a real surprise?",
+              "If a child told you today that it was boring, what would you say to make them want to play with it right away?",
+              "If you ran into the person who invented that toy today, what would you tell them?",
+            ],
+            followups_ar: [
+              "مَن وضعها بين يديك — وهل كان ذلك اليوم الذي طالما تمنّيته، أم كانت مفاجأة تماماً؟",
+              "لو قال لك طفلٌ اليوم إنها لعبة مملة، فماذا كنتَ ستقول له ليشتاق إلى اللعب بها في الحال؟",
+              "لو التقيتَ اليوم بالشخص الذي اخترع هذه اللعبة، فماذا كنتَ ستقول له؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ton endroit secret quand tu étais petit.",
+            en: "{name}, tell us about your secret hiding spot as a child.",
+            ar: "{name}، احكِ لنا عن مكانك السري حين كنت صغيراً.",
+            bubble_fr: "Mon endroit secret",
+            bubble_en: "My secret place",
+            bubble_ar: "مكاني السري",
+            followups_fr: [
+              "C'était quoi, la chose qui rendait ce coin vraiment à toi — une fissure dans le mur, une branche, une cachette que toi seul connaissais ?",
+              "Quand tu te glissais là-dedans et que le monde devenait silencieux, qui devenais-tu — un capitaine, un explorateur, un roi que personne ne voyait ?",
+              "Qu'est-ce que ce petit endroit t'a appris à aimer dans le fait d'être seul, que tu emportes encore aujourd'hui dans une pièce pleine de monde ?",
+            ],
+            followups_en: [
+              "What was the thing that made that spot truly yours — a crack in the wall, a branch, a hiding place only you knew about?",
+              "When you slipped away there and the world went quiet, who did you become — a captain, an explorer, a king no one could see?",
+              "What did that little place teach you to love about being alone, something you still carry into a room full of people today?",
+            ],
+            followups_ar: [
+              "ما الشيء الذي جعل ذلك الركن ملكاً لك وحدك — شَقٌّ في الجدار، أو غصنٌ، أو مخبأٌ لا يعرفه سواك؟",
+              "حين كنتَ تنسلّ إلى هناك ويسكن العالم من حولك، مَن كنتَ تصير — قبطاناً، أو مستكشفاً، أو مَلِكاً لا يراه أحد؟",
+              "ماذا علّمك ذلك المكان الصغير أن تحبّه في الوحدة، وما زلتَ تحمله معك اليوم حتى وسط غرفةٍ مليئة بالناس؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le souvenir le plus fort chez tes grands-parents.",
+            en: "{name}, tell us your strongest memory at your grandparents home.",
+            ar: "{name}، احكِ لنا عن أقوى ذكرياتك في بيت أجدادك.",
+            bubble_fr: "Chez les grands-parents",
+            bubble_en: "At grandmas",
+            bubble_ar: "عند الجدود",
+            followups_fr: [
+              "Il y avait un endroit qui était le cœur battant de cette maison — la table de la cuisine, un certain fauteuil, une porte. C'était où ?",
+              "Imagine-toi à nouveau petit, assis à cet endroit précis — qui entre en premier, et qu'est-ce qu'il te dit en te voyant ?",
+              "Quelle petite chose fais-tu encore aujourd'hui, sans même y penser, que tu as en vérité apprise dans cette maison ?",
+            ],
+            followups_en: [
+              "There was a place that was the beating heart of that home — the kitchen table, a certain armchair, a doorway. Where was it?",
+              "Picture yourself small again, sitting in that exact spot — who walks in first, and what do they say when they see you?",
+              "What small thing do you still do today, without even thinking, that you actually learned in that house?",
+            ],
+            followups_ar: [
+              "كان هناك مكانٌ يمثّل قلب ذلك البيت النابض — طاولة المطبخ، أو كرسيٌّ بعينه، أو عتبة باب. أين كان؟",
+              "تخيّل نفسك صغيراً من جديد، جالساً في ذلك المكان بالضبط — مَن أوّل مَن يدخل، وماذا يقول لك حين يراك؟",
+              "ما الشيء الصغير الذي ما زلتَ تفعله اليوم دون أن تنتبه، وقد تعلّمته في الحقيقة في ذلك البيت؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la peur d'enfance que tu gardes encore.",
+            en: "{name}, tell us about a childhood fear you still remember.",
+            ar: "{name}، احكِ لنا عن خوف طفولتك الذي لا تزال تتذكره.",
+            bubble_fr: "Ma grande peur",
+            bubble_en: "My biggest fear",
+            bubble_ar: "خوفي الكبير",
+            followups_fr: [
+              "Où est-ce que tu imaginais qu'elle vivait — sous le lit, derrière la porte, en bas des escaliers ?",
+              "Y avait-il quelqu'un dont la main ou la voix faisait rétrécir cette peur dès qu'il arrivait ? Qui ?",
+              "Si tu pouvais t'agenouiller ce soir à côté de ce petit toi apeuré, qu'est-ce que tu lui chuchoterais ?",
+            ],
+            followups_en: [
+              "Where did you imagine it lived — under the bed, behind the door, at the bottom of the stairs?",
+              "Was there someone whose hand or voice made that fear shrink the moment they arrived? Who?",
+              "If you could kneel down tonight beside that frightened little version of you, what would you whisper?",
+            ],
+            followups_ar: [
+              "أين كنتَ تتخيّل أنه يسكن — تحت السرير، أو خلف الباب، أو في أسفل الدرج؟",
+              "هل كان هناك مَن تتقلّص أمام يده أو صوته تلك المخاوف ما إن يحضر؟ مَن كان؟",
+              "لو استطعتَ الليلة أن تجلس قرب ذلك الطفل الخائف الذي كنتَه، فماذا كنتَ ستهمس في أذنه؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le cadeau d'enfance qui t'a laissé sans voix.",
+            en: "{name}, tell us about the childhood gift that left you speechless.",
+            ar: "{name}، احكِ لنا عن هدية طفولتك التي أبهرتك.",
+            bubble_fr: "Le cadeau inoubliable",
+            bubble_en: "The unforgettable gift",
+            bubble_ar: "الهدية التي لا تُنسى",
+            followups_fr: [
+              "Qui te l'a tendu — et c'était ce dont tu rêvais, ou tu ne l'as pas vu venir du tout ?",
+              "Ramène-nous à la seconde où tu l'as déballé — qu'ont fait tes mains en premier ?",
+              "Si cette personne pouvait voir ton visage maintenant, en train d'en parler des années plus tard, qu'est-ce que tu voudrais qu'elle sache ?",
+            ],
+            followups_en: [
+              "Who handed it to you — and was it what you'd been dreaming of, or did it come completely out of nowhere?",
+              "Take us back to the second you unwrapped it — what did your hands do first?",
+              "If that person could see your face right now, talking about it years later, what would you want them to know?",
+            ],
+            followups_ar: [
+              "مَن قدّمها لك — وهل كانت ما كنتَ تحلم به، أم لم تتوقّعها أبداً؟",
+              "أعِدنا إلى اللحظة التي فتحتها فيها — ماذا فعلت يداك أوّلاً؟",
+              "لو استطاع ذلك الشخص أن يرى وجهك الآن وأنت تتحدّث عنها بعد كل هذه السنين، فماذا كنتَ تتمنّى أن يعرف؟",
+            ],
+          },
+        ],
       },
       {
         id: "ecole",
@@ -34,12 +144,122 @@ export const CHAPTERS = [
         en: "School",
         ar: "المدرسة",
         questions: [
-          { fr: "{name}, raconte-nous ton premier jour d'école.", en: "{name}, tell us about your very first day of school.", ar: "{name}، احكِ لنا عن أول يوم لك في المدرسة.", bubble_fr: "Premier jour d'école", bubble_en: "First day of school", bubble_ar: "أول يوم في المدرسة" },
-          { fr: "{name}, raconte-nous le professeur qui a changé quelque chose en toi.", en: "{name}, tell us about the teacher who changed something in you.", ar: "{name}، احكِ لنا عن المعلم الذي غيّر شيئاً فيك.", bubble_fr: "Mon prof inoubliable", bubble_en: "My unforgettable teacher", bubble_ar: "معلمي الذي لا أنساه" },
-          { fr: "{name}, raconte-nous ta plus grande bêtise à l'école.", en: "{name}, tell us about your biggest mischief at school.", ar: "{name}، احكِ لنا عن أكبر شقاوة فعلتها في المدرسة.", bubble_fr: "Ma grande bêtise", bubble_en: "My biggest prank", bubble_ar: "أكبر شقاوة" },
-          { fr: "{name}, raconte-nous le moment où tu t'es senti fier à l'école.", en: "{name}, tell us about your proudest moment at school.", ar: "{name}، احكِ لنا عن لحظة فخرك في المدرسة.", bubble_fr: "Mon moment de fierté", bubble_en: "My proudest moment", bubble_ar: "لحظة فخري" },
-          { fr: "{name}, raconte-nous ton meilleur ami d'école.", en: "{name}, tell us about your best friend from school.", ar: "{name}، احكِ لنا عن أعز أصدقائك في المدرسة.", bubble_fr: "Mon meilleur ami", bubble_en: "My school best friend", bubble_ar: "أعز أصدقاء المدرسة" }
-        ]
+          {
+            fr: "{name}, raconte-nous ton premier jour d'école.",
+            en: "{name}, tell us about your very first day of school.",
+            ar: "{name}، احكِ لنا عن أول يوم لك في المدرسة.",
+            bubble_fr: "Premier jour d'école",
+            bubble_en: "First day of school",
+            bubble_ar: "أول يوم في المدرسة",
+            followups_fr: [
+              "Qui t'a accompagné ce matin-là — et il a lâché ta main facilement, ou pas du tout ?",
+              "Debout devant cette porte de classe pour la première fois, tu étais le courageux qui fonce, ou celui qui espérait que personne ne le regarde ?",
+              "Ce petit gamin devant la porte n'avait aucune idée de ce qui l'attendait. Qu'est-ce que tu aimerais pouvoir lui dire ?",
+            ],
+            followups_en: [
+              "Who walked you there that morning — and did they let go of your hand easily, or not at all?",
+              "Standing in front of that classroom door for the first time, were you the brave one who charged in, or the one hoping nobody would look at you?",
+              "That little kid at the door had no idea what was coming. What would you love to be able to tell them?",
+            ],
+            followups_ar: [
+              "مَن رافقك في ذلك الصباح — وهل أفلت يدك بسهولة، أم لم يُفلتها أبداً؟",
+              "واقفاً أمام باب الصف لأوّل مرة، هل كنتَ الجريء الذي يندفع، أم مَن يتمنّى ألّا ينظر إليه أحد؟",
+              "ذلك الطفل الصغير أمام الباب لم يكن يعرف ما ينتظره. ماذا كنتَ تتمنّى لو تستطيع أن تقول له؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le professeur qui a changé quelque chose en toi.",
+            en: "{name}, tell us about the teacher who changed something in you.",
+            ar: "{name}، احكِ لنا عن المعلم الذي غيّر شيئاً فيك.",
+            bubble_fr: "Mon prof inoubliable",
+            bubble_en: "My unforgettable teacher",
+            bubble_ar: "معلمي الذي لا أنساه",
+            followups_fr: [
+              "Quelle phrase, ou quelle habitude, il avait toujours, que tu entends encore dans ta tête ?",
+              "Si un enfant te disait que sa matière ne sert à rien, comment tu lui ferais aimer ?",
+              "S'il passait devant toi dans la rue demain, quelle est la seule chose que tu l'arrêterais pour lui dire ?",
+            ],
+            followups_en: [
+              "What phrase, or what habit, did they always have, that you can still hear in your head?",
+              "If a child told you their subject was useless, how would you make them love it?",
+              "If they walked past you on the street tomorrow, what's the one thing you'd stop them to say?",
+            ],
+            followups_ar: [
+              "ما العبارة أو العادة التي كانت تلازمه دائماً، وما زلتَ تسمعها في رأسك حتى الآن؟",
+              "لو قال لك طفلٌ إن مادّته لا فائدة منها، فكيف كنتَ ستجعله يُحبّها؟",
+              "لو مرّ أمامك في الشارع غداً، فما الشيء الوحيد الذي كنتَ ستوقفه لتقوله له؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ta plus grande bêtise à l'école.",
+            en: "{name}, tell us about your biggest mischief at school.",
+            ar: "{name}، احكِ لنا عن أكبر شقاوة فعلتها في المدرسة.",
+            bubble_fr: "Ma grande bêtise",
+            bubble_en: "My biggest prank",
+            bubble_ar: "أكبر شقاوة",
+            followups_fr: [
+              "Qui était dans le coup avec toi — et de qui venait l'idée, vraiment ?",
+              "Ramène-nous à la seconde juste avant de la faire — qu'est-ce que ton cœur faisait ?",
+              "Si un enfant faisait exactement le même coup aujourd'hui, tu arriverais à rester sérieux — et tu penserais quoi en secret ?",
+            ],
+            followups_en: [
+              "Who was in on it with you — and whose idea was it, really?",
+              "Take us back to the second just before you did it — what was your heart doing?",
+              "If a child pulled the exact same stunt today, could you keep a straight face — and what would you be thinking secretly?",
+            ],
+            followups_ar: [
+              "مَن كان شريكك فيها — ومِن مَن جاءت الفكرة في الحقيقة؟",
+              "أعِدنا إلى اللحظة التي سبقت فعلتها مباشرة — ماذا كان يفعل قلبك حينها؟",
+              "لو فعل طفلٌ المقلب نفسه اليوم، أكنتَ تستطيع أن تحفظ جدّيتك — وماذا كنتَ ستفكّر في سرّك؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le moment où tu t'es senti fier à l'école.",
+            en: "{name}, tell us about your proudest moment at school.",
+            ar: "{name}، احكِ لنا عن لحظة فخرك في المدرسة.",
+            bubble_fr: "Mon moment de fierté",
+            bubble_en: "My proudest moment",
+            bubble_ar: "لحظة فخري",
+            followups_fr: [
+              "Qu'est-ce que tu avais réussi exactement — et tu t'y attendais, ou ça t'a surpris toi-même ?",
+              "Qui était dans la pièce à ce moment-là — et c'est le visage de qui que tu as cherché en premier ?",
+              "Qu'est-ce que ce seul moment t'a appris, tout doucement, sur ce dont tu étais capable ?",
+            ],
+            followups_en: [
+              "What exactly had you achieved — and were you expecting it, or did it surprise even you?",
+              "Who was in the room at that moment — and whose face did you look for first?",
+              "What did that single moment teach you, quietly, about what you were capable of?",
+            ],
+            followups_ar: [
+              "ما الذي حقّقته بالضبط — وهل كنتَ تتوقّعه، أم فاجأك أنت نفسك؟",
+              "مَن كان في المكان حينها — ووجه مَن بحثتَ عنه أوّلاً؟",
+              "ماذا علّمتك تلك اللحظة وحدها، بهدوء، عمّا كنتَ قادراً عليه؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ton meilleur ami d'école.",
+            en: "{name}, tell us about your best friend from school.",
+            ar: "{name}، احكِ لنا عن أعز أصدقائك في المدرسة.",
+            bubble_fr: "Mon meilleur ami",
+            bubble_en: "My school best friend",
+            bubble_ar: "أعز أصدقاء المدرسة",
+            followups_fr: [
+              "Comment vous êtes devenus amis — ça a été immédiat, ou ça s'est installé tout doucement ?",
+              "C'était quoi, le truc que vous faisiez à vous deux et que personne d'autre n'aurait compris — votre petit rituel rien qu'à vous ?",
+              "S'il pouvait t'entendre maintenant, qu'est-ce que tu voudrais qu'il sache de ce que son amitié t'a apporté ?",
+            ],
+            followups_en: [
+              "How did you become friends — was it instant, or did it settle in slowly?",
+              "What was the thing you two did together that nobody else would have understood — your little ritual, just the two of you?",
+              "If they could hear you now, what would you want them to know about what their friendship gave you?",
+            ],
+            followups_ar: [
+              "كيف صرتما صديقين — هل كان ذلك فوريّاً، أم تسلّل إليكما رويداً رويداً؟",
+              "ما الشيء الذي كنتما تفعلانه معاً ولا يفهمه سواكما — طقسكما الصغير الخاص بكما وحدكما؟",
+              "لو استطاع أن يسمعك الآن، فماذا كنتَ تتمنّى أن يعرف عمّا منحته إيّاه صداقته؟",
+            ],
+          },
+        ],
       },
       {
         id: "animaux",
@@ -48,14 +268,124 @@ export const CHAPTERS = [
         en: "Pets",
         ar: "الحيوانات الأليفة",
         questions: [
-          { fr: "{name}, raconte-nous l'animal qui t'a appris la fidélité sans paroles.", en: "{name}, tell us about the pet that taught you silent loyalty.", ar: "{name}، احكِ لنا عن الحيوان الذي علّمك الوفاء بلا كلام.", bubble_fr: "La fidélité silencieuse", bubble_en: "Silent loyalty", bubble_ar: "الوفاء الصامت" },
-          { fr: "{name}, raconte-nous le jour où tu as eu ton premier animal.", en: "{name}, tell us about the day you got your first pet.", ar: "{name}، احكِ لنا عن اليوم الذي حصلت فيه على أول حيوان.", bubble_fr: "Mon premier animal", bubble_en: "My first pet", bubble_ar: "أول حيوان أليف" },
-          { fr: "{name}, raconte-nous le souvenir le plus drôle avec un animal.", en: "{name}, tell us your funniest memory with an animal.", ar: "{name}، احكِ لنا عن أطرف ذكرياتك مع حيوان.", bubble_fr: "Mon moment drôle", bubble_en: "My funny moment", bubble_ar: "لحظتي المضحكة" },
-          { fr: "{name}, raconte-nous un animal qui te manque encore.", en: "{name}, tell us about a pet you still miss.", ar: "{name}، احكِ لنا عن حيوان لا تزال تفتقده.", bubble_fr: "L'animal qui me manque", bubble_en: "The pet I still miss", bubble_ar: "الحيوان الذي أشتاق إليه" },
-          { fr: "{name}, raconte-nous ce qu'un animal t'a appris sur l'amour.", en: "{name}, tell us what an animal taught you about love.", ar: "{name}، احكِ لنا ما علّمك إياه حيوان عن الحب.", bubble_fr: "La leçon d'amour", bubble_en: "Love lesson", bubble_ar: "درس في الحب" }
-        ]
-      }
-    ]
+          {
+            fr: "{name}, raconte-nous l'animal qui t'a appris la fidélité sans paroles.",
+            en: "{name}, tell us about the pet that taught you silent loyalty.",
+            ar: "{name}، احكِ لنا عن الحيوان الذي علّمك الوفاء بلا كلام.",
+            bubble_fr: "La fidélité silencieuse",
+            bubble_en: "Silent loyalty",
+            bubble_ar: "الوفاء الصامت",
+            followups_fr: [
+              "Comment il s'appelait, et comment c'est lui qui t'a choisi ?",
+              "C'était quoi, la petite chose qu'il faisait — sa façon de t'accueillir, un son, un coin qu'il s'appropriait — rien qu'à lui ?",
+              "Qu'est-ce que l'aimer t'a appris sur l'amour des gens, que tu portes encore aujourd'hui ?",
+            ],
+            followups_en: [
+              "What was their name, and how was it that they chose you?",
+              "What was the little thing they always did — the way they greeted you, a sound, a corner they claimed — something uniquely theirs?",
+              "What did loving them teach you about loving people, something you still carry today?",
+            ],
+            followups_ar: [
+              "ما اسمه، وكيف كان هو مَن اختارك؟",
+              "ما الشيء الصغير الذي كان يفعله — طريقته في استقبالك، أو صوتٌ له، أو ركنٌ كان يستأثر به — مما كان خاصّاً به وحده؟",
+              "ماذا علّمك حبّه عن محبّة الناس، مما ما زلتَ تحمله معك اليوم؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le jour où tu as eu ton premier animal.",
+            en: "{name}, tell us about the day you got your first pet.",
+            ar: "{name}، احكِ لنا عن اليوم الذي حصلت فيه على أول حيوان.",
+            bubble_fr: "Mon premier animal",
+            bubble_en: "My first pet",
+            bubble_ar: "أول حيوان أليف",
+            followups_fr: [
+              "Quel nom tu lui as donné, et d'où venait ce nom ?",
+              "Cette première nuit à la maison avec lui — où il a fini par dormir, et où toi tu aurais voulu qu'il dorme ?",
+              "Avec le recul, qu'est-ce que le fait d'être responsable de cette petite vie a réveillé en toi ?",
+            ],
+            followups_en: [
+              "What name did you give them, and where did that name come from?",
+              "That first night at home together — where did they end up sleeping, and where did you wish they'd sleep?",
+              "Looking back, what did being responsible for that little life awaken in you?",
+            ],
+            followups_ar: [
+              "ما الاسم الذي أطلقته عليه، ومن أين جاء ذلك الاسم؟",
+              "تلك الليلة الأولى معه في البيت — أين انتهى به المطاف نائماً، وأين كنتَ تتمنّى أنت أن ينام؟",
+              "حين تنظر إلى الوراء، ماذا أيقظت فيك مسؤوليتك عن تلك الحياة الصغيرة؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le souvenir le plus drôle avec un animal.",
+            en: "{name}, tell us your funniest memory with an animal.",
+            ar: "{name}، احكِ لنا عن أطرف ذكرياتك مع حيوان.",
+            bubble_fr: "Mon moment drôle",
+            bubble_en: "My funny moment",
+            bubble_ar: "لحظتي المضحكة",
+            followups_fr: [
+              "Qu'est-ce qu'il a fait exactement — et tu étais où quand c'est arrivé ?",
+              "Qui d'autre l'a vu — et qui a ri le plus fort ?",
+              "Quand tu penses à tout ce qu'il t'a fait rire, qu'est-ce que tu aurais envie de le remercier d'avoir été ?",
+            ],
+            followups_en: [
+              "What exactly did they do — and where were you when it happened?",
+              "Who else saw it — and who laughed the hardest?",
+              "Thinking of everything they made you laugh at, what would you want to thank them for being?",
+            ],
+            followups_ar: [
+              "ما الذي فعله بالضبط — وأين كنتَ واقفاً حين حدث ذلك؟",
+              "مَن غيرك رآه — ومَن ضحك أكثر من الجميع؟",
+              "حين تتذكّر كم أضحكك، علامَ كنتَ تودّ أن تشكره؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous un animal qui te manque encore.",
+            en: "{name}, tell us about a pet you still miss.",
+            ar: "{name}، احكِ لنا عن حيوان لا تزال تفتقده.",
+            bubble_fr: "L'animal qui me manque",
+            bubble_en: "The pet I still miss",
+            bubble_ar: "الحيوان الذي أشتاق إليه",
+            followups_fr: [
+              "Qu'est-ce qu'il faisait, qu'aucun autre animal que tu aies connu n'a jamais fait ?",
+              "C'était quoi, le petit rituel entre vous deux — quelque chose que vous seuls compreniez ?",
+              "Si tu pouvais lui dire une seule chose aujourd'hui, ce serait quoi ?",
+            ],
+            followups_en: [
+              "What did they do that no other animal you've ever known has done?",
+              "What was the little ritual between the two of you — something only you both understood?",
+              "If you could say one thing to them today, what would it be?",
+            ],
+            followups_ar: [
+              "ما الذي كان يفعله ولم يفعله أيّ حيوان آخر عرفته في حياتك؟",
+              "ما الطقس الصغير الذي كان بينكما — شيءٌ لا يفهمه سواكما؟",
+              "لو استطعتَ أن تقول له شيئاً واحداً اليوم، فماذا يكون؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ce qu'un animal t'a appris sur l'amour.",
+            en: "{name}, tell us what an animal taught you about love.",
+            ar: "{name}، احكِ لنا ما علّمك إياه حيوان عن الحب.",
+            bubble_fr: "La leçon d'amour",
+            bubble_en: "Love lesson",
+            bubble_ar: "درس في الحب",
+            followups_fr: [
+              "Il y a eu un moment précis qui te l'a appris, ou ça s'est infusé doucement avec les années ?",
+              "Si un enfant te disait « ce n'est qu'un animal », qu'est-ce que tu lui dirais pour qu'il comprenne ce que toi tu as compris ?",
+              "Est-ce que tu aimes les gens de ta vie un peu différemment, grâce à ce que cet animal t'a montré ?",
+            ],
+            followups_en: [
+              "Was there one precise moment that taught you, or did it seep in slowly over the years?",
+              "If a child said 'it's just an animal,' what would you say to help them understand what you've understood?",
+              "Do you love the people in your life a little differently, because of what that animal showed you?",
+            ],
+            followups_ar: [
+              "هل كانت لحظةٌ واحدة هي التي علّمتك ذلك، أم ترسّخ فيك ببطء مع السنين؟",
+              "لو قال لك طفلٌ «إنه مجرّد حيوان»، فماذا كنتَ ستقول له ليفهم ما فهمتَه أنت؟",
+              "هل تحبّ مَن حولك في حياتك بشكلٍ مختلفٍ قليلاً بفضل ما أراك إيّاه ذلك الحيوان؟",
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     id: "jeunesse",
@@ -78,12 +408,122 @@ export const CHAPTERS = [
         en: "High School",
         ar: "سنوات الثانوية",
         questions: [
-          { fr: "{name}, raconte-nous ta première sortie sans tes parents.", en: "{name}, tell us about your first outing without your parents.", ar: "{name}، احكِ لنا عن أول خروجك بدون والديك.", bubble_fr: "Ma première liberté", bubble_en: "My first freedom", bubble_ar: "أول حرية" },
-          { fr: "{name}, raconte-nous ton premier amour d'adolescent.", en: "{name}, tell us about your first teenage crush.", ar: "{name}، احكِ لنا عن أول حب في مراهقتك.", bubble_fr: "Mon premier amour", bubble_en: "My first love", bubble_ar: "أول حب" },
-          { fr: "{name}, raconte-nous le moment où tu t'es senti enfin adulte.", en: "{name}, tell us the moment you first felt like an adult.", ar: "{name}، احكِ لنا عن اللحظة التي شعرت فيها بأنك بالغ.", bubble_fr: "Je me sens adulte", bubble_en: "Feeling grown up", bubble_ar: "شعرت بالنضج" },
-          { fr: "{name}, raconte-nous ta plus grande rébellion d'adolescent.", en: "{name}, tell us about your biggest teenage rebellion.", ar: "{name}، احكِ لنا عن أكبر تمرد في مراهقتك.", bubble_fr: "Ma grande rébellion", bubble_en: "My big rebellion", bubble_ar: "تمردي الكبير" },
-          { fr: "{name}, raconte-nous le rêve que tu avais pour ton avenir à 16 ans.", en: "{name}, tell us about the dream you had for your future at 16.", ar: "{name}، احكِ لنا عن حلمك لمستقبلك وأنت في السادسة عشرة.", bubble_fr: "Mon rêve à 16 ans", bubble_en: "My dream at 16", bubble_ar: "حلمي في الـ16" }
-        ]
+          {
+            fr: "{name}, raconte-nous ta première sortie sans tes parents.",
+            en: "{name}, tell us about your first outing without your parents.",
+            ar: "{name}، احكِ لنا عن أول خروجك بدون والديك.",
+            bubble_fr: "Ma première liberté",
+            bubble_en: "My first freedom",
+            bubble_ar: "أول حرية",
+            followups_fr: [
+              "Avec qui tu étais — et lequel de vous a eu le culot de proposer ça ?",
+              "À la seconde où tu as compris qu'aucun adulte ne te regardait, c'est quoi la première chose que tu t'es autorisée ?",
+              "Qu'est-ce que ce premier goût de liberté t'a appris sur la personne que tu étais en train de devenir ?",
+            ],
+            followups_en: [
+              "Who were you with — and which one of you had the nerve to suggest it?",
+              "The second you realized no adult was watching, what was the first thing you allowed yourself to do?",
+              "What did that first taste of freedom teach you about the person you were becoming?",
+            ],
+            followups_ar: [
+              "مع مَن كنتَ — ومَن منكم تجرّأ واقترح الفكرة؟",
+              "في اللحظة التي أدركتَ فيها أن لا أحد من الكبار يراقبك، ما أوّل شيء سمحتَ لنفسك به؟",
+              "ماذا علّمك ذلك الطعم الأوّل للحرّية عن الشخص الذي كنتَ في طريقك لتصيره؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ton premier amour d'adolescent.",
+            en: "{name}, tell us about your first teenage crush.",
+            ar: "{name}، احكِ لنا عن أول حب في مراهقتك.",
+            bubble_fr: "Mon premier amour",
+            bubble_en: "My first love",
+            bubble_ar: "أول حب",
+            followups_fr: [
+              "Où est-ce que tu l'as vu pour la première fois — et quel est le tout premier détail que tu as remarqué ?",
+              "Rejoue le moment où tu as compris que tu ne pouvais plus t'arrêter d'y penser — tu étais où, et qu'est-ce qui t'a trahi ?",
+              "Qu'est-ce que ce premier sentiment t'a appris sur ton propre cœur, que tu reconnaîtrais encore aujourd'hui ?",
+            ],
+            followups_en: [
+              "Where did you see them for the first time — and what was the very first detail you noticed?",
+              "Replay the moment you realized you couldn't stop thinking about them — where were you, and what gave you away?",
+              "What did that first feeling teach you about your own heart, something you'd still recognize today?",
+            ],
+            followups_ar: [
+              "أين رأيتَه لأوّل مرة — وما أوّل تفصيلٍ لفت انتباهك؟",
+              "أعِد تلك اللحظة التي أدركتَ فيها أنك لم تعد قادراً على التوقّف عن التفكير فيه — أين كنتَ، وما الذي فضحك؟",
+              "ماذا علّمك ذلك الشعور الأوّل عن قلبك أنت، مما ما زلتَ تعرفه في نفسك حتى اليوم؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le moment où tu t'es senti enfin adulte.",
+            en: "{name}, tell us the moment you first felt like an adult.",
+            ar: "{name}، احكِ لنا عن اللحظة التي شعرت فيها بأنك بالغ.",
+            bubble_fr: "Je me sens adulte",
+            bubble_en: "Feeling grown up",
+            bubble_ar: "شعرت بالنضج",
+            followups_fr: [
+              "Qu'est-ce qui s'est passé exactement — la petite chose qui d'un coup t'a fait te sentir grand ?",
+              "À ce moment-là, tu étais fier du poids que tu portais, ou une partie de toi voulait le rendre ?",
+              "Qu'est-ce que tu as compris sur toi ce jour-là, que tu n'avais jamais compris avant ?",
+            ],
+            followups_en: [
+              "What happened exactly — the small thing that suddenly made you feel grown up?",
+              "In that moment, were you proud of the weight you were carrying, or did part of you want to give it back?",
+              "What did you understand about yourself that day that you'd never understood before?",
+            ],
+            followups_ar: [
+              "ما الذي حدث بالضبط — ذلك الشيء الصغير الذي جعلك فجأةً تشعر أنك كبرت؟",
+              "في تلك اللحظة، هل كنتَ فخوراً بالعبء الذي تحمله، أم أراد جزءٌ منك أن يعيده؟",
+              "ماذا فهمتَ عن نفسك في ذلك اليوم، مما لم تكن قد فهمته من قبل؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ta plus grande rébellion d'adolescent.",
+            en: "{name}, tell us about your biggest teenage rebellion.",
+            ar: "{name}، احكِ لنا عن أكبر تمرد في مراهقتك.",
+            bubble_fr: "Ma grande rébellion",
+            bubble_en: "My big rebellion",
+            bubble_ar: "تمردي الكبير",
+            followups_fr: [
+              "Contre quoi — ou contre qui — tu te révoltais, et qui était juste à côté de toi ?",
+              "Ramène-nous au moment où tu as franchi la ligne — qu'est-ce qui te traversait l'esprit pile à cet instant ?",
+              "Si un ado faisait exactement la même chose aujourd'hui, est-ce que tu le comprendrais en secret — et qu'est-ce que tu voudrais qu'il sache ?",
+            ],
+            followups_en: [
+              "What — or who — were you rebelling against, and who was right there beside you?",
+              "Take us back to the moment you crossed the line — what was going through your mind right at that instant?",
+              "If a teenager did exactly the same thing today, would you secretly understand — and what would you want them to know?",
+            ],
+            followups_ar: [
+              "ضدّ ماذا — أو ضدّ مَن — كنتَ تتمرّد، ومَن كان إلى جانبك؟",
+              "أعِدنا إلى اللحظة التي تجاوزتَ فيها الخطّ — ما الذي كان يدور في رأسك في تلك اللحظة بالذات؟",
+              "لو فعل مراهقٌ الشيء نفسه اليوم، أكنتَ ستفهمه في سرّك — وماذا كنتَ تتمنّى أن يعرف؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le rêve que tu avais pour ton avenir à 16 ans.",
+            en: "{name}, tell us about the dream you had for your future at 16.",
+            ar: "{name}، احكِ لنا عن حلمك لمستقبلك وأنت في السادسة عشرة.",
+            bubble_fr: "Mon rêve à 16 ans",
+            bubble_en: "My dream at 16",
+            bubble_ar: "حلمي في الـ16",
+            followups_fr: [
+              "C'était une image bien nette, ou juste une vague idée de l'endroit où tu voulais arriver ?",
+              "Si ton toi de 16 ans entrait là maintenant et te demandait « on a réussi ? », qu'est-ce que tu lui répondrais ?",
+              "Qu'est-ce que ce gamin avait vu juste sur toi, que tu avais presque oublié ?",
+            ],
+            followups_en: [
+              "Was it a clear image, or just a vague sense of where you wanted to end up?",
+              "If your 16-year-old self walked in right now and asked 'did we make it?', what would you say?",
+              "What had that kid seen right about you, that you'd almost forgotten?",
+            ],
+            followups_ar: [
+              "هل كان صورةً واضحة المعالم، أم مجرّد إحساسٍ غامضٍ بالمكان الذي أردتَ بلوغه؟",
+              "لو دخل عليك الآن أنت في السادسة عشرة وسألك: «هل نجحنا؟»، فبماذا كنتَ ستجيبه؟",
+              "ما الذي كان ذلك الفتى مُحقّاً بشأنه عنك، مما كدتَ أن تنساه؟",
+            ],
+          },
+        ],
       },
       {
         id: "etudes",
@@ -92,12 +532,114 @@ export const CHAPTERS = [
         en: "College Years",
         ar: "سنوات الجامعة",
         questions: [
-          { fr: "{name}, raconte-nous le premier jour loin de chez toi.", en: "{name}, tell us about your first day away from home.", ar: "{name}، احكِ لنا عن أول يوم بعيداً عن البيت.", bubble_fr: "Loin de chez moi", bubble_en: "Away from home", bubble_ar: "بعيداً عن البيت" },
-          { fr: "{name}, raconte-nous la nuit d'études qui a tout changé.", en: "{name}, tell us about the all-nighter that changed everything.", ar: "{name}، احكِ لنا عن ليلة دراسة غيّرت كل شيء.", bubble_fr: "La nuit qui a tout changé", bubble_en: "The night that changed it all", bubble_ar: "الليلة التي غيّرت كل شيء" },
-          { fr: "{name}, raconte-nous l'ami de fac que tu n'oublieras jamais.", en: "{name}, tell us about the college friend you will never forget.", ar: "{name}، احكِ لنا عن صديق الجامعة الذي لن تنساه أبداً.", bubble_fr: "L'ami de fac", bubble_en: "My college friend", bubble_ar: "صديق الجامعة" },
-          { fr: "{name}, raconte-nous le moment où tu as choisi ta voie.", en: "{name}, tell us about the moment you chose your path.", ar: "{name}، احكِ لنا عن اللحظة التي اخترت فيها طريقك.", bubble_fr: "Choisir ma voie", bubble_en: "Choosing my path", bubble_ar: "اختيار طريقي" },
-          { fr: "{name}, raconte-nous ta plus grande fierté pendant tes études.", en: "{name}, tell us about your greatest achievement during your studies.", ar: "{name}، احكِ لنا عن أكبر إنجازاتك خلال دراستك.", bubble_fr: "Ma fierté d'étudiant", bubble_en: "My student achievement", bubble_ar: "فخر الدراسة" }
-        ]
+          {
+            fr: "{name}, raconte-nous le premier jour loin de chez toi.",
+            en: "{name}, tell us about your first day away from home.",
+            ar: "{name}، احكِ لنا عن أول يوم بعيداً عن البيت.",
+            bubble_fr: "Loin de chez moi",
+            bubble_en: "Away from home",
+            bubble_ar: "بعيداً عن البيت",
+            followups_fr: [
+              "C'était pour les études ou autre chose ?",
+              "Tu as appelé tes parents le soir même ?",
+              "Si tu revivais ce jour, tu ferais quoi de différent ?",
+            ],
+            followups_en: [
+              "Was it for studies or something else?",
+              "Did you call your parents that same evening?",
+              "If you relived that day, what would you do differently?",
+            ],
+            followups_ar: [
+              "هل كان من أجل الدراسة أم شيء آخر ؟",
+              "هل اتصلت بوالديك في ذلك المساء ؟",
+              "لو عشت ذلك اليوم مجدداً، ماذا ستفعل بشكل مختلف ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la nuit d'études qui a tout changé.",
+            en: "{name}, tell us about the all-nighter that changed everything.",
+            ar: "{name}، احكِ لنا عن ليلة دراسة غيّرت كل شيء.",
+            bubble_fr: "La nuit qui a tout changé",
+            bubble_en: "The night that changed it all",
+            bubble_ar: "الليلة التي غيّرت كل شيء",
+            followups_fr: [
+              "Tu révisais pour quoi exactement ?",
+              "Qui était avec toi ou tu étais seul ?",
+              "Tu referais la même chose aujourd'hui ?",
+            ],
+            followups_en: [
+              "What exactly were you studying for?",
+              "Who was with you or were you alone?",
+              "Would you do the same thing today?",
+            ],
+            followups_ar: [
+              "ما الذي كنت تذاكر له بالضبط ؟",
+              "من كان معك أم كنت بمفردك ؟",
+              "هل ستفعل الشيء نفسه اليوم ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous l'ami de fac que tu n'oublieras jamais.",
+            en: "{name}, tell us about the college friend you will never forget.",
+            ar: "{name}، احكِ لنا عن صديق الجامعة الذي لن تنساه أبداً.",
+            bubble_fr: "L'ami de fac",
+            bubble_en: "My college friend",
+            bubble_ar: "صديق الجامعة",
+            followups_fr: [
+              "Comment vous vous êtes rencontrés ?",
+              "C'est quoi votre meilleur souvenir ensemble ?",
+              "Tu as encore des nouvelles de lui/elle ?",
+            ],
+            followups_en: ["How did you meet?", "What's your best memory together?", "Do you still hear from them?"],
+            followups_ar: ["كيف تعرفتما ؟", "ما هي أفضل ذكرياتكما معاً ؟", "هل لا زلت على تواصل معه/معها ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous le moment où tu as choisi ta voie.",
+            en: "{name}, tell us about the moment you chose your path.",
+            ar: "{name}، احكِ لنا عن اللحظة التي اخترت فيها طريقك.",
+            bubble_fr: "Choisir ma voie",
+            bubble_en: "Choosing my path",
+            bubble_ar: "اختيار طريقي",
+            followups_fr: [
+              "C'était une évidence ou un doute ?",
+              "Quelqu'un t'a influencé ou tu as décidé seul ?",
+              "Tu referais le même choix aujourd'hui ?",
+            ],
+            followups_en: [
+              "Was it obvious or doubtful?",
+              "Did someone influence you or did you decide alone?",
+              "Would you make the same choice today?",
+            ],
+            followups_ar: [
+              "هل كان واضحاً أم كنت تشك ؟",
+              "هل أثر بك أحد أم قررت بمفردك ؟",
+              "هل ستتخذ القرار نفسه اليوم ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ta plus grande fierté pendant tes études.",
+            en: "{name}, tell us about your greatest achievement during your studies.",
+            ar: "{name}، احكِ لنا عن أكبر إنجازاتك خلال دراستك.",
+            bubble_fr: "Ma fierté d'étudiant",
+            bubble_en: "My student achievement",
+            bubble_ar: "فخر الدراسة",
+            followups_fr: [
+              "Qu'est-ce que tu as réussi à faire exactement ?",
+              "Qui était fier de toi à ce moment-là ?",
+              "Si tu pouvais ressentir cette fierté demain, tu ferais quoi ?",
+            ],
+            followups_en: [
+              "What exactly did you manage to do?",
+              "Who was proud of you at that moment?",
+              "If you could feel that pride tomorrow, what would you do?",
+            ],
+            followups_ar: [
+              "ما الذي نجحت في تحقيقه بالضبط ؟",
+              "من كان فخوراً بك في تلك اللحظة ؟",
+              "لو استطعت الشعور بهذا الفخر غداً، ماذا ستفعل ؟",
+            ],
+          },
+        ],
       },
       {
         id: "amis",
@@ -106,12 +648,114 @@ export const CHAPTERS = [
         en: "Friends",
         ar: "الأصدقاء",
         questions: [
-          { fr: "{name}, raconte-nous l'ami qui a changé ta vie.", en: "{name}, tell us about the friend who changed your life.", ar: "{name}، احكِ لنا عن الصديق الذي غيّر حياتك.", bubble_fr: "L'ami qui a tout changé", bubble_en: "The friend who changed it all", bubble_ar: "الصديق الذي غيّر كل شيء" },
-          { fr: "{name}, raconte-nous le soir où vous avez refait le monde.", en: "{name}, tell us about the night you put the world to rights together.", ar: "{name}، احكِ لنا عن الليلة التي أعدتم فيها تشكيل العالم.", bubble_fr: "Refaire le monde", bubble_en: "Putting the world to rights", bubble_ar: "إعادة تشكيل العالم" },
-          { fr: "{name}, raconte-nous ton meilleur souvenir avec un groupe d'amis.", en: "{name}, tell us your best memory with a group of friends.", ar: "{name}، احكِ لنا عن أجمل ذكرياتك مع مجموعة أصدقاء.", bubble_fr: "Notre meilleur souvenir", bubble_en: "Our best memory", bubble_ar: "أجمل ذكرياتنا" },
-          { fr: "{name}, raconte-nous un ami que tu as perdu de vue et que tu cherches.", en: "{name}, tell us about a friend you lost touch with and still think about.", ar: "{name}، احكِ لنا عن صديق فقدت تواصله وما زلت تفكر فيه.", bubble_fr: "L'ami perdu de vue", bubble_en: "The lost friend", bubble_ar: "الصديق الضائع" },
-          { fr: "{name}, raconte-nous ce que l'amitié t'a appris sur la vie.", en: "{name}, tell us what friendship taught you about life.", ar: "{name}، احكِ لنا ما علّمتك إياه الصداقة عن الحياة.", bubble_fr: "La leçon de l'amitié", bubble_en: "Friendship lesson", bubble_ar: "درس الصداقة" }
-        ]
+          {
+            fr: "{name}, raconte-nous l'ami qui a changé ta vie.",
+            en: "{name}, tell us about the friend who changed your life.",
+            ar: "{name}، احكِ لنا عن الصديق الذي غيّر حياتك.",
+            bubble_fr: "L'ami qui a tout changé",
+            bubble_en: "The friend who changed it all",
+            bubble_ar: "الصديق الذي غيّر كل شيء",
+            followups_fr: [
+              "Comment vous êtes-vous rencontrés et quel âge aviez-vous ?",
+              "Qu'est-ce qui a changé grâce à lui/elle ?",
+              "Tu lui as déjà dit à quel point il/elle compte pour toi ?",
+            ],
+            followups_en: [
+              "How did you meet and how old were you?",
+              "What changed thanks to them?",
+              "Have you ever told them how much they mean to you?",
+            ],
+            followups_ar: ["كيف التقيتما وكم كان عمركما؟", "ما الذي تغير بفضله/بفضلها؟", "هل أخبرته يوماً كم يعني لك؟"],
+          },
+          {
+            fr: "{name}, raconte-nous le soir où vous avez refait le monde.",
+            en: "{name}, tell us about the night you put the world to rights together.",
+            ar: "{name}، احكِ لنا عن الليلة التي أعدتم فيها تشكيل العالم.",
+            bubble_fr: "Refaire le monde",
+            bubble_en: "Putting the world to rights",
+            bubble_ar: "إعادة تشكيل العالم",
+            followups_fr: [
+              "Où c'était et avec qui ?",
+              "Vous avez parlé de quoi jusqu'à pas d'heure ?",
+              "Si vous pouviez refaire cette soirée demain, vous le feriez ?",
+            ],
+            followups_en: [
+              "Where was it and with who?",
+              "What did you talk about until late?",
+              "If you could have that night again tomorrow, would you?",
+            ],
+            followups_ar: [
+              "أين كان ذلك ومع من ؟",
+              "عن ماذا تحدثتم حتى ساعة متأخرة ؟",
+              "لو استطعتم إعادة تلك الليلة غداً، هل ستفعلون ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ton meilleur souvenir avec un groupe d'amis.",
+            en: "{name}, tell us your best memory with a group of friends.",
+            ar: "{name}، احكِ لنا عن أجمل ذكرياتك مع مجموعة أصدقاء.",
+            bubble_fr: "Notre meilleur souvenir",
+            bubble_en: "Our best memory",
+            bubble_ar: "أجمل ذكرياتنا",
+            followups_fr: [
+              "C'était à l'occasion de quoi ?",
+              "Qui a fait le truc le plus drôle ce soir-là ?",
+              "Vous pourriez tous vous retrouver aujourd'hui ?",
+            ],
+            followups_en: [
+              "What was the occasion?",
+              "Who did the funniest thing that night?",
+              "Could you all get together today?",
+            ],
+            followups_ar: ["ما هي المناسبة ؟", "من فعل أطرف شيء تلك الليلة ؟", "هل يمكنكم جميعاً الاجتماع اليوم ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous un ami que tu as perdu de vue et que tu cherches.",
+            en: "{name}, tell us about a friend you lost touch with and still think about.",
+            ar: "{name}، احكِ لنا عن صديق فقدت تواصله وما زلت تفكر فيه.",
+            bubble_fr: "L'ami perdu de vue",
+            bubble_en: "The lost friend",
+            bubble_ar: "الصديق الضائع",
+            followups_fr: [
+              "Tu te souviens de son nom ou juste de son visage ?",
+              "Quel est le dernier souvenir que tu as de lui/elle ?",
+              "Si tu le/la retrouvais demain, tu lui dirais quoi en premier ?",
+            ],
+            followups_en: [
+              "Do you remember their name or just their face?",
+              "What's your last memory of them?",
+              "If you found them tomorrow, what would you say first?",
+            ],
+            followups_ar: [
+              "هل تتذكر اسمه أم فقط وجهه ؟",
+              "ما هي آخر ذكرى لك معه/معها ؟",
+              "لو وجدته غداً، ماذا ستقول له أولاً ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ce que l'amitié t'a appris sur la vie.",
+            en: "{name}, tell us what friendship taught you about life.",
+            ar: "{name}، احكِ لنا ما علّمتك إياه الصداقة عن الحياة.",
+            bubble_fr: "La leçon de l'amitié",
+            bubble_en: "Friendship lesson",
+            bubble_ar: "درس الصداقة",
+            followups_fr: [
+              "C'est une leçon que tu as apprise jeune ou plus tard ?",
+              "Tu transmets cette leçon à tes enfants ?",
+              "Si tu devais résumer l'amitié en une phrase, ce serait quoi ?",
+            ],
+            followups_en: [
+              "Is it a lesson you learned young or later?",
+              "Do you pass this lesson on to your children?",
+              "If you had to sum up friendship in one sentence, what would it be?",
+            ],
+            followups_ar: [
+              "هل تعلمت هذا الدرس صغيراً أم لاحقاً ؟",
+              "هل تنقل هذا الدرس إلى أطفالك ؟",
+              "لو كان عليك تلخيص الصداقة في جملة واحدة، ماذا ستكون ؟",
+            ],
+          },
+        ],
       },
       {
         id: "voyages",
@@ -120,12 +764,122 @@ export const CHAPTERS = [
         en: "Travel",
         ar: "السفر",
         questions: [
-          { fr: "{name}, raconte-nous le voyage qui a changé quelque chose en toi.", en: "{name}, tell us about the trip that changed something in you.", ar: "{name}، احكِ لنا عن الرحلة التي غيّرت شيئاً فيك.", bubble_fr: "Le voyage transformateur", bubble_en: "The life-changing trip", bubble_ar: "الرحلة التي غيّرتني" },
-          { fr: "{name}, raconte-nous la rencontre de voyage qui ne t'a jamais quitté.", en: "{name}, tell us about a travel encounter you never forgot.", ar: "{name}، احكِ لنا عن لقاء في سفر لم تنسه.", bubble_fr: "La rencontre inoubliable", bubble_en: "The unforgettable encounter", bubble_ar: "اللقاء الذي لا يُنسى" },
-          { fr: "{name}, raconte-nous le plus beau lever de soleil que tu aies vu.", en: "{name}, tell us about the most beautiful sunrise you ever witnessed.", ar: "{name}، احكِ لنا عن أجمل شروق شمس رأيته.", bubble_fr: "Mon plus beau lever de soleil", bubble_en: "Most beautiful sunrise", bubble_ar: "أجمل شروق شمس" },
-          { fr: "{name}, raconte-nous le lieu que tu voudrais revoir une dernière fois.", en: "{name}, tell us about the place you would love to see one last time.", ar: "{name}، احكِ لنا عن المكان الذي تريد رؤيته مرة أخيرة.", bubble_fr: "Le lieu que je veux revoir", bubble_en: "The place I want to revisit", bubble_ar: "المكان الذي أريد رؤيته" },
-          { fr: "{name}, raconte-nous ton voyage le plus difficile et ce qu'il t'a appris.", en: "{name}, tell us about your toughest journey and what it taught you.", ar: "{name}، احكِ لنا عن أصعب رحلة وما علّمتك.", bubble_fr: "Mon voyage difficile", bubble_en: "My toughest journey", bubble_ar: "رحلتي الأصعب" }
-        ]
+          {
+            fr: "{name}, raconte-nous le voyage qui a changé quelque chose en toi.",
+            en: "{name}, tell us about the trip that changed something in you.",
+            ar: "{name}، احكِ لنا عن الرحلة التي غيّرت شيئاً فيك.",
+            bubble_fr: "Le voyage transformateur",
+            bubble_en: "The life-changing trip",
+            bubble_ar: "الرحلة التي غيّرتني",
+            followups_fr: [
+              "Où tu es allé et avec qui ?",
+              "Qu'est-ce que tu as vu ou vécu qui a fait la différence ?",
+              "Tu conseillerais ce voyage à quelqu'un aujourd'hui ?",
+            ],
+            followups_en: [
+              "Where did you go and with who?",
+              "What did you see or experience that made the difference?",
+              "Would you recommend that trip to someone today?",
+            ],
+            followups_ar: [
+              "أين ذهبت ومع من ؟",
+              "ما الذي رأيته أو عشته الذي أحدث الفرق ؟",
+              "هل تنصح بهذه الرحلة لشخص ما اليوم ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la rencontre de voyage qui ne t'a jamais quitté.",
+            en: "{name}, tell us about a travel encounter you never forgot.",
+            ar: "{name}، احكِ لنا عن لقاء في سفر لم تنسه.",
+            bubble_fr: "La rencontre inoubliable",
+            bubble_en: "The unforgettable encounter",
+            bubble_ar: "اللقاء الذي لا يُنسى",
+            followups_fr: [
+              "Tu l'as rencontré où et dans quelles circonstances ?",
+              "Vous avez échangé quoi qui t'a marqué ?",
+              "Tu aimerais le/la recroiser un jour ?",
+            ],
+            followups_en: [
+              "Where did you meet them and under what circumstances?",
+              "What did you exchange that stuck with you?",
+              "Would you like to run into them again one day?",
+            ],
+            followups_ar: [
+              "أين التقيت به وتحت أي ظروف ؟",
+              "ماذا تبادلتما مما بقي في ذهنك ؟",
+              "هل ترغب في مقابلته مرة أخرى يوماً ما ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le plus beau lever de soleil que tu aies vu.",
+            en: "{name}, tell us about the most beautiful sunrise you ever witnessed.",
+            ar: "{name}، احكِ لنا عن أجمل شروق شمس رأيته.",
+            bubble_fr: "Mon plus beau lever de soleil",
+            bubble_en: "Most beautiful sunrise",
+            bubble_ar: "أجمل شروق شمس",
+            followups_fr: [
+              "Où c'était et avec qui ?",
+              "Tu t'en souviens comme si c'était hier ?",
+              "Tu te lèverais tôt demain pour en revoir un aussi beau ?",
+            ],
+            followups_en: [
+              "Where was it and with who?",
+              "Do you remember it like it was yesterday?",
+              "Would you wake up early tomorrow to see another as beautiful?",
+            ],
+            followups_ar: [
+              "أين كان ذلك ومع من ؟",
+              "هل تتذكره وكأنه كان بالأمس ؟",
+              "هل ستستيقظ مبكراً غداً لترى شروقاً جميلاً مثله ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le lieu que tu voudrais revoir une dernière fois.",
+            en: "{name}, tell us about the place you would love to see one last time.",
+            ar: "{name}، احكِ لنا عن المكان الذي تريد رؤيته مرة أخيرة.",
+            bubble_fr: "Le lieu que je veux revoir",
+            bubble_en: "The place I want to revisit",
+            bubble_ar: "المكان الذي أريد رؤيته",
+            followups_fr: [
+              "Pourquoi ce lieu en particulier ?",
+              "Qui était avec toi la dernière fois que tu y es allé ?",
+              "Tu y retournerais demain si tu pouvais ?",
+            ],
+            followups_en: [
+              "Why this particular place?",
+              "Who was with you the last time you went?",
+              "Would you go back tomorrow if you could?",
+            ],
+            followups_ar: [
+              "لماذا هذا المكان بالذات ؟",
+              "من كان معك آخر مرة ذهبت إليها ؟",
+              "هل ستعود إليه غداً لو استطعت ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ton voyage le plus difficile et ce qu'il t'a appris.",
+            en: "{name}, tell us about your toughest journey and what it taught you.",
+            ar: "{name}، احكِ لنا عن أصعب رحلة وما علّمتك.",
+            bubble_fr: "Mon voyage difficile",
+            bubble_en: "My toughest journey",
+            bubble_ar: "رحلتي الأصعب",
+            followups_fr: [
+              "Qu'est-ce qui l'a rendu si difficile ?",
+              "Qui t'a aidé à le surmonter ou tu étais seul ?",
+              "Tu referais le même voyage aujourd'hui ?",
+            ],
+            followups_en: [
+              "What made it so difficult?",
+              "Who helped you overcome it or were you alone?",
+              "Would you take the same trip today?",
+            ],
+            followups_ar: [
+              "ما الذي جعله صعباً إلى هذه الدرجة ؟",
+              "من ساعدك لتتجاوزه أم كنت بمفردك ؟",
+              "هل ستقوم بنفس الرحلة اليوم ؟",
+            ],
+          },
+        ],
       },
       {
         id: "passions",
@@ -134,14 +888,112 @@ export const CHAPTERS = [
         en: "Passions & Sport",
         ar: "الشغف والرياضة",
         questions: [
-          { fr: "{name}, raconte-nous ce qui te fait perdre la notion du temps.", en: "{name}, tell us about what makes you lose track of time.", ar: "{name}، احكِ لنا عما يجعلك تنسى الوقت.", bubble_fr: "Ce qui m'absorbe", bubble_en: "What absorbs me", bubble_ar: "ما يستغرق وقتي" },
-          { fr: "{name}, raconte-nous ton plus grand moment de sport ou de compétition.", en: "{name}, tell us about your greatest sports or competition moment.", ar: "{name}، احكِ لنا عن أعظم لحظة رياضية أو تنافسية.", bubble_fr: "Mon grand moment", bubble_en: "My greatest moment", bubble_ar: "لحظتي العظيمة" },
-          { fr: "{name}, raconte-nous comment tu as découvert ta passion.", en: "{name}, tell us how you discovered your passion.", ar: "{name}، احكِ لنا كيف اكتشفت شغفك.", bubble_fr: "Comment j'ai trouvé ma passion", bubble_en: "How I found my passion", bubble_ar: "كيف اكتشفت شغفي" },
-          { fr: "{name}, raconte-nous la passion que tu as abandonnée et que tu regrettes.", en: "{name}, tell us about a passion you gave up and still regret.", ar: "{name}، احكِ لنا عن شغف تركته وما زلت تندم عليه.", bubble_fr: "La passion abandonnée", bubble_en: "The passion I gave up", bubble_ar: "الشغف الذي تركته" },
-          { fr: "{name}, raconte-nous le match ou la performance dont tu es le plus fier.", en: "{name}, tell us about the match or performance you are most proud of.", ar: "{name}، احكِ لنا عن المباراة أو الأداء الذي تفخر به.", bubble_fr: "Ma meilleure performance", bubble_en: "My best performance", bubble_ar: "أفضل أداء لي" }
-        ]
-      }
-    ]
+          {
+            fr: "{name}, raconte-nous ce qui te fait perdre la notion du temps.",
+            en: "{name}, tell us about what makes you lose track of time.",
+            ar: "{name}، احكِ لنا عما يجعلك تنسى الوقت.",
+            bubble_fr: "Ce qui m'absorbe",
+            bubble_en: "What absorbs me",
+            bubble_ar: "ما يستغرق وقتي",
+            followups_fr: [
+              "Quand as-tu découvert cette passion ?",
+              "C'est un moment que tu partages avec quelqu'un ?",
+              "Tu aimerais que tes enfants aient la même passion ?",
+            ],
+            followups_en: [
+              "When did you discover this passion?",
+              "Is it something you share with someone?",
+              "Would you like your children to have the same passion?",
+            ],
+            followups_ar: ["متى اكتشفت هذا الشغف ؟", "هل تشاركه مع شخص آخر ؟", "هل ترغب أن يكون لأطفالك نفس الشغف ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous ton plus grand moment de sport ou de compétition.",
+            en: "{name}, tell us about your greatest sports or competition moment.",
+            ar: "{name}، احكِ لنا عن أعظم لحظة رياضية أو تنافسية.",
+            bubble_fr: "Mon grand moment",
+            bubble_en: "My greatest moment",
+            bubble_ar: "لحظتي العظيمة",
+            followups_fr: [
+              "Qu'est-ce que tu as accompli exactement ?",
+              "Qui était là pour te voir ?",
+              "Si tu pouvais revivre ces 10 secondes, tu crierais aussi fort ?",
+            ],
+            followups_en: [
+              "What exactly did you accomplish?",
+              "Who was there to see you?",
+              "If you could relive those 10 seconds, would you shout as loud?",
+            ],
+            followups_ar: [
+              "ما الذي أنجزته بالضبط ؟",
+              "من كان هناك ليراك ؟",
+              "لو استطعت أن تعيش تلك الـ10 ثوانٍ مجدداً، هل ستصرخ بنفس القوة ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous comment tu as découvert ta passion.",
+            en: "{name}, tell us how you discovered your passion.",
+            ar: "{name}، احكِ لنا كيف اكتشفت شغفك.",
+            bubble_fr: "Comment j'ai trouvé ma passion",
+            bubble_en: "How I found my passion",
+            bubble_ar: "كيف اكتشفت شغفي",
+            followups_fr: [
+              "Quelqu'un te l'a fait découvrir ou tu as trouvé tout seul ?",
+              "À quel âge et à quelle occasion ?",
+              "Tu as continué sans interruption depuis ?",
+            ],
+            followups_en: [
+              "Did someone introduce you to it or did you find it yourself?",
+              "At what age and on what occasion?",
+              "Have you continued non-stop since then?",
+            ],
+            followups_ar: [
+              "هل عرّفك عليه أحد أم اكتشفته بنفسك ؟",
+              "في أي عمر وبأي مناسبة ؟",
+              "هل واصلت دون انقطاع منذ ذلك الحين ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la passion que tu as abandonnée et que tu regrettes.",
+            en: "{name}, tell us about a passion you gave up and still regret.",
+            ar: "{name}، احكِ لنا عن شغف تركته وما زلت تندم عليه.",
+            bubble_fr: "La passion abandonnée",
+            bubble_en: "The passion I gave up",
+            bubble_ar: "الشغف الذي تركته",
+            followups_fr: [
+              "Pourquoi tu as arrêté ?",
+              "Qu'est-ce qui te manque le plus de cette passion ?",
+              "Tu pourrais t'y remettre demain si tu voulais ?",
+            ],
+            followups_en: [
+              "Why did you stop?",
+              "What do you miss most about that passion?",
+              "Could you start again tomorrow if you wanted?",
+            ],
+            followups_ar: ["لماذا توقفت ؟", "ما أكثر شيء تفتقده في هذا الشغف ؟", "هل يمكنك العودة إليه غداً لو أردت ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous le match ou la performance dont tu es le plus fier.",
+            en: "{name}, tell us about the match or performance you are most proud of.",
+            ar: "{name}، احكِ لنا عن المباراة أو الأداء الذي تفخر به.",
+            bubble_fr: "Ma meilleure performance",
+            bubble_en: "My best performance",
+            bubble_ar: "أفضل أداء لي",
+            followups_fr: [
+              "Qui était l'adversaire ou le public ?",
+              "Tu as célébré comment après ?",
+              "Tu montrerais cette vidéo à tes enfants ?",
+            ],
+            followups_en: [
+              "Who was the opponent or the audience?",
+              "How did you celebrate afterwards?",
+              "Would you show that video to your children?",
+            ],
+            followups_ar: ["من كان الخصم أو الجمهور ؟", "كيف احتفلت بعد ذلك ؟", "هل ستعرض هذا الفيديو على أطفالك ؟"],
+          },
+        ],
+      },
+    ],
   },
   {
     id: "adulte",
@@ -164,12 +1016,118 @@ export const CHAPTERS = [
         en: "Love & Marriage",
         ar: "الحب والزواج",
         questions: [
-          { fr: "{name}, raconte-nous le moment où tu as su que c'était la bonne personne.", en: "{name}, tell us about the moment you knew they were the one.", ar: "{name}، احكِ لنا عن اللحظة التي عرفت فيها أنه الشخص المناسب.", bubble_fr: "Je savais que c'était toi", bubble_en: "I knew it was you", bubble_ar: "عرفت أنك الشخص" },
-          { fr: "{name}, raconte-nous le geste de ton partenaire qui t'a le plus touché.", en: "{name}, tell us about your partner's gesture that moved you most.", ar: "{name}، احكِ لنا عن أكثر لفتة من شريكك أثّرت فيك.", bubble_fr: "Le geste qui m'a touché", bubble_en: "The gesture that moved me", bubble_ar: "اللفتة التي أثّرت فيّ" },
-          { fr: "{name}, raconte-nous votre souvenir de couple le plus précieux.", en: "{name}, tell us about your most precious couple memory.", ar: "{name}، احكِ لنا عن أثمن ذكرى لكما معاً.", bubble_fr: "Notre plus belle mémoire", bubble_en: "Our most precious memory", bubble_ar: "أثمن ذكرياتنا" },
-          { fr: "{name}, raconte-nous ce que l'amour t'a appris sur toi-même.", en: "{name}, tell us what love taught you about yourself.", ar: "{name}، احكِ لنا ما علّمك إياه الحب عن نفسك.", bubble_fr: "Ce que l'amour m'a appris", bubble_en: "What love taught me", bubble_ar: "ما علّمني الحب" },
-          { fr: "{name}, raconte-nous la leçon d'amour que tu voudrais transmettre.", en: "{name}, tell us about the love lesson you want to pass on.", ar: "{name}، احكِ لنا عن درس الحب الذي تريد أن تورثه.", bubble_fr: "Ma leçon d'amour", bubble_en: "My love lesson", bubble_ar: "درسي في الحب" }
-        ]
+          {
+            fr: "{name}, raconte-nous le moment où tu as su que c'était la bonne personne.",
+            en: "{name}, tell us about the moment you knew they were the one.",
+            ar: "{name}، احكِ لنا عن اللحظة التي عرفت فيها أنه الشخص المناسب.",
+            bubble_fr: "Je savais que c'était toi",
+            bubble_en: "I knew it was you",
+            bubble_ar: "عرفت أنك الشخص",
+            followups_fr: [
+              "Où vous étiez et que s'est-il passé ?",
+              "Tu as su tout de suite ou ça a pris du temps ?",
+              "Tu le/la lui as dit ce jour-là ou plus tard ?",
+            ],
+            followups_en: [
+              "Where were you and what happened?",
+              "Did you know right away or did it take time?",
+              "Did you tell them that day or later?",
+            ],
+            followups_ar: [
+              "أين كنتما وماذا حدث ؟",
+              "هل عرفت فوراً أم أخذ ذلك وقتاً ؟",
+              "هل أخبرته ذلك اليوم أم لاحقاً ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le geste de ton partenaire qui t'a le plus touché.",
+            en: "{name}, tell us about your partner's gesture that moved you most.",
+            ar: "{name}، احكِ لنا عن أكثر لفتة من شريكك أثّرت فيك.",
+            bubble_fr: "Le geste qui m'a touché",
+            bubble_en: "The gesture that moved me",
+            bubble_ar: "اللفتة التي أثّرت فيّ",
+            followups_fr: [
+              "C'était pour quelle occasion ?",
+              "Tu t'y attendais ou pas du tout ?",
+              "Tu as fait la même chose pour lui/elle depuis ?",
+            ],
+            followups_en: [
+              "What was the occasion?",
+              "Were you expecting it or not at all?",
+              "Have you done the same for them since?",
+            ],
+            followups_ar: [
+              "ما هي المناسبة ؟",
+              "هل كنت تتوقعه أم لا على الإطلاق ؟",
+              "هل فعلت الشيء نفسه له/لها منذ ذلك الحين ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous votre souvenir de couple le plus précieux.",
+            en: "{name}, tell us about your most precious couple memory.",
+            ar: "{name}، احكِ لنا عن أثمن ذكرى لكما معاً.",
+            bubble_fr: "Notre plus belle mémoire",
+            bubble_en: "Our most precious memory",
+            bubble_ar: "أثمن ذكرياتنا",
+            followups_fr: [
+              "C'était quand et où ?",
+              "Vous y repensez souvent tous les deux ?",
+              "Vous pourriez recréer ce moment aujourd'hui ?",
+            ],
+            followups_en: [
+              "When and where was it?",
+              "Do you both think about it often?",
+              "Could you recreate that moment today?",
+            ],
+            followups_ar: ["متى وأين كان ؟", "هل تفكران فيها غالباً ؟", "هل يمكنكما إعادة خلق تلك اللحظة اليوم ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous ce que l'amour t'a appris sur toi-même.",
+            en: "{name}, tell us what love taught you about yourself.",
+            ar: "{name}، احكِ لنا ما علّمك إياه الحب عن نفسك.",
+            bubble_fr: "Ce que l'amour m'a appris",
+            bubble_en: "What love taught me",
+            bubble_ar: "ما علّمني الحب",
+            followups_fr: [
+              "C'était une bonne ou une mauvaise surprise ?",
+              "Tu aurais aimé l'apprendre plus tôt ?",
+              "Tu transmets cette leçon à tes enfants ?",
+            ],
+            followups_en: [
+              "Was it a good or bad surprise?",
+              "Would you have liked to learn it earlier?",
+              "Do you pass this lesson on to your children?",
+            ],
+            followups_ar: [
+              "هل كانت مفاجأة جيدة أم سيئة ؟",
+              "هل كنت تود أن تتعلمه مبكراً ؟",
+              "هل تنقل هذا الدرس إلى أطفالك ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la leçon d'amour que tu voudrais transmettre.",
+            en: "{name}, tell us about the love lesson you want to pass on.",
+            ar: "{name}، احكِ لنا عن درس الحب الذي تريد أن تورثه.",
+            bubble_fr: "Ma leçon d'amour",
+            bubble_en: "My love lesson",
+            bubble_ar: "درسي في الحب",
+            followups_fr: [
+              "Qui te l'a apprise ou tu l'as découverte par toi-même ?",
+              "Tu l'as déjà partagée avec quelqu'un ?",
+              "Tu aimerais que tes petits-enfants la connaissent ?",
+            ],
+            followups_en: [
+              "Who taught it to you or did you discover it yourself?",
+              "Have you already shared it with someone?",
+              "Would you like your grandchildren to know it?",
+            ],
+            followups_ar: [
+              "من علّمك إياه أم اكتشفته بنفسك ؟",
+              "هل شاركته مع أحد من قبل ؟",
+              "هل ترغب أن يعرفه أحفادك ؟",
+            ],
+          },
+        ],
       },
       {
         id: "parentalite",
@@ -178,12 +1136,122 @@ export const CHAPTERS = [
         en: "Being a Parent",
         ar: "الأبوة والأمومة",
         questions: [
-          { fr: "{name}, raconte-nous le jour où tu es devenu parent.", en: "{name}, tell us about the day you became a parent.", ar: "{name}، احكِ لنا عن اليوم الذي أصبحت فيه أباً أو أماً.", bubble_fr: "Je suis devenu parent", bubble_en: "I became a parent", bubble_ar: "أصبحت أباً أو أماً" },
-          { fr: "{name}, raconte-nous le moment avec ton enfant qui t'a fait pleurer de joie.", en: "{name}, tell us about the moment with your child that made you cry with joy.", ar: "{name}، احكِ لنا عن اللحظة مع طفلك التي جعلتك تبكي من الفرح.", bubble_fr: "Les larmes de joie", bubble_en: "Tears of joy", bubble_ar: "دموع الفرح" },
-          { fr: "{name}, raconte-nous ce que tes enfants t'ont appris sur la vie.", en: "{name}, tell us what your children taught you about life.", ar: "{name}، احكِ لنا ما علّمك إياه أطفالك عن الحياة.", bubble_fr: "Ce que mes enfants m'ont appris", bubble_en: "What my children taught me", bubble_ar: "ما علّمني أطفالي" },
-          { fr: "{name}, raconte-nous la peur que tu avais avant de devenir parent.", en: "{name}, tell us about the fear you had before becoming a parent.", ar: "{name}، احكِ لنا عن الخوف الذي كان لديك قبل أن تصبح أباً أو أماً.", bubble_fr: "Ma peur de devenir parent", bubble_en: "My fear of parenthood", bubble_ar: "خوفي من الأبوة" },
-          { fr: "{name}, raconte-nous le conseil que tu donnerais à un nouveau parent.", en: "{name}, tell us the advice you would give to a new parent.", ar: "{name}، احكِ لنا النصيحة التي ستعطيها لأب أو أم جديد.", bubble_fr: "Mon conseil de parent", bubble_en: "My parenting advice", bubble_ar: "نصيحتي للوالدين" }
-        ]
+          {
+            fr: "{name}, raconte-nous le jour où tu es devenu parent.",
+            en: "{name}, tell us about the day you became a parent.",
+            ar: "{name}، احكِ لنا عن اليوم الذي أصبحت فيه أباً أو أماً.",
+            bubble_fr: "Je suis devenu parent",
+            bubble_en: "I became a parent",
+            bubble_ar: "أصبحت أباً أو أماً",
+            followups_fr: [
+              "Raconte-nous cette journée précise.",
+              "Quel sentiment dominait : la joie, la peur, l'émotion ?",
+              "Qu'aurais-tu aimé dire à tes parents à ce moment-là ?",
+            ],
+            followups_en: [
+              "Tell us about that specific day.",
+              "What feeling dominated: joy, fear, emotion?",
+              "What would you have liked to say to your parents at that moment?",
+            ],
+            followups_ar: [
+              "حدثنا عن ذلك اليوم بالتحديد.",
+              "ما هو الشعور الذي كان مسيطراً: الفرح، الخوف، العاطفة؟",
+              "ما الذي كنت تود قوله لوالديك في تلك اللحظة؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le moment avec ton enfant qui t'a fait pleurer de joie.",
+            en: "{name}, tell us about the moment with your child that made you cry with joy.",
+            ar: "{name}، احكِ لنا عن اللحظة مع طفلك التي جعلتك تبكي من الفرح.",
+            bubble_fr: "Les larmes de joie",
+            bubble_en: "Tears of joy",
+            bubble_ar: "دموع الفرح",
+            followups_fr: [
+              "Qu'a-t-il/elle fait ou dit exactement ?",
+              "D'autres personnes étaient présentes ?",
+              "Tu repenses à ce moment souvent ?",
+            ],
+            followups_en: [
+              "What exactly did they do or say?",
+              "Were other people present?",
+              "Do you think about that moment often?",
+            ],
+            followups_ar: [
+              "ما الذي فعله أو قاله بالضبط ؟",
+              "هل كان هناك أشخاص آخرون ؟",
+              "هل تفكر في هذه اللحظة كثيراً ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ce que tes enfants t'ont appris sur la vie.",
+            en: "{name}, tell us what your children taught you about life.",
+            ar: "{name}، احكِ لنا ما علّمك إياه أطفالك عن الحياة.",
+            bubble_fr: "Ce que mes enfants m'ont appris",
+            bubble_en: "What my children taught me",
+            bubble_ar: "ما علّمني أطفالي",
+            followups_fr: [
+              "C'est une leçon que tu n'aurais jamais apprise sans eux ?",
+              "Tu l'appliques dans ton quotidien aujourd'hui ?",
+              "Tu aimerais qu'ils t'apprennent encore quoi ?",
+            ],
+            followups_en: [
+              "Is it a lesson you would never have learned without them?",
+              "Do you apply it in your daily life today?",
+              "What else would you like them to teach you?",
+            ],
+            followups_ar: [
+              "هل هو درس لم تكن ستتعلمه أبداً لولاهم ؟",
+              "هل تطبقه في حياتك اليومية الآن ؟",
+              "ما الذي تود أن يعلموك إياه أيضاً ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la peur que tu avais avant de devenir parent.",
+            en: "{name}, tell us about the fear you had before becoming a parent.",
+            ar: "{name}، احكِ لنا عن الخوف الذي كان لديك قبل أن تصبح أباً أو أماً.",
+            bubble_fr: "Ma peur de devenir parent",
+            bubble_en: "My fear of parenthood",
+            bubble_ar: "خوفي من الأبوة",
+            followups_fr: [
+              "Cette peur s'est réalisée ou pas du tout ?",
+              "Qui t'a rassuré à ce moment-là ?",
+              "Tu donnerais un conseil à un futur parent qui a la même peur ?",
+            ],
+            followups_en: [
+              "Did that fear come true or not at all?",
+              "Who reassured you at that time?",
+              "Would you give advice to a future parent with the same fear?",
+            ],
+            followups_ar: [
+              "هل تحقق هذا الخوف أم لا على الإطلاق ؟",
+              "من طمأنك في ذلك الوقت ؟",
+              "هل تقدم نصيحة لأم أو أب مستقبلي لديه نفس الخوف ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le conseil que tu donnerais à un nouveau parent.",
+            en: "{name}, tell us the advice you would give to a new parent.",
+            ar: "{name}، احكِ لنا النصيحة التي ستعطيها لأب أو أم جديد.",
+            bubble_fr: "Mon conseil de parent",
+            bubble_en: "My parenting advice",
+            bubble_ar: "نصيحتي للوالدين",
+            followups_fr: [
+              "Tu aurais aimé qu'on te donne ce conseil ?",
+              "À quel âge de l'enfant ce conseil s'applique le mieux ?",
+              "Tu le donnerais à tes propres enfants un jour ?",
+            ],
+            followups_en: [
+              "Would you have liked to have been given this advice?",
+              "At what age of the child does this advice apply best?",
+              "Would you give it to your own children one day?",
+            ],
+            followups_ar: [
+              "هل كنت تود أن يُعطى لك هذه النصيحة ؟",
+              "في أي عمر للطفل تنطبق هذه النصيحة بشكل أفضل ؟",
+              "هل ستعطيها لأطفالك يوماً ما ؟",
+            ],
+          },
+        ],
       },
       {
         id: "carriere",
@@ -192,12 +1260,114 @@ export const CHAPTERS = [
         en: "Work & Career",
         ar: "العمل والمسيرة",
         questions: [
-          { fr: "{name}, raconte-nous le moment de ta carrière dont tu es le plus fier.", en: "{name}, tell us about the career moment you are most proud of.", ar: "{name}، احكِ لنا عن أكثر لحظة في مسيرتك تفخر بها.", bubble_fr: "Ma plus grande fierté pro", bubble_en: "My greatest career pride", bubble_ar: "أكبر فخر مهني" },
-          { fr: "{name}, raconte-nous qui a cru en toi avant que tu croies en toi.", en: "{name}, tell us who believed in you before you believed in yourself.", ar: "{name}، احكِ لنا عن من آمن بك قبل أن تؤمن بنفسك.", bubble_fr: "Celui qui a cru en moi", bubble_en: "Who believed in me", bubble_ar: "من آمن بي" },
-          { fr: "{name}, raconte-nous l'erreur professionnelle qui t'a le plus appris.", en: "{name}, tell us about the professional mistake that taught you the most.", ar: "{name}، احكِ لنا عن الخطأ المهني الذي علّمك أكثر.", bubble_fr: "L'erreur qui m'a appris", bubble_en: "The mistake that taught me", bubble_ar: "الخطأ الذي علّمني" },
-          { fr: "{name}, raconte-nous ce que tu aurais dit à toi-même à 25 ans.", en: "{name}, tell us what you would say to your 25-year-old self.", ar: "{name}، احكِ لنا ما ستقوله لنفسك في سن الخامسة والعشرين.", bubble_fr: "Ce que je dirais à mes 25 ans", bubble_en: "What I'd tell my 25-year-old self", bubble_ar: "ما سأقوله لنفسي في الـ25" },
-          { fr: "{name}, raconte-nous le premier salaire que tu as gagné.", en: "{name}, tell us about the first paycheck you ever earned.", ar: "{name}، احكِ لنا عن أول راتب ربحته.", bubble_fr: "Mon premier salaire", bubble_en: "My first paycheck", bubble_ar: "أول راتب" }
-        ]
+          {
+            fr: "{name}, raconte-nous le moment de ta carrière dont tu es le plus fier.",
+            en: "{name}, tell us about the career moment you are most proud of.",
+            ar: "{name}، احكِ لنا عن أكثر لحظة في مسيرتك تفخر بها.",
+            bubble_fr: "Ma plus grande fierté pro",
+            bubble_en: "My greatest career pride",
+            bubble_ar: "أكبر فخر مهني",
+            followups_fr: [
+              "Qu'est-ce que tu as accompli exactement ?",
+              "Qui a reconnu ton travail à ce moment-là ?",
+              "Tu aimerais que tes enfants connaissent cette histoire ?",
+            ],
+            followups_en: [
+              "What exactly did you accomplish?",
+              "Who recognized your work at that moment?",
+              "Would you like your children to know this story?",
+            ],
+            followups_ar: [
+              "ما الذي أنجزته بالضبط ؟",
+              "من اعترف بعملك في تلك اللحظة ؟",
+              "هل ترغب أن يعرف أطفالك هذه القصة ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous qui a cru en toi avant que tu croies en toi.",
+            en: "{name}, tell us who believed in you before you believed in yourself.",
+            ar: "{name}، احكِ لنا عن من آمن بك قبل أن تؤمن بنفسك.",
+            bubble_fr: "Celui qui a cru en moi",
+            bubble_en: "Who believed in me",
+            bubble_ar: "من آمن بي",
+            followups_fr: [
+              "Quel était ton rapport avec cette personne ?",
+              "Qu'est-ce qu'il/elle t'a dit ou fait exactement ?",
+              "Tu lui as déjà dit merci depuis ?",
+            ],
+            followups_en: [
+              "What was your relationship with this person?",
+              "What exactly did they say or do?",
+              "Have you thanked them since?",
+            ],
+            followups_ar: ["ما كانت علاقتك بهذا الشخص ؟", "ما الذي قاله أو فعله بالضبط ؟", "هل شكرته منذ ذلك الحين ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous l'erreur professionnelle qui t'a le plus appris.",
+            en: "{name}, tell us about the professional mistake that taught you the most.",
+            ar: "{name}، احكِ لنا عن الخطأ المهني الذي علّمك أكثر.",
+            bubble_fr: "L'erreur qui m'a appris",
+            bubble_en: "The mistake that taught me",
+            bubble_ar: "الخطأ الذي علّمني",
+            followups_fr: [
+              "Qu'est-ce que tu as appris de précis ?",
+              "Tu as refait la même erreur depuis ?",
+              "Tu donnes ce conseil à tes collègues aujourd'hui ?",
+            ],
+            followups_en: [
+              "What exactly did you learn?",
+              "Have you made the same mistake since?",
+              "Do you give this advice to your colleagues today?",
+            ],
+            followups_ar: [
+              "ما الذي تعلمته بالضبط ؟",
+              "هل ارتكبت نفس الخطأ منذ ذلك الحين ؟",
+              "هل تقدم هذه النصيحة لزملائك اليوم ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous ce que tu aurais dit à toi-même à 25 ans.",
+            en: "{name}, tell us what you would say to your 25-year-old self.",
+            ar: "{name}، احكِ لنا ما ستقوله لنفسك في سن الخامسة والعشرين.",
+            bubble_fr: "Ce que je dirais à mes 25 ans",
+            bubble_en: "What I'd tell my 25-year-old self",
+            bubble_ar: "ما سأقوله لنفسي في الـ25",
+            followups_fr: [
+              "C'est un conseil ou un avertissement ?",
+              "Tu penses que tu l'aurais écouté à l'époque ?",
+              "Qu'est-ce que tu voudrais ajouter aujourd'hui ?",
+            ],
+            followups_en: [
+              "Is it advice or a warning?",
+              "Do you think you would have listened back then?",
+              "What would you like to add today?",
+            ],
+            followups_ar: [
+              "هل هي نصيحة أم تحذير ؟",
+              "هل تعتقد أنك كنت ستستمع إليها في ذلك الوقت ؟",
+              "ما الذي تود إضافته اليوم ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le premier salaire que tu as gagné.",
+            en: "{name}, tell us about the first paycheck you ever earned.",
+            ar: "{name}، احكِ لنا عن أول راتب ربحته.",
+            bubble_fr: "Mon premier salaire",
+            bubble_en: "My first paycheck",
+            bubble_ar: "أول راتب",
+            followups_fr: [
+              "Tu as fait quoi avec ?",
+              "Tu as acheté un cadeau pour quelqu'un ?",
+              "Tu ressentais quoi exactement ce jour-là ?",
+            ],
+            followups_en: [
+              "What did you do with it?",
+              "Did you buy a gift for someone?",
+              "What exactly were you feeling that day?",
+            ],
+            followups_ar: ["ماذا فعلت به ؟", "هل اشتريت هدية لأحد ؟", "ما الذي كنت تشعر به بالضبط ذلك اليوم ؟"],
+          },
+        ],
       },
       {
         id: "famille",
@@ -206,12 +1376,114 @@ export const CHAPTERS = [
         en: "Family Time",
         ar: "الوقت العائلي",
         questions: [
-          { fr: "{name}, raconte-nous la fête de famille que tu n'oublieras jamais.", en: "{name}, tell us about the family celebration you will never forget.", ar: "{name}، احكِ لنا عن احتفال عائلي لن تنساه أبداً.", bubble_fr: "La fête inoubliable", bubble_en: "The unforgettable celebration", bubble_ar: "الاحتفال الذي لا يُنسى" },
-          { fr: "{name}, raconte-nous le repas de famille qui te revient toujours.", en: "{name}, tell us about the family meal that always comes back to you.", ar: "{name}، احكِ لنا عن وجبة عائلية تعود إليك دائماً.", bubble_fr: "Le repas qui me revient", bubble_en: "The meal I always remember", bubble_ar: "الوجبة التي تعود إليّ" },
-          { fr: "{name}, raconte-nous la tradition familiale que tu tiens à transmettre.", en: "{name}, tell us about the family tradition you want to pass on.", ar: "{name}، احكِ لنا عن التقليد العائلي الذي تريد توارثه.", bubble_fr: "Notre tradition familiale", bubble_en: "Our family tradition", bubble_ar: "تقليدنا العائلي" },
-          { fr: "{name}, raconte-nous le moment où ta famille t'a surpris.", en: "{name}, tell us about the moment your family surprised you.", ar: "{name}، احكِ لنا عن اللحظة التي فاجأتك فيها عائلتك.", bubble_fr: "La surprise de ma famille", bubble_en: "My family surprise", bubble_ar: "مفاجأة عائلتي" },
-          { fr: "{name}, raconte-nous ce que ta famille t'a appris sur la vie.", en: "{name}, tell us what your family taught you about life.", ar: "{name}، احكِ لنا ما علّمتك إياه عائلتك عن الحياة.", bubble_fr: "La leçon de ma famille", bubble_en: "My family lesson", bubble_ar: "درس عائلتي" }
-        ]
+          {
+            fr: "{name}, raconte-nous la fête de famille que tu n'oublieras jamais.",
+            en: "{name}, tell us about the family celebration you will never forget.",
+            ar: "{name}، احكِ لنا عن احتفال عائلي لن تنساه أبداً.",
+            bubble_fr: "La fête inoubliable",
+            bubble_en: "The unforgettable celebration",
+            bubble_ar: "الاحتفال الذي لا يُنسى",
+            followups_fr: [
+              "C'était pour quelle occasion et où ?",
+              "Qui a fait le truc le plus drôle ou inattendu ?",
+              "Si tu pouvais rassembler les mêmes personnes demain, tu le ferais ?",
+            ],
+            followups_en: [
+              "What was the occasion and where?",
+              "Who did the funniest or most unexpected thing?",
+              "If you could gather the same people tomorrow, would you?",
+            ],
+            followups_ar: [
+              "ما هي المناسبة وأين ؟",
+              "من فعل الشيء الأكثر طرافة أو غير المتوقع ؟",
+              "لو استطعت جمع نفس الأشخاص غداً، هل ستفعل ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous le repas de famille qui te revient toujours.",
+            en: "{name}, tell us about the family meal that always comes back to you.",
+            ar: "{name}، احكِ لنا عن وجبة عائلية تعود إليك دائماً.",
+            bubble_fr: "Le repas qui me revient",
+            bubble_en: "The meal I always remember",
+            bubble_ar: "الوجبة التي تعود إليّ",
+            followups_fr: [
+              "Qui cuisinait et quel plat ?",
+              "Il y avait une place vide à table ou tout le monde était là ?",
+              "Tu pourrais refaire ce plat demain exactement pareil ?",
+            ],
+            followups_en: [
+              "Who was cooking and what dish?",
+              "Was there an empty seat or was everyone there?",
+              "Could you make that exact same dish tomorrow?",
+            ],
+            followups_ar: [
+              "من كان يطبخ وأي طبق ؟",
+              "هل كان هناك مقعد فارغ أم كان الجميع هناك ؟",
+              "هل يمكنك تحضير نفس الطبق بالضبط غداً ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la tradition familiale que tu tiens à transmettre.",
+            en: "{name}, tell us about the family tradition you want to pass on.",
+            ar: "{name}، احكِ لنا عن التقليد العائلي الذي تريد توارثه.",
+            bubble_fr: "Notre tradition familiale",
+            bubble_en: "Our family tradition",
+            bubble_ar: "تقليدنا العائلي",
+            followups_fr: [
+              "Qui a commencé cette tradition ?",
+              "À quelle occasion la pratiquez-vous ?",
+              "Tes enfants l'aiment ou la subissent ?",
+            ],
+            followups_en: [
+              "Who started this tradition?",
+              "On what occasion do you practice it?",
+              "Do your children love it or endure it?",
+            ],
+            followups_ar: ["من بدأ هذا التقليد ؟", "في أي مناسبة تمارسونه ؟", "هل يحبه أطفالك أم يتحملونه ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous le moment où ta famille t'a surpris.",
+            en: "{name}, tell us about the moment your family surprised you.",
+            ar: "{name}، احكِ لنا عن اللحظة التي فاجأتك فيها عائلتك.",
+            bubble_fr: "La surprise de ma famille",
+            bubble_en: "My family surprise",
+            bubble_ar: "مفاجأة عائلتي",
+            followups_fr: [
+              "C'était pour quelle occasion ?",
+              "Comment ils ont organisé ça sans que tu le saches ?",
+              "Tu as réussi à leur rendre la pareille depuis ?",
+            ],
+            followups_en: [
+              "What was the occasion?",
+              "How did they organize it without you knowing?",
+              "Have you managed to return the favor since?",
+            ],
+            followups_ar: ["ما هي المناسبة ؟", "كيف نظموها دون أن تعرف ؟", "هل تمكنت من رد الجميل منذ ذلك الحين ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous ce que ta famille t'a appris sur la vie.",
+            en: "{name}, tell us what your family taught you about life.",
+            ar: "{name}، احكِ لنا ما علّمتك إياه عائلتك عن الحياة.",
+            bubble_fr: "La leçon de ma famille",
+            bubble_en: "My family lesson",
+            bubble_ar: "درس عائلتي",
+            followups_fr: [
+              "C'est une leçon que tu as comprise jeune ou plus tard ?",
+              "Tu la transmets à tes enfants aujourd'hui ?",
+              "Si tu devais la résumer en une phrase, ce serait quoi ?",
+            ],
+            followups_en: [
+              "Is it a lesson you understood young or later?",
+              "Do you pass it on to your children today?",
+              "If you had to sum it up in one sentence, what would it be?",
+            ],
+            followups_ar: [
+              "هل تعلمت هذا الدرس صغيراً أم لاحقاً ؟",
+              "هل تنقله إلى أطفالك اليوم ؟",
+              "لو كان عليك تلخيصه في جملة واحدة، ماذا ستكون ؟",
+            ],
+          },
+        ],
       },
       {
         id: "epreuves",
@@ -220,43 +1492,152 @@ export const CHAPTERS = [
         en: "Challenges",
         ar: "التحديات",
         questions: [
-          { fr: "{name}, raconte-nous l'épreuve qui t'a rendu plus fort.", en: "{name}, tell us about the challenge that made you stronger.", ar: "{name}، احكِ لنا عن التحدي الذي جعلك أقوى.", bubble_fr: "L'épreuve qui m'a forgé", bubble_en: "The challenge that shaped me", bubble_ar: "التحدي الذي صنعني" },
-          { fr: "{name}, raconte-nous le moment où tu as voulu abandonner mais tu as continué.", en: "{name}, tell us about the moment you wanted to quit but kept going.", ar: "{name}، احكِ لنا عن اللحظة التي أردت فيها الاستسلام لكنك تابعت.", bubble_fr: "J'ai failli abandonner", bubble_en: "I almost gave up", bubble_ar: "كدت أستسلم" },
-          { fr: "{name}, raconte-nous la décision la plus difficile de ta vie.", en: "{name}, tell us about the hardest decision you ever made.", ar: "{name}، احكِ لنا عن أصعب قرار اتخذته في حياتك.", bubble_fr: "Ma décision la plus difficile", bubble_en: "My hardest decision", bubble_ar: "أصعب قراراتي" },
-          { fr: "{name}, raconte-nous ce que la difficulté t'a appris sur toi.", en: "{name}, tell us what hardship taught you about yourself.", ar: "{name}، احكِ لنا ما علّمتك الصعوبة عن نفسك.", bubble_fr: "Ce que la difficulté m'a appris", bubble_en: "What hardship taught me", bubble_ar: "ما علّمتني الصعوبة" },
-          { fr: "{name}, raconte-nous la personne qui t'a aidé dans ton moment le plus sombre.", en: "{name}, tell us about the person who helped you in your darkest moment.", ar: "{name}، احكِ لنا عن الشخص الذي ساعدك في أصعب لحظاتك.", bubble_fr: "Celui qui m'a sauvé", bubble_en: "Who saved me", bubble_ar: "من أنقذني" }
-        ]
-      }
-    ]
+          {
+            fr: "{name}, raconte-nous l'épreuve qui t'a rendu plus fort.",
+            en: "{name}, tell us about the challenge that made you stronger.",
+            ar: "{name}، احكِ لنا عن التحدي الذي جعلك أقوى.",
+            bubble_fr: "L'épreuve qui m'a forgé",
+            bubble_en: "The challenge that shaped me",
+            bubble_ar: "التحدي الذي صنعني",
+            followups_fr: [
+              "Qu'est-ce qui s'est passé exactement ?",
+              "Qui t'a aidé ou tu as été seul ?",
+              "Tu referais le même choix aujourd'hui ?",
+            ],
+            followups_en: [
+              "What exactly happened?",
+              "Who helped you or were you alone?",
+              "Would you make the same choice today?",
+            ],
+            followups_ar: ["ما الذي حدث بالضبط ؟", "من ساعدك أم كنت بمفردك ؟", "هل ستتخذ القرار نفسه اليوم ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous le moment où tu as voulu abandonner mais tu as continué.",
+            en: "{name}, tell us about the moment you wanted to quit but kept going.",
+            ar: "{name}، احكِ لنا عن اللحظة التي أردت فيها الاستسلام لكنك تابعت.",
+            bubble_fr: "J'ai failli abandonner",
+            bubble_en: "I almost gave up",
+            bubble_ar: "كدت أستسلم",
+            followups_fr: [
+              "Qu'est-ce qui t'a retenu au dernier moment ?",
+              "Une personne en particulier t'a redonné du courage ?",
+              "Tu es content d'avoir continué aujourd'hui ?",
+            ],
+            followups_en: [
+              "What held you back at the last moment?",
+              "Did a particular person give you courage again?",
+              "Are you glad you continued today?",
+            ],
+            followups_ar: [
+              "ما الذي منعك في اللحظة الأخيرة ؟",
+              "هل أعاد لك شخص معين الشجاعة ؟",
+              "هل أنت سعيد لأنك واصلت اليوم ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la décision la plus difficile de ta vie.",
+            en: "{name}, tell us about the hardest decision you ever made.",
+            ar: "{name}، احكِ لنا عن أصعب قرار اتخذته في حياتك.",
+            bubble_fr: "Ma décision la plus difficile",
+            bubble_en: "My hardest decision",
+            bubble_ar: "أصعب قراراتي",
+            followups_fr: [
+              "Tu as pris combien de temps pour décider ?",
+              "Qui as-tu consulté avant ou personne ?",
+              "Aujourd'hui, tu referais le même choix ?",
+            ],
+            followups_en: [
+              "How long did it take you to decide?",
+              "Who did you consult or no one?",
+              "Today, would you make the same choice?",
+            ],
+            followups_ar: ["كم استغرق منك الوقت لتقرر ؟", "من استشرت أم لا أحد ؟", "اليوم، هل ستتخذ القرار نفسه ؟"],
+          },
+          {
+            fr: "{name}, raconte-nous ce que la difficulté t'a appris sur toi.",
+            en: "{name}, tell us what hardship taught you about yourself.",
+            ar: "{name}، احكِ لنا ما علّمتك الصعوبة عن نفسك.",
+            bubble_fr: "Ce que la difficulté m'a appris",
+            bubble_en: "What hardship taught me",
+            bubble_ar: "ما علّمتني الصعوبة",
+            followups_fr: [
+              "Tu t'es découvert une force que tu ne connaissais pas ?",
+              "Tu as changé quelque chose dans ta vie après ça ?",
+              "Tu aimerais que tes enfants apprennent la même chose ?",
+            ],
+            followups_en: [
+              "Did you discover a strength you didn't know you had?",
+              "Did you change something in your life after that?",
+              "Would you like your children to learn the same thing?",
+            ],
+            followups_ar: [
+              "هل اكتشفت قوة لم تكن تعرفها في نفسك ؟",
+              "هل غيرت شيئاً في حياتك بعد ذلك ؟",
+              "هل ترغب أن يتعلم أطفالك الشيء نفسه ؟",
+            ],
+          },
+          {
+            fr: "{name}, raconte-nous la personne qui t'a aidé dans ton moment le plus sombre.",
+            en: "{name}, tell us about the person who helped you in your darkest moment.",
+            ar: "{name}، احكِ لنا عن الشخص الذي ساعدك في أصعب لحظاتك.",
+            bubble_fr: "Celui qui m'a sauvé",
+            bubble_en: "Who saved me",
+            bubble_ar: "من أنقذني",
+            followups_fr: [
+              "Quel était votre lien avec cette personne ?",
+              "Qu'est-ce qu'il/elle a fait de précis qui t'a aidé ?",
+              "Tu lui as dit merci depuis ?",
+            ],
+            followups_en: [
+              "What was your connection to this person?",
+              "What exactly did they do that helped you?",
+              "Have you thanked them since?",
+            ],
+            followups_ar: [
+              "ما كانت علاقتك بهذا الشخص ؟",
+              "ما الذي فعله بالضبط مما ساعدك ؟",
+              "هل شكرته منذ ذلك الحين ؟",
+            ],
+          },
+        ],
+      },
+    ],
   },
-  {
-    id: "maturite",
-    icon: "🌅",
-    fr: "Maturité",
-    en: "Legacy",
-    ar: "الحكمة",
-    age_fr: "50 ans et plus",
-    age_en: "50 years and over",
-    age_ar: "٥٠ سنة وما فوق",
-    tagline_fr: "Ce que tu transmets",
-    tagline_en: "What will outlive you",
-    tagline_ar: "ما سيبقى بعدك",
-    color: "#D4AF37",
-    categories: [
-      {
-        id: "grands_parents",
-        icon: "👴",
-        fr: "Grands-parents",
-        en: "Being a Grandparent",
-        ar: "الجد والجدة",
-        questions: [
-          { fr: "{name}, raconte-nous ce que tes petits-enfants t'ont appris.", en: "{name}, tell us what your grandchildren taught you.", ar: "{name}، احكِ لنا ما علّمك إياه أحفادك.", bubble_fr: "Ce que mes petits-enfants m'ont appris", bubble_en: "What my grandchildren taught me", bubble_ar: "ما علّمني أحفادي" },
-          { fr: "{name}, raconte-nous le moment le plus précieux avec un petit-enfant.", en: "{name}, tell us about the most precious moment with a grandchild.", ar: "{name}، احكِ لنا عن أثمن لحظة مع أحد أحفادك.", bubble_fr: "Mon trésor avec mes petits-enfants", bubble_en: "My treasure with grandchildren", bubble_ar: "كنزي مع أحفادي" },
-          { fr: "{name}, raconte-nous l'histoire que tu veux absolument leur raconter.", en: "{name}, tell us the story you absolutely want to tell your grandchildren.", ar: "{name}، احكِ لنا القصة التي تريد بالتأكيد أن ترويها لأحفادك.", bubble_fr: "L'histoire que je dois leur raconter", bubble_en: "The story I must tell them", bubble_ar: "القصة التي يجب أن أرويها" },
-          { fr: "{name}, raconte-nous ce que tu veux qu'ils retiennent de toi.", en: "{name}, tell us what you want them to remember about you.", ar: "{name}، احكِ لنا ما تريد أن يتذكروه عنك.", bubble_fr: "Ce qu'ils retiendront de moi", bubble_en: "What they will remember", bubble_ar: "ما سيتذكرونه عني" },
-          { fr: "{name}, raconte-nous comment tu vois le monde à travers leurs yeux.", en: "{name}, tell us how you see the world through their eyes.", ar: "{name}، احكِ لنا كيف ترى العالم من خلال عيونهم.", bubble_fr: "Le monde à travers leurs yeux", bubble_en: "World through their eyes", bubble_ar: "العالم من خلال عيونهم" }
-        ]
-      }
-    ]
-  }
 ];
+
+export type Question = {
+  fr: string;
+  en: string;
+  ar: string;
+  bubble_fr: string;
+  bubble_en: string;
+  bubble_ar: string;
+  followups_fr: string[];
+  followups_en: string[];
+  followups_ar: string[];
+};
+
+export type Category = {
+  id: string;
+  icon: string;
+  fr: string;
+  en: string;
+  ar: string;
+  questions: Question[];
+};
+
+export type Chapter = {
+  id: string;
+  icon: string;
+  fr: string;
+  en: string;
+  ar: string;
+  age_fr: string;
+  age_en: string;
+  age_ar: string;
+  tagline_fr: string;
+  tagline_en: string;
+  tagline_ar: string;
+  color: string;
+  categories: Category[];
+};
