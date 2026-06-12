@@ -65,80 +65,6 @@ const imageUrlToBlob = async (src: string): Promise<Blob> => {
   return res.blob();
 };
 
-const FOLLOWUP_QUESTIONS = {
-  en: {
-    childhood: [
-      "Who made that moment feel safe?",
-      "What did that place smell like?",
-      "Do your children know this story?",
-    ],
-    family: [
-      "What did that person teach you without words?",
-      "When did you last tell them what they mean to you?",
-      "What part of them lives in you today?",
-    ],
-    loss: [
-      "What do you wish you had said?",
-      "What did they leave behind in you?",
-      "Who carries their memory with you?",
-    ],
-    default: [
-      "Who else was there in that memory?",
-      "What would you tell that version of yourself?",
-      "Is there someone who needs to hear this story?",
-    ],
-  },
-  fr: {
-    childhood: [
-      "Qui a rendu ce moment sûr ?",
-      "Quelle odeur avait cet endroit ?",
-      "Vos enfants connaissent-ils cette histoire ?",
-    ],
-    family: [
-      "Que vous a appris cette personne sans mots ?",
-      "Quand lui avez-vous dit ce qu'elle représente pour vous ?",
-      "Quelle part d'elle vit en vous aujourd'hui ?",
-    ],
-    loss: ["Qu'auriez-vous voulu dire ?", "Que vous ont-ils laissé en vous ?", "Qui porte leur mémoire avec vous ?"],
-    default: [
-      "Qui d'autre était là dans ce souvenir ?",
-      "Que diriez-vous à cette version de vous-même ?",
-      "Y a-t-il quelqu'un qui a besoin d'entendre cette histoire ?",
-    ],
-  },
-  ar: {
-    childhood: ["من جعل تلك اللحظة آمنة؟", "كيف كانت رائحة ذلك المكان؟", "هل يعرف أطفالك هذه القصة؟"],
-    family: ["ماذا علّمتك هذه الشخصية دون كلام؟", "متى أخبرتها آخر مرة بما تعنيه لك؟", "أي جزء منها يعيش فيك اليوم؟"],
-    loss: ["ما الذي تمنيت قوله؟", "ماذا تركوا فيك؟", "من يحمل ذكراهم معك؟"],
-    default: ["من آخر كان في تلك الذكرى؟", "ماذا ستقول لتلك النسخة من نفسك؟", "هل هناك من يحتاج أن يسمع هذه القصة؟"],
-  },
-};
-
-const getTheme = (q: string): string => {
-  const lq = q.toLowerCase();
-  if (lq.includes("child") || lq.includes("home") || lq.includes("enfance") || lq.includes("طفل") || lq.includes("بيت"))
-    return "childhood";
-  if (
-    lq.includes("mother") ||
-    lq.includes("father") ||
-    lq.includes("family") ||
-    lq.includes("mère") ||
-    lq.includes("père") ||
-    lq.includes("أم") ||
-    lq.includes("أب")
-  )
-    return "family";
-  if (lq.includes("lost") || lq.includes("miss") || lq.includes("gone") || lq.includes("perdu") || lq.includes("فقد"))
-    return "loss";
-  return "default";
-};
-
-const estimateFileSize = (s: number, audio: boolean): string => {
-  const b = audio ? (AUDIO_BITRATE / 8) * s : ((VIDEO_BITRATE + AUDIO_BITRATE) / 8) * s;
-  const mb = b / (1024 * 1024);
-  return mb < 1 ? Math.round(mb * 1000) + " KB" : mb.toFixed(1) + " MB";
-};
-
 const capturePosterFrame = (el: HTMLVideoElement): Promise<Blob | null> =>
   new Promise((r) => {
     try {
@@ -168,11 +94,43 @@ type Stage =
   | "title"
   | "visibility"
   | "share";
+
 interface MemoryClip {
   blob: Blob;
   question: string;
   posterBlob: Blob | null;
 }
+
+const getFollowupsFromQuestion = (questionText: string, lang: string, name: string): string[] => {
+  for (const chapter of CHAPTERS) {
+    for (const category of chapter.categories) {
+      for (const q of category.questions) {
+        const qText = q.fr.replace("{name}", "").trim();
+        const inputText = questionText.replace(name, "").trim();
+        if (qText === inputText || q.en.replace("{name}", "").trim() === inputText) {
+          const langKey = lang as "fr" | "en" | "ar";
+          const followupsKey = `followups_${langKey}` as keyof typeof q;
+          return (q[followupsKey] as string[]) || [];
+        }
+      }
+    }
+  }
+  if (lang === "fr") {
+    return [
+      "Qui était là avec toi à ce moment-là ?",
+      "C'est quoi le détail que tu n'as jamais oublié ?",
+      "Qu'est-ce que ce souvenir t'a appris sur toi ?",
+    ];
+  } else if (lang === "ar") {
+    return ["مَن كان معك في تلك اللحظة؟", "ما التفصيل الذي لم تنسَه أبداً؟", "ماذا علّمك هذا الذكرى عن نفسك؟"];
+  } else {
+    return [
+      "Who was with you at that moment?",
+      "What's the detail you've never forgotten?",
+      "What did this memory teach you about yourself?",
+    ];
+  }
+};
 
 const Record = () => {
   const navigate = useNavigate();
@@ -208,7 +166,7 @@ const Record = () => {
   const [mr, setMR] = useState<MediaRecorder | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [countdown, setCountdown] = useState(3);
-  const [followIdx, setFollowIdx] = useState(0);
+  const [followupIdx, setFollowIdx] = useState(0);
   const [memoryTitle, setTitle] = useState("");
   const [audioMode, setAudioMode] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -222,38 +180,39 @@ const Record = () => {
   const [customThumb, setCustomThumb] = useState<string | null>(null);
   const [useAsAura, setUseAsAura] = useState(false);
 
-  // Follow-up questions states
-  const [currentFollowup, setCurrentFollowup] = useState(0);
   const [followupQuestions, setFollowupQuestions] = useState<string[]>([]);
 
   const question = loc.state?.question || "What smell instantly brings you back to your childhood home?";
-  const theme = getTheme(question);
-  const followups =
-    FOLLOWUP_QUESTIONS[lang as keyof typeof FOLLOWUP_QUESTIONS]?.[theme as keyof typeof FOLLOWUP_QUESTIONS.en] ??
-    FOLLOWUP_QUESTIONS.en.default;
   const thumbCards = getThematicCards(question);
   const auraBackground = useAsAura ? customThumb || thumbCards[selectedThumb] : null;
 
-  // Follow-up timer pendant l'enregistrement
   useEffect(() => {
-    if (stage === "recording" && followupQuestions.length > 0 && currentFollowup === 0) {
-      const t1 = setTimeout(() => setCurrentFollowup(1), 20000);
-      const t2 = setTimeout(() => setCurrentFollowup(2), 45000);
-      const t3 = setTimeout(() => setCurrentFollowup(3), 70000);
+    const displayName = userName || (lang === "fr" ? "ami(e)" : lang === "ar" ? "صديقي" : "friend");
+    const followups = getFollowupsFromQuestion(question, lang, displayName);
+    setFollowupQuestions(followups);
+  }, [question, lang, userName]);
+
+  useEffect(() => {
+    if (stage === "recording" && followupQuestions.length > 0) {
+      const t1 = setTimeout(() => setFollowIdx(1), 20000);
+      const t2 = setTimeout(() => setFollowIdx(2), 45000);
+      const t3 = setTimeout(() => setFollowIdx(3), 70000);
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
         clearTimeout(t3);
       };
     }
-  }, [stage, followupQuestions, currentFollowup]);
+  }, [stage, followupQuestions]);
 
   useEffect(() => {
     if (loc.state?.fromSpark) fromSparkRef.current = true;
   }, [loc.state]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setHasSession(!!session));
   }, []);
+
   useEffect(() => {
     return () => {
       stream?.getTracks().forEach((t) => t.stop());
@@ -264,6 +223,7 @@ const Record = () => {
       if (posterTimerRef.current) clearTimeout(posterTimerRef.current);
     };
   }, [stream, localUrl]);
+
   useEffect(() => {
     if (!audioMode || stage !== "recording") return;
     const c = canvasRef.current;
@@ -293,6 +253,7 @@ const Record = () => {
     d();
     return () => cancelAnimationFrame(animRef.current);
   }, [audioMode, stage]);
+
   useEffect(() => {
     if (stage === "preview" && previewReady && !audioMode && videoRef.current && localUrl) {
       videoRef.current.srcObject = null;
@@ -353,11 +314,10 @@ const Record = () => {
 
   const startCountdown = (ff = false) => {
     followupRef.current = ff;
-    const q = ff ? followups[Math.min(followIdx, followups.length - 1)] : question;
+    const q = ff ? followupQuestions[Math.min(followupIdx, followupQuestions.length - 1)] : question;
     questionRef.current = q;
     setStage("countdown");
     setCountdown(3);
-    setCurrentFollowup(0);
     const tmr = setInterval(() => {
       setCountdown((p) => {
         if (p === 1) {
@@ -418,12 +378,14 @@ const Record = () => {
     };
     mr.stop();
   };
+
   const handleRetake = () => {
     if (localUrl) URL.revokeObjectURL(localUrl);
     setLocalUrl(null);
     chunksRef.current = [];
     setStage("question");
   };
+
   const handleUpload = () => {
     if (!localBlob) return;
     setPreviewReady(false);
@@ -769,6 +731,12 @@ const Record = () => {
     URL.revokeObjectURL(u);
   };
 
+  const estimateFileSize = (s: number, audio: boolean): string => {
+    const b = audio ? (AUDIO_BITRATE / 8) * s : ((VIDEO_BITRATE + AUDIO_BITRATE) / 8) * s;
+    const mb = b / (1024 * 1024);
+    return mb < 1 ? Math.round(mb * 1000) + " KB" : mb.toFixed(1) + " MB";
+  };
+
   const formatTime = (s: number) => Math.floor(s / 60) + ":" + (s % 60).toString().padStart(2, "0");
   const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
@@ -792,13 +760,8 @@ const Record = () => {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes floatPulse {
-          0%, 100% { transform: scale(1); opacity: 0.8; }
-          50% { transform: scale(1.02); opacity: 1; }
-        }
       `}</style>
 
-      {/* FOND PENDANT L'ENREGISTREMENT */}
       {stage === "recording" && (
         <div className="absolute inset-0 z-0">
           {auraBackground ? (
@@ -833,7 +796,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* Preview et autres stages */}
       {!audioMode && stage !== "recording" && stage !== "preview" && (
         <video
           ref={videoRef}
@@ -856,7 +818,6 @@ const Record = () => {
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-      {/* QUESTION PRINCIPALE EN OVERLAY (pendant recording) */}
       {stage === "recording" && (
         <div
           style={{
@@ -885,7 +846,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* INDICATEUR D'ENREGISTREMENT */}
       {stage === "recording" && (
         <div
           style={{
@@ -929,8 +889,7 @@ const Record = () => {
         </div>
       )}
 
-      {/* SOUS-QUESTIONS PENDANT L'ENREGISTREMENT */}
-      {stage === "recording" && currentFollowup > 0 && currentFollowup <= followupQuestions.length && (
+      {stage === "recording" && followupIdx > 0 && followupIdx <= followupQuestions.length && (
         <div
           style={{
             position: "absolute",
@@ -966,33 +925,11 @@ const Record = () => {
               lineHeight: 1.5,
             }}
           >
-            {followupQuestions[currentFollowup - 1]}
+            {followupQuestions[followupIdx - 1]}
           </p>
         </div>
       )}
 
-      {/* TIMER PENDANT RECORDING (optionnel, pour l'ambiance) */}
-      {stage === "recording" && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "200px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "rgba(0,0,0,0.5)",
-            borderRadius: "999px",
-            padding: "4px 12px",
-            fontSize: "12px",
-            fontFamily: "monospace",
-            color: timerColor,
-            zIndex: 5,
-          }}
-        >
-          {formatTime(elapsed)} / 3:00
-        </div>
-      )}
-
-      {/* BOUTON STOP ÉNORME */}
       {stage === "recording" && (
         <button
           onClick={handleStop}
@@ -1034,7 +971,6 @@ const Record = () => {
         </button>
       )}
 
-      {/* VISUALISEUR AUDIO PENDANT RECORDING */}
       {stage === "recording" && audioMode && (
         <div
           style={{
@@ -1051,7 +987,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* Header pour les autres stages */}
       <div className="relative z-10 p-6 flex justify-between items-center">
         <button
           onClick={() => {
@@ -1079,7 +1014,6 @@ const Record = () => {
         </div>
       </div>
 
-      {/* STAGE QUESTION */}
       {stage === "question" && (
         <>
           <div
@@ -1152,7 +1086,6 @@ const Record = () => {
         </>
       )}
 
-      {/* STAGE COUNTDOWN */}
       {stage === "countdown" && (
         <div className="relative z-20 flex-1 flex items-center justify-center">
           <div
@@ -1166,7 +1099,82 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE PREVIEW */}
+      {stage === "followup" && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "linear-gradient(135deg, #2D1810 0%, #8B4513 50%, #D4621A 100%)",
+            padding: "24px",
+            textAlign: "center",
+            zIndex: 20,
+          }}
+        >
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 800,
+              letterSpacing: "0.3em",
+              color: "rgba(255,210,80,0.7)",
+              textTransform: "uppercase",
+              marginBottom: "24px",
+            }}
+          >
+            {followupIdx + 1} / {followupQuestions.length}
+          </p>
+          <p
+            style={{
+              fontSize: "20px",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              color: "#fff",
+              lineHeight: 1.6,
+              maxWidth: "340px",
+              marginBottom: "48px",
+            }}
+          >
+            "{followupQuestions[followupIdx]}"
+          </p>
+          <button
+            onClick={() => {
+              if (followupIdx < followupQuestions.length - 1) {
+                setFollowIdx(followupIdx + 1);
+                setStage("recording");
+              } else {
+                setStage("title");
+              }
+            }}
+            style={{
+              padding: "16px 32px",
+              borderRadius: "999px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "16px",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+            }}
+          >
+            {followupIdx < followupQuestions.length - 1
+              ? lang === "fr"
+                ? "Question suivante →"
+                : lang === "ar"
+                  ? "السؤال التالي →"
+                  : "Next question →"
+              : lang === "fr"
+                ? "Terminer ✓"
+                : lang === "ar"
+                  ? "إنهاء ✓"
+                  : "Finish ✓"}
+          </button>
+        </div>
+      )}
+
       {stage === "preview" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
@@ -1208,7 +1216,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE UPLOADING */}
       {stage === "uploading" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center gap-6">
           <Loader2 size={48} className="text-[#E8742A] animate-spin" />
@@ -1217,7 +1224,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE THUMBNAIL */}
       {stage === "thumbnail" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
@@ -1340,7 +1346,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE TITLE */}
       {stage === "title" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.memoryReady}</p>
@@ -1362,7 +1367,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE VISIBILITY */}
       {stage === "visibility" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
@@ -1421,7 +1425,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE SHARE */}
       {stage === "share" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
