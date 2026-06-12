@@ -182,17 +182,43 @@ const Record = () => {
 
   const [followupQuestions, setFollowupQuestions] = useState<string[]>([]);
 
-  const question = loc.state?.question || "What smell instantly brings you back to your childhood home?";
+  // Récupérer la question pré-sélectionnée depuis la navigation
+  const location = useLocation();
+  const preSelected = location.state?.preSelectedQuestion;
+  const inspiredBy = location.state?.inspiredBy;
+  const replyTo = location.state?.replyTo;
+
+  // Si une question est pré-sélectionnée, l'utiliser
+  const initialQuestion = preSelected
+    ? lang === "fr"
+      ? preSelected.fr
+      : lang === "ar"
+        ? preSelected.ar
+        : preSelected.en
+    : loc.state?.question || "What smell instantly brings you back to your childhood home?";
+
+  const question = initialQuestion;
   const thumbCards = getThematicCards(question);
   const auraBackground = useAsAura ? customThumb || thumbCards[selectedThumb] : null;
 
+  // Charger les follow-ups spécifiques
   useEffect(() => {
     const displayName = userName || (lang === "fr" ? "ami(e)" : lang === "ar" ? "صديقي" : "friend");
     const followups = getFollowupsFromQuestion(question, lang, displayName);
     setFollowupQuestions(followups);
   }, [question, lang, userName]);
 
-  // CORRECTION : Les timers persistent pendant tout l'enregistrement
+  // Si question pré-sélectionnée, démarrer l'enregistrement directement
+  useEffect(() => {
+    if (preSelected && stage === "question") {
+      // Démarrer l'enregistrement automatiquement
+      setAudioMode(true);
+      startMedia(true);
+      setTimeout(() => startCountdown(false), 500);
+    }
+  }, [preSelected, stage]);
+
+  // Timer pour les follow-ups pendant l'enregistrement
   useEffect(() => {
     let t1: ReturnType<typeof setTimeout> | null = null;
     let t2: ReturnType<typeof setTimeout> | null = null;
@@ -733,7 +759,6 @@ const Record = () => {
   const formatTime = (s: number) => Math.floor(s / 60) + ":" + (s % 60).toString().padStart(2, "0");
   const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
-  // Récupérer le nombre de Sparks pour l'affichage
   const sparkBalance = Number(localStorage.getItem("infeelit_spark_balance") || 0);
 
   return (
@@ -798,7 +823,7 @@ const Record = () => {
           autoPlay
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 opacity-20"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${stage === "recording" ? "opacity-80" : "opacity-20"}`}
         />
       )}
       {stage === "preview" && !audioMode && (
@@ -813,6 +838,46 @@ const Record = () => {
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
+
+      {/* Affichage de la question source quand on répond à un souvenir */}
+      {replyTo && preSelected && stage === "recording" && (
+        <div
+          style={{
+            position: "absolute",
+            top: "56px",
+            left: "16px",
+            right: "16px",
+            padding: "10px 14px",
+            background: "rgba(0,0,0,0.6)",
+            borderRadius: "12px",
+            backdropFilter: "blur(8px)",
+            zIndex: 5,
+          }}
+        >
+          <p
+            style={{
+              fontSize: "10px",
+              color: "rgba(232,116,42,0.7)",
+              letterSpacing: "0.15em",
+              marginBottom: "4px",
+              fontFamily: "system-ui",
+            }}
+          >
+            {lang === "fr" ? "Ta réponse à :" : lang === "ar" ? "ردّك على:" : "Your answer to:"}
+          </p>
+          <p
+            style={{
+              fontSize: "14px",
+              color: "#fff",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              lineHeight: 1.4,
+            }}
+          >
+            {lang === "fr" ? preSelected.fr : lang === "ar" ? preSelected.ar : preSelected.en}
+          </p>
+        </div>
+      )}
 
       {stage === "recording" && (
         <div
@@ -1421,7 +1486,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* STAGE SHARE — NOUVEAU DESIGN AVEC MEMORY CARD */}
       {stage === "share" && (
         <div
           style={{
@@ -1437,7 +1501,6 @@ const Record = () => {
             zIndex: 20,
           }}
         >
-          {/* Titre */}
           <div style={{ textAlign: "center", marginBottom: "8px" }}>
             <p
               style={{
@@ -1468,7 +1531,6 @@ const Record = () => {
             </p>
           </div>
 
-          {/* La Carte Mémoire */}
           <MemoryCard
             ref={cardRef}
             title={memoryTitle || "Mon souvenir"}
@@ -1477,7 +1539,6 @@ const Record = () => {
             lang={lang as "fr" | "en" | "ar"}
           />
 
-          {/* Boutons */}
           <div
             style={{
               width: "100%",
@@ -1488,7 +1549,6 @@ const Record = () => {
               marginTop: "8px",
             }}
           >
-            {/* Bouton WhatsApp principal */}
             <button
               onClick={generateAndShareCard}
               style={{
@@ -1512,7 +1572,6 @@ const Record = () => {
               {lang === "fr" ? "Envoyer à ma famille" : lang === "ar" ? "أرسل لعائلتي" : "Send to my family"}
             </button>
 
-            {/* Bouton retour au feed */}
             <button
               onClick={() => navigate("/")}
               style={{
