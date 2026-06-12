@@ -68,8 +68,11 @@ export default function ActionBar({
     setTimeout(() => setShowAnimation(false), 800);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
       await supabase.from("memory_sparks").insert({
         memory_id: memoryId,
+        user_id: user.id,
         user_name: userName || "anonymous",
       });
       await supabase
@@ -97,9 +100,12 @@ export default function ActionBar({
   const handleBookmark = async () => {
     setBookmarked((b) => !b);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
       if (!bookmarked) {
         await supabase.from("memory_bookmarks").insert({
           memory_id: memoryId,
+          user_id: user.id,
           user_name: userName || "anonymous",
         });
       } else {
@@ -107,7 +113,7 @@ export default function ActionBar({
           .from("memory_bookmarks")
           .delete()
           .eq("memory_id", memoryId)
-          .eq("user_name", userName || "anonymous");
+          .eq("user_id", user.id);
       }
     } catch (err) {
       console.error(err);
