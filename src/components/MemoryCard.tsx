@@ -3,15 +3,32 @@ import { forwardRef } from "react";
 interface MemoryCardProps {
   title: string;
   authorName: string;
-  city?: string;
-  familyName?: string;
   memoryNumber?: number;
-  backgroundImage?: string;
+  backgroundGradient?: string;
   lang: "fr" | "en" | "ar";
 }
 
 const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
-  ({ title, authorName, city, familyName, memoryNumber, backgroundImage, lang }, ref) => {
+  ({ title, authorName, memoryNumber, backgroundGradient, lang }, ref) => {
+    // Couper le titre pour créer l'open loop
+    const getTruncatedTitle = (text: string) => {
+      if (!text) return "Un souvenir…";
+      if (text.length <= 40) return text + "…";
+      const cutPoint = Math.floor(text.length * 0.6);
+      const lastSpace = text.lastIndexOf(" ", cutPoint);
+      return text.slice(0, lastSpace > 20 ? lastSpace : cutPoint) + "…";
+    };
+
+    const truncated = getTruncatedTitle(title);
+
+    const gradient = backgroundGradient || "linear-gradient(135deg, #2D1810 0%, #8B4513 40%, #E8742A 100%)";
+
+    const counterLabel = {
+      fr: `Souvenir nº${memoryNumber || 1}`,
+      en: `Memory nº${memoryNumber || 1}`,
+      ar: `ذكرى رقم ${memoryNumber || 1}`,
+    }[lang];
+
     return (
       <div
         ref={ref}
@@ -21,33 +38,21 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
           borderRadius: "24px",
           overflow: "hidden",
           position: "relative",
-          background: "#FDF8F0",
+          background: gradient,
           fontFamily: "Georgia, serif",
+          flexShrink: 0,
         }}
       >
-        {backgroundImage && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: `url(${backgroundImage})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: "blur(8px) brightness(0.6) sepia(30%)",
-            }}
-          />
-        )}
-
+        {/* Overlay texture */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: backgroundImage
-              ? "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)"
-              : "linear-gradient(135deg, #FDF8F0 0%, #F0E6D3 100%)",
+            background: "radial-gradient(ellipse at 30% 20%, rgba(255,200,80,0.15) 0%, transparent 60%)",
           }}
         />
 
+        {/* Contenu */}
         <div
           style={{
             position: "relative",
@@ -59,6 +64,7 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
             padding: "28px 24px",
           }}
         >
+          {/* Logo en haut */}
           <div
             style={{
               display: "flex",
@@ -68,49 +74,52 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
           >
             <span
               style={{
-                fontSize: "14px",
-                fontWeight: 700,
-                color: backgroundImage ? "#fff" : "#E8742A",
-                letterSpacing: "0.15em",
+                fontSize: "13px",
+                fontWeight: 900,
+                color: "rgba(255,210,80,0.9)",
+                letterSpacing: "0.25em",
+                fontFamily: "system-ui, sans-serif",
               }}
             >
               INFEELIT
             </span>
             <span
               style={{
-                fontSize: "12px",
-                color: backgroundImage ? "rgba(255,255,255,0.5)" : "rgba(232,116,42,0.5)",
+                fontSize: "11px",
+                color: "rgba(255,210,80,0.5)",
               }}
             >
               ✦
             </span>
           </div>
 
+          {/* Titre coupé — le cœur de la viralité */}
           <div>
             <p
               style={{
                 fontSize: "22px",
                 fontStyle: "italic",
-                color: backgroundImage ? "#fff" : "#3D2B1F",
-                lineHeight: 1.4,
-                marginBottom: "16px",
+                color: "#fff",
+                lineHeight: 1.45,
+                marginBottom: "12px",
+                textShadow: "0 2px 8px rgba(0,0,0,0.3)",
               }}
             >
-              "{title.length > 80 ? title.slice(0, 80) + "…" : title}"
+              "{truncated}"
             </p>
-
             <p
               style={{
                 fontSize: "12px",
-                color: backgroundImage ? "rgba(255,255,255,0.7)" : "rgba(61,43,31,0.5)",
+                color: "rgba(255,255,255,0.6)",
                 fontStyle: "normal",
+                fontFamily: "system-ui, sans-serif",
               }}
             >
               — {authorName}
-              {city ? ` · ${city}` : ""}
             </p>
           </div>
 
+          {/* Bas de carte */}
           <div
             style={{
               display: "flex",
@@ -118,26 +127,21 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
               alignItems: "center",
             }}
           >
-            {memoryNumber !== undefined && (
-              <p
-                style={{
-                  fontSize: "10px",
-                  color: backgroundImage ? "rgba(255,255,255,0.4)" : "rgba(61,43,31,0.3)",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                {lang === "fr"
-                  ? `Souvenir nº${memoryNumber}`
-                  : lang === "ar"
-                    ? `ذكرى رقم ${memoryNumber}`
-                    : `Memory nº${memoryNumber}`}
-                {familyName ? ` · ${lang === "fr" ? "Famille" : "Family"} ${familyName}` : ""}
-              </p>
-            )}
+            <p
+              style={{
+                fontSize: "10px",
+                color: "rgba(255,255,255,0.35)",
+                letterSpacing: "0.08em",
+                fontFamily: "system-ui, sans-serif",
+              }}
+            >
+              {counterLabel}
+            </p>
             <p
               style={{
                 fontSize: "9px",
-                color: backgroundImage ? "rgba(255,255,255,0.3)" : "rgba(61,43,31,0.2)",
+                color: "rgba(255,255,255,0.25)",
+                fontFamily: "system-ui, sans-serif",
               }}
             >
               infeelit.com
@@ -150,5 +154,4 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
 );
 
 MemoryCard.displayName = "MemoryCard";
-
 export default MemoryCard;
