@@ -122,7 +122,7 @@ const getFollowupsFromQuestion = (questionText: string, lang: string, name: stri
       "Qu'est-ce que ce souvenir t'a appris sur toi ?",
     ];
   } else if (lang === "ar") {
-    return ["مَن كان معك في تلك اللحظة؟", "ما التفصيل الذي لم تنسَه أبداً؟", "ماذا علّمك هذا الذكرى عن نفسك؟"];
+    return ["مَن كان معك في تلك اللحظة؟", "ما التفصيل الذي لم تنسَه أبداً؟", "ماذا علّمك هذا الذكرى عن نفسك?"];
   } else {
     return [
       "Who was with you at that moment?",
@@ -192,18 +192,24 @@ const Record = () => {
     setFollowupQuestions(followups);
   }, [question, lang, userName]);
 
+  // CORRECTION : Les timers persistent pendant tout l'enregistrement
   useEffect(() => {
-    if (stage === "recording" && followupQuestions.length > 0) {
-      const t1 = setTimeout(() => setFollowIdx(1), 20000);
-      const t2 = setTimeout(() => setFollowIdx(2), 45000);
-      const t3 = setTimeout(() => setFollowIdx(3), 70000);
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
+    let t1: ReturnType<typeof setTimeout> | null = null;
+    let t2: ReturnType<typeof setTimeout> | null = null;
+    let t3: ReturnType<typeof setTimeout> | null = null;
+
+    if (stage === "recording" && followupQuestions.length > 0 && followupIdx === 0) {
+      t1 = setTimeout(() => setFollowIdx(1), 20000);
+      t2 = setTimeout(() => setFollowIdx(2), 45000);
+      t3 = setTimeout(() => setFollowIdx(3), 70000);
     }
-  }, [stage, followupQuestions]);
+
+    return () => {
+      if (t1) clearTimeout(t1);
+      if (t2) clearTimeout(t2);
+      if (t3) clearTimeout(t3);
+    };
+  }, [stage, followupQuestions, followupIdx]);
 
   useEffect(() => {
     if (loc.state?.fromSpark) fromSparkRef.current = true;
@@ -497,61 +503,48 @@ const Record = () => {
     setStage("share");
   };
 
-  const generateCardImage = async (): Promise<Blob | null> => {
-    if (!cardRef.current) return null;
+  const generateAndShareCard = async () => {
+    if (!cardRef.current) return;
+
     try {
       const canvas = await html2canvas(cardRef.current, {
         scale: 3,
         useCORS: true,
         backgroundColor: null,
+        logging: false,
       });
-      return new Promise((resolve) => {
-        canvas.toBlob((blob) => resolve(blob), "image/png", 1);
+
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/png", 1);
       });
-    } catch (err) {
-      console.error("Error generating card image:", err);
-      return null;
-    }
-  };
 
-  const handleShareToWhatsApp = async () => {
-    const blob = await generateCardImage();
-    if (!blob) {
-      toast.error(lang === "fr" ? "Erreur lors de la génération de l'image" : "Error generating image");
-      return;
-    }
+      if (!blob) return;
 
-    const file = new File([blob], "infeelit-memory.png", { type: "image/png" });
-    const text =
-      lang === "fr"
-        ? `J'ai préservé un souvenir de notre famille sur Infeelit. Écoute et ajoute le tien : https://infeelit.com`
-        : lang === "ar"
-          ? `حفظت ذكرى عائلية على Infeelit. استمع وأضف ذكراك: https://infeelit.com`
-          : `I preserved a family memory on Infeelit. Listen and add yours: https://infeelit.com`;
+      const file = new File([blob], "infeelit-memory.png", { type: "image/png" });
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
+      const shareText =
+        {
+          fr: `J'ai préservé un souvenir de notre famille sur Infeelit.\nÉcoute et ajoute le tien 👇\nhttps://infeelit.com`,
+          en: `I just preserved a family memory on Infeelit.\nListen and add yours 👇\nhttps://infeelit.com`,
+          ar: `حفظتُ ذكرى عائلية على Infeelit.\nاستمع وأضف ذكراك 👇\nhttps://infeelit.com`,
+        }[lang] || `https://infeelit.com`;
+
+      if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: memoryTitle,
-          text: text,
+          text: shareText,
         });
-        return;
-      } catch (err: any) {
-        if (err?.name !== "AbortError") {
-          console.error("Share error:", err);
-        }
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "infeelit-memory.png";
+        a.click();
+        URL.revokeObjectURL(url);
       }
+    } catch (err) {
+      console.error("Share error:", err);
     }
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "infeelit-memory.png";
-    a.click();
-    URL.revokeObjectURL(url);
-    await navigator.clipboard.writeText(text);
-    toast.success(lang === "fr" ? "Image téléchargée et lien copié" : "Image downloaded and link copied");
   };
 
   const handleShare = async (type: "circle" | "public" | "private") => {
@@ -740,6 +733,9 @@ const Record = () => {
   const formatTime = (s: number) => Math.floor(s / 60) + ":" + (s % 60).toString().padStart(2, "0");
   const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
+  // Récupérer le nombre de Sparks pour l'affichage
+  const sparkBalance = Number(localStorage.getItem("infeelit_spark_balance") || 0);
+
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans" dir={rtl ? "rtl" : "ltr"}>
       <style>{`
@@ -802,7 +798,7 @@ const Record = () => {
           autoPlay
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 opacity-20"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${stage === "recording" ? "opacity-80" : "opacity-20"}`}
         />
       )}
       {stage === "preview" && !audioMode && (
@@ -1425,110 +1421,115 @@ const Record = () => {
         </div>
       )}
 
+      {/* STAGE SHARE — NOUVEAU DESIGN AVEC MEMORY CARD */}
       {stage === "share" && (
-        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
-          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
-            {lang === "fr"
-              ? "Ta carte mémoire est prête"
-              : lang === "ar"
-                ? "بطاقة ذاكرتك جاهزة"
-                : "Your memory card is ready"}
-          </p>
-          <h2 className="text-white text-lg font-bold leading-tight italic mb-2">"{memoryTitle}"</h2>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "#FDF8F0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "60px 24px 40px",
+            overflowY: "auto",
+            zIndex: 20,
+          }}
+        >
+          {/* Titre */}
+          <div style={{ textAlign: "center", marginBottom: "8px" }}>
+            <p
+              style={{
+                fontSize: "11px",
+                fontWeight: 900,
+                letterSpacing: "0.3em",
+                color: "#E8742A",
+                textTransform: "uppercase",
+                marginBottom: "8px",
+              }}
+            >
+              ✦ {lang === "fr" ? "Souvenir préservé" : lang === "ar" ? "تم حفظ الذكرى" : "Memory preserved"}
+            </p>
+            <p
+              style={{
+                fontSize: "15px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                color: "#3D2B1F",
+                opacity: 0.7,
+              }}
+            >
+              {lang === "fr"
+                ? "Partage-le avec ta famille"
+                : lang === "ar"
+                  ? "شاركه مع عائلتك"
+                  : "Share it with your family"}
+            </p>
+          </div>
 
+          {/* La Carte Mémoire */}
           <MemoryCard
             ref={cardRef}
-            title={memoryTitle}
-            authorName={userName || (lang === "fr" ? "Quelqu'un" : lang === "ar" ? "شخص ما" : "Someone")}
-            city={undefined}
-            familyName={undefined}
-            memoryNumber={undefined}
-            backgroundImage={thumbUrlRef.current || undefined}
-            lang={lang}
+            title={memoryTitle || "Mon souvenir"}
+            authorName={userName || "Moi"}
+            memoryNumber={sparkBalance + 1}
+            lang={lang as "fr" | "en" | "ar"}
           />
 
-          <button
-            onClick={handleShareToWhatsApp}
+          {/* Boutons */}
+          <div
             style={{
               width: "100%",
               maxWidth: "320px",
-              padding: "16px",
-              borderRadius: "16px",
-              background: "linear-gradient(135deg, #25D366, #128C7E)",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: "15px",
-              border: "none",
-              cursor: "pointer",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              marginTop: "16px",
-            }}
-          >
-            <span style={{ fontSize: "20px" }}>📱</span>
-            {lang === "fr" ? "Envoyer à ma famille" : lang === "ar" ? "أرسل لعائلتي" : "Send to my family"}
-          </button>
-
-          <button
-            onClick={handleNativeShare}
-            style={{
-              width: "100%",
-              maxWidth: "320px",
-              padding: "14px",
-              borderRadius: "16px",
-              background: "none",
-              border: "1px solid rgba(232,116,42,0.3)",
-              color: "#E8742A",
-              fontWeight: 600,
-              fontSize: "13px",
-              cursor: "pointer",
+              flexDirection: "column",
+              gap: "12px",
               marginTop: "8px",
             }}
           >
-            {lang === "fr"
-              ? "Autres options de partage"
-              : lang === "ar"
-                ? "خيارات مشاركة أخرى"
-                : "Other sharing options"}
-          </button>
+            {/* Bouton WhatsApp principal */}
+            <button
+              onClick={generateAndShareCard}
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: "16px",
+                background: "linear-gradient(135deg, #25D366, #128C7E)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "15px",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+                boxShadow: "0 4px 16px rgba(37,211,102,0.3)",
+              }}
+            >
+              <span style={{ fontSize: "20px" }}>📱</span>
+              {lang === "fr" ? "Envoyer à ma famille" : lang === "ar" ? "أرسل لعائلتي" : "Send to my family"}
+            </button>
 
-          <button
-            onClick={handleDownload}
-            style={{
-              width: "100%",
-              maxWidth: "320px",
-              padding: "12px",
-              borderRadius: "16px",
-              background: "none",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "rgba(255,255,255,0.5)",
-              fontWeight: 500,
-              fontSize: "12px",
-              cursor: "pointer",
-              marginTop: "4px",
-            }}
-          >
-            {lang === "fr" ? "Télécharger l'image" : lang === "ar" ? "تحميل الصورة" : "Download image"}
-          </button>
-
-          <button
-            onClick={() => setShowShareModal(true)}
-            className="w-full max-w-xs py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2 mt-2"
-            style={{
-              backgroundColor: "rgba(255,255,255,.1)",
-              color: "rgba(255,255,255,0.6)",
-              border: "1px solid rgba(255,255,255,0.15)",
-            }}
-          >
-            <Share2 size={16} />
-            {lang === "ar"
-              ? "مشاركة على وسائل التواصل"
-              : lang === "fr"
-                ? "Partager sur les réseaux"
-                : "Share on social media"}
-          </button>
+            {/* Bouton retour au feed */}
+            <button
+              onClick={() => navigate("/")}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "16px",
+                background: "none",
+                border: "1px solid rgba(232,116,42,0.3)",
+                color: "#E8742A",
+                fontWeight: 600,
+                fontSize: "14px",
+                cursor: "pointer",
+              }}
+            >
+              {lang === "fr" ? "Retour au fil ✦" : lang === "ar" ? "العودة إلى المنشورات ✦" : "Back to feed ✦"}
+            </button>
+          </div>
         </div>
       )}
 
