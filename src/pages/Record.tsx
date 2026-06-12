@@ -95,6 +95,8 @@ type Stage =
   | "visibility"
   | "share";
 
+const isStage = (value: Stage, target: Stage) => value === target;
+
 interface MemoryClip {
   blob: Blob;
   question: string;
@@ -817,7 +819,7 @@ const Record = () => {
         </div>
       )}
 
-      {!audioMode && stage !== "recording" && stage !== "preview" && (
+      {!audioMode && !isStage(stage, "recording") && !isStage(stage, "preview") && (
         <video
           ref={videoRef}
           autoPlay
@@ -829,7 +831,7 @@ const Record = () => {
       {stage === "preview" && !audioMode && (
         <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover opacity-90" />
       )}
-      {audioMode && stage !== "recording" && stage !== "preview" && (
+      {audioMode && !isStage(stage, "recording") && !isStage(stage, "preview") && (
         <div
           className="absolute inset-0"
           style={{
