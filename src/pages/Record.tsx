@@ -802,7 +802,7 @@ const Record = () => {
           autoPlay
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 opacity-20"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${stage === "recording" ? "opacity-80" : "opacity-20"}`}
         />
       )}
       {stage === "preview" && !audioMode && (
