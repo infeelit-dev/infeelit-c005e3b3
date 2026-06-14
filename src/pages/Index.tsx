@@ -5,15 +5,19 @@ import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
 import ActionBar from "@/components/ActionBar";
+import UploadMemory from "@/components/UploadMemory";
+import useUserName from "@/hooks/useUserName";
 import type { Timeline } from "@/types/timeline";
 
 const Index = () => {
   const navigate = useNavigate();
+  const userName = useUserName();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
   const [feedMemories, setFeedMemories] = useState<any[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
+  const [showUpload, setShowUpload] = useState(false);
   const currentUserName = localStorage.getItem("infeelit_user_name") || "";
 
   useEffect(() => {
@@ -56,7 +60,6 @@ const Index = () => {
     };
   }, []);
 
-  // Charger le feed des souvenirs communautaires
   useEffect(() => {
     const loadFeed = async () => {
       setLoadingFeed(true);
@@ -88,6 +91,8 @@ const Index = () => {
     if (activeTimeline === "instant") return "linear-gradient(180deg, #1A3B47 0%, #2d6a4f 40%, #E8742A 100%)";
     return "linear-gradient(180deg, #7ec8c8 0%, #a8d8c8 30%, #f0e6d3 70%, #E8742A 100%)";
   };
+
+  const lang = "fr";
 
   return (
     <div
@@ -154,7 +159,6 @@ const Index = () => {
               memory.profiles?.display_name?.split(" ")[0] || (memory.is_anonymous ? "Un Gardien" : "Quelqu'un");
 
             const questionObj = memory.question_data || {};
-            const lang = "fr";
             const questionText =
               lang === "fr" ? questionObj.fr : lang === "ar" ? questionObj.ar : questionObj.en || memory.title;
 
@@ -271,7 +275,7 @@ const Index = () => {
                   memoryTitle={memory.title || "Souvenir"}
                   authorName={displayName}
                   initialSparks={memory.sparks_count || 0}
-                  lang={"fr" as "fr" | "en" | "ar"}
+                  lang={lang as "fr" | "en" | "ar"}
                   userName={currentUserName}
                   questionFr={questionObj?.fr}
                   questionEn={questionObj?.en}
@@ -288,6 +292,39 @@ const Index = () => {
           })
         )}
       </div>
+
+      {/* BOUTON D'IMPORT FLOTTANT */}
+      <button
+        onClick={() => setShowUpload(true)}
+        style={{
+          position: "fixed",
+          bottom: "90px",
+          right: "20px",
+          width: "48px",
+          height: "48px",
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #E8742A, #D4621A)",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 16px rgba(232,116,42,0.4)",
+          zIndex: 30,
+          fontSize: "22px",
+        }}
+      >
+        📥
+      </button>
+
+      {/* MODAL D'UPLOAD */}
+      {showUpload && (
+        <UploadMemory
+          lang={lang as "fr" | "en" | "ar"}
+          userName={userName || "anonymous"}
+          onClose={() => setShowUpload(false)}
+        />
+      )}
 
       <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
     </div>
