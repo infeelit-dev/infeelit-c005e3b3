@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
 import ActionBar from "@/components/ActionBar";
+import SubtitleDisplay from "@/components/SubtitleDisplay";
 import UploadMemory from "@/components/UploadMemory";
 import useUserName from "@/hooks/useUserName";
 import type { Timeline } from "@/types/timeline";
@@ -268,6 +269,16 @@ const Index = () => {
                     — {displayName}
                   </p>
                 </div>
+
+                {/* SOUS-TITRES */}
+                <SubtitleDisplay
+                  transcript_fr={memory.transcript_fr}
+                  transcript_en={memory.transcript_en}
+                  transcript_ar={memory.transcript_ar}
+                  translation_status={memory.translation_status}
+                  detected_lang={memory.detected_lang}
+                  currentLang={lang as "fr" | "en" | "ar"}
+                />
 
                 {/* ACTION BAR */}
                 <ActionBar
