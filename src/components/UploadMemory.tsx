@@ -132,20 +132,19 @@ export default function UploadMemory({ lang, userName, onClose }: UploadMemoryPr
 
       setProgress(85);
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const { error: dbError } = await supabase.from("memories").insert({
+        user_id: user.id,
         title: title.trim(),
         description: question.trim() || null,
-        question_fr: question.trim() || null,
-        question_en: question.trim() || null,
         file_url: videoUrl,
         file_type: "video",
         thumbnail_url: thumbnailUrl,
         is_public: true,
         is_community: true,
         timeline: "memories",
-        user_name: userName,
-        upload_type: "external",
-        lang: lang,
       });
 
       if (dbError) throw dbError;
