@@ -410,4 +410,47 @@ export default function UploadMemory({ lang, userName, onClose }: UploadMemoryPr
                 overflow: "hidden",
               }}
             >
-              <
+              <div
+                style={{
+                  height: "100%",
+                  width: `${progress}%`,
+                  background: "#E8742A",
+                  borderRadius: "999px",
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleSubmit}
+          disabled={uploading}
+          style={{
+            width: "100%",
+            padding: "16px",
+            borderRadius: "14px",
+            border: "none",
+            background: uploading ? "rgba(232,116,42,0.5)" : "#E8742A",
+            color: "#fff",
+            fontSize: "16px",
+            fontWeight: 700,
+            cursor: uploading ? "not-allowed" : "pointer",
+          }}
+        >
+          {uploading
+            ? lang === "fr"
+              ? "Envoi en cours..."
+              : lang === "ar"
+                ? "جاري الرفع..."
+                : "Uploading..."
+            : lang === "fr"
+              ? "Publier le souvenir"
+              : lang === "ar"
+                ? "نشر الذكرى"
+                : "Publish memory"}
+        </button>
+      </div>
+    </div>
+  );
+}
