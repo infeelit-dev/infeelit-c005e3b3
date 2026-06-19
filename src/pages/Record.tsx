@@ -181,16 +181,16 @@ const Record = () => {
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [customThumb, setCustomThumb] = useState<string | null>(null);
   const [useAsAura, setUseAsAura] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [pendingMemory, setPendingMemory] = useState<any>(null);
 
   const [followupQuestions, setFollowupQuestions] = useState<string[]>([]);
 
-  // Récupérer la question pré-sélectionnée depuis la navigation
   const location = useLocation();
   const preSelected = location.state?.preSelectedQuestion;
   const inspiredBy = location.state?.inspiredBy;
   const replyTo = location.state?.replyTo;
 
-  // Si une question est pré-sélectionnée, l'utiliser
   const initialQuestion = preSelected
     ? lang === "fr"
       ? preSelected.fr
@@ -203,24 +203,20 @@ const Record = () => {
   const thumbCards = getThematicCards(question);
   const auraBackground = useAsAura ? customThumb || thumbCards[selectedThumb] : null;
 
-  // Charger les follow-ups spécifiques
   useEffect(() => {
     const displayName = userName || (lang === "fr" ? "ami(e)" : lang === "ar" ? "صديقي" : "friend");
     const followups = getFollowupsFromQuestion(question, lang, displayName);
     setFollowupQuestions(followups);
   }, [question, lang, userName]);
 
-  // Si question pré-sélectionnée, démarrer l'enregistrement directement
   useEffect(() => {
     if (preSelected && stage === "question") {
-      // Démarrer l'enregistrement automatiquement
       setAudioMode(true);
       startMedia(true);
       setTimeout(() => startCountdown(false), 500);
     }
   }, [preSelected, stage]);
 
-  // Timer pour les follow-ups pendant l'enregistrement
   useEffect(() => {
     let t1: ReturnType<typeof setTimeout> | null = null;
     let t2: ReturnType<typeof setTimeout> | null = null;
@@ -514,6 +510,7 @@ const Record = () => {
     return urls;
   };
 
+  // ✅ MODIFICATION 1 — GATE À LA PUBLICATION, PAS AU DÉBUT
   const handleVisibilityChoice = (ch: "family" | "community" | "anonymous") => {
     if (ch === "family") {
       isCommunityRef.current = false;
@@ -528,6 +525,31 @@ const Record = () => {
       isAnonymousRef.current = true;
       sparkRewardRef.current = 2;
     }
+
+    // ✅ VÉRIFIER SI CONNECTÉ AVANT DE PUBLIER
+    const isLoggedIn = !!userName && userName !== "";
+
+    if (!isLoggedIn) {
+      // Sauvegarder le souvenir en localStorage pour le récupérer après inscription
+      const pendingData = {
+        title: memoryTitle,
+        question_fr: preSelected?.fr || null,
+        question_en: preSelected?.en || null,
+        question_ar: preSelected?.ar || null,
+        fileType: typeRef.current,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("pending_memory", JSON.stringify(pendingData));
+      setPendingMemory(pendingData);
+      setShowAuthGate(true);
+      return;
+    }
+
+    // Si connecté → publier normalement
+    handlePublish();
+  };
+
+  const handlePublish = async () => {
     setStage("share");
   };
 
@@ -841,7 +863,6 @@ const Record = () => {
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
 
-      {/* Affichage de la question source quand on répond à un souvenir */}
       {replyTo && preSelected && stage === "recording" && (
         <div
           style={{
@@ -1589,6 +1610,128 @@ const Record = () => {
               }}
             >
               {lang === "fr" ? "Retour au fil ✦" : lang === "ar" ? "العودة إلى المنشورات ✦" : "Back to feed ✦"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ POPUP D'INSCRIPTION AU MOMENT DE PUBLIER */}
+      {showAuthGate && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(45,24,16,0.85)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 200,
+            padding: "24px",
+          }}
+          onClick={() => setShowAuthGate(false)}
+        >
+          <div
+            style={{
+              background: "#FDF8F0",
+              borderRadius: "28px",
+              padding: "36px 28px",
+              maxWidth: "340px",
+              width: "100%",
+              textAlign: "center",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span style={{ fontSize: "40px" }}>✦</span>
+
+            <p
+              style={{
+                fontSize: "20px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                color: "#3D2B1F",
+                margin: "16px 0 8px",
+                lineHeight: 1.4,
+              }}
+            >
+              {lang === "fr" ? "Ton souvenir est prêt." : lang === "ar" ? "ذكراك جاهزة." : "Your memory is ready."}
+            </p>
+
+            <p
+              style={{
+                fontSize: "14px",
+                color: "rgba(61,43,31,0.6)",
+                marginBottom: "28px",
+                lineHeight: 1.5,
+              }}
+            >
+              {lang === "fr"
+                ? "Crée un compte gratuit pour le préserver pour toujours."
+                : lang === "ar"
+                  ? "أنشئ حساباً مجانياً لحفظها إلى الأبد."
+                  : "Create a free account to preserve it forever."}
+            </p>
+
+            <button
+              onClick={() => navigate("/welcome")}
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: "16px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "12px",
+                boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+              }}
+            >
+              {lang === "fr"
+                ? "Rejoindre Infeelit — c'est gratuit"
+                : lang === "ar"
+                  ? "انضم إلى Infeelit — مجاناً"
+                  : "Join Infeelit — it's free"}
+            </button>
+
+            <button
+              onClick={() => {
+                setShowAuthGate(false);
+                // Sauvegarder en local pour récupérer plus tard
+                const pendingData = {
+                  title: memoryTitle,
+                  question_fr: preSelected?.fr || null,
+                  question_en: preSelected?.en || null,
+                  question_ar: preSelected?.ar || null,
+                  fileType: typeRef.current,
+                  timestamp: Date.now(),
+                };
+                localStorage.setItem("pending_memory", JSON.stringify(pendingData));
+                toast.info(
+                  lang === "fr"
+                    ? "Ton souvenir a été sauvegardé localement. Reviens quand tu veux !"
+                    : lang === "ar"
+                      ? "تم حفظ ذكراك محلياً. عد متى شئت!"
+                      : "Your memory has been saved locally. Come back anytime!",
+                );
+                navigate("/");
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(61,43,31,0.4)",
+                fontSize: "13px",
+                cursor: "pointer",
+                padding: "8px",
+              }}
+            >
+              {lang === "fr"
+                ? "Continuer sans compte"
+                : lang === "ar"
+                  ? "المتابعة بدون حساب"
+                  : "Continue without account"}
             </button>
           </div>
         </div>
