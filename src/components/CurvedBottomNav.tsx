@@ -7,13 +7,25 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface CurvedBottomNavProps {
   onPlusClick?: () => void;
   circleBadge?: number;
-  isLoggedIn?: boolean;
 }
 
-const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, isLoggedIn = false }: CurvedBottomNavProps) => {
+const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, lang } = useLanguage();
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsConnected(!!session);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsConnected(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const NAV_ITEMS = [
     { icon: Users, label: lang === "ar" ? "دوائر" : lang === "fr" ? "Cercles" : "Circles", path: "/circles" },
@@ -24,10 +36,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, isLoggedIn = false }: C
       label: lang === "ar" ? "همسات" : lang === "fr" ? "Murmures" : "Whispers",
       path: "/whispers",
     },
-    // Dernier item conditionnel
-    isLoggedIn
-      ? { icon: "flame", label: lang === "ar" ? "أنا" : lang === "fr" ? "Moi" : "Me", path: "/treasure" }
-      : { icon: "join", label: lang === "ar" ? "انضم" : lang === "fr" ? "Rejoindre" : "Join", path: "/welcome" },
+    { icon: "flame", label: lang === "ar" ? "أنا" : lang === "fr" ? "Moi" : "Me", path: "/treasure" },
   ];
 
   const isActive = (path: string) => {
@@ -51,7 +60,6 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, isLoggedIn = false }: C
         }}
       >
         {NAV_ITEMS.map((item, index) => {
-          // Bouton Plus
           if (index === 2) {
             return (
               <button
@@ -68,7 +76,6 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, isLoggedIn = false }: C
             );
           }
 
-          // Bouton Flamme (connecté)
           if (item.icon === "flame") {
             return (
               <button
@@ -82,13 +89,13 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, isLoggedIn = false }: C
                     height="22"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke={isLoggedIn ? "#E8742A" : "rgba(255,255,255,0.3)"}
+                    stroke={isConnected ? "#E8742A" : "rgba(255,255,255,0.3)"}
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     style={{
-                      filter: isLoggedIn ? "none" : "grayscale(1)",
-                      animation: isLoggedIn && isActive(item.path) ? "flameAlive 2s ease-in-out infinite" : "none",
+                      filter: isConnected ? "none" : "grayscale(1)",
+                      animation: isConnected && isActive(item.path) ? "flameAlive 2s ease-in-out infinite" : "none",
                     }}
                   >
                     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
@@ -130,43 +137,6 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, isLoggedIn = false }: C
             );
           }
 
-          // Bouton Rejoindre (non connecté)
-          if (item.icon === "join") {
-            return (
-              <button
-                key="join"
-                onClick={() => navigate("/welcome")}
-                className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
-              >
-                <div
-                  style={{
-                    width: "22px",
-                    height: "22px",
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <span style={{ fontSize: "12px", color: "#fff" }}>✦</span>
-                </div>
-                <span
-                  style={{
-                    fontSize: "8px",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.12em",
-                    color: "#E8742A",
-                  }}
-                >
-                  {item.label}
-                </span>
-              </button>
-            );
-          }
-
-          // Autres boutons
           const Icon = item.icon;
           const active = isActive(item.path);
 
