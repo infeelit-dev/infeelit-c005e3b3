@@ -11,7 +11,6 @@ type Step = "chapters" | "categories" | "questions";
 interface SparkBubbleProps {
   forceOpen?: boolean;
   onSparkClose?: () => void;
-  isLoggedIn?: boolean;
 }
 
 const getRandomPosition = () => {
@@ -20,7 +19,7 @@ const getRandomPosition = () => {
   return { x: newX, y: newY };
 };
 
-const SparkBubble = ({ forceOpen, onSparkClose, isLoggedIn = false }: SparkBubbleProps) => {
+const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
   const userName = useUserName();
