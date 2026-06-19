@@ -59,7 +59,7 @@ const SparkBubble = ({ forceOpen, onSparkClose, isLoggedIn = false }: SparkBubbl
     }
   }, [forceOpen]);
 
-  // 🔴 SUPPRIMER CE useEffect QUI CAUSE LE BUG
+  // 🔴 SUPPRIMÉ - Ce useEffect causait le redirect automatique vers les questions
   // useEffect(() => {
   //   if (!isLoggedIn && !expanded && !forceOpen) {
   //     const timer = setTimeout(() => {
