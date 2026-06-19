@@ -248,51 +248,67 @@ const Index = () => {
             <div className="w-8 h-8 border-2 border-[#E8742A] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : feedMemories.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-white/50 text-sm">
-              {!isLoggedIn
-                ? lang === "fr"
-                  ? "Aucun souvenir communautaire pour l'instant"
-                  : lang === "ar"
-                    ? "لا توجد ذكريات مجتمعية حالياً"
-                    : "No community memories yet"
-                : lang === "fr"
-                  ? "Aucun souvenir pour l'instant"
-                  : lang === "ar"
-                    ? "لا توجد ذكريات حالياً"
-                    : "No memories yet"}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "60vh",
+              padding: "40px 24px",
+              textAlign: "center",
+            }}
+          >
+            <span style={{ fontSize: "48px", marginBottom: "16px" }}>✦</span>
+            <p
+              style={{
+                fontSize: "20px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                color: "#fff",
+                marginBottom: "8px",
+                textShadow: "0 1px 8px rgba(0,0,0,0.5)",
+              }}
+            >
+              {lang === "fr"
+                ? "Les premiers souvenirs arrivent bientôt…"
+                : lang === "ar"
+                  ? "ستصل أول الذكريات قريباً…"
+                  : "The first memories are coming soon…"}
             </p>
-            <p className="text-white/30 text-xs mt-2">
-              {!isLoggedIn
-                ? lang === "fr"
-                  ? "Rejoins Infeelit pour partager tes souvenirs"
-                  : lang === "ar"
-                    ? "انضم إلى Infeelit لمشاركة ذكرياتك"
-                    : "Join Infeelit to share your memories"
-                : lang === "fr"
-                  ? "Sois le premier à en partager un"
-                  : lang === "ar"
-                    ? "كن أول من يشارك واحداً"
-                    : "Be the first to share one"}
+            <p
+              style={{
+                fontSize: "14px",
+                color: "rgba(255,255,255,0.5)",
+                marginBottom: "32px",
+              }}
+            >
+              {lang === "fr"
+                ? "Sois le premier à partager le tien."
+                : lang === "ar"
+                  ? "كن أوّل من يشارك ذكراه."
+                  : "Be the first to share yours."}
             </p>
-            {!isLoggedIn && (
-              <button
-                onClick={() => navigate("/welcome")}
-                style={{
-                  marginTop: "16px",
-                  padding: "12px 24px",
-                  borderRadius: "999px",
-                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: "14px",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {lang === "fr" ? "Créer mon compte ✦" : lang === "ar" ? "أنشئ حسابي ✦" : "Create my account ✦"}
-              </button>
-            )}
+            <button
+              onClick={() => navigate("/welcome")}
+              style={{
+                padding: "16px 32px",
+                borderRadius: "999px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+              }}
+            >
+              {lang === "fr"
+                ? "Enregistrer mon premier souvenir ✦"
+                : lang === "ar"
+                  ? "سجّل ذكراي الأولى ✦"
+                  : "Record my first memory ✦"}
+            </button>
           </div>
         ) : (
           feedMemories.map((memory) => {
