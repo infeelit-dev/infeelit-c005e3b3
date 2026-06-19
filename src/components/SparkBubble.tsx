@@ -11,6 +11,7 @@ type Step = "chapters" | "categories" | "questions";
 interface SparkBubbleProps {
   forceOpen?: boolean;
   onSparkClose?: () => void;
+  isLoggedIn?: boolean; // AJOUT
 }
 
 const getRandomPosition = () => {
@@ -19,7 +20,7 @@ const getRandomPosition = () => {
   return { x: newX, y: newY };
 };
 
-const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
+const SparkBubble = ({ forceOpen, onSparkClose, isLoggedIn = false }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
   const userName = useUserName();
@@ -57,6 +58,19 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
       if (!localStorage.getItem("infeelit_user_name")) setShowNameInput(true);
     }
   }, [forceOpen]);
+
+  // Si non connecté → afficher les démos automatiquement après un délai
+  useEffect(() => {
+    if (!isLoggedIn && !expanded && !forceOpen) {
+      const timer = setTimeout(() => {
+        setExpanded(true);
+        setCurrentStep("chapters");
+        setSelectedChapter(null);
+        setSelectedCategory(null);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoggedIn, expanded, forceOpen]);
 
   useEffect(() => {
     const moveInterval = setInterval(() => {
