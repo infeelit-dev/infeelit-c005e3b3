@@ -15,6 +15,18 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Vérifier si l'utilisateur est connecté
+  useState(() => {
+    const checkAuth = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkAuth();
+  }, []);
 
   const tabs = [
     { id: "memories" as Timeline, label: "Memories" },
@@ -29,6 +41,8 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
     { id: "en", label: "English" },
     { id: "ar", label: "العربية" },
   ];
+
+  const closeBurgerMenu = () => setMenuOpen(false);
 
   return (
     <>
@@ -296,7 +310,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             inset: 0,
             zIndex: 200,
           }}
-          onClick={() => setMenuOpen(false)}
+          onClick={closeBurgerMenu}
         >
           <div
             style={{
@@ -323,7 +337,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => setMenuOpen(false)}
+              onClick={closeBurgerMenu}
               style={{
                 position: "absolute",
                 top: "16px",
@@ -348,10 +362,44 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               }}
             />
 
+            {/* ✅ MODIFICATION 3 — BOUTON "REJOINDRE" EN PREMIER DANS LE MENU SI NON CONNECTÉ */}
+            {!isLoggedIn && (
+              <button
+                onClick={() => {
+                  navigate("/welcome");
+                  closeBurgerMenu();
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  width: "100%",
+                  padding: "14px 0",
+                  background: "none",
+                  border: "none",
+                  borderBottom: "1px solid rgba(232,116,42,0.1)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  marginBottom: "4px",
+                }}
+              >
+                <span style={{ fontSize: "20px" }}>✦</span>
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    color: "#E8742A",
+                  }}
+                >
+                  {lang === "fr" ? "Rejoindre Infeelit" : lang === "ar" ? "انضم إلى Infeelit" : "Join Infeelit"}
+                </span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 navigate("/about");
-                setMenuOpen(false);
+                closeBurgerMenu();
               }}
               style={{
                 display: "flex",
@@ -375,7 +423,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             <button
               onClick={() => {
                 navigate("/contact");
-                setMenuOpen(false);
+                closeBurgerMenu();
               }}
               style={{
                 display: "flex",
