@@ -19,7 +19,27 @@ const Index = () => {
   const [feedMemories, setFeedMemories] = useState<any[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [showUpload, setShowUpload] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const currentUserName = localStorage.getItem("infeelit_user_name") || "";
+
+  // Vérifier l'état de connexion
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const entryTime = Date.now();
@@ -33,6 +53,7 @@ const Index = () => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (!isLoggedIn) return;
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -59,12 +80,14 @@ const Index = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isLoggedIn]);
 
+  // Charger le feed en fonction de l'état de connexion
   useEffect(() => {
     const loadFeed = async () => {
       setLoadingFeed(true);
-      const { data: memories } = await supabase
+
+      let query = supabase
         .from("memories")
         .select(
           `
@@ -72,15 +95,23 @@ const Index = () => {
           profiles (display_name)
         `,
         )
-        .eq("is_community", true)
         .order("created_at", { ascending: false })
         .limit(20);
 
+      // Si non connecté → seulement communauté
+      // Si connecté → communauté + public
+      if (!isLoggedIn) {
+        query = query.eq("is_community", true);
+      } else {
+        query = query.or(`is_community.eq.true,is_public.eq.true`);
+      }
+
+      const { data: memories } = await query;
       setFeedMemories(memories || []);
       setLoadingFeed(false);
     };
     loadFeed();
-  }, []);
+  }, [isLoggedIn]);
 
   const handleTimelineChange = async (timeline: Timeline) => {
     setActiveTimeline(timeline);
@@ -140,19 +171,128 @@ const Index = () => {
           ))}
       </div>
 
-      <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
-      <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
+      <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} isLoggedIn={isLoggedIn} />
+
+      <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} isLoggedIn={isLoggedIn} />
+
+      {/* BANNIÈRE D'INSCRIPTION — EN HAUT DU FEED */}
+      {!isLoggedIn && (
+        <div
+          style={{
+            width: "100%",
+            background: "linear-gradient(135deg, #E8742A 0%, #D4621A 100%)",
+            padding: "16px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            position: "sticky",
+            top: 0,
+            zIndex: 20,
+          }}
+        >
+          <div>
+            <p
+              style={{
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "#fff",
+                margin: 0,
+                marginBottom: "2px",
+              }}
+            >
+              {lang === "fr"
+                ? "Préserve les voix de ta famille"
+                : lang === "ar"
+                  ? "احفظ أصوات عائلتك"
+                  : "Preserve your family's voices"}
+            </p>
+            <p
+              style={{
+                fontSize: "11px",
+                color: "rgba(255,255,255,0.75)",
+                margin: 0,
+              }}
+            >
+              {lang === "fr"
+                ? "Rejoins Infeelit — c'est gratuit"
+                : lang === "ar"
+                  ? "انضم إلى Infeelit — مجاناً"
+                  : "Join Infeelit — it's free"}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/welcome")}
+            style={{
+              padding: "10px 18px",
+              borderRadius: "999px",
+              background: "#fff",
+              color: "#E8742A",
+              fontWeight: 800,
+              fontSize: "13px",
+              border: "none",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            {lang === "fr" ? "Commencer →" : lang === "ar" ? "← ابدأ" : "Start →"}
+          </button>
+        </div>
+      )}
 
       {/* FEED DE SOUVENIRS */}
-      <div className="relative z-20 flex-1 overflow-y-auto pb-32 pt-20 px-4">
+      <div className="relative z-20 flex-1 overflow-y-auto pb-32 pt-4 px-4">
         {loadingFeed ? (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-2 border-[#E8742A] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : feedMemories.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-white/50 text-sm">Aucun souvenir pour l'instant</p>
-            <p className="text-white/30 text-xs mt-2">Sois le premier à en partager un</p>
+            <p className="text-white/50 text-sm">
+              {!isLoggedIn
+                ? lang === "fr"
+                  ? "Aucun souvenir communautaire pour l'instant"
+                  : lang === "ar"
+                    ? "لا توجد ذكريات مجتمعية حالياً"
+                    : "No community memories yet"
+                : lang === "fr"
+                  ? "Aucun souvenir pour l'instant"
+                  : lang === "ar"
+                    ? "لا توجد ذكريات حالياً"
+                    : "No memories yet"}
+            </p>
+            <p className="text-white/30 text-xs mt-2">
+              {!isLoggedIn
+                ? lang === "fr"
+                  ? "Rejoins Infeelit pour partager tes souvenirs"
+                  : lang === "ar"
+                    ? "انضم إلى Infeelit لمشاركة ذكرياتك"
+                    : "Join Infeelit to share your memories"
+                : lang === "fr"
+                  ? "Sois le premier à en partager un"
+                  : lang === "ar"
+                    ? "كن أول من يشارك واحداً"
+                    : "Be the first to share one"}
+            </p>
+            {!isLoggedIn && (
+              <button
+                onClick={() => navigate("/welcome")}
+                style={{
+                  marginTop: "16px",
+                  padding: "12px 24px",
+                  borderRadius: "999px",
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {lang === "fr" ? "Créer mon compte ✦" : lang === "ar" ? "أنشئ حسابي ✦" : "Create my account ✦"}
+              </button>
+            )}
           </div>
         ) : (
           feedMemories.map((memory) => {
@@ -304,29 +444,31 @@ const Index = () => {
         )}
       </div>
 
-      {/* BOUTON D'IMPORT FLOTTANT */}
-      <button
-        onClick={() => setShowUpload(true)}
-        style={{
-          position: "fixed",
-          bottom: "90px",
-          right: "20px",
-          width: "48px",
-          height: "48px",
-          borderRadius: "50%",
-          background: "linear-gradient(135deg, #E8742A, #D4621A)",
-          border: "none",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 4px 16px rgba(232,116,42,0.4)",
-          zIndex: 30,
-          fontSize: "22px",
-        }}
-      >
-        📥
-      </button>
+      {/* BOUTON D'IMPORT FLOTTANT (seulement si connecté) */}
+      {isLoggedIn && (
+        <button
+          onClick={() => setShowUpload(true)}
+          style={{
+            position: "fixed",
+            bottom: "90px",
+            right: "20px",
+            width: "48px",
+            height: "48px",
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #E8742A, #D4621A)",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 16px rgba(232,116,42,0.4)",
+            zIndex: 30,
+            fontSize: "22px",
+          }}
+        >
+          📥
+        </button>
+      )}
 
       {/* MODAL D'UPLOAD */}
       {showUpload && (
@@ -337,7 +479,7 @@ const Index = () => {
         />
       )}
 
-      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
+      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} isLoggedIn={isLoggedIn} />
     </div>
   );
 };
