@@ -8,10 +8,9 @@ import infeelit from "@/assets/infeelit-logo.png";
 interface HeaderProps {
   activeTimeline: Timeline;
   onTimelineChange: (t: Timeline) => void;
-  isLoggedIn?: boolean;
 }
 
-const Header = ({ activeTimeline, onTimelineChange, isLoggedIn = false }: HeaderProps) => {
+const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const navigate = useNavigate();
   const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -99,26 +98,6 @@ const Header = ({ activeTimeline, onTimelineChange, isLoggedIn = false }: Header
               direction: "ltr",
             }}
           >
-            {/* BOUTON CONNEXION SI NON LOGGED IN */}
-            {!isLoggedIn && (
-              <button
-                onClick={() => navigate("/welcome")}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "999px",
-                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: "13px",
-                  border: "none",
-                  cursor: "pointer",
-                  boxShadow: "0 2px 8px rgba(232,116,42,0.3)",
-                }}
-              >
-                {lang === "fr" ? "Rejoindre ✦" : lang === "ar" ? "انضم ✦" : "Join ✦"}
-              </button>
-            )}
-
             {/* Bouton langue */}
             <div style={{ position: "relative" }}>
               <button
@@ -368,34 +347,6 @@ const Header = ({ activeTimeline, onTimelineChange, isLoggedIn = false }: Header
                 mixBlendMode: "multiply",
               }}
             />
-
-            {/* BOUTON CONNEXION / INSCRIPTION DANS LE MENU */}
-            {!isLoggedIn && (
-              <button
-                onClick={() => {
-                  navigate("/welcome");
-                  setMenuOpen(false);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "14px 16px",
-                  borderRadius: "14px",
-                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                  border: "none",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  color: "#fff",
-                  marginBottom: "8px",
-                }}
-              >
-                <span>✦</span>
-                {lang === "fr" ? "Créer mon compte" : lang === "ar" ? "إنشاء حسابي" : "Create my account"}
-              </button>
-            )}
 
             <button
               onClick={() => {
