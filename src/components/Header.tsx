@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
+import { supabase } from "@/integrations/supabase/client";
 import infeelit from "@/assets/infeelit-logo.png";
 
 interface HeaderProps {
@@ -18,7 +19,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Vérifier si l'utilisateur est connecté
-  useState(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       const {
         data: { session },
