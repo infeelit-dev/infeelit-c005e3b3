@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
+import BubbleCanvas from "@/components/BubbleCanvas";
 import ActionBar from "@/components/ActionBar";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import UploadMemory from "@/components/UploadMemory";
@@ -86,6 +87,10 @@ const Index = () => {
     setActiveTimeline(timeline);
   };
 
+  const handleBubbleClick = (question: string) => {
+    navigate("/record", { state: { question } });
+  };
+
   const getBackground = () => {
     if (activeTimeline === "forever")
       return "linear-gradient(180deg, #020818 0%, #041434 40%, #0a1628 70%, #1a1040 100%)";
@@ -141,167 +146,174 @@ const Index = () => {
       </div>
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
+
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
 
-      {/* FEED DE SOUVENIRS */}
-      <div className="relative z-20 flex-1 overflow-y-auto pb-32 pt-20 px-4">
-        {loadingFeed ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-[#E8742A] border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : feedMemories.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-white/50 text-sm">Aucun souvenir pour l'instant</p>
-            <p className="text-white/30 text-xs mt-2">Sois le premier à en partager un</p>
-          </div>
-        ) : (
-          feedMemories.map((memory) => {
-            const displayName =
-              memory.profiles?.display_name?.split(" ")[0] || (memory.is_anonymous ? "Un Gardien" : "Quelqu'un");
+      {/* ✅ BUBBLE CANVAS — LES BULLES DÉMO FLOTTANTES SUR LA PAGE D'ACCUEIL */}
+      <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
-            const questionObj = memory.question_data || {};
-            const questionText =
-              lang === "fr" ? questionObj.fr : lang === "ar" ? questionObj.ar : questionObj.en || memory.title;
+      {/* FEED DE SOUVENIRS — en overlay au-dessus des bulles */}
+      <div className="relative z-20 flex-1 overflow-y-auto pb-32 pt-20 px-4 pointer-events-none">
+        <div className="pointer-events-auto">
+          {loadingFeed ? (
+            <div className="flex justify-center py-20">
+              <div className="w-8 h-8 border-2 border-[#E8742A] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : feedMemories.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-white/50 text-sm">Aucun souvenir pour l'instant</p>
+              <p className="text-white/30 text-xs mt-2">Sois le premier à en partager un</p>
+            </div>
+          ) : (
+            feedMemories.map((memory) => {
+              const displayName =
+                memory.profiles?.display_name?.split(" ")[0] || (memory.is_anonymous ? "Un Gardien" : "Quelqu'un");
 
-            return (
-              <div
-                key={memory.id}
-                style={{
-                  borderRadius: "24px",
-                  overflow: "hidden",
-                  background: "#fff",
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-                  marginBottom: "20px",
-                }}
-              >
-                {/* QUESTION EN HAUT */}
-                {questionText && (
-                  <div
-                    style={{
-                      padding: "12px 16px 0",
-                      background: "rgba(253,248,240,0.95)",
-                    }}
-                  >
-                    <p
-                      style={{
-                        fontSize: "10px",
-                        fontWeight: 700,
-                        letterSpacing: "0.1em",
-                        color: "rgba(232,116,42,0.6)",
-                        textTransform: "uppercase",
-                        fontFamily: "system-ui, sans-serif",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      La question
-                    </p>
-                    <p
-                      style={{
-                        fontSize: "13px",
-                        fontFamily: "Georgia, serif",
-                        fontStyle: "italic",
-                        color: "#3D2B1F",
-                        lineHeight: 1.4,
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {questionText}
-                    </p>
-                  </div>
-                )}
+              const questionObj = memory.question_data || {};
+              const questionText =
+                lang === "fr" ? questionObj.fr : lang === "ar" ? questionObj.ar : questionObj.en || memory.title;
 
-                {/* CONTENU VIDÉO / AUDIO */}
-                <div style={{ position: "relative", aspectRatio: "16/9", background: "#000" }}>
-                  {memory.file_type === "video" && memory.file_url ? (
-                    <video
-                      src={memory.file_url}
-                      controls
-                      playsInline
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : memory.file_type === "audio" && memory.file_url ? (
+              return (
+                <div
+                  key={memory.id}
+                  style={{
+                    borderRadius: "24px",
+                    overflow: "hidden",
+                    background: "rgba(255,255,255,0.85)",
+                    backdropFilter: "blur(12px)",
+                    boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
+                    marginBottom: "20px",
+                  }}
+                >
+                  {/* QUESTION EN HAUT */}
+                  {questionText && (
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                        background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                        padding: "12px 16px 0",
+                        background: "rgba(253,248,240,0.95)",
                       }}
                     >
-                      <audio src={memory.file_url} controls style={{ width: "80%" }} />
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                        background: "linear-gradient(135deg, #2D1810, #8B4513)",
-                      }}
-                    >
-                      <span style={{ fontSize: "48px" }}>🎙️</span>
+                      <p
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          letterSpacing: "0.1em",
+                          color: "rgba(232,116,42,0.6)",
+                          textTransform: "uppercase",
+                          fontFamily: "system-ui, sans-serif",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        La question
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          fontFamily: "Georgia, serif",
+                          fontStyle: "italic",
+                          color: "#3D2B1F",
+                          lineHeight: 1.4,
+                          marginBottom: "8px",
+                        }}
+                      >
+                        {questionText}
+                      </p>
                     </div>
                   )}
+
+                  {/* CONTENU VIDÉO / AUDIO */}
+                  <div style={{ position: "relative", aspectRatio: "16/9", background: "#000" }}>
+                    {memory.file_type === "video" && memory.file_url ? (
+                      <video
+                        src={memory.file_url}
+                        controls
+                        playsInline
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : memory.file_type === "audio" && memory.file_url ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          height: "100%",
+                          background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                        }}
+                      >
+                        <audio src={memory.file_url} controls style={{ width: "80%" }} />
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          height: "100%",
+                          background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                        }}
+                      >
+                        <span style={{ fontSize: "48px" }}>🎙️</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* TITRE ET AUTEUR */}
+                  <div style={{ padding: "12px 16px 0" }}>
+                    <p
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        color: "#3D2B1F",
+                        fontFamily: "Georgia, serif",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {memory.title || "Un souvenir"}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "11px",
+                        color: "rgba(61,43,31,0.5)",
+                        marginTop: "4px",
+                      }}
+                    >
+                      — {displayName}
+                    </p>
+                  </div>
+
+                  {/* SOUS-TITRES */}
+                  <SubtitleDisplay
+                    transcript_fr={memory.transcript_fr}
+                    transcript_en={memory.transcript_en}
+                    transcript_ar={memory.transcript_ar}
+                    translation_status={memory.translation_status}
+                    detected_lang={memory.detected_lang}
+                    currentLang={lang as "fr" | "en" | "ar"}
+                  />
+
+                  {/* ACTION BAR */}
+                  <ActionBar
+                    memoryId={memory.id}
+                    memoryTitle={memory.title || "Souvenir"}
+                    authorName={displayName}
+                    initialSparks={memory.sparks_count || 0}
+                    lang={lang as "fr" | "en" | "ar"}
+                    userName={currentUserName}
+                    questionFr={questionObj?.fr}
+                    questionEn={questionObj?.en}
+                    questionAr={questionObj?.ar}
+                    questionBubbleFr={questionObj?.bubble_fr}
+                    questionBubbleEn={questionObj?.bubble_en}
+                    questionBubbleAr={questionObj?.bubble_ar}
+                    followupsFr={questionObj?.followups_fr}
+                    followupsEn={questionObj?.followups_en}
+                    followupsAr={questionObj?.followups_ar}
+                  />
                 </div>
-
-                {/* TITRE ET AUTEUR */}
-                <div style={{ padding: "12px 16px 0" }}>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      color: "#3D2B1F",
-                      fontFamily: "Georgia, serif",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {memory.title || "Un souvenir"}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "11px",
-                      color: "rgba(61,43,31,0.5)",
-                      marginTop: "4px",
-                    }}
-                  >
-                    — {displayName}
-                  </p>
-                </div>
-
-                {/* SOUS-TITRES */}
-                <SubtitleDisplay
-                  transcript_fr={memory.transcript_fr}
-                  transcript_en={memory.transcript_en}
-                  transcript_ar={memory.transcript_ar}
-                  translation_status={memory.translation_status}
-                  detected_lang={memory.detected_lang}
-                  currentLang={lang as "fr" | "en" | "ar"}
-                />
-
-                {/* ACTION BAR */}
-                <ActionBar
-                  memoryId={memory.id}
-                  memoryTitle={memory.title || "Souvenir"}
-                  authorName={displayName}
-                  initialSparks={memory.sparks_count || 0}
-                  lang={lang as "fr" | "en" | "ar"}
-                  userName={currentUserName}
-                  questionFr={questionObj?.fr}
-                  questionEn={questionObj?.en}
-                  questionAr={questionObj?.ar}
-                  questionBubbleFr={questionObj?.bubble_fr}
-                  questionBubbleEn={questionObj?.bubble_en}
-                  questionBubbleAr={questionObj?.bubble_ar}
-                  followupsFr={questionObj?.followups_fr}
-                  followupsEn={questionObj?.followups_en}
-                  followupsAr={questionObj?.followups_ar}
-                />
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* BOUTON D'IMPORT FLOTTANT */}
