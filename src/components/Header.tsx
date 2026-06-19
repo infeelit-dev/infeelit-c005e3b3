@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
-import { supabase } from "@/integrations/supabase/client";
 import infeelit from "@/assets/infeelit-logo.png";
 
 interface HeaderProps {
@@ -18,7 +18,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const [langOpen, setLangOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Vérifier si l'utilisateur est connecté
+  // Vérifier l'état de connexion
   useEffect(() => {
     const checkAuth = async () => {
       const {
@@ -74,6 +74,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             direction: "ltr",
           }}
         >
+          {/* MENU BURGER — gauche */}
           <button
             onClick={() => setMenuOpen(true)}
             style={{
@@ -87,11 +88,13 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               justifyContent: "center",
               cursor: "pointer",
               backdropFilter: "blur(8px)",
+              flexShrink: 0,
             }}
           >
             <Menu size={18} color="#fff" />
           </button>
 
+          {/* LOGO — centré */}
           <img
             src={infeelit}
             alt="Infeelit"
@@ -102,15 +105,19 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               maxWidth: "160px",
               filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
               cursor: "pointer",
+              objectFit: "contain",
+              flexShrink: 0,
             }}
           />
 
+          {/* ACTIONS — droite */}
           <div
             style={{
               display: "flex",
               gap: "8px",
               alignItems: "center",
               direction: "ltr",
+              flexShrink: 0,
             }}
           >
             {/* Bouton langue */}
@@ -128,6 +135,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                   justifyContent: "center",
                   cursor: "pointer",
                   backdropFilter: "blur(8px)",
+                  flexShrink: 0,
                 }}
               >
                 <span
@@ -238,6 +246,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 justifyContent: "center",
                 cursor: "pointer",
                 backdropFilter: "blur(8px)",
+                flexShrink: 0,
               }}
             >
               <Search size={16} color="#fff" />
@@ -363,7 +372,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               }}
             />
 
-            {/* ✅ MODIFICATION 3 — BOUTON "REJOINDRE" EN PREMIER DANS LE MENU SI NON CONNECTÉ */}
+            {/* BOUTON "REJOINDRE" EN PREMIER DANS LE MENU SI NON CONNECTÉ */}
             {!isLoggedIn && (
               <button
                 onClick={() => {
