@@ -216,6 +216,7 @@ export default function UploadMemory({ lang, userName, onClose }: UploadMemoryPr
       </div>
 
       <div style={{ padding: "24px 20px", flex: 1 }}>
+        {/* ✅ AFFICHAGE CONDITIONNEL — placeholder OU vidéo */}
         {!file ? (
           <div
             onClick={() => fileInputRef.current?.click()}
@@ -271,6 +272,7 @@ export default function UploadMemory({ lang, userName, onClose }: UploadMemoryPr
               onClick={() => {
                 setFile(null);
                 setPreview(null);
+                if (fileInputRef.current) fileInputRef.current.value = "";
               }}
               style={{
                 position: "absolute",
@@ -408,75 +410,4 @@ export default function UploadMemory({ lang, userName, onClose }: UploadMemoryPr
                 overflow: "hidden",
               }}
             >
-              <div
-                style={{
-                  height: "100%",
-                  width: `${progress}%`,
-                  background: "linear-gradient(90deg, #E8742A, #D4AF37)",
-                  borderRadius: "999px",
-                  transition: "width 0.3s ease",
-                }}
-              />
-            </div>
-            <p
-              style={{
-                fontSize: "12px",
-                color: "rgba(61,43,31,0.5)",
-                textAlign: "center",
-                marginTop: "8px",
-              }}
-            >
-              {progress < 30
-                ? lang === "fr"
-                  ? "Préparation…"
-                  : lang === "ar"
-                    ? "جارٍ التحضير…"
-                    : "Preparing…"
-                : progress < 80
-                  ? lang === "fr"
-                    ? "Upload en cours…"
-                    : lang === "ar"
-                      ? "جارٍ الرفع…"
-                      : "Uploading…"
-                  : lang === "fr"
-                    ? "Finalisation…"
-                    : lang === "ar"
-                      ? "جارٍ الانتهاء…"
-                      : "Finishing…"}
-            </p>
-          </div>
-        )}
-
-        <button
-          onClick={handleSubmit}
-          disabled={!file || uploading}
-          style={{
-            width: "100%",
-            padding: "18px",
-            borderRadius: "18px",
-            background: !file || uploading ? "rgba(232,116,42,0.3)" : "linear-gradient(135deg, #E8742A, #D4621A)",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: "16px",
-            border: "none",
-            cursor: !file || uploading ? "not-allowed" : "pointer",
-            boxShadow: !file || uploading ? "none" : "0 4px 20px rgba(232,116,42,0.4)",
-            transition: "all 0.2s ease",
-          }}
-        >
-          {uploading
-            ? lang === "fr"
-              ? "Upload en cours…"
-              : lang === "ar"
-                ? "جارٍ الرفع…"
-                : "Uploading…"
-            : lang === "fr"
-              ? "Publier ce souvenir ✦"
-              : lang === "ar"
-                ? "نشر هذه الذكرى ✦"
-                : "Publish this memory ✦"}
-        </button>
-      </div>
-    </div>
-  );
-}
+              <
