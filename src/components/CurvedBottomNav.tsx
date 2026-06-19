@@ -27,6 +27,16 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
     return () => subscription.unsubscribe();
   }, []);
 
+  // ✅ MODIFICATION 2 — GESTION DU CLIC SUR L'ICÔNE MOI
+  const handleProfileClick = () => {
+    const isLoggedIn = !!localStorage.getItem("infeelit_user_name") || isConnected;
+    if (!isLoggedIn) {
+      navigate("/welcome");
+    } else {
+      navigate("/treasure");
+    }
+  };
+
   const NAV_ITEMS = [
     { icon: Users, label: lang === "ar" ? "دوائر" : lang === "fr" ? "Cercles" : "Circles", path: "/circles" },
     { icon: MapPin, label: lang === "ar" ? "أماكن" : lang === "fr" ? "Lieux" : "Places", path: "/places" },
@@ -80,7 +90,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
             return (
               <button
                 key="flame"
-                onClick={() => navigate(item.path)}
+                onClick={handleProfileClick}
                 className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
               >
                 <div style={{ position: "relative" }}>
