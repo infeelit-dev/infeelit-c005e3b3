@@ -11,7 +11,7 @@ type Step = "chapters" | "categories" | "questions";
 interface SparkBubbleProps {
   forceOpen?: boolean;
   onSparkClose?: () => void;
-  isLoggedIn?: boolean; // AJOUT
+  isLoggedIn?: boolean;
 }
 
 const getRandomPosition = () => {
@@ -59,18 +59,18 @@ const SparkBubble = ({ forceOpen, onSparkClose, isLoggedIn = false }: SparkBubbl
     }
   }, [forceOpen]);
 
-  // Si non connecté → afficher les démos automatiquement après un délai
-  useEffect(() => {
-    if (!isLoggedIn && !expanded && !forceOpen) {
-      const timer = setTimeout(() => {
-        setExpanded(true);
-        setCurrentStep("chapters");
-        setSelectedChapter(null);
-        setSelectedCategory(null);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoggedIn, expanded, forceOpen]);
+  // 🔴 SUPPRIMER CE useEffect QUI CAUSE LE BUG
+  // useEffect(() => {
+  //   if (!isLoggedIn && !expanded && !forceOpen) {
+  //     const timer = setTimeout(() => {
+  //       setExpanded(true);
+  //       setCurrentStep("chapters");
+  //       setSelectedChapter(null);
+  //       setSelectedCategory(null);
+  //     }, 1500);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isLoggedIn, expanded, forceOpen]);
 
   useEffect(() => {
     const moveInterval = setInterval(() => {
