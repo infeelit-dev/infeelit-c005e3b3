@@ -96,54 +96,22 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             <Menu size={18} color="#fff" />
           </button>
 
-          {/* LOGO + LABEL — position absolute, PARFAITEMENT centré */}
-          <div
+          {/* LOGO — position absolute centré à EXACTEMENT 50% */}
+          <img
+            src={infeelit}
+            alt="Infeelit"
+            onClick={() => navigate("/")}
             style={{
               position: "absolute",
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "3px",
-              pointerEvents: "none",
-              zIndex: 5,
+              height: "40px",
+              width: "auto",
+              filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
+              cursor: "pointer",
             }}
-          >
-            <img
-              src={infeelit}
-              alt="Infeelit"
-              onClick={() => navigate("/")}
-              style={{
-                height: "32px",
-                width: "auto",
-                filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
-                cursor: "pointer",
-                pointerEvents: "auto",
-                display: "block",
-              }}
-            />
-            <span
-              style={{
-                fontSize: "8px",
-                fontWeight: 900,
-                letterSpacing: "0.35em",
-                color: activeTimeline === "forever" ? "#38bdf8" : "#E8742A",
-                textTransform: "uppercase",
-                textAlign: "center",
-                lineHeight: 1,
-                pointerEvents: "none",
-              }}
-            >
-              {activeTimeline === "instant"
-                ? "INSTANT"
-                : activeTimeline === "forever"
-                  ? "FOREVER"
-                  : "MEMORIES"}
-            </span>
-          </div>
+          />
 
           {/* ACTIONS — droite */}
           <div
