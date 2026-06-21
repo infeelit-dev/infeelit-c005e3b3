@@ -44,6 +44,13 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
 
   const closeBurgerMenu = () => setMenuOpen(false);
 
+  // Label sous le logo en fonction de la timeline active
+  const getTimelineLabel = () => {
+    if (activeTimeline === "instant") return "INSTANT";
+    if (activeTimeline === "forever") return "FOREVER";
+    return "MEMORIES";
+  };
+
   return (
     <>
       <header
@@ -56,40 +63,34 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: "8px",
+          paddingTop: "12px",
           paddingBottom: "8px",
-          background: "transparent",
         }}
         dir="ltr"
       >
-        {/* Première ligne : Menu | Logo centré | Actions */}
+        {/* Conteneur principal avec position relative */}
         <div
           style={{
             width: "100%",
+            position: "relative",
             display: "flex",
-            justifyContent: "center",
+            justifyContent: "space-between",
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
-            marginBottom: "8px",
-            direction: "ltr",
-            position: "relative",
-            height: "64px", // Hauteur fixe pour alignement parfait
+            marginBottom: "10px",
+            height: "48px",
           }}
         >
-          {/* MENU BURGER — position absolue à gauche */}
+          {/* BURGER MENU — gauche */}
           <button
             onClick={() => setMenuOpen(true)}
             style={{
-              position: "absolute",
-              left: "16px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "40px",
-              height: "40px",
+              width: "34px",
+              height: "34px",
               borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.15)",
+              backgroundColor: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -97,26 +98,23 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               backdropFilter: "blur(8px)",
               flexShrink: 0,
               zIndex: 5,
-              transition: "background 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.12)";
             }}
           >
-            <Menu size={20} color="#fff" strokeWidth={2} />
+            <Menu size={18} color="#fff" />
           </button>
 
-          {/* LOGO — parfaitement centré horizontalement et verticalement */}
+          {/* LOGO — position absolute centré à 50% */}
           <div
             style={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              flex: 1,
+              gap: "2px",
+              pointerEvents: "none",
+              zIndex: 5,
             }}
           >
             <img
@@ -124,24 +122,37 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               alt="Infeelit"
               onClick={() => navigate("/")}
               style={{
-                height: "52px",
+                height: "36px",
                 width: "auto",
-                maxWidth: "160px",
+                maxWidth: "120px",
                 filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
                 cursor: "pointer",
-                objectFit: "contain",
+                pointerEvents: "auto",
                 display: "block",
               }}
             />
+            {/* Label de la timeline active — centré sous le logo */}
+            <span
+              style={{
+                fontSize: "8px",
+                fontWeight: 900,
+                letterSpacing: "0.35em",
+                color: activeTimeline === "instant" ? "#E8742A" : activeTimeline === "forever" ? "#38bdf8" : "#ffffff",
+                textTransform: "uppercase",
+                textAlign: "center",
+                display: "block",
+                lineHeight: 1,
+                opacity: 0.8,
+                textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+              }}
+            >
+              {getTimelineLabel()}
+            </span>
           </div>
 
-          {/* ACTIONS — position absolue à droite */}
+          {/* ACTIONS — droite */}
           <div
             style={{
-              position: "absolute",
-              right: "16px",
-              top: "50%",
-              transform: "translateY(-50%)",
               display: "flex",
               gap: "8px",
               alignItems: "center",
@@ -155,33 +166,25 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               <button
                 onClick={() => setLangOpen(!langOpen)}
                 style={{
-                  width: "40px",
-                  height: "40px",
+                  width: "34px",
+                  height: "34px",
                   borderRadius: "50%",
-                  backgroundColor: "rgba(255,255,255,0.12)",
-                  border: "1px solid rgba(255,255,255,0.15)",
+                  backgroundColor: "rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(255,255,255,0.2)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
                   backdropFilter: "blur(8px)",
                   flexShrink: 0,
-                  transition: "background 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.12)";
                 }}
               >
                 <span
                   style={{
-                    fontSize: "12px",
+                    fontSize: "11px",
                     fontWeight: 900,
                     color: "#fff",
                     fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
-                    letterSpacing: "0.05em",
                   }}
                 >
                   {lang === "fr" ? "FR" : lang === "en" ? "EN" : "عر"}
@@ -222,22 +225,14 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                         }}
                         style={{
                           width: "100%",
-                          padding: "12px 16px",
+                          padding: "11px 14px",
                           display: "flex",
                           alignItems: "center",
                           gap: "10px",
-                          backgroundColor: lang === l.id ? "rgba(232,116,42,0.15)" : "transparent",
+                          backgroundColor: lang === l.id ? "rgba(232,116,42,0.2)" : "transparent",
                           border: "none",
-                          borderBottom: i < LANGS.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                          borderBottom: i < LANGS.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none",
                           cursor: "pointer",
-                          transition: "background 0.15s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            lang === l.id ? "rgba(232,116,42,0.15)" : "transparent";
                         }}
                       >
                         <span
@@ -266,7 +261,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                             style={{
                               marginLeft: "auto",
                               color: "#E8742A",
-                              fontSize: "14px",
+                              fontSize: "13px",
                             }}
                           >
                             ✓
@@ -282,39 +277,30 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             <button
               onClick={() => navigate("/search")}
               style={{
-                width: "40px",
-                height: "40px",
+                width: "34px",
+                height: "34px",
                 borderRadius: "50%",
-                backgroundColor: "rgba(255,255,255,0.12)",
-                border: "1px solid rgba(255,255,255,0.15)",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
                 backdropFilter: "blur(8px)",
-                flexShrink: 0,
-                transition: "background 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.12)";
               }}
             >
-              <Search size={18} color="#fff" strokeWidth={2} />
+              <Search size={16} color="#fff" />
             </button>
           </div>
         </div>
 
-        {/* Deuxième ligne : Navigation des timelines */}
+        {/* Navigation des timelines */}
         <div
           style={{
             width: "100%",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            paddingTop: "4px",
           }}
         >
           <nav
@@ -338,13 +324,12 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.6)",
-                    fontWeight: isActive ? 900 : 600,
-                    fontSize: isActive ? "15px" : "13px",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
+                    fontWeight: isActive ? 900 : 700,
+                    fontSize: isActive ? "16px" : "13px",
                     textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                     transition: "all 0.2s",
                     whiteSpace: "nowrap",
-                    letterSpacing: isActive ? "0.02em" : "0.01em",
                   }}
                 >
                   {tab.label}
@@ -358,8 +343,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                         height: "2.5px",
                         borderRadius: "999px",
                         backgroundColor: underlineColor(tab.id),
-                        boxShadow: `0 0 12px ${underlineColor(tab.id)}`,
-                        transition: "all 0.3s",
+                        boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
                       }}
                     />
                   )}
@@ -370,6 +354,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         </div>
       </header>
 
+      {/* Menu Burger */}
       {menuOpen && (
         <div
           style={{
@@ -413,7 +398,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 border: "none",
                 cursor: "pointer",
                 color: "rgba(61,43,31,0.4)",
-                padding: "8px",
               }}
             >
               <X size={20} />
@@ -449,13 +433,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                   cursor: "pointer",
                   textAlign: "left",
                   marginBottom: "4px",
-                  transition: "opacity 0.15s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = "0.7";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = "1";
                 }}
               >
                 <span style={{ fontSize: "20px" }}>✦</span>
@@ -489,13 +466,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 fontSize: "15px",
                 fontWeight: 600,
                 color: "#3D2B1F",
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.04)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
               <span>✦</span>
@@ -520,13 +490,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 fontSize: "15px",
                 fontWeight: 600,
                 color: "#3D2B1F",
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.04)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
               }}
             >
               <span>💬</span>
