@@ -4,23 +4,34 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
-import BubbleCanvas from "@/components/BubbleCanvas";
 import ActionBar from "@/components/ActionBar";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
-import UploadMemory from "@/components/UploadMemory";
 import useUserName from "@/hooks/useUserName";
 import type { Timeline } from "@/types/timeline";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+// === CONSTANTES POUR LE SIGNALEMENT ===
+const REPORT_REASONS = {
+  fr: ["Contenu violent", "Contenu sexuel", "Spam ou publicité", "Contenu inapproprié", "Autre"],
+  en: ["Violent content", "Sexual content", "Spam or advertising", "Inappropriate content", "Other"],
+  ar: ["محتوى عنيف", "محتوى جنسي", "بريد عشوائي أو إعلان", "محتوى غير لائق", "أخرى"],
+};
 
 const Index = () => {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
   const userName = useUserName();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
   const [feedMemories, setFeedMemories] = useState<any[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
-  const [showUpload, setShowUpload] = useState(false);
   const currentUserName = localStorage.getItem("infeelit_user_name") || "";
+
+  // === ÉTATS POUR LE SIGNALEMENT ===
+  const [showReportMenu, setShowReportMenu] = useState<string | null>(null);
+  const [reportSent, setReportSent] = useState<Record<string, boolean>>({});
+  const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
     const entryTime = Date.now();
@@ -62,6 +73,7 @@ const Index = () => {
     };
   }, []);
 
+  // === CHARGEMENT DU FEED AVEC FILTRE MODERATION ===
   useEffect(() => {
     const loadFeed = async () => {
       setLoadingFeed(true);
@@ -74,6 +86,7 @@ const Index = () => {
         `,
         )
         .eq("is_community", true)
+        .not("moderation_status", "in", '("rejected","reported")')
         .order("created_at", { ascending: false })
         .limit(20);
 
@@ -87,10 +100,6 @@ const Index = () => {
     setActiveTimeline(timeline);
   };
 
-  const handleBubbleClick = (question: string) => {
-    navigate("/record", { state: { question } });
-  };
-
   const getBackground = () => {
     if (activeTimeline === "forever")
       return "linear-gradient(180deg, #020818 0%, #041434 40%, #0a1628 70%, #1a1040 100%)";
@@ -98,7 +107,42 @@ const Index = () => {
     return "linear-gradient(180deg, #7ec8c8 0%, #a8d8c8 30%, #f0e6d3 70%, #E8742A 100%)";
   };
 
-  const lang = "fr";
+  // === FONCTION SIGNALEMENT ===
+  const handleReport = async (memoryId: string, reason: string) => {
+    try {
+      setReportError(null);
+
+      const { error } = await supabase.from("memory_reports").insert({
+        memory_id: memoryId,
+        reporter_name: userName || "anonymous",
+        reason,
+      });
+
+      if (error) throw error;
+
+      // Vérifier si 3+ signalements
+      const { count } = await supabase.from("memory_reports").select("*", { count: "exact" }).eq("memory_id", memoryId);
+
+      if (count && count >= 3) {
+        await supabase.from("memories").update({ moderation_status: "reported" }).eq("id", memoryId);
+      }
+
+      setReportSent({ ...reportSent, [memoryId]: true });
+      setShowReportMenu(null);
+
+      // Cacher le souvenir du feed s'il a été signalé 3 fois
+      if (count && count >= 3) {
+        setFeedMemories(feedMemories.filter((m) => m.id !== memoryId));
+      }
+
+      setTimeout(() => {
+        setReportSent((prev) => ({ ...prev, [memoryId]: false }));
+      }, 3000);
+    } catch (err) {
+      console.error(err);
+      setReportError("Erreur lors du signalement");
+    }
+  };
 
   return (
     <div
@@ -146,208 +190,328 @@ const Index = () => {
       </div>
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
-
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
 
-      {/* ✅ BUBBLE CANVAS — LES BULLES DÉMO FLOTTANTES SUR LA PAGE D'ACCUEIL */}
-      <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
+      {/* FEED DE SOUVENIRS */}
+      <div className="relative z-20 flex-1 overflow-y-auto pb-32 pt-20 px-4">
+        {loadingFeed ? (
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-2 border-[#E8742A] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : feedMemories.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-white/50 text-sm">Aucun souvenir pour l'instant</p>
+            <p className="text-white/30 text-xs mt-2">Sois le premier à en partager un</p>
+          </div>
+        ) : (
+          feedMemories.map((memory) => {
+            const displayName =
+              memory.profiles?.display_name?.split(" ")[0] || (memory.is_anonymous ? "Un Gardien" : "Quelqu'un");
 
-      {/* FEED DE SOUVENIRS — en overlay au-dessus des bulles */}
-      <div className="relative z-20 flex-1 overflow-y-auto pb-32 pt-20 px-4 pointer-events-none">
-        <div className="pointer-events-auto">
-          {loadingFeed ? (
-            <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-[#E8742A] border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : feedMemories.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-white/50 text-sm">Aucun souvenir pour l'instant</p>
-              <p className="text-white/30 text-xs mt-2">Sois le premier à en partager un</p>
-            </div>
-          ) : (
-            feedMemories.map((memory) => {
-              const displayName =
-                memory.profiles?.display_name?.split(" ")[0] || (memory.is_anonymous ? "Un Gardien" : "Quelqu'un");
+            const questionObj = memory.question_data || {};
+            const questionText =
+              lang === "fr" ? questionObj.fr : lang === "ar" ? questionObj.ar : questionObj.en || memory.title;
 
-              const questionObj = memory.question_data || {};
-              const questionText =
-                lang === "fr" ? questionObj.fr : lang === "ar" ? questionObj.ar : questionObj.en || memory.title;
+            const isReported = reportSent[memory.id] || false;
 
-              return (
-                <div
-                  key={memory.id}
+            return (
+              <div
+                key={memory.id}
+                style={{
+                  borderRadius: "24px",
+                  overflow: "hidden",
+                  background: "#fff",
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
+                  marginBottom: "20px",
+                  position: "relative",
+                }}
+              >
+                {/* === BOUTON SIGNALER ⚑ === */}
+                <button
+                  onClick={() => setShowReportMenu(showReportMenu === memory.id ? null : memory.id)}
                   style={{
-                    borderRadius: "24px",
-                    overflow: "hidden",
-                    background: "rgba(255,255,255,0.85)",
-                    backdropFilter: "blur(12px)",
-                    boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-                    marginBottom: "20px",
+                    position: "absolute",
+                    top: "8px",
+                    right: "8px",
+                    background: "rgba(0,0,0,0.3)",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: "28px",
+                    height: "28px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    zIndex: 15,
+                    opacity: 0.6,
+                    transition: "opacity 0.2s",
                   }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = "1";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = "0.6";
+                  }}
+                  aria-label="Signaler"
                 >
-                  {/* QUESTION EN HAUT */}
-                  {questionText && (
+                  <span style={{ fontSize: "14px" }}>⚑</span>
+                </button>
+
+                {/* === CONFIRMATION SIGNALEMENT ENVOYÉ === */}
+                {isReported && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "60px",
+                      left: "16px",
+                      right: "16px",
+                      padding: "10px 14px",
+                      background: "rgba(34,197,94,0.15)",
+                      border: "1px solid rgba(34,197,94,0.3)",
+                      borderRadius: "12px",
+                      zIndex: 20,
+                      backdropFilter: "blur(4px)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        color: "#16a34a",
+                        margin: 0,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {lang === "fr"
+                        ? "✓ Signalement envoyé. Merci."
+                        : lang === "ar"
+                          ? "✓ تم إرسال البلاغ. شكراً."
+                          : "✓ Report sent. Thank you."}
+                    </p>
+                  </div>
+                )}
+
+                {/* === MODAL SIGNALEMENT === */}
+                {showReportMenu === memory.id && (
+                  <div
+                    style={{
+                      position: "fixed",
+                      inset: 0,
+                      background: "rgba(0,0,0,0.5)",
+                      backdropFilter: "blur(4px)",
+                      zIndex: 200,
+                      display: "flex",
+                      alignItems: "flex-end",
+                      justifyContent: "center",
+                      padding: "0 0 24px",
+                    }}
+                    onClick={() => setShowReportMenu(null)}
+                  >
                     <div
                       style={{
-                        padding: "12px 16px 0",
-                        background: "rgba(253,248,240,0.95)",
+                        background: "#FDF8F0",
+                        borderRadius: "24px 24px 16px 16px",
+                        padding: "24px 20px",
+                        width: "100%",
+                        maxWidth: "420px",
                       }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <p
                         style={{
-                          fontSize: "10px",
-                          fontWeight: 700,
-                          letterSpacing: "0.1em",
-                          color: "rgba(232,116,42,0.6)",
+                          fontSize: "11px",
+                          fontWeight: 900,
+                          color: "#E8742A",
+                          letterSpacing: "0.2em",
                           textTransform: "uppercase",
-                          fontFamily: "system-ui, sans-serif",
-                          marginBottom: "4px",
+                          marginBottom: "16px",
+                          textAlign: "center",
                         }}
                       >
-                        La question
+                        {lang === "fr"
+                          ? "Pourquoi signales-tu ce contenu ?"
+                          : lang === "ar"
+                            ? "لماذا تُبلّغ عن هذا المحتوى؟"
+                            : "Why are you reporting this?"}
                       </p>
-                      <p
+
+                      {(REPORT_REASONS[lang as keyof typeof REPORT_REASONS] || REPORT_REASONS.fr).map((reason) => (
+                        <button
+                          key={reason}
+                          onClick={() => handleReport(memory.id, reason)}
+                          style={{
+                            width: "100%",
+                            padding: "14px 16px",
+                            background: "none",
+                            border: "none",
+                            borderBottom: "1px solid rgba(61,43,31,0.08)",
+                            cursor: "pointer",
+                            textAlign: "left",
+                            fontSize: "15px",
+                            color: "#3D2B1F",
+                            fontWeight: 500,
+                            transition: "background 0.15s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "rgba(0,0,0,0.04)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "transparent";
+                          }}
+                        >
+                          {reason}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => setShowReportMenu(null)}
                         style={{
-                          fontSize: "13px",
-                          fontFamily: "Georgia, serif",
-                          fontStyle: "italic",
-                          color: "#3D2B1F",
-                          lineHeight: 1.4,
-                          marginBottom: "8px",
+                          width: "100%",
+                          padding: "14px",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "rgba(61,43,31,0.4)",
+                          fontSize: "14px",
+                          marginTop: "8px",
                         }}
                       >
-                        {questionText}
-                      </p>
+                        {lang === "fr" ? "Annuler" : lang === "ar" ? "إلغاء" : "Cancel"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* QUESTION EN HAUT */}
+                {questionText && (
+                  <div
+                    style={{
+                      padding: "12px 16px 0",
+                      background: "rgba(253,248,240,0.95)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "10px",
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        color: "rgba(232,116,42,0.6)",
+                        textTransform: "uppercase",
+                        fontFamily: "system-ui, sans-serif",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      La question
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        fontFamily: "Georgia, serif",
+                        fontStyle: "italic",
+                        color: "#3D2B1F",
+                        lineHeight: 1.4,
+                        marginBottom: "8px",
+                      }}
+                    >
+                      {questionText}
+                    </p>
+                  </div>
+                )}
+
+                {/* CONTENU VIDÉO / AUDIO */}
+                <div style={{ position: "relative", aspectRatio: "16/9", background: "#000" }}>
+                  {memory.file_type === "video" && memory.file_url ? (
+                    <video
+                      src={memory.file_url}
+                      controls
+                      playsInline
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : memory.file_type === "audio" && memory.file_url ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%",
+                        background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                      }}
+                    >
+                      <audio src={memory.file_url} controls style={{ width: "80%" }} />
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%",
+                        background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                      }}
+                    >
+                      <span style={{ fontSize: "48px" }}>🎙️</span>
                     </div>
                   )}
-
-                  {/* CONTENU VIDÉO / AUDIO */}
-                  <div style={{ position: "relative", aspectRatio: "16/9", background: "#000" }}>
-                    {memory.file_type === "video" && memory.file_url ? (
-                      <video
-                        src={memory.file_url}
-                        controls
-                        playsInline
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    ) : memory.file_type === "audio" && memory.file_url ? (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          height: "100%",
-                          background: "linear-gradient(135deg, #2D1810, #8B4513)",
-                        }}
-                      >
-                        <audio src={memory.file_url} controls style={{ width: "80%" }} />
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          height: "100%",
-                          background: "linear-gradient(135deg, #2D1810, #8B4513)",
-                        }}
-                      >
-                        <span style={{ fontSize: "48px" }}>🎙️</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* TITRE ET AUTEUR */}
-                  <div style={{ padding: "12px 16px 0" }}>
-                    <p
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        color: "#3D2B1F",
-                        fontFamily: "Georgia, serif",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {memory.title || "Un souvenir"}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: "11px",
-                        color: "rgba(61,43,31,0.5)",
-                        marginTop: "4px",
-                      }}
-                    >
-                      — {displayName}
-                    </p>
-                  </div>
-
-                  {/* SOUS-TITRES */}
-                  <SubtitleDisplay
-                    transcript_fr={memory.transcript_fr}
-                    transcript_en={memory.transcript_en}
-                    transcript_ar={memory.transcript_ar}
-                    translation_status={memory.translation_status}
-                    detected_lang={memory.detected_lang}
-                    currentLang={lang as "fr" | "en" | "ar"}
-                  />
-
-                  {/* ACTION BAR */}
-                  <ActionBar
-                    memoryId={memory.id}
-                    memoryTitle={memory.title || "Souvenir"}
-                    authorName={displayName}
-                    initialSparks={memory.sparks_count || 0}
-                    lang={lang as "fr" | "en" | "ar"}
-                    userName={currentUserName}
-                    questionFr={questionObj?.fr}
-                    questionEn={questionObj?.en}
-                    questionAr={questionObj?.ar}
-                    questionBubbleFr={questionObj?.bubble_fr}
-                    questionBubbleEn={questionObj?.bubble_en}
-                    questionBubbleAr={questionObj?.bubble_ar}
-                    followupsFr={questionObj?.followups_fr}
-                    followupsEn={questionObj?.followups_en}
-                    followupsAr={questionObj?.followups_ar}
-                  />
                 </div>
-              );
-            })
-          )}
-        </div>
+
+                {/* TITRE ET AUTEUR */}
+                <div style={{ padding: "12px 16px 0" }}>
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      color: "#3D2B1F",
+                      fontFamily: "Georgia, serif",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {memory.title || "Un souvenir"}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "rgba(61,43,31,0.5)",
+                      marginTop: "4px",
+                    }}
+                  >
+                    — {displayName}
+                  </p>
+                </div>
+
+                {/* SOUS-TITRES */}
+                <SubtitleDisplay
+                  transcript_fr={memory.transcript_fr}
+                  transcript_en={memory.transcript_en}
+                  transcript_ar={memory.transcript_ar}
+                  translation_status={memory.translation_status}
+                  detected_lang={memory.detected_lang}
+                  currentLang={lang as "fr" | "en" | "ar"}
+                />
+
+                {/* ACTION BAR */}
+                <ActionBar
+                  memoryId={memory.id}
+                  memoryTitle={memory.title || "Souvenir"}
+                  authorName={displayName}
+                  initialSparks={memory.sparks_count || 0}
+                  lang={lang as "fr" | "en" | "ar"}
+                  userName={currentUserName}
+                  questionFr={questionObj?.fr}
+                  questionEn={questionObj?.en}
+                  questionAr={questionObj?.ar}
+                  questionBubbleFr={questionObj?.bubble_fr}
+                  questionBubbleEn={questionObj?.bubble_en}
+                  questionBubbleAr={questionObj?.bubble_ar}
+                  followupsFr={questionObj?.followups_fr}
+                  followupsEn={questionObj?.followups_en}
+                  followupsAr={questionObj?.followups_ar}
+                />
+              </div>
+            );
+          })
+        )}
       </div>
 
-      {/* BOUTON D'IMPORT FLOTTANT */}
-      <button
-        onClick={() => setShowUpload(true)}
-        style={{
-          position: "fixed",
-          bottom: "90px",
-          right: "20px",
-          width: "48px",
-          height: "48px",
-          borderRadius: "50%",
-          background: "linear-gradient(135deg, #E8742A, #D4621A)",
-          border: "none",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 4px 16px rgba(232,116,42,0.4)",
-          zIndex: 30,
-          fontSize: "22px",
-        }}
-      >
-        📥
-      </button>
-
-      {/* MODAL D'UPLOAD */}
-      {showUpload && (
-        <UploadMemory
-          lang={lang as "fr" | "en" | "ar"}
-          userName={userName || "anonymous"}
-          onClose={() => setShowUpload(false)}
-        />
-      )}
+      {/* ✅ BOUTON 📥 SUPPRIMÉ — plus présent */}
 
       <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
     </div>
