@@ -56,12 +56,12 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: "12px",
-          paddingBottom: "8px",
+          paddingTop: "8px", // ✅ Réduit
+          paddingBottom: "4px", // ✅ Réduit
         }}
         dir="ltr"
       >
-        {/* ✅ REPLACÉ — grid au lieu de flex space-between */}
+        {/* Conteneur avec grid — 3 colonnes égales */}
         <div
           style={{
             width: "100%",
@@ -70,11 +70,11 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
-            marginBottom: "10px",
+            marginBottom: "4px", // ✅ Réduit
             direction: "ltr",
           }}
         >
-          {/* BURGER — colonne gauche (1fr) */}
+          {/* BURGER — colonne gauche */}
           <button
             onClick={() => setMenuOpen(true)}
             style={{
@@ -93,7 +93,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             <Menu size={18} color="#fff" />
           </button>
 
-          {/* LOGO — colonne centrale (auto) */}
+          {/* LOGO — colonne centrale, parfaitement centré */}
           <img
             src={infeelit}
             alt="Infeelit"
@@ -108,7 +108,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             }}
           />
 
-          {/* ACTIONS — colonne droite (1fr) */}
+          {/* ACTIONS — colonne droite */}
           <div
             style={{
               display: "flex",
@@ -250,7 +250,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Navigation des timelines — inchangée */}
+        {/* Navigation des timelines — centrée */}
         <div
           style={{
             width: "100%",
@@ -310,7 +310,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         </div>
       </header>
 
-      {/* Menu Burger — inchangé */}
+      {/* Menu Burger */}
       {menuOpen && (
         <div
           style={{
@@ -370,7 +370,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               }}
             />
 
-            {/* BOUTON "REJOINDRE" EN PREMIER DANS LE MENU SI NON CONNECTÉ */}
             {!isLoggedIn && (
               <button
                 onClick={() => {
