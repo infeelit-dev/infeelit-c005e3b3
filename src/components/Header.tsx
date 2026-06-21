@@ -56,12 +56,12 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: "8px", // ✅ Réduit
-          paddingBottom: "4px", // ✅ Réduit
+          paddingTop: "12px",
+          paddingBottom: "8px",
         }}
         dir="ltr"
       >
-        {/* Conteneur avec grid — 3 colonnes égales */}
+        {/* BLOC 1 — BURGER + LOGO + LANGUE — grid 1fr auto 1fr */}
         <div
           style={{
             width: "100%",
@@ -70,7 +70,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
-            marginBottom: "4px", // ✅ Réduit
+            marginBottom: "10px",
             direction: "ltr",
           }}
         >
@@ -93,7 +93,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             <Menu size={18} color="#fff" />
           </button>
 
-          {/* LOGO — colonne centrale, parfaitement centré */}
+          {/* LOGO — colonne centrale */}
           <img
             src={infeelit}
             alt="Infeelit"
@@ -250,21 +250,19 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Navigation des timelines — centrée */}
+        {/* BLOC 2 — NAV MEMORIES | INSTANT | FOREVER — grid 1fr 1fr 1fr */}
         <div
           style={{
             width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
+            paddingLeft: "16px",
+            paddingRight: "16px",
           }}
         >
           <nav
             style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "32px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              width: "100%",
               direction: "ltr",
             }}
           >
@@ -286,6 +284,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                     transition: "all 0.2s",
                     whiteSpace: "nowrap",
+                    textAlign: "center",
                   }}
                 >
                   {tab.label}
