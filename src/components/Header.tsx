@@ -61,21 +61,20 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         }}
         dir="ltr"
       >
-        {/* Conteneur principal avec position relative pour centrage absolu du logo */}
+        {/* ✅ REPLACÉ — grid au lieu de flex space-between */}
         <div
           style={{
             width: "100%",
-            position: "relative",
-            display: "flex",
-            justifyContent: "space-between",
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
             marginBottom: "10px",
-            height: "56px",
+            direction: "ltr",
           }}
         >
-          {/* BURGER MENU — gauche */}
+          {/* BURGER — colonne gauche (1fr) */}
           <button
             onClick={() => setMenuOpen(true)}
             style={{
@@ -89,39 +88,34 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               justifyContent: "center",
               cursor: "pointer",
               backdropFilter: "blur(8px)",
-              flexShrink: 0,
-              zIndex: 5,
             }}
           >
             <Menu size={18} color="#fff" />
           </button>
 
-          {/* LOGO — position absolute centré à EXACTEMENT 50% */}
+          {/* LOGO — colonne centrale (auto) */}
           <img
             src={infeelit}
             alt="Infeelit"
             onClick={() => navigate("/")}
             style={{
-              position: "absolute",
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
               height: "40px",
               width: "auto",
+              display: "block",
+              margin: "0 auto",
               filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
               cursor: "pointer",
             }}
           />
 
-          {/* ACTIONS — droite */}
+          {/* ACTIONS — colonne droite (1fr) */}
           <div
             style={{
               display: "flex",
               gap: "8px",
               alignItems: "center",
               direction: "ltr",
-              flexShrink: 0,
-              zIndex: 5,
+              justifyContent: "flex-end",
             }}
           >
             {/* Bouton langue */}
@@ -139,7 +133,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                   justifyContent: "center",
                   cursor: "pointer",
                   backdropFilter: "blur(8px)",
-                  flexShrink: 0,
                 }}
               >
                 <span
@@ -257,7 +250,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Navigation des timelines */}
+        {/* Navigation des timelines — inchangée */}
         <div
           style={{
             width: "100%",
@@ -317,7 +310,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         </div>
       </header>
 
-      {/* Menu Burger */}
+      {/* Menu Burger — inchangé */}
       {menuOpen && (
         <div
           style={{
