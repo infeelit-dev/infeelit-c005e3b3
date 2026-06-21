@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, ArrowLeft, Check } from "lucide-react";
+import { Upload, ArrowLeft, Check, X, AlertTriangle } from "lucide-react";
 
-const ADMIN_PASSWORD = "infeelit2024admin";
+const ADMIN_EMAIL = "malik.ceo@infeelit.com";
 
 const THEMATIC_CATEGORIES = [
   { id: "enfance", label: "Enfance / Childhood / طفولة" },
@@ -18,11 +18,8 @@ const THEMATIC_CATEGORIES = [
 
 const AdminUpload = () => {
   const navigate = useNavigate();
-
-  // Auth state
-  const [password, setPassword] = useState("");
-  const [authenticated, setAuthenticated] = useState(false);
-  const [authError, setAuthError] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   // Form state
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -39,14 +36,106 @@ const AdminUpload = () => {
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
 
-  const handleAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setAuthenticated(true);
-      setAuthError("");
-    } else {
-      setAuthError("Mot de passe incorrect.");
-    }
+  // Pending & reported memories
+  const [pendingMemories, setPendingMemories] = useState<any[]>([]);
+  const [reportedMemories, setReportedMemories] = useState<any[]>([]);
+  const [loadingModeration, setLoadingModeration] = useState(true);
+
+  // Vérifier si l'utilisateur est admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user?.email === ADMIN_EMAIL) {
+        setIsAdmin(true);
+      } else {
+        navigate("/");
+      }
+      setChecking(false);
+    };
+    checkAdmin();
+  }, [navigate]);
+
+  // Charger les contenus en attente et signalés
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const loadModeration = async () => {
+      setLoadingModeration(true);
+
+      // Pending
+      const { data: pending } = await supabase
+        .from("memories")
+        .select("*")
+        .eq("moderation_status", "pending")
+        .order("created_at", { ascending: false });
+      setPendingMemories(pending || []);
+
+      // Reported (avec les raisons des signalements)
+      const { data: reported } = await supabase
+        .from("memories")
+        .select("*, memory_reports(reason, created_at)")
+        .eq("moderation_status", "reported")
+        .order("created_at", { ascending: false });
+      setReportedMemories(reported || []);
+
+      setLoadingModeration(false);
+    };
+
+    loadModeration();
+
+    // Subscription pour les changements en temps réel
+    const channel = supabase
+      .channel("moderation_changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "memories" }, () => loadModeration())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin]);
+
+  if (checking) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#FDF8F0",
+        }}
+      >
+        <span style={{ fontSize: "40px" }}>✦</span>
+      </div>
+    );
+  }
+
+  if (!isAdmin) return null;
+
+  const handleApprove = async (memoryId: string) => {
+    await supabase.from("memories").update({ moderation_status: "approved" }).eq("id", memoryId);
+
+    setPendingMemories(pendingMemories.filter((m) => m.id !== memoryId));
+  };
+
+  const handleReject = async (memoryId: string) => {
+    await supabase.from("memories").update({ moderation_status: "rejected" }).eq("id", memoryId);
+
+    setPendingMemories(pendingMemories.filter((m) => m.id !== memoryId));
+  };
+
+  const handleKeep = async (memoryId: string) => {
+    await supabase.from("memories").update({ moderation_status: "approved" }).eq("id", memoryId);
+
+    setReportedMemories(reportedMemories.filter((m) => m.id !== memoryId));
+  };
+
+  const handleDelete = async (memoryId: string) => {
+    await supabase.from("memories").delete().eq("id", memoryId);
+
+    setReportedMemories(reportedMemories.filter((m) => m.id !== memoryId));
   };
 
   const handleUpload = async (e: React.FormEvent) => {
@@ -61,11 +150,9 @@ const AdminUpload = () => {
     setError("");
 
     try {
-      // 1. Récupérer la session admin
       const {
         data: { session },
       } = await supabase.auth.getSession();
-
       if (!session) {
         setError("Tu dois être connecté comme admin.");
         setUploading(false);
@@ -74,7 +161,6 @@ const AdminUpload = () => {
 
       setProgress(20);
 
-      // 2. Upload de la vidéo dans Supabase Storage
       const fileExt = videoFile.name.split(".").pop();
       const fileName = `${session.user.id}/${Date.now()}_street_interview.${fileExt}`;
 
@@ -87,17 +173,14 @@ const AdminUpload = () => {
 
       setProgress(60);
 
-      // 3. Obtenir l'URL signée
       const { data: signedData } = await supabase.storage
         .from("memories")
         .createSignedUrl(fileName, 60 * 60 * 24 * 365);
 
       setProgress(75);
 
-      // 4. Créer le titre affiché
       const displayTitle = question.length > 60 ? question.substring(0, 60) + "..." : question;
 
-      // 5. Insérer dans la table memories
       const { error: insertError } = await supabase.from("memories").insert({
         user_id: session.user.id,
         title: displayTitle,
@@ -110,6 +193,7 @@ const AdminUpload = () => {
         is_anonymous: isAnonymous,
         timeline: "memories",
         spark_reward: 0,
+        moderation_status: "approved",
         created_at: new Date().toISOString(),
       });
 
@@ -118,7 +202,6 @@ const AdminUpload = () => {
       setProgress(100);
       setDone(true);
 
-      // Reset form
       setTimeout(() => {
         setVideoFile(null);
         setFirstName("");
@@ -138,162 +221,6 @@ const AdminUpload = () => {
     }
   };
 
-  // Écran de mot de passe
-  if (!authenticated) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "#0E1A20",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "24px",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "360px",
-            backgroundColor: "#1A2530",
-            borderRadius: "24px",
-            padding: "32px 24px",
-            border: "1px solid rgba(232,116,42,0.2)",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "10px",
-              fontWeight: 900,
-              letterSpacing: "0.3em",
-              color: "#E8742A",
-              textTransform: "uppercase",
-              textAlign: "center",
-              marginBottom: "8px",
-            }}
-          >
-            Admin Infeelit
-          </p>
-          <h1
-            style={{
-              fontSize: "20px",
-              fontWeight: 700,
-              color: "#fff",
-              textAlign: "center",
-              marginBottom: "24px",
-              fontFamily: "Georgia, serif",
-            }}
-          >
-            Upload d'interviews
-          </h1>
-
-          <form
-            onSubmit={handleAuth}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-            }}
-          >
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mot de passe admin"
-              style={{
-                padding: "14px 16px",
-                borderRadius: "12px",
-                border: "1px solid rgba(255,255,255,0.1)",
-                backgroundColor: "rgba(255,255,255,0.05)",
-                color: "#fff",
-                fontSize: "14px",
-                outline: "none",
-              }}
-            />
-            {authError && (
-              <p
-                style={{
-                  color: "#ff6b6b",
-                  fontSize: "12px",
-                  textAlign: "center",
-                }}
-              >
-                {authError}
-              </p>
-            )}
-            <button
-              type="submit"
-              style={{
-                padding: "14px",
-                borderRadius: "12px",
-                background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: "15px",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Entrer
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // Écran de succès
-  if (done) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "#0E1A20",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "16px",
-        }}
-      >
-        <div
-          style={{
-            width: "80px",
-            height: "80px",
-            borderRadius: "50%",
-            backgroundColor: "rgba(34,197,94,0.2)",
-            border: "2px solid #22c55e",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Check size={36} color="#22c55e" />
-        </div>
-        <p
-          style={{
-            color: "#fff",
-            fontSize: "20px",
-            fontWeight: 700,
-            fontFamily: "Georgia, serif",
-          }}
-        >
-          Vidéo uploadée ✦
-        </p>
-        <p
-          style={{
-            color: "rgba(255,255,255,0.4)",
-            fontSize: "13px",
-          }}
-        >
-          Elle apparaît dans le feed.
-        </p>
-      </div>
-    );
-  }
-
-  // Formulaire principal
   return (
     <div
       style={{
@@ -331,7 +258,7 @@ const AdminUpload = () => {
               fontFamily: "Georgia, serif",
             }}
           >
-            Upload Interview de rue
+            Admin Infeelit
           </h1>
           <p
             style={{
@@ -339,12 +266,12 @@ const AdminUpload = () => {
               color: "rgba(255,255,255,0.3)",
             }}
           >
-            Infeelit Admin ✦
+            Upload & Modération ✦
           </p>
         </div>
       </div>
 
-      {/* Formulaire */}
+      {/* Formulaire upload */}
       <form
         onSubmit={handleUpload}
         style={{
@@ -694,6 +621,178 @@ const AdminUpload = () => {
           {uploading ? "Upload en cours..." : "Publier dans le feed ✦"}
         </button>
       </form>
+
+      {/* SECTION — EN ATTENTE */}
+      {pendingMemories.length > 0 && (
+        <div style={{ padding: "0 20px 24px" }}>
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 900,
+              color: "#F59E0B",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              marginBottom: "16px",
+            }}
+          >
+            ⏳ En attente — {pendingMemories.length} contenu(s)
+          </p>
+
+          {pendingMemories.map((memory) => (
+            <div
+              key={memory.id}
+              style={{
+                padding: "16px",
+                borderRadius: "16px",
+                background: "rgba(245,158,11,0.08)",
+                border: "1px solid rgba(245,158,11,0.2)",
+                marginBottom: "12px",
+              }}
+            >
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>{memory.title}</p>
+              <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0 0 12px" }}>
+                {memory.description || "Sans description"} · {new Date(memory.created_at).toLocaleDateString()}
+              </p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => handleApprove(memory.id)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "999px",
+                    background: "#22c55e",
+                    color: "#fff",
+                    border: "none",
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <Check size={16} /> Approuver
+                </button>
+                <button
+                  onClick={() => handleReject(memory.id)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "999px",
+                    background: "rgba(220,38,38,0.15)",
+                    color: "#ef4444",
+                    border: "1px solid rgba(220,38,38,0.3)",
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <X size={16} /> Rejeter
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* SECTION — SIGNALÉS */}
+      {reportedMemories.length > 0 && (
+        <div style={{ padding: "0 20px 24px" }}>
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 900,
+              color: "#dc2626",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              marginBottom: "16px",
+            }}
+          >
+            🚨 Signalés — {reportedMemories.length} contenu(s)
+          </p>
+
+          {reportedMemories.map((memory) => {
+            const reports = memory.memory_reports || [];
+            const reasons = reports.map((r: any) => r.reason).join(", ");
+
+            return (
+              <div
+                key={memory.id}
+                style={{
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(220,38,38,0.08)",
+                  border: "1px solid rgba(220,38,38,0.2)",
+                  marginBottom: "12px",
+                }}
+              >
+                <p style={{ fontSize: "14px", fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>{memory.title}</p>
+                <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0 0 12px" }}>
+                  {reports.length} signalement(s) · {reasons}
+                </p>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => handleKeep(memory.id)}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "999px",
+                      background: "#22c55e",
+                      color: "#fff",
+                      border: "none",
+                      fontWeight: 700,
+                      fontSize: "13px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <Check size={16} /> Garder
+                  </button>
+                  <button
+                    onClick={() => handleDelete(memory.id)}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "999px",
+                      background: "rgba(220,38,38,0.15)",
+                      color: "#ef4444",
+                      border: "1px solid rgba(220,38,38,0.3)",
+                      fontWeight: 700,
+                      fontSize: "13px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <X size={16} /> Supprimer
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* État vide */}
+      {pendingMemories.length === 0 && reportedMemories.length === 0 && !loadingModeration && (
+        <div
+          style={{
+            padding: "24px 20px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.3)",
+            }}
+          >
+            ✦ Aucun contenu en attente ou signalé
+          </p>
+        </div>
+      )}
     </div>
   );
 };
