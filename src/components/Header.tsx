@@ -44,13 +44,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
 
   const closeBurgerMenu = () => setMenuOpen(false);
 
-  // Label sous le logo en fonction de la timeline active
-  const getTimelineLabel = () => {
-    if (activeTimeline === "instant") return "INSTANT";
-    if (activeTimeline === "forever") return "FOREVER";
-    return "MEMORIES";
-  };
-
   return (
     <>
       <header
@@ -68,7 +61,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         }}
         dir="ltr"
       >
-        {/* Conteneur principal avec position relative */}
+        {/* Conteneur principal avec position relative pour centrage absolu du logo */}
         <div
           style={{
             width: "100%",
@@ -103,16 +96,16 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             <Menu size={18} color="#fff" />
           </button>
 
-          {/* LOGO — position absolute centré à 50% */}
+          {/* LOGO — position absolute centré à EXACTEMENT 50% */}
           <div
             style={{
               position: "absolute",
               left: "50%",
-              transform: "translateX(-50%)",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: "2px",
+              justifyContent: "center",
               pointerEvents: "none",
               zIndex: 5,
             }}
@@ -131,23 +124,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 display: "block",
               }}
             />
-            {/* Label de la timeline active — centré sous le logo */}
-            <span
-              style={{
-                fontSize: "8px",
-                fontWeight: 900,
-                letterSpacing: "0.35em",
-                color: activeTimeline === "instant" ? "#E8742A" : activeTimeline === "forever" ? "#38bdf8" : "#ffffff",
-                textTransform: "uppercase",
-                textAlign: "center",
-                display: "block",
-                lineHeight: 1,
-                opacity: 0.8,
-                textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-              }}
-            >
-              {getTimelineLabel()}
-            </span>
           </div>
 
           {/* ACTIONS — droite */}
