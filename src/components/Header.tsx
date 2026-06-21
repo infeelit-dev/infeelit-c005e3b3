@@ -72,7 +72,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             paddingLeft: "16px",
             paddingRight: "16px",
             marginBottom: "10px",
-            height: "48px",
+            height: "56px",
           }}
         >
           {/* BURGER MENU — gauche */}
