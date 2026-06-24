@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Menu, X, Search, LogOut } from "lucide-react";
+import { useNavigate }react-router-dom";
+import { Menu, X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
 import infeelit from "@/assets/infeelit-logo.png";
-import { toast } from "sonner";
 
 interface HeaderProps {
   activeTimeline: Timeline;
@@ -17,25 +16,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
-    };
-    checkAuth();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, session) => {
-      setIsLoggedIn(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const tabs = [
     { id: "memories" as Timeline, label: "Memories" },
@@ -52,13 +32,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   ];
 
   const closeBurgerMenu = () => setMenuOpen(false);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast.success(lang === "fr" ? "Déconnexion réussie" : lang === "ar" ? "تم تسجيل الخروج" : "Logged out");
-    closeBurgerMenu();
-    navigate("/welcome");
-  };
 
   return (
     <>
@@ -80,8 +53,8 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         <div
           style={{
             width: "100%",
-            display: "grid",
-            gridTemplateColumns: "1fr auto 1fr",
+            display: "flex",
+            justifyContent: "space-between",
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
@@ -113,10 +86,9 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             alt="Infeelit"
             onClick={() => navigate("/")}
             style={{
-              height: "40px",
+              height: "64px",
               width: "auto",
-              display: "block",
-              margin: "0 auto",
+              maxWidth: "160px",
               filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
               cursor: "pointer",
             }}
@@ -128,10 +100,9 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               gap: "8px",
               alignItems: "center",
               direction: "ltr",
-              justifyContent: "flex-end",
             }}
           >
-            <div style={{ position: "relative", zIndex: 12 }}>
+            <div style={{ position: "relative" }}>
               <button
                 onClick={() => setLangOpen(!langOpen)}
                 style={{
@@ -165,7 +136,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     style={{
                       position: "fixed",
                       inset: 0,
-                      zIndex: 54,
+                      zIndex: -1,
                     }}
                     onClick={() => setLangOpen(false)}
                   />
@@ -379,69 +350,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 mixBlendMode: "multiply",
               }}
             />
-
-            {!isLoggedIn && (
-              <button
-                onClick={() => {
-                  navigate("/welcome");
-                  closeBurgerMenu();
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  width: "100%",
-                  padding: "14px 0",
-                  background: "none",
-                  border: "none",
-                  borderBottom: "1px solid rgba(232,116,42,0.1)",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  marginBottom: "4px",
-                }}
-              >
-                <span style={{ fontSize: "20px" }}>✦</span>
-                <span
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    color: "#E8742A",
-                  }}
-                >
-                  {lang === "fr" ? "Rejoindre Infeelit" : lang === "ar" ? "انضم إلى Infeelit" : "Join Infeelit"}
-                </span>
-              </button>
-            )}
-
-            {isLoggedIn && (
-              <button
-                onClick={handleLogout}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  width: "100%",
-                  padding: "14px 0",
-                  background: "none",
-                  border: "none",
-                  borderBottom: "1px solid rgba(220,38,38,0.1)",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  marginBottom: "4px",
-                }}
-              >
-                <LogOut size={18} color="#dc2626" />
-                <span
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    color: "#dc2626",
-                  }}
-                >
-                  {lang === "fr" ? "Se déconnecter" : lang === "ar" ? "تسجيل الخروج" : "Log out"}
-                </span>
-              </button>
-            )}
 
             <button
               onClick={() => {
