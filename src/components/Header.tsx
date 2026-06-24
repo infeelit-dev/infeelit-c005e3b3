@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate }react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,6 +16,17 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
   const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkAuth();
+  }, []);
 
   const tabs = [
     { id: "memories" as Timeline, label: "Memories" },
@@ -50,11 +61,12 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         }}
         dir="ltr"
       >
+        {/* BLOC 1 — BURGER + LOGO + LANGUE — grid 1fr auto 1fr */}
         <div
           style={{
             width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
@@ -62,6 +74,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             direction: "ltr",
           }}
         >
+          {/* BURGER — colonne gauche */}
           <button
             onClick={() => setMenuOpen(true)}
             style={{
@@ -75,33 +88,37 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               justifyContent: "center",
               cursor: "pointer",
               backdropFilter: "blur(8px)",
-              zIndex: 15,
             }}
           >
             <Menu size={18} color="#fff" />
           </button>
 
+          {/* LOGO — colonne centrale */}
           <img
             src={infeelit}
             alt="Infeelit"
             onClick={() => navigate("/")}
             style={{
-              height: "64px",
+              height: "40px",
               width: "auto",
-              maxWidth: "160px",
+              display: "block",
+              margin: "0 auto",
               filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
               cursor: "pointer",
             }}
           />
 
+          {/* ACTIONS — colonne droite */}
           <div
             style={{
               display: "flex",
               gap: "8px",
               alignItems: "center",
               direction: "ltr",
+              justifyContent: "flex-end",
             }}
           >
+            {/* Bouton langue */}
             <div style={{ position: "relative" }}>
               <button
                 onClick={() => setLangOpen(!langOpen)}
@@ -233,20 +250,19 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
+        {/* BLOC 2 — NAV MEMORIES | INSTANT | FOREVER — grid 1fr 1fr 1fr */}
         <div
           style={{
             width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
+            paddingLeft: "16px",
+            paddingRight: "16px",
           }}
         >
           <nav
             style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "32px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              width: "100%",
               direction: "ltr",
             }}
           >
@@ -268,6 +284,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                     transition: "all 0.2s",
                     whiteSpace: "nowrap",
+                    textAlign: "center",
                   }}
                 >
                   {tab.label}
@@ -292,6 +309,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         </div>
       </header>
 
+      {/* Menu Burger */}
       {menuOpen && (
         <div
           style={{
@@ -350,6 +368,39 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 mixBlendMode: "multiply",
               }}
             />
+
+            {!isLoggedIn && (
+              <button
+                onClick={() => {
+                  navigate("/welcome");
+                  closeBurgerMenu();
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  width: "100%",
+                  padding: "14px 0",
+                  background: "none",
+                  border: "none",
+                  borderBottom: "1px solid rgba(232,116,42,0.1)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  marginBottom: "4px",
+                }}
+              >
+                <span style={{ fontSize: "20px" }}>✦</span>
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    color: "#E8742A",
+                  }}
+                >
+                  {lang === "fr" ? "Rejoindre Infeelit" : lang === "ar" ? "انضم إلى Infeelit" : "Join Infeelit"}
+                </span>
+              </button>
+            )}
 
             <button
               onClick={() => {

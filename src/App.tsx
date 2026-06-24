@@ -40,14 +40,19 @@ const App = () => (
         <BrowserRouter>
           <LangBadge />
           <Routes>
+            {/* Routes principales */}
             <Route path="/" element={<Index />} />
             <Route path="/treasure" element={<Treasure />} />
             <Route path="/whispers" element={<Whispers />} />
+
+            {/* Redirects pour les routes obsolètes */}
             <Route path="/feed" element={<Navigate to="/" replace />} />
             <Route path="/portrait" element={<Navigate to="/" replace />} />
             <Route path="/login" element={<Navigate to="/welcome" replace />} />
             <Route path="/chats" element={<Navigate to="/whispers" replace />} />
             <Route path="/circles" element={<Circle />} />
+
+            {/* Routes fonctionnelles */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/signup" element={<Signup />} />
