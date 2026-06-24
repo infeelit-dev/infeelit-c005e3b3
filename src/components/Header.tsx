@@ -64,20 +64,16 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
     <>
       <header
         style={{
-          position: "sticky",
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 50, // ✅ z-index élevé pour être au-dessus de tout
+          zIndex: 10,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: "8px",
+          paddingTop: "12px",
           paddingBottom: "8px",
-          backgroundColor: "rgba(10,10,10,0.7)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
         }}
         dir="ltr"
       >
@@ -89,37 +85,35 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
-            marginBottom: "4px",
+            marginBottom: "10px",
             direction: "ltr",
           }}
         >
-          {/* BURGER — colonne gauche */}
           <button
             onClick={() => setMenuOpen(true)}
             style={{
               width: "34px",
               height: "34px",
               borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.15)",
+              backgroundColor: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
               backdropFilter: "blur(8px)",
-              zIndex: 60, // ✅ z-index plus élevé que le drapeau
+              zIndex: 15,
             }}
           >
             <Menu size={18} color="#fff" />
           </button>
 
-          {/* LOGO — colonne centrale */}
           <img
             src={infeelit}
             alt="Infeelit"
             onClick={() => navigate("/")}
             style={{
-              height: "36px",
+              height: "40px",
               width: "auto",
               display: "block",
               margin: "0 auto",
@@ -128,7 +122,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             }}
           />
 
-          {/* ACTIONS — colonne droite */}
           <div
             style={{
               display: "flex",
@@ -138,16 +131,15 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               justifyContent: "flex-end",
             }}
           >
-            {/* Bouton langue */}
-            <div style={{ position: "relative", zIndex: 55 }}>
+            <div style={{ position: "relative", zIndex: 12 }}>
               <button
                 onClick={() => setLangOpen(!langOpen)}
                 style={{
                   width: "34px",
                   height: "34px",
                   borderRadius: "50%",
-                  backgroundColor: "rgba(255,255,255,0.12)",
-                  border: "1px solid rgba(255,255,255,0.15)",
+                  backgroundColor: "rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(255,255,255,0.2)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -256,8 +248,8 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 width: "34px",
                 height: "34px",
                 borderRadius: "50%",
-                backgroundColor: "rgba(255,255,255,0.12)",
-                border: "1px solid rgba(255,255,255,0.15)",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -270,23 +262,20 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Navigation des timelines */}
         <div
           style={{
             width: "100%",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            paddingLeft: "16px",
-            paddingRight: "16px",
           }}
         >
           <nav
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              width: "100%",
-              maxWidth: "400px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "32px",
               direction: "ltr",
             }}
           >
@@ -298,17 +287,16 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                   onClick={() => onTimelineChange(tab.id)}
                   style={{
                     position: "relative",
-                    paddingBottom: "4px",
+                    paddingBottom: "6px",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.6)",
-                    fontWeight: isActive ? 900 : 600,
-                    fontSize: isActive ? "14px" : "12px",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
+                    fontWeight: isActive ? 900 : 700,
+                    fontSize: isActive ? "16px" : "13px",
                     textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                     transition: "all 0.2s",
                     whiteSpace: "nowrap",
-                    textAlign: "center",
                   }}
                 >
                   {tab.label}
@@ -317,12 +305,12 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                       style={{
                         position: "absolute",
                         bottom: 0,
-                        left: "20%",
-                        right: "20%",
-                        height: "2px",
+                        left: 0,
+                        right: 0,
+                        height: "2.5px",
                         borderRadius: "999px",
                         backgroundColor: underlineColor(tab.id),
-                        boxShadow: `0 0 12px ${underlineColor(tab.id)}`,
+                        boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
                       }}
                     />
                   )}
@@ -333,7 +321,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
         </div>
       </header>
 
-      {/* Menu Burger */}
       {menuOpen && (
         <div
           style={{
@@ -393,7 +380,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               }}
             />
 
-            {/* BOUTON REJOINDRE (si non connecté) */}
             {!isLoggedIn && (
               <button
                 onClick={() => {
@@ -427,7 +413,6 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               </button>
             )}
 
-            {/* BOUTON DÉCONNEXION (si connecté) */}
             {isLoggedIn && (
               <button
                 onClick={handleLogout}
