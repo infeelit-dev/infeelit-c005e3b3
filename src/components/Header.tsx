@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
 import infeelit from "@/assets/infeelit-logo.png";
+import { toast } from "sonner";
 
 interface HeaderProps {
   activeTimeline: Timeline;
@@ -26,6 +27,14 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
       setIsLoggedIn(!!session);
     };
     checkAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const tabs = [
@@ -44,24 +53,34 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
 
   const closeBurgerMenu = () => setMenuOpen(false);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success(lang === "fr" ? "Déconnexion réussie" : lang === "ar" ? "تم تسجيل الخروج" : "Logged out");
+    closeBurgerMenu();
+    navigate("/welcome");
+  };
+
   return (
     <>
       <header
         style={{
-          position: "absolute",
+          position: "sticky",
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 10,
+          zIndex: 50, // ✅ z-index élevé pour être au-dessus de tout
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          paddingTop: "12px",
+          paddingTop: "8px",
           paddingBottom: "8px",
+          backgroundColor: "rgba(10,10,10,0.7)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
         }}
         dir="ltr"
       >
-        {/* BLOC 1 — BURGER + LOGO + LANGUE — grid 1fr auto 1fr */}
         <div
           style={{
             width: "100%",
@@ -70,7 +89,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
-            marginBottom: "10px",
+            marginBottom: "4px",
             direction: "ltr",
           }}
         >
@@ -81,13 +100,14 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               width: "34px",
               height: "34px",
               borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.15)",
-              border: "1px solid rgba(255,255,255,0.2)",
+              backgroundColor: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.15)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
               backdropFilter: "blur(8px)",
+              zIndex: 60, // ✅ z-index plus élevé que le drapeau
             }}
           >
             <Menu size={18} color="#fff" />
@@ -99,7 +119,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             alt="Infeelit"
             onClick={() => navigate("/")}
             style={{
-              height: "40px",
+              height: "36px",
               width: "auto",
               display: "block",
               margin: "0 auto",
@@ -119,15 +139,15 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             }}
           >
             {/* Bouton langue */}
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", zIndex: 55 }}>
               <button
                 onClick={() => setLangOpen(!langOpen)}
                 style={{
                   width: "34px",
                   height: "34px",
                   borderRadius: "50%",
-                  backgroundColor: "rgba(255,255,255,0.15)",
-                  border: "1px solid rgba(255,255,255,0.2)",
+                  backgroundColor: "rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.15)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -153,7 +173,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     style={{
                       position: "fixed",
                       inset: 0,
-                      zIndex: -1,
+                      zIndex: 54,
                     }}
                     onClick={() => setLangOpen(false)}
                   />
@@ -236,8 +256,8 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                 width: "34px",
                 height: "34px",
                 borderRadius: "50%",
-                backgroundColor: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.2)",
+                backgroundColor: "rgba(255,255,255,0.12)",
+                border: "1px solid rgba(255,255,255,0.15)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -250,10 +270,13 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* BLOC 2 — NAV MEMORIES | INSTANT | FOREVER — grid 1fr 1fr 1fr */}
+        {/* Navigation des timelines */}
         <div
           style={{
             width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
             paddingLeft: "16px",
             paddingRight: "16px",
           }}
@@ -263,6 +286,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1fr",
               width: "100%",
+              maxWidth: "400px",
               direction: "ltr",
             }}
           >
@@ -274,13 +298,13 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                   onClick={() => onTimelineChange(tab.id)}
                   style={{
                     position: "relative",
-                    paddingBottom: "6px",
+                    paddingBottom: "4px",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
-                    fontWeight: isActive ? 900 : 700,
-                    fontSize: isActive ? "16px" : "13px",
+                    color: isActive ? "#fff" : "rgba(255,255,255,0.6)",
+                    fontWeight: isActive ? 900 : 600,
+                    fontSize: isActive ? "14px" : "12px",
                     textShadow: "0 1px 8px rgba(0,0,0,0.9)",
                     transition: "all 0.2s",
                     whiteSpace: "nowrap",
@@ -293,12 +317,12 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                       style={{
                         position: "absolute",
                         bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: "2.5px",
+                        left: "20%",
+                        right: "20%",
+                        height: "2px",
                         borderRadius: "999px",
                         backgroundColor: underlineColor(tab.id),
-                        boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
+                        boxShadow: `0 0 12px ${underlineColor(tab.id)}`,
                       }}
                     />
                   )}
@@ -369,6 +393,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               }}
             />
 
+            {/* BOUTON REJOINDRE (si non connecté) */}
             {!isLoggedIn && (
               <button
                 onClick={() => {
@@ -398,6 +423,37 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                   }}
                 >
                   {lang === "fr" ? "Rejoindre Infeelit" : lang === "ar" ? "انضم إلى Infeelit" : "Join Infeelit"}
+                </span>
+              </button>
+            )}
+
+            {/* BOUTON DÉCONNEXION (si connecté) */}
+            {isLoggedIn && (
+              <button
+                onClick={handleLogout}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  width: "100%",
+                  padding: "14px 0",
+                  background: "none",
+                  border: "none",
+                  borderBottom: "1px solid rgba(220,38,38,0.1)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  marginBottom: "4px",
+                }}
+              >
+                <LogOut size={18} color="#dc2626" />
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    color: "#dc2626",
+                  }}
+                >
+                  {lang === "fr" ? "Se déconnecter" : lang === "ar" ? "تسجيل الخروج" : "Log out"}
                 </span>
               </button>
             )}
