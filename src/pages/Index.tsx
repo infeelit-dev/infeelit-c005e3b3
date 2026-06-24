@@ -12,27 +12,9 @@ import type { Timeline } from "@/types/timeline";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const REPORT_REASONS = {
-  fr: [
-    "Contenu violent",
-    "Contenu sexuel",
-    "Spam ou publicité",
-    "Contenu inapproprié",
-    "Autre",
-  ],
-  en: [
-    "Violent content",
-    "Sexual content",
-    "Spam or advertising",
-    "Inappropriate content",
-    "Other",
-  ],
-  ar: [
-    "محتوى عنيف",
-    "محتوى جنسي",
-    "بريد عشوائي أو إعلان",
-    "محتوى غير لائق",
-    "أخرى",
-  ],
+  fr: ["Contenu violent", "Contenu sexuel", "Spam ou publicité", "Contenu inapproprié", "Autre"],
+  en: ["Violent content", "Sexual content", "Spam or advertising", "Inappropriate content", "Other"],
+  ar: ["محتوى عنيف", "محتوى جنسي", "بريد عشوائي أو إعلان", "محتوى غير لائق", "أخرى"],
 };
 
 const Index = () => {
@@ -135,27 +117,21 @@ const Index = () => {
 
       if (error) throw error;
 
-      const { count } = await supabase
-        .from("memory_reports")
-        .select("*", { count: "exact" })
-        .eq("memory_id", memoryId);
+      const { count } = await supabase.from("memory_reports").select("*", { count: "exact" }).eq("memory_id", memoryId);
 
       if (count && count >= 3) {
-        await supabase
-          .from("memories")
-          .update({ moderation_status: "reported" })
-          .eq("id", memoryId);
+        await supabase.from("memories").update({ moderation_status: "reported" }).eq("id", memoryId);
       }
 
       setReportSent({ ...reportSent, [memoryId]: true });
       setShowReportMenu(null);
-      
+
       if (count && count >= 3) {
-        setFeedMemories(feedMemories.filter(m => m.id !== memoryId));
+        setFeedMemories(feedMemories.filter((m) => m.id !== memoryId));
       }
 
       setTimeout(() => {
-        setReportSent(prev => ({ ...prev, [memoryId]: false }));
+        setReportSent((prev) => ({ ...prev, [memoryId]: false }));
       }, 3000);
     } catch (err) {
       console.error(err);
@@ -264,35 +240,45 @@ const Index = () => {
                       opacity: 0.6,
                       transition: "opacity 0.2s",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.6"; }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = "0.6";
+                    }}
                     aria-label="Signaler"
                   >
                     <span style={{ fontSize: "14px" }}>⚑</span>
                   </button>
 
                   {isReported && (
-                    <div style={{
-                      position: "absolute",
-                      bottom: "60px",
-                      left: "16px",
-                      right: "16px",
-                      padding: "10px 14px",
-                      background: "rgba(34,197,94,0.15)",
-                      border: "1px solid rgba(34,197,94,0.3)",
-                      borderRadius: "12px",
-                      zIndex: 20,
-                      backdropFilter: "blur(4px)",
-                    }}>
-                      <p style={{
-                        fontSize: "13px",
-                        color: "#16a34a",
-                        margin: 0,
-                        fontWeight: 600,
-                      }}>
-                        {lang === "fr" ? "✓ Signalement envoyé. Merci."
-                        : lang === "ar" ? "✓ تم إرسال البلاغ. شكراً."
-                        : "✓ Report sent. Thank you."}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "60px",
+                        left: "16px",
+                        right: "16px",
+                        padding: "10px 14px",
+                        background: "rgba(34,197,94,0.15)",
+                        border: "1px solid rgba(34,197,94,0.3)",
+                        borderRadius: "12px",
+                        zIndex: 20,
+                        backdropFilter: "blur(4px)",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          color: "#16a34a",
+                          margin: 0,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {lang === "fr"
+                          ? "✓ Signalement envoyé. Merci."
+                          : lang === "ar"
+                            ? "✓ تم إرسال البلاغ. شكراً."
+                            : "✓ Report sent. Thank you."}
                       </p>
                     </div>
                   )}
@@ -320,23 +306,27 @@ const Index = () => {
                           width: "100%",
                           maxWidth: "420px",
                         }}
-                        onClick={e => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <p style={{
-                          fontSize: "11px",
-                          fontWeight: 900,
-                          color: "#E8742A",
-                          letterSpacing: "0.2em",
-                          textTransform: "uppercase",
-                          marginBottom: "16px",
-                          textAlign: "center",
-                        }}>
-                          {lang === "fr" ? "Pourquoi signales-tu ce contenu ?"
-                          : lang === "ar" ? "لماذا تُبلّغ عن هذا المحتوى؟"
-                          : "Why are you reporting this?"}
+                        <p
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 900,
+                            color: "#E8742A",
+                            letterSpacing: "0.2em",
+                            textTransform: "uppercase",
+                            marginBottom: "16px",
+                            textAlign: "center",
+                          }}
+                        >
+                          {lang === "fr"
+                            ? "Pourquoi signales-tu ce contenu ?"
+                            : lang === "ar"
+                              ? "لماذا تُبلّغ عن هذا المحتوى؟"
+                              : "Why are you reporting this?"}
                         </p>
 
-                        {(REPORT_REASONS[lang as keyof typeof REPORT_REASONS] || REPORT_REASONS.fr).map(reason => (
+                        {(REPORT_REASONS[lang as keyof typeof REPORT_REASONS] || REPORT_REASONS.fr).map((reason) => (
                           <button
                             key={reason}
                             onClick={() => handleReport(memory.id, reason)}
@@ -370,9 +360,7 @@ const Index = () => {
                             marginTop: "8px",
                           }}
                         >
-                          {lang === "fr" ? "Annuler"
-                          : lang === "ar" ? "إلغاء"
-                          : "Cancel"}
+                          {lang === "fr" ? "Annuler" : lang === "ar" ? "إلغاء" : "Cancel"}
                         </button>
                       </div>
                     </div>
@@ -393,4 +381,120 @@ const Index = () => {
                           color: "rgba(232,116,42,0.6)",
                           textTransform: "uppercase",
                           fontFamily: "system-ui, sans-serif",
-                         
+                          marginBottom: "4px",
+                        }}
+                      >
+                        La question
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          fontFamily: "Georgia, serif",
+                          fontStyle: "italic",
+                          color: "#3D2B1F",
+                          lineHeight: 1.4,
+                          marginBottom: "8px",
+                        }}
+                      >
+                        {questionText}
+                      </p>
+                    </div>
+                  )}
+
+                  <div style={{ position: "relative", aspectRatio: "16/9", background: "#000" }}>
+                    {memory.file_type === "video" && memory.file_url ? (
+                      <video
+                        src={memory.file_url}
+                        controls
+                        playsInline
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : memory.file_type === "audio" && memory.file_url ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          height: "100%",
+                          background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                        }}
+                      >
+                        <audio src={memory.file_url} controls style={{ width: "80%" }} />
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          height: "100%",
+                          background: "linear-gradient(135deg, #2D1810, #8B4513)",
+                        }}
+                      >
+                        <span style={{ fontSize: "48px" }}>🎙️</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ padding: "12px 16px 0" }}>
+                    <p
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        color: "#3D2B1F",
+                        fontFamily: "Georgia, serif",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {memory.title || "Un souvenir"}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "11px",
+                        color: "rgba(61,43,31,0.5)",
+                        marginTop: "4px",
+                      }}
+                    >
+                      — {displayName}
+                    </p>
+                  </div>
+
+                  <SubtitleDisplay
+                    transcript_fr={memory.transcript_fr}
+                    transcript_en={memory.transcript_en}
+                    transcript_ar={memory.transcript_ar}
+                    translation_status={memory.translation_status}
+                    detected_lang={memory.detected_lang}
+                    currentLang={lang as "fr" | "en" | "ar"}
+                  />
+
+                  <ActionBar
+                    memoryId={memory.id}
+                    memoryTitle={memory.title || "Souvenir"}
+                    authorName={displayName}
+                    initialSparks={memory.sparks_count || 0}
+                    lang={lang as "fr" | "en" | "ar"}
+                    userName={currentUserName}
+                    questionFr={questionObj?.fr}
+                    questionEn={questionObj?.en}
+                    questionAr={questionObj?.ar}
+                    questionBubbleFr={questionObj?.bubble_fr}
+                    questionBubbleEn={questionObj?.bubble_en}
+                    questionBubbleAr={questionObj?.bubble_ar}
+                    followupsFr={questionObj?.followups_fr}
+                    followupsEn={questionObj?.followups_en}
+                    followupsAr={questionObj?.followups_ar}
+                  />
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
+    </div>
+  );
+};
+
+export default Index;
