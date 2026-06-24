@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
 import BubbleCanvas from "@/components/BubbleCanvas";
@@ -194,7 +193,8 @@ const Index = () => {
           ))}
       </div>
 
-      <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
+      {/* ✅ HEADER SUPPRIMÉ — il est maintenant dans App.tsx */}
+
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
 
       {/* ✅ BUBBLE CANVAS — LES BULLES DÉMO FLOTTANTES */}
@@ -209,8 +209,42 @@ const Index = () => {
             </div>
           ) : feedMemories.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-white/50 text-sm">Aucun souvenir pour l'instant</p>
-              <p className="text-white/30 text-xs mt-2">Sois le premier à en partager un</p>
+              <span style={{ fontSize: "48px", marginBottom: "16px", display: "block" }}>✦</span>
+              <p className="text-white font-bold text-lg" style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}>
+                {lang === "fr"
+                  ? "Ton histoire commence ici."
+                  : lang === "ar"
+                    ? "قصتك تبدأ هنا."
+                    : "Your story begins here."}
+              </p>
+              <p className="text-white/50 text-sm mt-2">
+                {lang === "fr"
+                  ? "Sois le premier à enregistrer un souvenir."
+                  : lang === "ar"
+                    ? "كن أول من يسجل ذكرى."
+                    : "Be the first to record a memory."}
+              </p>
+              <button
+                onClick={() => navigate("/record")}
+                style={{
+                  marginTop: "20px",
+                  padding: "14px 32px",
+                  borderRadius: "999px",
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: "15px",
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+                }}
+              >
+                {lang === "fr"
+                  ? "Enregistrer mon premier souvenir ✦"
+                  : lang === "ar"
+                    ? "سجّل أول ذكرى لي ✦"
+                    : "Record my first memory ✦"}
+              </button>
             </div>
           ) : (
             feedMemories.map((memory) => {
@@ -520,8 +554,6 @@ const Index = () => {
           )}
         </div>
       </div>
-
-      {/* ✅ BOUTON 📥 SUPPRIMÉ — plus présent */}
 
       <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
     </div>
