@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import LangBadge from "./components/LangBadge";
+import { useState } from "react";
+import type { Timeline } from "@/types/timeline";
 
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/Signup";
@@ -29,51 +31,62 @@ import Search from "./pages/Search";
 import Contact from "./pages/Contact";
 import AdminUpload from "./pages/AdminUpload";
 
+// ✅ IMPORTER HEADER ICI
+import Header from "@/components/Header";
+import CurvedBottomNav from "@/components/CurvedBottomNav";
+
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <LanguageProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <LangBadge />
-          <Routes>
-            {/* Routes principales */}
-            <Route path="/" element={<Index />} />
-            <Route path="/treasure" element={<Treasure />} />
-            <Route path="/whispers" element={<Whispers />} />
+const App = () => {
+  const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
 
-            {/* Redirects pour les routes obsolètes */}
-            <Route path="/feed" element={<Navigate to="/" replace />} />
-            <Route path="/portrait" element={<Navigate to="/" replace />} />
-            <Route path="/login" element={<Navigate to="/welcome" replace />} />
-            <Route path="/chats" element={<Navigate to="/whispers" replace />} />
-            <Route path="/circles" element={<Circle />} />
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <LanguageProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <LangBadge />
+            <div style={{ minHeight: "100vh", position: "relative" }}>
+              {/* ✅ HEADER UNIQUE — visible sur TOUTES les pages */}
+              <Header activeTimeline={activeTimeline} onTimelineChange={setActiveTimeline} />
 
-            {/* Routes fonctionnelles */}
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/welcome" element={<Welcome />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/verify" element={<Verify />} />
-            <Route path="/identity" element={<FamilyIdentity />} />
-            <Route path="/loading" element={<Loading />} />
-            <Route path="/record" element={<Record />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/places" element={<Places />} />
-            <Route path="/create-circle" element={<CreateCircle />} />
-            <Route path="/join/:code" element={<JoinCircle />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/admin" element={<AdminUpload />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </LanguageProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/treasure" element={<Treasure />} />
+                <Route path="/whispers" element={<Whispers />} />
+                <Route path="/feed" element={<Navigate to="/" replace />} />
+                <Route path="/portrait" element={<Navigate to="/" replace />} />
+                <Route path="/login" element={<Navigate to="/welcome" replace />} />
+                <Route path="/chats" element={<Navigate to="/whispers" replace />} />
+                <Route path="/circles" element={<Circle />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/welcome" element={<Welcome />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/verify" element={<Verify />} />
+                <Route path="/identity" element={<FamilyIdentity />} />
+                <Route path="/loading" element={<Loading />} />
+                <Route path="/record" element={<Record />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/places" element={<Places />} />
+                <Route path="/create-circle" element={<CreateCircle />} />
+                <Route path="/join/:code" element={<JoinCircle />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/admin" element={<AdminUpload />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+
+              {/* ✅ BOTTOM NAV UNIQUE — visible sur TOUTES les pages */}
+              <CurvedBottomNav />
+            </div>
+          </BrowserRouter>
+        </LanguageProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
