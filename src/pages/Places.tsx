@@ -93,6 +93,8 @@ const Places = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const markerElementsRef = useRef<Map<string, HTMLDivElement>>(new Map());
+  const sheetTouchStartY = useRef(0);
   const [pins, setPins] = useState<MemoryPin[]>(DEMO_PINS);
   const [selectedPin, setSelectedPin] = useState<MemoryPin | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -157,113 +159,90 @@ const Places = () => {
     loadGeoMemories();
   }, []);
 
-  // Initialiser la carte
-  useEffect(() => {
-    if (!MAPBOX_TOKEN || map.current || !mapContainer.current) return;
+  const applyMapStyle = (m: mapboxgl.Map) => {
+    try {
+      m.setPaintProperty("background", "background-color", "#FDF8F0");
+    } catch {
+      /* layer may not exist */
+    }
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11",
-      center: [55.27, 25.2048],
-      zoom: 12,
-      pitch: 15,
-      bearing: 0,
-      attributionControl: false,
+    try {
+      m.setPaintProperty("water", "fill-color", "#E8DCC8");
+    } catch {
+      /* layer may not exist */
+    }
+
+    ["landcover", "national-park", "landuse"].forEach((layer) => {
+      try {
+        m.setPaintProperty(layer, "fill-color", "#F5EDD8");
+      } catch {
+        /* layer may not exist */
+      }
     });
 
-    map.current.on("load", () => {
-      const m = map.current!;
+    try {
+      m.setPaintProperty("building", "fill-color", "#F0E6D3");
+      m.setPaintProperty("building", "fill-opacity", 0.6);
+    } catch {
+      /* layer may not exist */
+    }
 
-      // Définir les couleurs personnalisées après le chargement
-      // Utiliser setPaintProperty sur les couches existantes
-
-      // Fond de la carte
+    ["road-primary", "road-secondary", "road-street", "road-minor", "road-path"].forEach((layer) => {
       try {
-        m.setPaintProperty("background", "background-color", "#FDF8F0");
-      } catch (e) {
-        console.warn("background layer not found");
+        m.setPaintProperty(layer, "line-color", "#D4AF37");
+        m.setPaintProperty(layer, "line-opacity", 0.12);
+      } catch {
+        /* layer may not exist */
       }
+    });
 
-      // Eau
+    try {
+      m.setPaintProperty("hillshade", "exaggeration", 0.3);
+    } catch {
+      /* layer may not exist */
+    }
+
+    const labelLayers = [
+      "poi-label",
+      "road-label",
+      "waterway-label",
+      "natural-line-label",
+      "water-label",
+      "landuse-label",
+      "state-label",
+      "country-label",
+      "settlement-label",
+    ];
+    labelLayers.forEach((layer) => {
       try {
-        m.setPaintProperty("water", "fill-color", "#E8DCC8");
-      } catch (e) {
-        console.warn("water layer not found");
+        m.setLayoutProperty(layer, "visibility", "none");
+      } catch {
+        /* layer may not exist */
       }
+    });
+  };
 
-      // Bâtiments
-      try {
-        m.setPaintProperty("building", "fill-color", "#F0E6D3");
-        m.setPaintProperty("building", "fill-opacity", 0.6);
-      } catch (e) {
-        console.warn("building layer not found");
-      }
-
-      // Routes (essayer plusieurs noms de couches possibles)
-      const roadLayers = ["road", "road-primary", "road-secondary", "road-street", "road-path"];
-      roadLayers.forEach((layer) => {
-        try {
-          m.setPaintProperty(layer, "line-color", "#D4AF37");
-          m.setPaintProperty(layer, "line-opacity", 0.3);
-        } catch (e) {}
-      });
-
-      // Masquer les labels POI
-      const labelLayers = [
-        "poi-label",
-        "road-label",
-        "waterway-label",
-        "natural-line-label",
-        "water-label",
-        "landuse-label",
-        "state-label",
-        "country-label",
-        "settlement-label",
-      ];
-      labelLayers.forEach((layer) => {
-        try {
-          m.setLayoutProperty(layer, "visibility", "none");
-        } catch (e) {}
-      });
-
-      // Ajouter une couche de fond beige si besoin
-      if (!m.getLayer("custom-background")) {
-        m.addLayer(
-          {
-            id: "custom-background",
-            type: "background",
-            paint: {
-              "background-color": "#FDF8F0",
-            },
-          },
-          "water",
-        );
-      }
-
-      // Ajouter la source de données pour la heatmap
+  const setupHeatmap = (m: mapboxgl.Map, currentPins: MemoryPin[]) => {
+    if (!m.getSource("memories-heat")) {
       m.addSource("memories-heat", {
         type: "geojson",
         data: {
           type: "FeatureCollection",
-          features: pins.map((pin) => ({
+          features: currentPins.map((pin) => ({
             type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [pin.lng, pin.lat],
-            },
+            geometry: { type: "Point", coordinates: [pin.lng, pin.lat] },
             properties: { intensity: 1 },
           })),
         },
       });
 
-      // Ajouter la couche heatmap
       m.addLayer({
         id: "memories-heatmap",
         type: "heatmap",
         source: "memories-heat",
         paint: {
           "heatmap-weight": 1,
-          "heatmap-intensity": 0.6,
+          "heatmap-intensity": 0.35,
           "heatmap-radius": 40,
           "heatmap-color": [
             "interpolate",
@@ -282,131 +261,191 @@ const Places = () => {
             1,
             "rgba(255,200,60,0.7)",
           ],
-          "heatmap-opacity": 0.8,
+          "heatmap-opacity": 0.5,
         },
       });
+    } else {
+      const source = m.getSource("memories-heat") as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: "FeatureCollection",
+        features: currentPins.map((pin) => ({
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [pin.lng, pin.lat] },
+          properties: { intensity: 1 },
+        })),
+      });
+    }
+  };
+
+  const createPinElement = (pin: MemoryPin) => {
+    const el = document.createElement("div");
+    el.className = "infeelit-pin";
+    el.dataset.pinId = pin.id;
+    el.innerHTML = `<div class="infeelit-pin__body"><span>✦</span></div>`;
+
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setSelectedPin(pin);
+      map.current?.flyTo({
+        center: [pin.lng, pin.lat],
+        zoom: 14,
+        duration: 1200,
+      });
     });
+
+    return el;
+  };
+
+  const syncMarkers = (currentPins: MemoryPin[]) => {
+    if (!map.current) return;
+
+    const pinIds = new Set(currentPins.map((p) => p.id));
+
+    markersRef.current = markersRef.current.filter((marker) => {
+      const el = marker.getElement() as HTMLDivElement;
+      const id = el.dataset.pinId;
+      if (!id || !pinIds.has(id)) {
+        marker.remove();
+        markerElementsRef.current.delete(id!);
+        return false;
+      }
+      return true;
+    });
+
+    const existingIds = new Set(markerElementsRef.current.keys());
+    currentPins.forEach((pin) => {
+      if (existingIds.has(pin.id)) return;
+      const el = createPinElement(pin);
+      markerElementsRef.current.set(pin.id, el);
+      const marker = new mapboxgl.Marker({ element: el }).setLngLat([pin.lng, pin.lat]).addTo(map.current!);
+      markersRef.current.push(marker);
+    });
+  };
+
+  const addUserRadar = (longitude: number, latitude: number) => {
+    if (!map.current) return;
+
+    const radarEl = document.createElement("div");
+    radarEl.style.cssText = `
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(232,116,42,0.3) 0%,
+        rgba(232,116,42,0.05) 50%,
+        transparent 70%);
+      border: 1px solid rgba(232,116,42,0.2);
+      animation: radar 2.5s ease-out infinite;
+    `;
+
+    const centerEl = document.createElement("div");
+    centerEl.style.cssText = `
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #E8742A;
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 0 0 10px rgba(232,116,42,0.8);
+    `;
+
+    new mapboxgl.Marker({ element: radarEl }).setLngLat([longitude, latitude]).addTo(map.current);
+    new mapboxgl.Marker({ element: centerEl }).setLngLat([longitude, latitude]).addTo(map.current);
+  };
+
+  const fitBoundsToPins = (currentPins: MemoryPin[]) => {
+    if (!map.current || currentPins.length === 0) return;
+    const bounds = new mapboxgl.LngLatBounds();
+    currentPins.forEach((pin) => bounds.extend([pin.lng, pin.lat]));
+    map.current.fitBounds(bounds, { padding: 80, maxZoom: 12 });
+  };
+
+  // Initialiser la carte (après chargement des pins)
+  useEffect(() => {
+    if (!MAPBOX_TOKEN || map.current || !mapContainer.current || loading) return;
+
+    const onMapLoad = (currentPins: MemoryPin[]) => {
+      const m = map.current!;
+      applyMapStyle(m);
+      setupHeatmap(m, currentPins);
+      syncMarkers(currentPins);
+    };
+
+    const startMap = (lng: number, lat: number, zoom: number, currentPins: MemoryPin[]) => {
+      if (!mapContainer.current || map.current) return;
+
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/outdoors-v12",
+        center: [lng, lat],
+        zoom,
+        pitch: 15,
+        bearing: 0,
+        attributionControl: false,
+      });
+
+      map.current.on("load", () => onMapLoad(currentPins));
+    };
+
+    const onGeoFail = (currentPins: MemoryPin[]) => {
+      if (currentPins.length > 0) {
+        startMap(currentPins[0].lng, currentPins[0].lat, 2, currentPins);
+        map.current!.once("load", () => fitBoundsToPins(currentPins));
+      } else {
+        startMap(20, 20, 2, currentPins);
+      }
+    };
+
+    const initializeMap = (currentPins: MemoryPin[]) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ lat: latitude, lng: longitude });
+            startMap(longitude, latitude, 12, currentPins);
+            map.current!.once("load", () => addUserRadar(longitude, latitude));
+          },
+          () => onGeoFail(currentPins),
+          { timeout: 5000, maximumAge: 60000 },
+        );
+      } else {
+        onGeoFail(currentPins);
+      }
+    };
+
+    initializeMap(pins);
 
     return () => {
       map.current?.remove();
       map.current = null;
+      markersRef.current = [];
+      markerElementsRef.current.clear();
     };
-  }, []);
+  }, [loading]);
 
-  // Ajouter les pins sur la carte
+  // Sync markers + heatmap when pins change (without recreating on selection)
   useEffect(() => {
     if (!map.current || loading) return;
 
-    const addMarkers = () => {
-      // Nettoyer les anciens markers
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = [];
-
-      pins.forEach((pin) => {
-        const el = document.createElement("div");
-        el.style.cssText = `
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          background: radial-gradient(circle at 40% 40%,
-            rgba(232,116,42,0.9),
-            rgba(212,98,26,0.6));
-          border: 2px solid rgba(255,200,60,0.7);
-          box-shadow:
-            0 0 20px rgba(232,116,42,0.5),
-            0 0 40px rgba(232,116,42,0.2);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          animation: pinPulse 3s ease-in-out infinite;
-        `;
-
-        el.innerHTML = `<span style="font-size: 18px; filter: drop-shadow(0 0 4px rgba(255,200,60,0.8));">✦</span>`;
-
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          setSelectedPin(pin);
-          map.current?.flyTo({
-            center: [pin.lng, pin.lat],
-            zoom: 14,
-            duration: 1200,
-          });
-        });
-
-        const marker = new mapboxgl.Marker({ element: el }).setLngLat([pin.lng, pin.lat]).addTo(map.current!);
-
-        markersRef.current.push(marker);
-      });
-
-      // Mettre à jour la heatmap
-      const source = map.current?.getSource("memories-heat") as mapboxgl.GeoJSONSource;
-      if (source) {
-        source.setData({
-          type: "FeatureCollection",
-          features: pins.map((pin) => ({
-            type: "Feature",
-            geometry: {
-              type: "Point",
-              coordinates: [pin.lng, pin.lat],
-            },
-            properties: { intensity: 1 },
-          })),
-        });
-      }
+    const update = () => {
+      setupHeatmap(map.current!, pins);
+      syncMarkers(pins);
     };
 
     if (map.current.loaded()) {
-      addMarkers();
+      update();
     } else {
-      map.current.once("load", addMarkers);
+      map.current.once("load", update);
     }
   }, [pins, loading]);
 
-  // Géolocalisation de l'utilisateur avec radar
+  // État sélectionné via classList — pas de recréation des markers
   useEffect(() => {
-    if (!map.current) return;
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setUserLocation({ lat: latitude, lng: longitude });
-
-          // Radar émotionnel
-          const radarEl = document.createElement("div");
-          radarEl.style.cssText = `
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: radial-gradient(circle,
-              rgba(232,116,42,0.3) 0%,
-              rgba(232,116,42,0.05) 50%,
-              transparent 70%);
-            border: 1px solid rgba(232,116,42,0.2);
-            animation: radar 2.5s ease-out infinite;
-          `;
-
-          const centerEl = document.createElement("div");
-          centerEl.style.cssText = `
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #E8742A;
-            border: 2px solid rgba(255,255,255,0.9);
-            box-shadow: 0 0 10px rgba(232,116,42,0.8);
-          `;
-
-          new mapboxgl.Marker({ element: radarEl }).setLngLat([longitude, latitude]).addTo(map.current!);
-
-          new mapboxgl.Marker({ element: centerEl }).setLngLat([longitude, latitude]).addTo(map.current!);
-        },
-        (err) => {
-          console.warn("Geolocation error:", err);
-        },
-      );
-    }
-  }, []);
+    markerElementsRef.current.forEach((el, id) => {
+      const isSelected = selectedPin?.id === id;
+      el.classList.toggle("infeelit-pin--selected", isSelected);
+      el.classList.toggle("infeelit-pin--dimmed", !!selectedPin && !isSelected);
+    });
+  }, [selectedPin]);
 
   const handlePinHere = () => {
     if (userLocation) {
@@ -439,23 +478,58 @@ const Places = () => {
     navigate("/treasure", { state: { memoryId: pin.id } });
   };
 
+  const handleSheetTouchStart = (e: React.TouchEvent) => {
+    sheetTouchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleSheetTouchEnd = (e: React.TouchEvent) => {
+    const deltaY = e.changedTouches[0].clientY - sheetTouchStartY.current;
+    if (deltaY > 60) setSelectedPin(null);
+  };
+
   if (!MAPBOX_TOKEN) return <PlacesFallback />;
 
   return (
     <div className="relative w-full h-screen overflow-hidden" dir={rtl ? "rtl" : "ltr"}>
       <Header activeTimeline="memories" onTimelineChange={() => {}} />
       <style>{`
-        @keyframes pinPulse {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(232,116,42,0.5), 0 0 40px rgba(232,116,42,0.2); }
-          50% { transform: scale(1.15); box-shadow: 0 0 30px rgba(232,116,42,0.7), 0 0 60px rgba(232,116,42,0.3); }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        @keyframes sheetUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
         @keyframes radar {
           0% { transform: scale(0.5); opacity: 1; }
           100% { transform: scale(2.5); opacity: 0; }
+        }
+        .infeelit-pin {
+          cursor: pointer;
+          transition: opacity 0.25s ease;
+        }
+        .infeelit-pin__body {
+          width: 36px;
+          height: 44px;
+          background: linear-gradient(160deg, #E8742A, #D4621A);
+          border: 2px solid #D4AF37;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 16px rgba(232,116,42,0.4);
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .infeelit-pin__body span {
+          transform: rotate(45deg);
+          font-size: 14px;
+          color: #FFF9F2;
+          filter: drop-shadow(0 0 3px rgba(212,175,55,0.8));
+        }
+        .infeelit-pin--selected .infeelit-pin__body {
+          transform: rotate(-45deg) scale(1.15);
+          box-shadow: 0 0 0 4px rgba(212,175,55,0.35), 0 8px 24px rgba(232,116,42,0.55);
+        }
+        .infeelit-pin--dimmed {
+          opacity: 0.45;
         }
         .mapboxgl-ctrl-attrib, .mapboxgl-ctrl-logo { display: none !important; }
       `}</style>
@@ -508,134 +582,185 @@ const Places = () => {
       {/* Conteneur de la carte */}
       <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
 
-      {/* Popup du souvenir sélectionné */}
+      {/* Bottom sheet du souvenir sélectionné */}
       {selectedPin && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "60px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "90%",
-            maxWidth: "340px",
-            backgroundColor: "#FFF9F2",
-            borderRadius: "20px",
-            padding: "20px",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(232,116,42,0.15)",
-            zIndex: 20,
-            animation: "slideUp 0.3s ease",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "16px",
-              fontWeight: 700,
-              color: "#3D2B1F",
-              fontFamily: "Georgia, serif",
-              lineHeight: 1.4,
-              marginBottom: "8px",
-            }}
-          >
-            "{selectedPin.title}"
-          </p>
-          <p
-            style={{
-              fontSize: "12px",
-              color: "rgba(61,43,31,0.5)",
-              marginBottom: "16px",
-            }}
-          >
-            {selectedPin.name} ·{" "}
-            {selectedPin.city || (lang === "fr" ? "Lieu inconnu" : lang === "ar" ? "مكان غير معروف" : "Unknown place")}
-          </p>
-          <button
-            onClick={() => handleListen(selectedPin)}
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "14px",
-              background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: "14px",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              boxShadow: "0 4px 16px rgba(232,116,42,0.35)",
-            }}
-          >
-            <span>▶</span>
-            {lang === "fr" ? "Écouter ce souvenir" : lang === "ar" ? "استمع لهذه الذكرى" : "Listen to this memory"}
-          </button>
-          <button
-            onClick={handlePinHere}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "8px",
-              borderRadius: "14px",
-              background: "none",
-              border: "1px solid rgba(232,116,42,0.3)",
-              color: "#E8742A",
-              fontWeight: 600,
-              fontSize: "13px",
-              cursor: "pointer",
-            }}
-          >
-            {lang === "fr"
-              ? "Moi aussi j'ai un souvenir ici ✦"
-              : lang === "ar"
-                ? "أنا أيضاً لدي ذكرى هنا ✦"
-                : "I also have a memory here ✦"}
-          </button>
-          <button
+        <>
+          <div
             onClick={() => setSelectedPin(null)}
             style={{
               position: "absolute",
-              top: "12px",
-              right: "12px",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "rgba(61,43,31,0.3)",
-              padding: "4px",
+              inset: 0,
+              zIndex: 19,
+              background: "rgba(61,43,31,0.15)",
+            }}
+          />
+          <div
+            onTouchStart={handleSheetTouchStart}
+            onTouchEnd={handleSheetTouchEnd}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 20,
+              background: "#FFF9F2",
+              borderRadius: "24px 24px 0 0",
+              padding: "12px 20px calc(24px + env(safe-area-inset-bottom))",
+              boxShadow: "0 -8px 40px rgba(61,43,31,0.12)",
+              animation: "sheetUp 0.35s cubic-bezier(0.32,0.72,0,1)",
             }}
           >
-            <X size={18} />
-          </button>
-        </div>
+            <div
+              style={{
+                width: 36,
+                height: 4,
+                borderRadius: 2,
+                background: "rgba(61,43,31,0.15)",
+                margin: "0 auto 16px",
+              }}
+            />
+
+            <div
+              style={{
+                aspectRatio: "16/9",
+                borderRadius: 16,
+                overflow: "hidden",
+                marginBottom: 16,
+                background: "linear-gradient(135deg, rgba(232,116,42,0.15), rgba(212,175,55,0.15))",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {selectedPin.thumbnail_url ? (
+                <img
+                  src={selectedPin.thumbnail_url}
+                  alt=""
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <span style={{ fontSize: 32, opacity: 0.5 }}>✦</span>
+              )}
+            </div>
+
+            <p
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: "#3D2B1F",
+                fontFamily: "Georgia, serif",
+                lineHeight: 1.35,
+                marginBottom: 8,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {selectedPin.title}
+            </p>
+            <p
+              style={{
+                fontSize: 12,
+                color: "rgba(61,43,31,0.5)",
+                marginBottom: 16,
+              }}
+            >
+              {selectedPin.name} ·{" "}
+              {selectedPin.city ||
+                (lang === "fr" ? "Lieu inconnu" : lang === "ar" ? "مكان غير معروف" : "Unknown place")}
+            </p>
+            <button
+              onClick={() => handleListen(selectedPin)}
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "14px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "14px",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                boxShadow: "0 4px 16px rgba(232,116,42,0.35)",
+              }}
+            >
+              <span>▶</span>
+              {lang === "fr" ? "Écouter ce souvenir" : lang === "ar" ? "استمع لهذه الذكرى" : "Listen to this memory"}
+            </button>
+            <button
+              onClick={handlePinHere}
+              style={{
+                width: "100%",
+                padding: "12px",
+                marginTop: "8px",
+                borderRadius: "14px",
+                background: "none",
+                border: "1px solid rgba(232,116,42,0.3)",
+                color: "#E8742A",
+                fontWeight: 600,
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              {lang === "fr"
+                ? "Moi aussi j'ai un souvenir ici ✦"
+                : lang === "ar"
+                  ? "أنا أيضاً لدي ذكرى هنا ✦"
+                  : "I also have a memory here ✦"}
+            </button>
+            <button
+              onClick={() => setSelectedPin(null)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "rgba(61,43,31,0.3)",
+                padding: "4px",
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </>
       )}
 
       {/* Bouton épingler */}
-      <button
-        onClick={handlePinHere}
-        style={{
-          position: "absolute",
-          bottom: "100px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          padding: "14px 24px",
-          borderRadius: "999px",
-          background: "linear-gradient(135deg, #E8742A, #D4621A)",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: "14px",
-          border: "none",
-          cursor: "pointer",
-          boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          zIndex: 10,
-          whiteSpace: "nowrap",
-        }}
-      >
-        <MapPin size={18} />
-        {lang === "fr" ? "Épingler un souvenir ici" : lang === "ar" ? "ثبّت ذكرى هنا" : "Pin a memory here"}
-      </button>
+      {!selectedPin && (
+        <button
+          onClick={handlePinHere}
+          style={{
+            position: "absolute",
+            bottom: "100px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "14px 24px",
+            borderRadius: "999px",
+            background: "linear-gradient(135deg, #E8742A, #D4621A)",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "14px",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            zIndex: 10,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <MapPin size={18} />
+          {lang === "fr" ? "Épingler un souvenir ici" : lang === "ar" ? "ثبّت ذكرى هنا" : "Pin a memory here"}
+        </button>
+      )}
 
       {/* Message de chargement */}
       {loading && (
@@ -665,7 +790,7 @@ const Places = () => {
       )}
 
       {/* Badge démo */}
-      {isDemo && !loading && (
+      {isDemo && !loading && !selectedPin && (
         <div
           style={{
             position: "absolute",
