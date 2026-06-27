@@ -168,6 +168,7 @@ const Record = () => {
   const [visibilityChoice, setVisibilityChoice] = useState<"family" | "community" | "private" | null>(null);
   const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thumbScrollRef = useRef<HTMLDivElement>(null);
+  const bgVideoInputRef = useRef<HTMLInputElement>(null);
   const auraRef = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const isPublishingRef = useRef(false);
@@ -191,6 +192,7 @@ const Record = () => {
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [customThumb, setCustomThumb] = useState<string | null>(null);
   const [bgImage, setBgImage] = useState<string | null>(null);
+  const [bgVideoUrl, setBgVideoUrl] = useState<string | null>(null);
   const [useAsAura, setUseAsAura] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [pendingMemory, setPendingMemory] = useState<any>(null);
@@ -407,17 +409,41 @@ const Record = () => {
 
   const handleBackgroundSkip = () => {
     setBgImage(null);
+    if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
+    setBgVideoUrl(null);
     setUseAsAura(false);
     auraRef.current = false;
     startCountdown();
   };
 
   const handleBackgroundContinue = () => {
+    if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
+    setBgVideoUrl(null);
     const url = customThumb || thumbCards[selectedThumb];
     setBgImage(url);
     setUseAsAura(true);
     auraRef.current = true;
     startCountdown();
+  };
+
+  const handleBackgroundVideoContinue = () => {
+    if (!bgVideoUrl) return;
+    setBgImage(null);
+    setUseAsAura(false);
+    auraRef.current = false;
+    startCountdown();
+  };
+
+  const handleBgVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
+    setBgImage(null);
+    setUseAsAura(false);
+    auraRef.current = false;
+    setCustomThumb(null);
+    setBgVideoUrl(URL.createObjectURL(file));
+    e.target.value = "";
   };
 
   const handleStop = async () => {
@@ -454,6 +480,8 @@ const Record = () => {
     setLocalUrl(null);
     chunksRef.current = [];
     setBgImage(null);
+    if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
+    setBgVideoUrl(null);
     setUseAsAura(false);
     auraRef.current = false;
     setStage(isFreeMode ? "freeTitle" : "question");
@@ -470,6 +498,8 @@ const Record = () => {
   const handleThumbSelect = (idx: number) => {
     setSelectedThumb(idx);
     setCustomThumb(null);
+    if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
+    setBgVideoUrl(null);
     if (thumbScrollRef.current) {
       const cw = thumbScrollRef.current.children[0]?.clientWidth || 200;
       thumbScrollRef.current.scrollTo({ left: idx * (cw + 12), behavior: "smooth" });
@@ -479,6 +509,8 @@ const Record = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (f) {
+      if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
+      setBgVideoUrl(null);
       const u = URL.createObjectURL(f);
       setCustomThumb(u);
     }
@@ -869,51 +901,77 @@ const Record = () => {
         }
       `}</style>
 
-      {/* ✅ NOUVEAU BLOC — RECORDING AVEC Z-INDEX CORRIGÉ */}
+      {/* Fond pendant l'enregistrement — image, vidéo ou gradient */}
       {stage === "recording" && (
-        <div className="absolute inset-0" style={{ zIndex: 0 }}>
-          {auraBackground ? (
-            <div
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
+          {bgVideoUrl && (
+            <video
+              src={bgVideoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
               style={{
                 position: "absolute",
                 inset: 0,
-                backgroundImage: `url(${auraBackground})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                filter: "blur(20px) brightness(0.5) sepia(20%)",
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "linear-gradient(135deg, #2D1810 0%, #8B4513 25%, #D4621A 50%, #8B4513 75%, #2D1810 100%)",
-                backgroundSize: "400% 400%",
-                animation: "ambientShift 8s ease infinite",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                filter: "blur(6px) brightness(0.55)",
+                transform: "scale(1.05)",
+                zIndex: 0,
               }}
             />
           )}
+
+          {!bgVideoUrl && bgImage && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url(${bgImage})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "blur(10px) brightness(0.5)",
+                transform: "scale(1.1)",
+                zIndex: 0,
+              }}
+            />
+          )}
+
+          {!bgVideoUrl && !bgImage && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(135deg, #1a0a05 0%, #3D1810 40%, #8B3A1A 100%)",
+                zIndex: 0,
+              }}
+            />
+          )}
+
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: "radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)",
+              background:
+                "radial-gradient(ellipse at center bottom, rgba(232,116,42,0.15) 0%, transparent 60%)",
+              zIndex: 1,
             }}
           />
         </div>
       )}
 
-      {/* ✅ NOUVEAU BLOC — VIDÉO AVEC Z-INDEX 10 PENDANT L'ENREGISTREMENT */}
+      {/* Caméra utilisateur */}
       {!audioMode && !isStage(stage, "preview") && (
         <video
           ref={videoRef}
           autoPlay
           muted
           playsInline
-          style={{ zIndex: 10 }}
+          style={{ zIndex: stage === "recording" ? 2 : 10 }}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-            stage === "recording" ? "opacity-100" : "opacity-20"
+            stage === "recording" ? "opacity-[0.88]" : "opacity-20"
           }`}
         />
       )}
@@ -1421,13 +1479,13 @@ const Record = () => {
             {lang === "ar"
               ? "اختر خلفية لتسجيلك"
               : lang === "fr"
-                ? "Choisis une image de fond"
-                : "Choose a background image"}
+                ? "Choisis un fond pour ton enregistrement"
+                : "Choose a background for your recording"}
           </p>
           <div
             ref={thumbScrollRef}
             className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 max-w-full hide-scroll"
-            style={{ scrollbarWidth: "none" }}
+            style={{ scrollbarWidth: "none", opacity: bgVideoUrl ? 0.45 : 1 }}
           >
             {thumbCards.map((img, idx) => {
               const isSel = selectedThumb === idx && !customThumb;
@@ -1460,27 +1518,112 @@ const Record = () => {
               </button>
             )}
           </div>
-          <label className="flex items-center gap-2 text-white/40 text-xs cursor-pointer hover:text-white/60 transition-colors">
+          <label
+            className={`flex items-center gap-2 text-white/40 text-xs cursor-pointer hover:text-white/60 transition-colors ${bgVideoUrl ? "opacity-45 pointer-events-none" : ""}`}
+          >
             <Camera size={14} />
             {lang === "ar" ? "📷 استخدام صورتي" : lang === "fr" ? "📷 Utiliser ma photo" : "📷 Use my photo"}
             <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
           </label>
+
+          <button
+            onClick={() => bgVideoInputRef.current?.click()}
+            style={{
+              width: "100%",
+              maxWidth: "300px",
+              padding: "18px",
+              borderRadius: "20px",
+              background: bgVideoUrl
+                ? "linear-gradient(135deg, #E8742A, #D4621A)"
+                : "rgba(255,255,255,0.08)",
+              border: bgVideoUrl ? "none" : "1.5px solid rgba(255,255,255,0.15)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              marginTop: "12px",
+            }}
+          >
+            <span style={{ fontSize: "28px" }}>🎬</span>
+            <div style={{ textAlign: "left" }}>
+              <p
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  color: "#fff",
+                  margin: 0,
+                }}
+              >
+                {bgVideoUrl
+                  ? lang === "fr"
+                    ? "Vidéo sélectionnée ✓"
+                    : lang === "ar"
+                      ? "تم اختيار الفيديو ✓"
+                      : "Video selected ✓"
+                  : lang === "fr"
+                    ? "Une vidéo depuis ma galerie"
+                    : lang === "ar"
+                      ? "فيديو من معرضي"
+                      : "A video from my gallery"}
+              </p>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: bgVideoUrl ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.5)",
+                  margin: 0,
+                }}
+              >
+                {lang === "fr"
+                  ? "Joue en fond pendant que tu parles"
+                  : lang === "ar"
+                    ? "يشغّل في الخلفية أثناء حديثك"
+                    : "Plays in background while you speak"}
+              </p>
+            </div>
+          </button>
+
+          <input
+            ref={bgVideoInputRef}
+            type="file"
+            accept="video/*"
+            style={{ display: "none" }}
+            onChange={handleBgVideoSelect}
+          />
+
           <div className="flex flex-col gap-3 w-full max-w-xs mt-2">
-            <button
-              onClick={handleBackgroundContinue}
-              className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                color: "#fff",
-                boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
-              }}
-            >
-              {lang === "ar"
-                ? "المتابعة مع الصورة"
-                : lang === "fr"
-                  ? "Continuer avec image"
-                  : "Continue with image"}
-            </button>
+            {bgVideoUrl ? (
+              <button
+                onClick={handleBackgroundVideoContinue}
+                className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  color: "#fff",
+                  boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
+                }}
+              >
+                {lang === "ar"
+                  ? "المتابعة مع الفيديو"
+                  : lang === "fr"
+                    ? "Continuer avec vidéo"
+                    : "Continue with video"}
+              </button>
+            ) : (
+              <button
+                onClick={handleBackgroundContinue}
+                className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  color: "#fff",
+                  boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
+                }}
+              >
+                {lang === "ar"
+                  ? "المتابعة مع الصورة"
+                  : lang === "fr"
+                    ? "Continuer avec image"
+                    : "Continue with image"}
+              </button>
+            )}
             <button
               onClick={handleBackgroundSkip}
               className="w-full py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20"
@@ -1590,17 +1733,56 @@ const Record = () => {
                 : "Listen before keeping..."}
           </p>
           <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{questionRef.current}"</h2>
-          {audioMode ? (
-            <audio src={localUrl || undefined} controls style={{ width: "100%" }} autoPlay />
-          ) : (
-            <video
-              src={localUrl || undefined}
-              controls
-              style={{ width: "100%", borderRadius: "16px" }}
-              autoPlay
-              playsInline
-            />
-          )}
+          <div className="relative w-full">
+            {audioMode ? (
+              <audio src={localUrl || undefined} controls style={{ width: "100%" }} autoPlay />
+            ) : (
+              <video
+                src={localUrl || undefined}
+                controls
+                style={{ width: "100%", borderRadius: "16px" }}
+                autoPlay
+                playsInline
+              />
+            )}
+            {(bgVideoUrl || bgImage) && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "12px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  padding: "6px 14px",
+                  background: "rgba(0,0,0,0.6)",
+                  borderRadius: "999px",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "rgba(255,255,255,0.8)",
+                    margin: 0,
+                    fontWeight: 600,
+                    letterSpacing: "0.05em",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {bgVideoUrl
+                    ? lang === "fr"
+                      ? "🎬 Fond vidéo activé"
+                      : lang === "ar"
+                        ? "🎬 خلفية الفيديو مفعّلة"
+                        : "🎬 Video background active"
+                    : lang === "fr"
+                      ? "🖼️ Fond image activé"
+                      : lang === "ar"
+                        ? "🖼️ خلفية الصورة مفعّلة"
+                        : "🖼️ Image background active"}
+                </p>
+              </div>
+            )}
+          </div>
           <div className="flex gap-4 w-full max-w-xs mt-4">
             <button
               onClick={handleRetake}
