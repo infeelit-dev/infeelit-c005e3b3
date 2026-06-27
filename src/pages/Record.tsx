@@ -13,7 +13,6 @@ import {
   Check,
   Camera,
   Lock,
-  Users,
   UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -1485,22 +1484,6 @@ const Record = () => {
           >
             <Lock size={18} />
             {lang === "ar" ? "لعائلتي فقط." : lang === "fr" ? "Pour ma famille uniquement." : "For my family only."}
-          </button>
-          <button
-            onClick={() => handleVisibilityChoice("community")}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3"
-            style={{
-              background: "linear-gradient(135deg,#E8742A,#D4621A)",
-              color: "#fff",
-              boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
-            }}
-          >
-            <Users size={18} />
-            {lang === "ar"
-              ? "لمن فقدوا صوتاً أيضاً."
-              : lang === "fr"
-                ? "Pour ceux qui ont aussi perdu une voix."
-                : "For those who also lost a voice."}
           </button>
           <button
             onClick={() => handleVisibilityChoice("anonymous")}
