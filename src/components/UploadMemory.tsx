@@ -85,9 +85,7 @@ export default function UploadMemory({ lang, userName, onClose }: UploadMemoryPr
 
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage.from("memories").getPublicUrl(path);
-
-      return urlData.publicUrl;
+      return path;
     } catch (err) {
       console.error("Upload error:", err);
       return null;

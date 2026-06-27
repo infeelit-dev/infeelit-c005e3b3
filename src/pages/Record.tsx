@@ -492,16 +492,14 @@ const Record = () => {
           console.error("Upload err:", error);
           continue;
         }
-        const { data: ud } = supabase.storage.from("memories").getPublicUrl(fn);
-        if (ud?.publicUrl) urls.push(ud.publicUrl);
+        urls.push(fn);
         thumbUrlRef.current = "";
         if (cl.posterBlob) {
           const { data: pd } = await supabase.storage
             .from("memories")
             .upload(pn, cl.posterBlob, { contentType: "image/jpeg", upsert: true });
           if (pd) {
-            const { data: td } = supabase.storage.from("memories").getPublicUrl(pn);
-            if (td?.publicUrl) thumbUrlRef.current = td.publicUrl;
+            thumbUrlRef.current = pn;
           }
         }
       } catch (err) {

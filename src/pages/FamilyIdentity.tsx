@@ -68,6 +68,8 @@ const FamilyIdentity = () => {
         throw error;
       }
 
+      localStorage.setItem("infeelit_user_name", displayName);
+
       navigate("/loading");
     } catch (err: any) {
       console.error("FamilyIdentity save error:", err);
