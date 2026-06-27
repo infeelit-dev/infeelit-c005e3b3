@@ -9,18 +9,10 @@ import ActionBar from "@/components/ActionBar";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import useUserName from "@/hooks/useUserName";
 import type { Timeline } from "@/types/timeline";
-import { useLanguage } from "@/contexts/LanguageContext";
-
-// === CONSTANTES POUR LE SIGNALEMENT ===
-const REPORT_REASONS = {
-  fr: ["Contenu violent", "Contenu sexuel", "Spam ou publicité", "Contenu inapproprié", "Autre"],
-  en: ["Violent content", "Sexual content", "Spam or advertising", "Inappropriate content", "Other"],
-  ar: ["محتوى عنيف", "محتوى جنسي", "بريد عشوائي أو إعلان", "محتوى غير لائق", "أخرى"],
-};
+import { resolveMemoryFields } from "@/lib/memoryUrl";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { lang } = useLanguage();
   const userName = useUserName();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
@@ -28,11 +20,6 @@ const Index = () => {
   const [feedMemories, setFeedMemories] = useState<any[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
   const currentUserName = localStorage.getItem("infeelit_user_name") || "";
-
-  // === ÉTATS POUR LE SIGNALEMENT ===
-  const [showReportMenu, setShowReportMenu] = useState<string | null>(null);
-  const [reportSent, setReportSent] = useState<Record<string, boolean>>({});
-  const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
     const entryTime = Date.now();
@@ -74,7 +61,7 @@ const Index = () => {
     };
   }, []);
 
-  // === CHARGEMENT DU FEED AVEC FILTRE MODERATION ===
+  // ✅ CHARGEMENT DU FEED — avec résolution des URLs signées
   useEffect(() => {
     const loadFeed = async () => {
       setLoadingFeed(true);
@@ -86,12 +73,15 @@ const Index = () => {
           profiles (display_name)
         `,
         )
+        .eq("is_public", true)
         .eq("is_community", true)
-        .not("moderation_status", "in", '("rejected","reported")')
+        .not("moderation_status", "eq", "rejected")
         .order("created_at", { ascending: false })
         .limit(20);
 
-      setFeedMemories(memories || []);
+      // ✅ Résoudre les URLs signées
+      const resolved = await resolveMemoryFields(memories || []);
+      setFeedMemories(resolved);
       setLoadingFeed(false);
     };
     loadFeed();
@@ -112,42 +102,7 @@ const Index = () => {
     return "linear-gradient(180deg, #7ec8c8 0%, #a8d8c8 30%, #f0e6d3 70%, #E8742A 100%)";
   };
 
-  // === FONCTION SIGNALEMENT ===
-  const handleReport = async (memoryId: string, reason: string) => {
-    try {
-      setReportError(null);
-
-      const { error } = await supabase.from("memory_reports").insert({
-        memory_id: memoryId,
-        reporter_name: userName || "anonymous",
-        reason,
-      });
-
-      if (error) throw error;
-
-      // Vérifier si 3+ signalements
-      const { count } = await supabase.from("memory_reports").select("*", { count: "exact" }).eq("memory_id", memoryId);
-
-      if (count && count >= 3) {
-        await supabase.from("memories").update({ moderation_status: "reported" }).eq("id", memoryId);
-      }
-
-      setReportSent({ ...reportSent, [memoryId]: true });
-      setShowReportMenu(null);
-
-      // Cacher le souvenir du feed s'il a été signalé 3 fois
-      if (count && count >= 3) {
-        setFeedMemories(feedMemories.filter((m) => m.id !== memoryId));
-      }
-
-      setTimeout(() => {
-        setReportSent((prev) => ({ ...prev, [memoryId]: false }));
-      }, 3000);
-    } catch (err) {
-      console.error(err);
-      setReportError("Erreur lors du signalement");
-    }
-  };
+  const lang = "fr";
 
   return (
     <div
@@ -196,11 +151,8 @@ const Index = () => {
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
-
-      {/* ✅ BUBBLE CANVAS — LES BULLES DÉMO FLOTTANTES */}
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
-      {/* FEED DE SOUVENIRS */}
       <div className="relative z-20 flex-1 overflow-y-auto pb-32 pt-20 px-4 pointer-events-none">
         <div className="pointer-events-auto">
           {loadingFeed ? (
@@ -221,8 +173,6 @@ const Index = () => {
               const questionText =
                 lang === "fr" ? questionObj.fr : lang === "ar" ? questionObj.ar : questionObj.en || memory.title;
 
-              const isReported = reportSent[memory.id] || false;
-
               return (
                 <div
                   key={memory.id}
@@ -232,165 +182,8 @@ const Index = () => {
                     background: "#fff",
                     boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
                     marginBottom: "20px",
-                    position: "relative",
                   }}
                 >
-                  {/* === BOUTON SIGNALER ⚑ === */}
-                  <button
-                    onClick={() => setShowReportMenu(showReportMenu === memory.id ? null : memory.id)}
-                    style={{
-                      position: "absolute",
-                      top: "8px",
-                      right: "8px",
-                      background: "rgba(0,0,0,0.3)",
-                      border: "none",
-                      borderRadius: "50%",
-                      width: "28px",
-                      height: "28px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      zIndex: 15,
-                      opacity: 0.6,
-                      transition: "opacity 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = "1";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = "0.6";
-                    }}
-                    aria-label="Signaler"
-                  >
-                    <span style={{ fontSize: "14px" }}>⚑</span>
-                  </button>
-
-                  {/* === CONFIRMATION SIGNALEMENT ENVOYÉ === */}
-                  {isReported && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: "60px",
-                        left: "16px",
-                        right: "16px",
-                        padding: "10px 14px",
-                        background: "rgba(34,197,94,0.15)",
-                        border: "1px solid rgba(34,197,94,0.3)",
-                        borderRadius: "12px",
-                        zIndex: 20,
-                        backdropFilter: "blur(4px)",
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontSize: "13px",
-                          color: "#16a34a",
-                          margin: 0,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {lang === "fr"
-                          ? "✓ Signalement envoyé. Merci."
-                          : lang === "ar"
-                            ? "✓ تم إرسال البلاغ. شكراً."
-                            : "✓ Report sent. Thank you."}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* === MODAL SIGNALEMENT === */}
-                  {showReportMenu === memory.id && (
-                    <div
-                      style={{
-                        position: "fixed",
-                        inset: 0,
-                        background: "rgba(0,0,0,0.5)",
-                        backdropFilter: "blur(4px)",
-                        zIndex: 200,
-                        display: "flex",
-                        alignItems: "flex-end",
-                        justifyContent: "center",
-                        padding: "0 0 24px",
-                      }}
-                      onClick={() => setShowReportMenu(null)}
-                    >
-                      <div
-                        style={{
-                          background: "#FDF8F0",
-                          borderRadius: "24px 24px 16px 16px",
-                          padding: "24px 20px",
-                          width: "100%",
-                          maxWidth: "420px",
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <p
-                          style={{
-                            fontSize: "11px",
-                            fontWeight: 900,
-                            color: "#E8742A",
-                            letterSpacing: "0.2em",
-                            textTransform: "uppercase",
-                            marginBottom: "16px",
-                            textAlign: "center",
-                          }}
-                        >
-                          {lang === "fr"
-                            ? "Pourquoi signales-tu ce contenu ?"
-                            : lang === "ar"
-                              ? "لماذا تُبلّغ عن هذا المحتوى؟"
-                              : "Why are you reporting this?"}
-                        </p>
-
-                        {(REPORT_REASONS[lang as keyof typeof REPORT_REASONS] || REPORT_REASONS.fr).map((reason) => (
-                          <button
-                            key={reason}
-                            onClick={() => handleReport(memory.id, reason)}
-                            style={{
-                              width: "100%",
-                              padding: "14px 16px",
-                              background: "none",
-                              border: "none",
-                              borderBottom: "1px solid rgba(61,43,31,0.08)",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              fontSize: "15px",
-                              color: "#3D2B1F",
-                              fontWeight: 500,
-                              transition: "background 0.15s",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "rgba(0,0,0,0.04)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = "transparent";
-                            }}
-                          >
-                            {reason}
-                          </button>
-                        ))}
-
-                        <button
-                          onClick={() => setShowReportMenu(null)}
-                          style={{
-                            width: "100%",
-                            padding: "14px",
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: "rgba(61,43,31,0.4)",
-                            fontSize: "14px",
-                            marginTop: "8px",
-                          }}
-                        >
-                          {lang === "fr" ? "Annuler" : lang === "ar" ? "إلغاء" : "Cancel"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* QUESTION EN HAUT */}
                   {questionText && (
                     <div
                       style={{
@@ -426,7 +219,6 @@ const Index = () => {
                     </div>
                   )}
 
-                  {/* CONTENU VIDÉO / AUDIO */}
                   <div style={{ position: "relative", aspectRatio: "16/9", background: "#000" }}>
                     {memory.file_type === "video" && memory.file_url ? (
                       <video
@@ -462,7 +254,6 @@ const Index = () => {
                     )}
                   </div>
 
-                  {/* TITRE ET AUTEUR */}
                   <div style={{ padding: "12px 16px 0" }}>
                     <p
                       style={{
@@ -486,7 +277,6 @@ const Index = () => {
                     </p>
                   </div>
 
-                  {/* SOUS-TITRES */}
                   <SubtitleDisplay
                     transcript_fr={memory.transcript_fr}
                     transcript_en={memory.transcript_en}
@@ -496,7 +286,6 @@ const Index = () => {
                     currentLang={lang as "fr" | "en" | "ar"}
                   />
 
-                  {/* ACTION BAR */}
                   <ActionBar
                     memoryId={memory.id}
                     memoryTitle={memory.title || "Souvenir"}
@@ -520,8 +309,6 @@ const Index = () => {
           )}
         </div>
       </div>
-
-      {/* ✅ BOUTON 📥 SUPPRIMÉ — plus présent */}
 
       <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
     </div>
