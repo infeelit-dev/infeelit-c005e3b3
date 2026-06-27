@@ -1,0 +1,7 @@
+ALTER TABLE memories
+ADD COLUMN IF NOT EXISTS transcript TEXT,
+ADD COLUMN IF NOT EXISTS transcript_fr TEXT,
+ADD COLUMN IF NOT EXISTS transcript_en TEXT,
+ADD COLUMN IF NOT EXISTS transcript_ar TEXT,
+ADD COLUMN IF NOT EXISTS detected_lang TEXT,
+ADD COLUMN IF NOT EXISTS translation_status TEXT DEFAULT 'pending';

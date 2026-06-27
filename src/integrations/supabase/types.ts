@@ -85,6 +85,12 @@ export type Database = {
           thumbnail_url: string | null;
           timeline: string;
           title: string | null;
+          transcript: string | null;
+          transcript_fr: string | null;
+          transcript_en: string | null;
+          transcript_ar: string | null;
+          detected_lang: string | null;
+          translation_status: string | null;
           updated_at: string;
           user_id: string;
         };
@@ -105,6 +111,12 @@ export type Database = {
           thumbnail_url?: string | null;
           timeline?: string;
           title?: string | null;
+          transcript?: string | null;
+          transcript_fr?: string | null;
+          transcript_en?: string | null;
+          transcript_ar?: string | null;
+          detected_lang?: string | null;
+          translation_status?: string | null;
           updated_at?: string;
           user_id: string;
         };
