@@ -166,6 +166,7 @@ const Record = () => {
   const thumbScrollRef = useRef<HTMLDivElement>(null);
   const auraRef = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const isPublishingRef = useRef(false);
 
   const [stage, setStage] = useState<Stage>("question");
   const [mr, setMR] = useState<MediaRecorder | null>(null);
@@ -576,9 +577,15 @@ const Record = () => {
   };
 
   const handlePublish = async () => {
-    const shareType =
-      visibilityChoice === "community" ? "public" : visibilityChoice === "family" ? "circle" : "private";
-    await handleShare(shareType);
+    if (isPublishingRef.current) return;
+    isPublishingRef.current = true;
+    try {
+      const shareType =
+        visibilityChoice === "community" ? "public" : visibilityChoice === "family" ? "circle" : "private";
+      await handleShare(shareType);
+    } finally {
+      isPublishingRef.current = false;
+    }
   };
 
   const visibilityButtonStyle = (choice: "family" | "community" | "private") => ({
