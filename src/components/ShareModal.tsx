@@ -14,7 +14,7 @@ interface ShareModalProps {
 }
 
 const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl }: ShareModalProps) => {
-  const { lang } = useLanguage();
+  const { lang, rtl } = useLanguage();
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -73,6 +73,7 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
 
   return (
     <div
+      dir={rtl ? "rtl" : "ltr"}
       style={{
         position: "fixed",
         inset: 0,
