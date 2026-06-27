@@ -5,6 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin, X } from "lucide-react";
+import Header from "@/components/Header";
 import PlacesFallback from "./PlacesFallback";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
@@ -442,6 +443,7 @@ const Places = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden" dir={rtl ? "rtl" : "ltr"}>
+      <Header activeTimeline="memories" onTimelineChange={() => {}} />
       <style>{`
         @keyframes pinPulse {
           0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(232,116,42,0.5), 0 0 40px rgba(232,116,42,0.2); }

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Header from "@/components/Header";
 import useUserName from "@/hooks/useUserName";
 
 import grandfatherImg from "@/assets/grandfather.jpg";
@@ -360,6 +361,7 @@ const Circle = () => {
         fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
       }}
     >
+      <Header activeTimeline="memories" onTimelineChange={() => {}} />
       <style>{`
         @keyframes bgS { 0%{transform:translate(0,0);} 20%{transform:translate(35px,-45px);} 40%{transform:translate(58px,10px);} 60%{transform:translate(40px,55px);} 80%{transform:translate(-12px,35px);} 100%{transform:translate(0,0);} }
         @keyframes bgM { 0%{transform:translate(0,0);} 20%{transform:translate(-42px,-32px);} 40%{transform:translate(-60px,20px);} 60%{transform:translate(-38px,60px);} 80%{transform:translate(10px,42px);} 100%{transform:translate(0,0);} }

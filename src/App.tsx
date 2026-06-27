@@ -4,8 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import LangBadge from "./components/LangBadge";
-
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -38,7 +36,6 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <LangBadge />
           <Routes>
             {/* Routes principales */}
             <Route path="/" element={<Index />} />

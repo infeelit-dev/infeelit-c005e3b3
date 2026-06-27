@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Send } from "lucide-react";
+import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const SYSTEM_PROMPT = `Tu es Le Guide Infeelit.
@@ -126,6 +127,7 @@ const Contact = () => {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#FFF9F2", display: "flex", flexDirection: "column" }}>
+      <Header activeTimeline="memories" onTimelineChange={() => {}} />
       <style>{`@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}`}</style>
       <div
         style={{

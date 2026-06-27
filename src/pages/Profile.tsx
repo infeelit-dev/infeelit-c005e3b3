@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, LogOut, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import infeelit from "@/assets/infeelit-logo.png";
 
@@ -21,6 +22,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#FAF8F6" }}>
+      <Header activeTimeline="memories" onTimelineChange={() => {}} />
       {/* Header */}
       <div className="px-6 pt-14 pb-4 flex items-center gap-4">
         <button onClick={() => navigate(-1)} className="p-2 rounded-full bg-white border border-gray-100 shadow-sm">

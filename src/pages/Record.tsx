@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import useUserName from "@/hooks/useUserName";
+import Header from "@/components/Header";
 import ShareModal from "@/components/ShareModal";
 import MemoryCard from "@/components/MemoryCard";
 import html2canvas from "html2canvas";
@@ -783,6 +784,7 @@ const Record = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans" dir={rtl ? "rtl" : "ltr"}>
+      <Header activeTimeline="memories" onTimelineChange={() => {}} />
       <style>{`
         @keyframes ambientShift {
           0% { background-position: 0% 50%; }
