@@ -184,6 +184,12 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     navigate("/record", { state: { question: card.text, category: "past", fromSpark: true } });
   };
 
+  const handleFreeModeNavigate = (mode: "instant" | "forever") => {
+    setExpanded(false);
+    if (onSparkClose) onSparkClose();
+    navigate(`/record?mode=${mode}`);
+  };
+
   const handleBackToChapters = () => {
     setCurrentStep("chapters");
     setSelectedChapter(null);
@@ -683,6 +689,74 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                         <div className="w-8 h-8 border-2 border-[#E8742A]/20 border-t-[#E8742A] rounded-full animate-spin" />
                       </div>
                     )}
+
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "1px",
+                        background: "rgba(61,43,31,0.12)",
+                        margin: "16px 0",
+                      }}
+                    />
+
+                    <button
+                      onClick={() => handleFreeModeNavigate("instant")}
+                      style={{
+                        width: "100%",
+                        padding: "16px 20px",
+                        borderRadius: "16px",
+                        background: "rgba(232,116,42,0.15)",
+                        border: "1px solid rgba(232,116,42,0.3)",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "14px",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      <span style={{ fontSize: "24px" }}>⚡</span>
+                      <div style={{ textAlign: "left" }}>
+                        <p style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F", margin: 0 }}>
+                          {lang === "fr" ? "Enregistrer maintenant" : lang === "ar" ? "سجّل الآن" : "Record now"}
+                        </p>
+                        <p style={{ fontSize: "12px", color: "rgba(61,43,31,0.55)", margin: "2px 0 0" }}>
+                          {lang === "fr"
+                            ? "Sans question guidée · Instant"
+                            : lang === "ar"
+                              ? "بدون سؤال · آني"
+                              : "No guided question · Instant"}
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleFreeModeNavigate("forever")}
+                      style={{
+                        width: "100%",
+                        padding: "16px 20px",
+                        borderRadius: "16px",
+                        background: "rgba(61,43,31,0.08)",
+                        border: "1px solid rgba(212,175,55,0.35)",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "14px",
+                      }}
+                    >
+                      <span style={{ fontSize: "24px" }}>✉️</span>
+                      <div style={{ textAlign: "left" }}>
+                        <p style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F", margin: 0 }}>
+                          {lang === "fr" ? "Message pour plus tard" : lang === "ar" ? "رسالة للمستقبل" : "Message for later"}
+                        </p>
+                        <p style={{ fontSize: "12px", color: "rgba(61,43,31,0.55)", margin: "2px 0 0" }}>
+                          {lang === "fr"
+                            ? "Livré à une date choisie · Forever"
+                            : lang === "ar"
+                              ? "يُسلَّم في تاريخ تختاره · للأبد"
+                              : "Delivered on a chosen date · Forever"}
+                        </p>
+                      </div>
+                    </button>
                   </>
                 )}
 

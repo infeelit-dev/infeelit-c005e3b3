@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   X,
@@ -85,6 +85,7 @@ const capturePosterFrame = (el: HTMLVideoElement): Promise<Blob | null> =>
   });
 
 type Stage =
+  | "freeTitle"
   | "question"
   | "background"
   | "countdown"
@@ -139,6 +140,9 @@ const getFollowupsFromQuestion = (questionText: string, lang: string, name: stri
 const Record = () => {
   const navigate = useNavigate();
   const loc = useLocation();
+  const [searchParams] = useSearchParams();
+  const recordMode = searchParams.get("mode");
+  const isFreeMode = recordMode === "instant" || recordMode === "forever";
   const { t, lang, rtl } = useLanguage();
   const userName = useUserName();
 
@@ -167,8 +171,10 @@ const Record = () => {
   const auraRef = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const isPublishingRef = useRef(false);
+  const deliverAtRef = useRef<string>("");
 
   const [stage, setStage] = useState<Stage>("question");
+  const [deliverAt, setDeliverAt] = useState("");
   const [mr, setMR] = useState<MediaRecorder | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [countdown, setCountdown] = useState(3);
@@ -205,14 +211,24 @@ const Record = () => {
     : loc.state?.question || "What smell instantly brings you back to your childhood home?";
 
   const question = initialQuestion;
-  const thumbCards = getThematicCards(question);
+  const thumbCards = getThematicCards(isFreeMode ? memoryTitle || question : question);
   const auraBackground = bgImage || (useAsAura ? customThumb || thumbCards[selectedThumb] : null);
 
   useEffect(() => {
+    if (isFreeMode) {
+      setStage("freeTitle");
+      setFollowupQuestions([]);
+    } else {
+      setStage("question");
+    }
+  }, [isFreeMode]);
+
+  useEffect(() => {
+    if (isFreeMode) return;
     const displayName = userName || (lang === "fr" ? "ami(e)" : lang === "ar" ? "صديقي" : "friend");
     const followups = getFollowupsFromQuestion(question, lang, displayName);
     setFollowupQuestions(followups);
-  }, [question, lang, userName]);
+  }, [question, lang, userName, isFreeMode]);
 
   useEffect(() => {
     if (preSelected && stage === "question") {
@@ -440,7 +456,7 @@ const Record = () => {
     setBgImage(null);
     setUseAsAura(false);
     auraRef.current = false;
-    setStage("question");
+    setStage(isFreeMode ? "freeTitle" : "question");
   };
 
   const handleUpload = () => {
@@ -493,8 +509,12 @@ const Record = () => {
         posterRef.current = b;
       });
     }
-    setTitle(generateTitleFromQuestion(question));
-    setStage("title");
+    if (isFreeMode) {
+      setStage("visibility");
+    } else {
+      setTitle(generateTitleFromQuestion(question));
+      setStage("title");
+    }
   };
 
   const uploadAllClips = async (): Promise<string[]> => {
@@ -664,7 +684,8 @@ const Record = () => {
             file_url: finalUrl,
             file_type: typeRef.current,
             thumbnail_url: thumbUrlRef.current || null,
-            timeline: "memories",
+            timeline:
+              recordMode === "forever" ? "forever" : recordMode === "instant" ? "instant" : "memories",
             is_public: isCommunityRef.current,
             is_community: isCommunityRef.current,
             is_anonymous: isAnonymousRef.current,
@@ -1148,6 +1169,179 @@ const Record = () => {
           )}
         </div>
       </div>
+
+      {stage === "freeTitle" && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 20,
+            background:
+              recordMode === "forever"
+                ? "linear-gradient(160deg, #0a0a1a 0%, #1a1040 50%, #2D1810 100%)"
+                : "linear-gradient(160deg, #FDF8F0 0%, #FEF0E0 50%, #FDF8F0 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "60px 24px 40px",
+          }}
+        >
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>{recordMode === "forever" ? "✉️" : "⚡"}</div>
+
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 900,
+              letterSpacing: "0.3em",
+              color: "#E8742A",
+              textTransform: "uppercase",
+              marginBottom: "8px",
+            }}
+          >
+            {recordMode === "forever"
+              ? lang === "fr"
+                ? "Message pour le futur"
+                : lang === "ar"
+                  ? "رسالة للمستقبل"
+                  : "Message for the future"
+              : lang === "fr"
+                ? "Souvenir spontané"
+                : lang === "ar"
+                  ? "ذكرى عفوية"
+                  : "Spontaneous memory"}
+          </p>
+
+          <p
+            style={{
+              fontSize: "16px",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              color: recordMode === "forever" ? "rgba(255,255,255,0.7)" : "#3D2B1F",
+              marginBottom: "24px",
+              textAlign: "center",
+            }}
+          >
+            {lang === "fr"
+              ? "Donne un titre à ce moment."
+              : lang === "ar"
+                ? "أعطِ هذه اللحظة عنواناً."
+                : "Give this moment a title."}
+          </p>
+
+          <input
+            type="text"
+            value={memoryTitle}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={
+              recordMode === "forever"
+                ? lang === "fr"
+                  ? "Ex : Pour toi, le jour de ton mariage"
+                  : lang === "ar"
+                    ? "مثال: إليك، يوم زفافك"
+                    : "Ex: For you, on your wedding day"
+                : lang === "fr"
+                  ? "Ex : Devant ma maison d'enfance"
+                  : lang === "ar"
+                    ? "مثال: أمام بيت طفولتي"
+                    : "Ex: In front of my childhood home"
+            }
+            style={{
+              width: "100%",
+              maxWidth: "360px",
+              padding: "16px 20px",
+              borderRadius: "16px",
+              border: "1.5px solid rgba(232,116,42,0.3)",
+              background: recordMode === "forever" ? "rgba(255,255,255,0.08)" : "#fff",
+              fontSize: "16px",
+              color: recordMode === "forever" ? "#fff" : "#3D2B1F",
+              outline: "none",
+              boxSizing: "border-box",
+              marginBottom: "16px",
+            }}
+            autoFocus
+            dir={rtl ? "rtl" : "ltr"}
+          />
+
+          {recordMode === "forever" && (
+            <div style={{ width: "100%", maxWidth: "360px", marginBottom: "16px" }}>
+              <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", marginBottom: "8px" }}>
+                {lang === "fr" ? "Date de livraison" : lang === "ar" ? "تاريخ التسليم" : "Delivery date"}
+              </p>
+              <input
+                type="date"
+                value={deliverAt}
+                min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                onChange={(e) => {
+                  setDeliverAt(e.target.value);
+                  deliverAtRef.current = e.target.value;
+                }}
+                style={{
+                  width: "100%",
+                  padding: "14px 16px",
+                  borderRadius: "14px",
+                  border: "1px solid rgba(212,175,55,0.3)",
+                  background: "rgba(255,255,255,0.08)",
+                  color: "#fff",
+                  fontSize: "15px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              if (!memoryTitle.trim()) return;
+              if (recordMode === "forever" && !deliverAtRef.current) return;
+              questionRef.current = memoryTitle.trim();
+              goToBackground(false);
+            }}
+            disabled={!memoryTitle.trim() || (recordMode === "forever" && !deliverAt)}
+            style={{
+              width: "100%",
+              maxWidth: "360px",
+              padding: "18px",
+              borderRadius: "18px",
+              background:
+                memoryTitle.trim() && (recordMode !== "forever" || deliverAt)
+                  ? "linear-gradient(135deg, #E8742A, #D4621A)"
+                  : "rgba(232,116,42,0.3)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "16px",
+              border: "none",
+              cursor:
+                memoryTitle.trim() && (recordMode !== "forever" || deliverAt) ? "pointer" : "not-allowed",
+              boxShadow:
+                memoryTitle.trim() && (recordMode !== "forever" || deliverAt)
+                  ? "0 4px 20px rgba(232,116,42,0.4)"
+                  : "none",
+            }}
+          >
+            {lang === "fr"
+              ? "Enregistrer ce moment →"
+              : lang === "ar"
+                ? "→ سجّل هذه اللحظة"
+                : "Record this moment →"}
+          </button>
+
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: recordMode === "forever" ? "rgba(255,255,255,0.4)" : "rgba(61,43,31,0.45)",
+              fontSize: "13px",
+              marginTop: "16px",
+            }}
+          >
+            {lang === "fr" ? "← Retour" : lang === "ar" ? "→ رجوع" : "← Back"}
+          </button>
+        </div>
+      )}
 
       {stage === "question" && (
         <>
