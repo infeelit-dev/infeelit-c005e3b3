@@ -71,6 +71,11 @@ const Index = () => {
         .select(
           `
           *,
+          transcript_fr,
+          transcript_en,
+          transcript_ar,
+          translation_status,
+          detected_lang,
           profiles (display_name)
         `,
         )
@@ -128,6 +133,7 @@ const Index = () => {
         @keyframes wander3 { 0% { transform: translate(0px, 0px); } 25% { transform: translate(70px, 55px); } 50% { transform: translate(30px, -70px); } 75% { transform: translate(-55px, -40px); } 100% { transform: translate(0px, 0px); } }
         @keyframes pulseViolet { 0%, 100% { box-shadow: 0 0 15px rgba(107,78,155,0.6), 0 0 30px rgba(107,78,155,0.3); } 50% { box-shadow: 0 0 30px rgba(107,78,155,1), 0 0 60px rgba(107,78,155,0.5); } }
         @keyframes pulseGold { 0%, 100% { box-shadow: 0 0 15px rgba(232,116,42,0.5); } 50% { box-shadow: 0 0 30px rgba(232,116,42,0.9); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .fade-in-up { animation: fadeInUp 0.4s ease forwards; }
         .slide-up { animation: slideUp 0.4s ease forwards; }
       `}</style>
@@ -289,7 +295,6 @@ const Index = () => {
                     transcript_ar={memory.transcript_ar}
                     translation_status={memory.translation_status}
                     detected_lang={memory.detected_lang}
-                    currentLang={lang as "fr" | "en" | "ar"}
                   />
 
                   <ActionBar
