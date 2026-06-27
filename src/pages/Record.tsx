@@ -510,7 +510,6 @@ const Record = () => {
     return urls;
   };
 
-  // ✅ MODIFICATION 1 — GATE À LA PUBLICATION, PAS AU DÉBUT
   const handleVisibilityChoice = (ch: "family" | "community" | "anonymous") => {
     if (ch === "family") {
       isCommunityRef.current = false;
@@ -526,11 +525,9 @@ const Record = () => {
       sparkRewardRef.current = 2;
     }
 
-    // ✅ VÉRIFIER SI CONNECTÉ AVANT DE PUBLIER
     const isLoggedIn = !!userName && userName !== "";
 
     if (!isLoggedIn) {
-      // Sauvegarder le souvenir en localStorage pour le récupérer après inscription
       const pendingData = {
         title: memoryTitle,
         question_fr: preSelected?.fr || null,
@@ -545,7 +542,6 @@ const Record = () => {
       return;
     }
 
-    // Si connecté → publier normalement
     handlePublish();
   };
 
@@ -807,8 +803,9 @@ const Record = () => {
         }
       `}</style>
 
+      {/* ✅ NOUVEAU BLOC — RECORDING AVEC Z-INDEX CORRIGÉ */}
       {stage === "recording" && (
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0" style={{ zIndex: 0 }}>
           {auraBackground ? (
             <div
               style={{
@@ -841,18 +838,24 @@ const Record = () => {
         </div>
       )}
 
-      {!audioMode && !isStage(stage, "recording") && !isStage(stage, "preview") && (
+      {/* ✅ NOUVEAU BLOC — VIDÉO AVEC Z-INDEX 10 PENDANT L'ENREGISTREMENT */}
+      {!audioMode && !isStage(stage, "preview") && (
         <video
           ref={videoRef}
           autoPlay
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 opacity-20"
+          style={{ zIndex: 10 }}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+            stage === "recording" ? "opacity-100" : "opacity-20"
+          }`}
         />
       )}
+
       {stage === "preview" && !audioMode && (
         <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover opacity-90" />
       )}
+
       {audioMode && !isStage(stage, "recording") && !isStage(stage, "preview") && (
         <div
           className="absolute inset-0"
@@ -861,7 +864,10 @@ const Record = () => {
           }}
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
+
+      {stage !== "recording" && (
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
+      )}
 
       {replyTo && preSelected && stage === "recording" && (
         <div
@@ -1615,7 +1621,6 @@ const Record = () => {
         </div>
       )}
 
-      {/* ✅ POPUP D'INSCRIPTION AU MOMENT DE PUBLIER */}
       {showAuthGate && (
         <div
           style={{
@@ -1699,7 +1704,6 @@ const Record = () => {
             <button
               onClick={() => {
                 setShowAuthGate(false);
-                // Sauvegarder en local pour récupérer plus tard
                 const pendingData = {
                   title: memoryTitle,
                   question_fr: preSelected?.fr || null,
