@@ -655,34 +655,35 @@ const Record = () => {
       const uid = session?.user?.id;
       if (uid && uid !== "anonymous") {
         userIdRef.current = uid;
-        const ips = urls.map((u) =>
-          (supabase.from("memories") as any)
-            .insert({
-              user_id: uid,
-              title: memoryTitle || "A memory",
-              description: null,
-              file_url: u,
-              file_type: typeRef.current,
-              thumbnail_url: thumbUrlRef.current || null,
-              timeline: "memories",
-              is_public: isCommunityRef.current,
-              is_community: isCommunityRef.current,
-              is_anonymous: isAnonymousRef.current,
-              spark_reward: sparkRewardRef.current,
-              background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
-              aura_intensity: auraRef.current ? 35 : null,
-              created_at: new Date().toISOString(),
-            })
-            .select("id"),
-        );
-        const res = await Promise.all(ips);
-        const errs = res.filter((r) => r.error);
-        if (errs.length > 0) {
-          console.error("Insert errors:", errs);
+        const finalUrl = urls[urls.length - 1];
+        const { data: inserted, error: insertError } = await (supabase.from("memories") as any)
+          .insert({
+            user_id: uid,
+            title: memoryTitle || "A memory",
+            description: null,
+            file_url: finalUrl,
+            file_type: typeRef.current,
+            thumbnail_url: thumbUrlRef.current || null,
+            timeline: "memories",
+            is_public: isCommunityRef.current,
+            is_community: isCommunityRef.current,
+            is_anonymous: isAnonymousRef.current,
+            spark_reward: sparkRewardRef.current,
+            background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
+            aura_intensity: auraRef.current ? 35 : null,
+            created_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+
+        if (insertError) {
+          console.error("Insert error:", insertError);
           toast.error("Error saving.");
           setStage("share");
           return;
         }
+
+        const newMemoryId = inserted?.id ?? null;
 
         try {
           const { count } = await supabase
@@ -704,9 +705,7 @@ const Record = () => {
         }
 
         try {
-          const insertedIds = res.map((r: any) => r?.data?.[0]?.id).filter(Boolean) as string[];
-          const newMemoryId = insertedIds[insertedIds.length - 1] || null;
-          if (type === "circle" || type === "public") {
+          if (newMemoryId && (type === "circle" || type === "public")) {
             const { data: memberships } = await supabase.from("circle_members").select("circle_id").eq("user_id", uid);
             if (memberships?.length) {
               const msg =
