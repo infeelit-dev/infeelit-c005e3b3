@@ -82,6 +82,8 @@ export type Database = {
           moderation_status: string | null; // ✅ AJOUTÉ
           spark_reward: number | null;
           sparks_count: number;
+          comments_count: number;
+          views_count: number;
           thumbnail_url: string | null;
           timeline: string;
           title: string | null;
@@ -108,6 +110,8 @@ export type Database = {
           moderation_status?: string | null; // ✅ AJOUTÉ
           spark_reward?: number | null;
           sparks_count?: number;
+          comments_count?: number;
+          views_count?: number;
           thumbnail_url?: string | null;
           timeline?: string;
           title?: string | null;
@@ -134,9 +138,17 @@ export type Database = {
           moderation_status?: string | null; // ✅ AJOUTÉ
           spark_reward?: number | null;
           sparks_count?: number;
+          comments_count?: number;
+          views_count?: number;
           thumbnail_url?: string | null;
           timeline?: string;
           title?: string | null;
+          transcript?: string | null;
+          transcript_fr?: string | null;
+          transcript_en?: string | null;
+          transcript_ar?: string | null;
+          detected_lang?: string | null;
+          translation_status?: string | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -147,7 +159,7 @@ export type Database = {
           created_at: string;
           id: string;
           memory_id: string;
-          user_id: string;
+          user_id: string | null;
           user_name: string;
         };
         Insert: {
@@ -167,6 +179,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "memory_bookmarks_memory_id_fkey";
+            columns: ["memory_id"];
+            isOneToOne: false;
+            referencedRelation: "memories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      memory_comments: {
+        Row: {
+          id: string;
+          memory_id: string;
+          user_name: string;
+          content: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          memory_id: string;
+          user_name: string;
+          content: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          memory_id?: string;
+          user_name?: string;
+          content?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "memory_comments_memory_id_fkey";
             columns: ["memory_id"];
             isOneToOne: false;
             referencedRelation: "memories";
@@ -212,7 +256,7 @@ export type Database = {
           created_at: string;
           id: string;
           memory_id: string;
-          user_id: string;
+          user_id: string | null;
           user_name: string;
         };
         Insert: {

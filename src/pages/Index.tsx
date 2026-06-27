@@ -6,6 +6,7 @@ import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import ActionBar from "@/components/ActionBar";
+import CommentSection from "@/components/CommentSection";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import useUserName from "@/hooks/useUserName";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,6 +21,8 @@ const Index = () => {
   const [circleBadge, setCircleBadge] = useState(0);
   const [feedMemories, setFeedMemories] = useState<any[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
+  const [commentingMemoryId, setCommentingMemoryId] = useState<string | null>(null);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const currentUserName = localStorage.getItem("infeelit_user_name") || "";
 
   useEffect(() => {
@@ -71,6 +74,9 @@ const Index = () => {
         .select(
           `
           *,
+          sparks_count,
+          comments_count,
+          views_count,
           transcript_fr,
           transcript_en,
           transcript_ar,
@@ -299,20 +305,23 @@ const Index = () => {
 
                   <ActionBar
                     memoryId={memory.id}
-                    memoryTitle={memory.title || "Souvenir"}
-                    authorName={displayName}
+                    memoryTitle={memory.title || ""}
+                    authorName={memory.user_name || memory.profiles?.display_name || "Anonyme"}
                     initialSparks={memory.sparks_count || 0}
-                    lang={lang as "fr" | "en" | "ar"}
+                    initialComments={commentCounts[memory.id] ?? memory.comments_count ?? 0}
                     userName={currentUserName}
-                    questionFr={questionObj?.fr}
-                    questionEn={questionObj?.en}
-                    questionAr={questionObj?.ar}
-                    questionBubbleFr={questionObj?.bubble_fr}
-                    questionBubbleEn={questionObj?.bubble_en}
-                    questionBubbleAr={questionObj?.bubble_ar}
-                    followupsFr={questionObj?.followups_fr}
-                    followupsEn={questionObj?.followups_en}
-                    followupsAr={questionObj?.followups_ar}
+                    onComment={() => setCommentingMemoryId(memory.id)}
+                    onReply={() =>
+                      navigate("/record", {
+                        state: {
+                          preSelectedQuestion: {
+                            fr: memory.question_fr || questionObj?.fr,
+                            en: memory.question_en || questionObj?.en,
+                            ar: memory.question_ar || questionObj?.ar,
+                          },
+                        },
+                      })
+                    }
                   />
                 </div>
               );
@@ -322,6 +331,17 @@ const Index = () => {
       </div>
 
       <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
+
+      {commentingMemoryId && (
+        <CommentSection
+          memoryId={commentingMemoryId}
+          userName={currentUserName}
+          onClose={() => setCommentingMemoryId(null)}
+          onCountChange={(count) =>
+            setCommentCounts((prev) => ({ ...prev, [commentingMemoryId]: count }))
+          }
+        />
+      )}
     </div>
   );
 };
