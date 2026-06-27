@@ -13,7 +13,8 @@ import {
   Check,
   Camera,
   Lock,
-  UserPlus,
+  Globe,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -160,6 +161,7 @@ const Record = () => {
   const sparkRewardRef = useRef(0);
   const isCommunityRef = useRef(false);
   const isAnonymousRef = useRef(false);
+  const [visibilityChoice, setVisibilityChoice] = useState<"family" | "community" | "private" | null>(null);
   const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thumbScrollRef = useRef<HTMLDivElement>(null);
   const auraRef = useRef(false);
@@ -532,7 +534,8 @@ const Record = () => {
     return urls;
   };
 
-  const handleVisibilityChoice = (ch: "family" | "community" | "anonymous") => {
+  const handleVisibilitySelect = (ch: "family" | "community" | "private") => {
+    setVisibilityChoice(ch);
     if (ch === "family") {
       isCommunityRef.current = false;
       isAnonymousRef.current = false;
@@ -542,10 +545,14 @@ const Record = () => {
       isAnonymousRef.current = false;
       sparkRewardRef.current = 2;
     } else {
-      isCommunityRef.current = true;
-      isAnonymousRef.current = true;
-      sparkRewardRef.current = 2;
+      isCommunityRef.current = false;
+      isAnonymousRef.current = false;
+      sparkRewardRef.current = 0;
     }
+  };
+
+  const handleVisibilityConfirm = () => {
+    if (!visibilityChoice) return;
 
     const isLoggedIn = !!userName && userName !== "";
 
@@ -556,6 +563,7 @@ const Record = () => {
         question_en: preSelected?.en || null,
         question_ar: preSelected?.ar || null,
         fileType: typeRef.current,
+        visibility: visibilityChoice,
         timestamp: Date.now(),
       };
       localStorage.setItem("pending_memory", JSON.stringify(pendingData));
@@ -568,9 +576,16 @@ const Record = () => {
   };
 
   const handlePublish = async () => {
-    const visibility = isCommunityRef.current ? "public" : "private";
-    await handleShare(visibility);
+    const shareType =
+      visibilityChoice === "community" ? "public" : visibilityChoice === "family" ? "circle" : "private";
+    await handleShare(shareType);
   };
+
+  const visibilityButtonStyle = (choice: "family" | "community" | "private") => ({
+    backgroundColor: visibilityChoice === choice ? "#E8742A" : "rgba(255,255,255,0.1)",
+    color: "#fff",
+    border: visibilityChoice === choice ? "2px solid #D4AF37" : "1px solid rgba(255,255,255,0.2)",
+  });
 
   const generateAndShareCard = async () => {
     if (!cardRef.current) return;
@@ -1573,28 +1588,37 @@ const Record = () => {
                   : "Who is this voice for?"}
           </p>
           <button
-            onClick={() => handleVisibilityChoice("family")}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.1)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.2)",
-            }}
+            onClick={() => handleVisibilitySelect("community")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all duration-200"
+            style={visibilityButtonStyle("community")}
           >
-            <Lock size={18} />
-            {lang === "ar" ? "لعائلتي فقط." : lang === "fr" ? "Pour ma famille uniquement." : "For my family only."}
+            <Globe size={18} />
+            {lang === "ar" ? "للجميع" : lang === "fr" ? "Tout le monde" : "Everyone"}
           </button>
           <button
-            onClick={() => handleVisibilityChoice("anonymous")}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3"
-            style={{ backgroundColor: "rgba(107,78,155,0.3)", color: "#fff", border: "1px solid rgba(107,78,155,0.4)" }}
+            onClick={() => handleVisibilitySelect("family")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all duration-200"
+            style={visibilityButtonStyle("family")}
           >
-            <UserPlus size={18} />
-            {lang === "ar"
-              ? "للجميع، دون كشف هويتي."
-              : lang === "fr"
-                ? "Pour tout le monde, anonymement."
-                : "For everyone, anonymously."}
+            <Users size={18} />
+            {lang === "ar" ? "عائلتي" : lang === "fr" ? "Ma famille" : "My family"}
+          </button>
+          <button
+            onClick={() => handleVisibilitySelect("private")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all duration-200"
+            style={visibilityButtonStyle("private")}
+          >
+            <Lock size={18} />
+            {lang === "ar" ? "خاص" : lang === "fr" ? "Privé" : "Private"}
+          </button>
+          <button
+            onClick={handleVisibilityConfirm}
+            disabled={!visibilityChoice}
+            className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-2 mt-2 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ color: "#fff" }}
+          >
+            <Share2 size={18} />
+            {lang === "ar" ? "نشر ✦" : lang === "fr" ? "Publier ✦" : "Publish ✦"}
           </button>
         </div>
       )}
