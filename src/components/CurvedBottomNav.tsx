@@ -13,27 +13,24 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
   const navigate = useNavigate();
   const location = useLocation();
   const { t, lang } = useLanguage();
-  const [isConnected, setIsConnected] = useState(false);
+
+  // ✅ CORRECTION 1 — Utilisation de Supabase session au lieu de localStorage
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsConnected(!!session);
+      setIsLoggedIn(!!session);
     });
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, session) => {
-      setIsConnected(!!session);
-    });
-    return () => subscription.unsubscribe();
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => setIsLoggedIn(!!session));
+    return () => listener.subscription.unsubscribe();
   }, []);
 
-  // ✅ MODIFICATION 2 — GESTION DU CLIC SUR L'ICÔNE MOI
-  const handleProfileClick = () => {
-    const isLoggedIn = !!localStorage.getItem("infeelit_user_name") || isConnected;
-    if (!isLoggedIn) {
-      navigate("/welcome");
+  // ✅ CORRECTION 2 — handleFlameClick redirige vers /me si connecté
+  const handleFlameClick = () => {
+    if (isLoggedIn) {
+      navigate("/me");
     } else {
-      navigate("/treasure");
+      navigate("/welcome");
     }
   };
 
@@ -46,7 +43,11 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
       label: lang === "ar" ? "همسات" : lang === "fr" ? "Murmures" : "Whispers",
       path: "/whispers",
     },
-    { icon: "flame", label: lang === "ar" ? "أنا" : lang === "fr" ? "Moi" : "Me", path: "/treasure" },
+    {
+      icon: "flame",
+      label: lang === "ar" ? "أنا" : lang === "fr" ? "Moi" : "Me",
+      path: isLoggedIn ? "/me" : "/welcome",
+    },
   ];
 
   const isActive = (path: string) => {
@@ -90,7 +91,8 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
             return (
               <button
                 key="flame"
-                onClick={handleProfileClick}
+                // ✅ CORRECTION 3 — onClick={handleFlameClick}
+                onClick={handleFlameClick}
                 className="flex flex-col items-center gap-1 min-w-[56px] transition-all duration-200 active:scale-95"
               >
                 <div style={{ position: "relative" }}>
@@ -99,13 +101,15 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
                     height="22"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke={isConnected ? "#E8742A" : "rgba(255,255,255,0.3)"}
+                    // ✅ CORRECTION 4 — isLoggedIn au lieu de isConnected
+                    stroke={isLoggedIn ? "#E8742A" : "rgba(255,255,255,0.3)"}
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     style={{
-                      filter: isConnected ? "none" : "grayscale(1)",
-                      animation: isConnected && isActive(item.path) ? "flameAlive 2s ease-in-out infinite" : "none",
+                      // ✅ CORRECTION 5 — isLoggedIn au lieu de isConnected
+                      filter: isLoggedIn ? "none" : "grayscale(1)",
+                      animation: isLoggedIn && isActive(item.path) ? "flameAlive 2s ease-in-out infinite" : "none",
                     }}
                   >
                     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
