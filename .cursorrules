@@ -1,0 +1,5 @@
+# CURSOR RULES — INFEELIT
+Always work on main branch directly.
+Never create new branches.
+After each fix, commit and push to main automatically.
+Only modify files mentioned in the prompt.
