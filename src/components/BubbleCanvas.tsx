@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Play, Volume2, Video, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import useUserName from "@/hooks/useUserName";
 import type { Timeline } from "@/types/timeline";
 
 import imgGrandfather from "@/assets/grandfather.jpg";
@@ -335,7 +334,7 @@ interface BubbleCanvasProps {
 const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const userName = useUserName();
+  const [userName, setUserName] = useState("");
   const [bubbles, setBubbles] = useState<BubbleItem[]>([]);
   const [selectedBubble, setSelectedBubble] = useState<BubbleItem | null>(null);
   const [showOverlay, setShowOverlay] = useState(false);
@@ -347,6 +346,26 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   const memoryPoolRef = useRef<MemoryFromDB[]>([]);
   const memoryCursorRef = useRef(0);
   const usingRealRef = useRef(false);
+
+  useEffect(() => {
+    const getName = async () => {
+      const local = localStorage.getItem("infeelit_user_name");
+      if (local) {
+        setUserName(local);
+        return;
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const name = session?.user?.user_metadata?.display_name || "";
+      if (name) {
+        localStorage.setItem("infeelit_user_name", name);
+        setUserName(name);
+      }
+    };
+    getName();
+  }, []);
 
   const getThemedImage = useCallback((title: string): string => {
     const lower = title.toLowerCase();
@@ -597,7 +616,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   const handleMediaEnded = () => {
     if (!selectedBubble) return;
-    const name = userName || (lang === "fr" ? "toi" : lang === "ar" ? "أنت" : "you");
+    const name = userName || "toi";
     const mirror =
       lang === "fr"
         ? `Et toi ${name}, qu'as-tu ressenti en écoutant "${selectedBubble.title}" ?`

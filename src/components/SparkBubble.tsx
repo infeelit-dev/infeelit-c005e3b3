@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import useUserName from "@/hooks/useUserName";
 import { CHAPTERS } from "@/data/questions";
 import infeeilitSymbol from "@/assets/logo_sparkl_4.png";
 
@@ -22,7 +22,7 @@ const getRandomPosition = () => {
 const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const userName = useUserName();
+  const [userName, setUserName] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [position, setPosition] = useState(getRandomPosition);
@@ -41,10 +41,23 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const [selectedCard, setSelectedCard] = useState(0);
 
   useEffect(() => {
-    const savedName = localStorage.getItem("infeelit_user_name") || "";
-    if (savedName) {
-      // Ne pas setUserName ici car useUserName le fait déjà
-    }
+    const getName = async () => {
+      const local = localStorage.getItem("infeelit_user_name");
+      if (local) {
+        setUserName(local);
+        return;
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const name = session?.user?.user_metadata?.display_name || "";
+      if (name) {
+        localStorage.setItem("infeelit_user_name", name);
+        setUserName(name);
+      }
+    };
+    getName();
     setSparkBalance(Number(localStorage.getItem("infeelit_spark_balance") || 0));
   }, []);
 
@@ -145,10 +158,8 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     const indices = shuffled.map((q) => category.questions.indexOf(q));
     localStorage.setItem(seenKey, JSON.stringify([...seen, ...indices]));
 
-    const displayName = name || (language === "fr" ? "ami(e)" : language === "ar" ? "صديقي" : "friend");
-
     return shuffled.map((q) => ({
-      text: q[langKey].replace("{name}", displayName),
+      text: q[langKey].replace("{name}", name || "toi"),
       bubble: q[`bubble_${langKey}` as keyof typeof q] as string,
     }));
   };
