@@ -85,6 +85,7 @@ const capturePosterFrame = (el: HTMLVideoElement): Promise<Blob | null> =>
 
 type Stage =
   | "question"
+  | "background"
   | "countdown"
   | "recording"
   | "preview"
@@ -180,6 +181,7 @@ const Record = () => {
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [selectedThumb, setSelectedThumb] = useState(0);
   const [customThumb, setCustomThumb] = useState<string | null>(null);
+  const [bgImage, setBgImage] = useState<string | null>(null);
   const [useAsAura, setUseAsAura] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [pendingMemory, setPendingMemory] = useState<any>(null);
@@ -201,7 +203,7 @@ const Record = () => {
 
   const question = initialQuestion;
   const thumbCards = getThematicCards(question);
-  const auraBackground = useAsAura ? customThumb || thumbCards[selectedThumb] : null;
+  const auraBackground = bgImage || (useAsAura ? customThumb || thumbCards[selectedThumb] : null);
 
   useEffect(() => {
     const displayName = userName || (lang === "fr" ? "ami(e)" : lang === "ar" ? "صديقي" : "friend");
@@ -213,7 +215,7 @@ const Record = () => {
     if (preSelected && stage === "question") {
       setAudioMode(true);
       startMedia(true);
-      setTimeout(() => startCountdown(false), 500);
+      setTimeout(() => goToBackground(false), 500);
     }
   }, [preSelected, stage]);
 
@@ -342,10 +344,7 @@ const Record = () => {
     }
   };
 
-  const startCountdown = (ff = false) => {
-    followupRef.current = ff;
-    const q = ff ? followupQuestions[Math.min(followupIdx, followupQuestions.length - 1)] : question;
-    questionRef.current = q;
+  const startCountdown = () => {
     setStage("countdown");
     setCountdown(3);
     const tmr = setInterval(() => {
@@ -378,6 +377,28 @@ const Record = () => {
         return p - 1;
       });
     }, 1000);
+  };
+
+  const goToBackground = (ff = false) => {
+    followupRef.current = ff;
+    const q = ff ? followupQuestions[Math.min(followupIdx, followupQuestions.length - 1)] : question;
+    questionRef.current = q;
+    setStage("background");
+  };
+
+  const handleBackgroundSkip = () => {
+    setBgImage(null);
+    setUseAsAura(false);
+    auraRef.current = false;
+    startCountdown();
+  };
+
+  const handleBackgroundContinue = () => {
+    const url = customThumb || thumbCards[selectedThumb];
+    setBgImage(url);
+    setUseAsAura(true);
+    auraRef.current = true;
+    startCountdown();
   };
 
   const handleStop = async () => {
@@ -413,6 +434,9 @@ const Record = () => {
     if (localUrl) URL.revokeObjectURL(localUrl);
     setLocalUrl(null);
     chunksRef.current = [];
+    setBgImage(null);
+    setUseAsAura(false);
+    auraRef.current = false;
     setStage("question");
   };
 
@@ -1166,7 +1190,7 @@ const Record = () => {
               </div>
             ) : (
               <button
-                onClick={() => startCountdown(false)}
+                onClick={() => goToBackground(false)}
                 className="mt-2 px-10 py-4 rounded-full gradient-orange font-bold text-lg"
                 style={{ color: "#fff" }}
               >
@@ -1175,6 +1199,82 @@ const Record = () => {
             )}
           </div>
         </>
+      )}
+
+      {stage === "background" && (
+        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
+          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
+            {lang === "ar"
+              ? "اختر خلفية لتسجيلك"
+              : lang === "fr"
+                ? "Choisis une image de fond"
+                : "Choose a background image"}
+          </p>
+          <div
+            ref={thumbScrollRef}
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 max-w-full hide-scroll"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {thumbCards.map((img, idx) => {
+              const isSel = selectedThumb === idx && !customThumb;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleThumbSelect(idx)}
+                  className={`snap-center shrink-0 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${isSel ? "border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]" : "border-transparent opacity-70"}`}
+                  style={{ width: "180px", height: "180px", transform: `rotate(${(idx - 1) * 4}deg)` }}
+                >
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    style={{ filter: "sepia(40%) brightness(0.85)" }}
+                  />
+                </button>
+              );
+            })}
+            {customThumb && (
+              <button
+                onClick={() => {
+                  setCustomThumb(null);
+                  setSelectedThumb(0);
+                }}
+                className="snap-center shrink-0 rounded-2xl overflow-hidden border-2 border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]"
+                style={{ width: "180px", height: "180px" }}
+              >
+                <img src={customThumb} alt="" className="w-full h-full object-cover" />
+              </button>
+            )}
+          </div>
+          <label className="flex items-center gap-2 text-white/40 text-xs cursor-pointer hover:text-white/60 transition-colors">
+            <Camera size={14} />
+            {lang === "ar" ? "📷 استخدام صورتي" : lang === "fr" ? "📷 Utiliser ma photo" : "📷 Use my photo"}
+            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+          </label>
+          <div className="flex flex-col gap-3 w-full max-w-xs mt-2">
+            <button
+              onClick={handleBackgroundContinue}
+              className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
+              }}
+            >
+              {lang === "ar"
+                ? "المتابعة مع الصورة"
+                : lang === "fr"
+                  ? "Continuer avec image"
+                  : "Continue with image"}
+            </button>
+            <button
+              onClick={handleBackgroundSkip}
+              className="w-full py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20"
+            >
+              {lang === "ar" ? "تخطّي" : lang === "fr" ? "Passer" : "Skip"}
+            </button>
+          </div>
+        </div>
       )}
 
       {stage === "countdown" && (
