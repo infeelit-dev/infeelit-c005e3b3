@@ -28,7 +28,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
   // ✅ CORRECTION 2 — handleFlameClick redirige vers /me si connecté
   const handleFlameClick = () => {
     if (isLoggedIn) {
-      navigate("/me");
+      navigate("/profile");
     } else {
       navigate("/welcome");
     }

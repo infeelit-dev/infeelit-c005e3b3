@@ -35,7 +35,7 @@ const JoinCircle = () => {
     const { error } = await supabase.from("circle_members").insert({ circle_id: circle.id, user_id: session.user.id, role: "member" });
     if (error) { toast.error(error.message); setJoining(false); return; }
     toast.success(lang === "fr" ? "Bienvenue dans la famille !" : lang === "ar" ? "مرحباً بك في العائلة!" : "Welcome to the family!");
-    navigate("/circle");
+    navigate("/circles");
   };
 
   const texts = {

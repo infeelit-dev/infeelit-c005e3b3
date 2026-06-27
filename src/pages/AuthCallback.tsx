@@ -42,7 +42,7 @@ const AuthCallback = () => {
             });
           }
           setStatus("Welcome to the family");
-          navigate("/circle", { replace: true });
+          navigate("/circles", { replace: true });
           return;
         }
 

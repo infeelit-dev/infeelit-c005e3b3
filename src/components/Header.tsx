@@ -153,7 +153,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
                     style={{
                       position: "fixed",
                       inset: 0,
-                      zIndex: -1,
+                      zIndex: 199,
                     }}
                     onClick={() => setLangOpen(false)}
                   />

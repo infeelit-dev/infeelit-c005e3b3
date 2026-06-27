@@ -8,6 +8,7 @@ import BubbleCanvas from "@/components/BubbleCanvas";
 import ActionBar from "@/components/ActionBar";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import useUserName from "@/hooks/useUserName";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
 import { resolveMemoryFields } from "@/lib/memoryUrl";
 
@@ -102,12 +103,13 @@ const Index = () => {
     return "linear-gradient(180deg, #7ec8c8 0%, #a8d8c8 30%, #f0e6d3 70%, #E8742A 100%)";
   };
 
-  const lang = "fr";
+  const { lang, rtl, t } = useLanguage();
 
   return (
     <div
       className="relative w-full h-screen overflow-hidden transition-all duration-700"
       style={{ background: getBackground() }}
+      dir={rtl ? "rtl" : "ltr"}
     >
       <style>{`
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }

@@ -570,7 +570,8 @@ const Record = () => {
   };
 
   const handlePublish = async () => {
-    setStage("share");
+    const visibility = isCommunityRef.current ? "public" : "private";
+    await handleShare(visibility);
   };
 
   const generateAndShareCard = async () => {
