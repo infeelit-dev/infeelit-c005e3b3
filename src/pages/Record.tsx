@@ -137,6 +137,48 @@ const getFollowupsFromQuestion = (questionText: string, lang: string, name: stri
   }
 };
 
+const extractFrames = async (videoBlob: Blob, count: number = 3): Promise<string[]> => {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    const url = URL.createObjectURL(videoBlob);
+    video.src = url;
+    video.muted = true;
+    video.playsInline = true;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 480;
+    canvas.height = 270;
+    const ctx = canvas.getContext("2d");
+    const frames: string[] = [];
+
+    video.onloadedmetadata = async () => {
+      const duration = video.duration;
+      const points = [0.05, 0.4, 0.75];
+
+      for (const point of points.slice(0, count)) {
+        await new Promise<void>((res) => {
+          video.currentTime = duration * point;
+          video.onseeked = () => {
+            if (ctx) {
+              ctx.drawImage(video, 0, 0, 480, 270);
+              frames.push(canvas.toDataURL("image/jpeg", 0.85));
+            }
+            res();
+          };
+        });
+      }
+
+      URL.revokeObjectURL(url);
+      resolve(frames);
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve([]);
+    };
+  });
+};
+
 const Record = () => {
   const navigate = useNavigate();
   const loc = useLocation();
@@ -198,6 +240,9 @@ const Record = () => {
   const [pendingMemory, setPendingMemory] = useState<any>(null);
 
   const [followupQuestions, setFollowupQuestions] = useState<string[]>([]);
+  const [autoThumbnails, setAutoThumbnails] = useState<string[]>([]);
+  const [selectedThumbnail, setSelectedThumbnail] = useState<string | null>(null);
+  const [thumbnailsLoading, setThumbnailsLoading] = useState(false);
 
   const location = useLocation();
   const preSelected = location.state?.preSelectedQuestion;
@@ -484,7 +529,29 @@ const Record = () => {
     setBgVideoUrl(null);
     setUseAsAura(false);
     auraRef.current = false;
+    setAutoThumbnails([]);
+    setSelectedThumbnail(null);
+    setThumbnailsLoading(false);
+    setLocalBlob(null);
     setStage(isFreeMode ? "freeTitle" : "question");
+  };
+
+  const goToThumbnail = async () => {
+    setStage("thumbnail");
+    if (localBlob && !audioMode && autoThumbnails.length === 0) {
+      setThumbnailsLoading(true);
+      try {
+        const frames = await extractFrames(localBlob);
+        setAutoThumbnails(frames);
+        if (frames.length > 0) {
+          setSelectedThumbnail(frames[0]);
+        }
+      } catch (err) {
+        console.error("Thumbnail extraction failed:", err);
+      } finally {
+        setThumbnailsLoading(false);
+      }
+    }
   };
 
   const handleUpload = () => {
@@ -492,7 +559,7 @@ const Record = () => {
     setPreviewReady(false);
     clipsRef.current.push({ blob: localBlob, question: questionRef.current, posterBlob: posterRef.current });
     setStage("uploading");
-    setTimeout(() => setStage("thumbnail"), 300);
+    setTimeout(() => goToThumbnail(), 300);
   };
 
   const handleThumbSelect = (idx: number) => {
@@ -516,9 +583,16 @@ const Record = () => {
     }
   };
 
-  const handleThumbValidate = () => {
-    auraRef.current = useAsAura;
-    if (customThumb) {
+  const handleThumbValidate = async () => {
+    if (selectedThumbnail) {
+      try {
+        const response = await fetch(selectedThumbnail);
+        const blob = await response.blob();
+        posterRef.current = blob;
+      } catch (err) {
+        console.error("Poster from thumbnail failed:", err);
+      }
+    } else if (customThumb) {
       const img = new Image();
       img.src = customThumb;
       img.onload = () => {
@@ -536,6 +610,7 @@ const Record = () => {
         );
       };
     } else if (!audioMode && posterRef.current) {
+      // keep captured poster frame
     } else {
       imageUrlToBlob(thumbCards[selectedThumb]).then((b) => {
         posterRef.current = b;
@@ -544,7 +619,9 @@ const Record = () => {
     if (isFreeMode) {
       setStage("visibility");
     } else {
-      setTitle(generateTitleFromQuestion(question));
+      if (!memoryTitle.trim()) {
+        setTitle(generateTitleFromQuestion(question));
+      }
       setStage("title");
     }
   };
@@ -708,6 +785,22 @@ const Record = () => {
       if (uid && uid !== "anonymous") {
         userIdRef.current = uid;
         const finalUrl = urls[urls.length - 1];
+
+        let finalThumbnailUrl: string | null = null;
+        if (selectedThumbnail) {
+          try {
+            const response = await fetch(selectedThumbnail);
+            const blob = await response.blob();
+            const thumbPath = `thumbnails/${uid}/${Date.now()}.jpg`;
+            const { data } = await supabase.storage
+              .from("memories")
+              .upload(thumbPath, blob, { contentType: "image/jpeg", upsert: true });
+            if (data) finalThumbnailUrl = thumbPath;
+          } catch (err) {
+            console.error("Thumbnail upload failed:", err);
+          }
+        }
+
         const { data: inserted, error: insertError } = await (supabase.from("memories") as any)
           .insert({
             user_id: uid,
@@ -715,7 +808,7 @@ const Record = () => {
             description: null,
             file_url: finalUrl,
             file_type: typeRef.current,
-            thumbnail_url: thumbUrlRef.current || null,
+            thumbnail_url: finalThumbnailUrl || thumbUrlRef.current || null,
             timeline:
               recordMode === "forever" ? "forever" : recordMode === "instant" ? "instant" : "memories",
             is_public: isCommunityRef.current,
@@ -898,6 +991,9 @@ const Record = () => {
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
 
@@ -1812,123 +1908,185 @@ const Record = () => {
       )}
 
       {stage === "thumbnail" && (
-        <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
-          <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
-            {lang === "ar"
-              ? "اختر صورة لهذه الذكرى"
-              : lang === "fr"
-                ? "Quelle image pour ce souvenir ?"
-                : "Choose an image for this memory"}
-          </p>
-          <div
-            ref={thumbScrollRef}
-            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 max-w-full hide-scroll"
-            style={{ scrollbarWidth: "none" }}
-          >
-            {thumbCards.map((img, idx) => {
-              const isSel = selectedThumb === idx && !customThumb;
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleThumbSelect(idx)}
-                  className={`snap-center shrink-0 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${isSel ? "border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]" : "border-transparent opacity-70"}`}
-                  style={{ width: "180px", height: "180px", transform: `rotate(${(idx - 1) * 4}deg)` }}
-                >
-                  <img
-                    src={img}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    style={{ filter: "sepia(40%) brightness(0.85)" }}
-                  />
-                </button>
-              );
-            })}
-            {customThumb && (
-              <button
-                onClick={() => {
-                  setCustomThumb(null);
-                  setSelectedThumb(0);
-                }}
-                className="snap-center shrink-0 rounded-2xl overflow-hidden border-2 border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]"
-                style={{ width: "180px", height: "180px" }}
-              >
-                <img src={customThumb} alt="" className="w-full h-full object-cover" />
-              </button>
-            )}
-          </div>
-          <label className="flex items-center gap-2 text-white/40 text-xs cursor-pointer hover:text-white/60 transition-colors">
-            <Camera size={14} />
-            {lang === "ar" ? "📷 استخدام صورتي" : lang === "fr" ? "📷 Utiliser ma photo" : "📷 Use my photo"}
-            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-          </label>
-          <div
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 20,
+            background: "#FDF8F0",
+            display: "flex",
+            flexDirection: "column",
+            padding: "56px 20px 32px",
+            overflowY: "auto",
+          }}
+        >
+          <p
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "14px 20px",
-              borderRadius: "14px",
-              backgroundColor: "rgba(232,116,42,0.08)",
-              border: "1px solid rgba(232,116,42,0.2)",
-              marginTop: "16px",
-              width: "100%",
-              maxWidth: "320px",
+              fontSize: "11px",
+              fontWeight: 900,
+              letterSpacing: "0.3em",
+              color: "#E8742A",
+              textTransform: "uppercase",
+              marginBottom: "8px",
             }}
           >
-            <div>
-              <p style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>
-                {lang === "fr"
-                  ? "Montrer pendant ta vidéo"
-                  : lang === "ar"
-                    ? "إظهارها خلال الفيديو"
-                    : "Show during your video"}
-              </p>
-              <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>
-                {lang === "fr"
-                  ? "L'image apparaîtra derrière toi"
-                  : lang === "ar"
-                    ? "ستظهر الصورة خلفك"
-                    : "The image will appear behind you"}
-              </p>
-            </div>
-            <button
-              onClick={() => setUseAsAura(!useAsAura)}
+            ✦{" "}
+            {lang === "fr" ? "Choisir l'aperçu" : lang === "ar" ? "اختر الصورة المصغّرة" : "Choose preview"}
+          </p>
+          <p
+            style={{
+              fontSize: "15px",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              color: "#3D2B1F",
+              marginBottom: "24px",
+              opacity: 0.7,
+            }}
+          >
+            {lang === "fr"
+              ? "Quelle image représente ce souvenir ?"
+              : lang === "ar"
+                ? "ما الصورة التي تمثّل هذه الذكرى؟"
+                : "Which image represents this memory?"}
+          </p>
+
+          {thumbnailsLoading && (
+            <div
               style={{
-                width: "48px",
-                height: "26px",
-                borderRadius: "999px",
-                border: "none",
-                cursor: "pointer",
-                transition: "background 0.2s",
-                backgroundColor: useAsAura ? "#E8742A" : "rgba(255,255,255,0.2)",
-                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                padding: "40px 0",
+                gap: "12px",
               }}
             >
               <div
                 style={{
-                  position: "absolute",
-                  top: "3px",
-                  left: useAsAura ? "25px" : "3px",
-                  width: "20px",
-                  height: "20px",
+                  width: "40px",
+                  height: "40px",
+                  border: "3px solid rgba(232,116,42,0.2)",
+                  borderTop: "3px solid #E8742A",
                   borderRadius: "50%",
-                  backgroundColor: "#fff",
-                  transition: "left 0.2s",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                  animation: "spin 1s linear infinite",
                 }}
               />
-            </button>
-          </div>
+              <p style={{ fontSize: "13px", color: "rgba(61,43,31,0.5)" }}>
+                {lang === "fr"
+                  ? "Génération des aperçus…"
+                  : lang === "ar"
+                    ? "جارٍ إنشاء الصور المصغّرة…"
+                    : "Generating previews…"}
+              </p>
+            </div>
+          )}
+
+          {!thumbnailsLoading && autoThumbnails.length > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 1fr",
+                gap: "8px",
+                marginBottom: "20px",
+              }}
+            >
+              {autoThumbnails.map((frame, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedThumbnail(frame)}
+                  style={{
+                    padding: 0,
+                    border: selectedThumbnail === frame ? "3px solid #E8742A" : "3px solid transparent",
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    aspectRatio: "16/9",
+                    position: "relative",
+                    boxShadow: selectedThumbnail === frame ? "0 0 0 2px #D4AF37" : "none",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <img
+                    src={frame}
+                    alt={`Frame ${idx + 1}`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                  {selectedThumbnail === frame && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "6px",
+                        right: "6px",
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        background: "#E8742A",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <span style={{ color: "#fff", fontSize: "12px", fontWeight: 700 }}>✓</span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
           <button
-            onClick={handleThumbValidate}
-            className="w-full max-w-xs py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] mt-4"
+            onClick={() => {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = "image/*";
+              input.onchange = (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                  const url = URL.createObjectURL(file);
+                  setSelectedThumbnail(url);
+                  setAutoThumbnails((prev) => [...prev.filter((f) => !f.startsWith("blob:")), url]);
+                }
+              };
+              input.click();
+            }}
             style={{
-              background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              color: "#fff",
-              boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
+              width: "100%",
+              padding: "14px",
+              borderRadius: "14px",
+              background: "rgba(61,43,31,0.05)",
+              border: "1.5px dashed rgba(61,43,31,0.2)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "24px",
             }}
           >
-            {lang === "ar" ? "اختيار هذه الصورة" : lang === "fr" ? "Choisir cette image" : "Choose this image"}
+            <span style={{ fontSize: "20px" }}>🖼️</span>
+            <p style={{ fontSize: "14px", color: "rgba(61,43,31,0.6)", margin: 0 }}>
+              {lang === "fr"
+                ? "Choisir une image personnalisée"
+                : lang === "ar"
+                  ? "اختر صورة مخصّصة"
+                  : "Choose a custom image"}
+            </p>
+          </button>
+
+          <button
+            onClick={handleThumbValidate}
+            style={{
+              width: "100%",
+              padding: "18px",
+              borderRadius: "18px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "16px",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+            }}
+          >
+            {lang === "fr" ? "Continuer →" : lang === "ar" ? "→ متابعة" : "Continue →"}
           </button>
         </div>
       )}
