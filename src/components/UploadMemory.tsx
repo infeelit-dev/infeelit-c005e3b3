@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { triggerTranscription } from "@/lib/triggerTranscription";
 
 interface UploadMemoryProps {
   lang: "fr" | "en" | "ar";
@@ -135,19 +136,28 @@ export default function UploadMemory({ lang, userName, onClose }: UploadMemoryPr
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error: dbError } = await supabase.from("memories").insert({
-        user_id: user.id,
-        title: title.trim(),
-        description: question.trim() || null,
-        file_url: videoUrl,
-        file_type: "video",
-        thumbnail_url: thumbnailUrl,
-        is_public: true,
-        is_community: true,
-        timeline: "memories",
-      });
+      const { data: inserted, error: dbError } = await supabase
+        .from("memories")
+        .insert({
+          user_id: user.id,
+          title: title.trim(),
+          description: question.trim() || null,
+          file_url: videoUrl,
+          file_type: "video",
+          thumbnail_url: thumbnailUrl,
+          is_public: true,
+          is_community: true,
+          timeline: "memories",
+          translation_status: "pending",
+        })
+        .select("id")
+        .single();
 
       if (dbError) throw dbError;
+
+      if (inserted?.id) {
+        triggerTranscription(inserted.id, videoUrl, title.trim());
+      }
 
       setProgress(100);
 

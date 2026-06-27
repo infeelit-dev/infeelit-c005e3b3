@@ -15,10 +15,15 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const { memory_id, file_url, title } = await req.json();
+  let memoryId: string | undefined;
 
-    if (!memory_id) {
+  try {
+    const body = await req.json();
+    memoryId = body.memory_id;
+    const file_url = body.file_url;
+    const title = body.title;
+
+    if (!memoryId) {
       return new Response(JSON.stringify({ error: "memory_id required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -27,7 +32,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!);
 
-    await supabase.from("memories").update({ translation_status: "processing" }).eq("id", memory_id);
+    await supabase.from("memories").update({ translation_status: "processing" }).eq("id", memoryId);
 
     let originalTranscript = title || "";
 
@@ -122,7 +127,7 @@ Respond ONLY with valid JSON, no markdown, no backticks:
         transcript_ar: translations.ar || null,
         translation_status: "done",
       })
-      .eq("id", memory_id);
+      .eq("id", memoryId);
 
     return new Response(
       JSON.stringify({
@@ -133,14 +138,13 @@ Respond ONLY with valid JSON, no markdown, no backticks:
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
-    try {
-      const body = await req.clone().json().catch(() => ({}));
-      if (body.memory_id && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+    if (memoryId && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+      try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-        await supabase.from("memories").update({ translation_status: "error" }).eq("id", body.memory_id);
+        await supabase.from("memories").update({ translation_status: "error" }).eq("id", memoryId);
+      } catch {
+        /* ignore cleanup errors */
       }
-    } catch {
-      /* ignore cleanup errors */
     }
 
     return new Response(JSON.stringify({ error: String(error) }), {

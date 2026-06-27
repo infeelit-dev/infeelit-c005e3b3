@@ -24,6 +24,7 @@ import ShareModal from "@/components/ShareModal";
 import MemoryCard from "@/components/MemoryCard";
 import html2canvas from "html2canvas";
 import { CHAPTERS } from "@/data/questions";
+import { triggerTranscription } from "@/lib/triggerTranscription";
 
 import childImg from "@/assets/child.jpg";
 import grandfatherImg from "@/assets/grandfather.jpg";
@@ -830,6 +831,10 @@ const Record = () => {
         }
 
         const newMemoryId = inserted?.id ?? null;
+
+        if (newMemoryId && finalUrl) {
+          triggerTranscription(newMemoryId, finalUrl, memoryTitle || "A memory");
+        }
 
         try {
           const { count } = await supabase
