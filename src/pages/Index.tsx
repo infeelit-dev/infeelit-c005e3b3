@@ -81,7 +81,16 @@ const Index = () => {
         .limit(20);
 
       // ✅ Résoudre les URLs signées
-      const resolved = await resolveMemoryFields(memories || []);
+      const deduped = (memories || []).filter(
+        (m, i, arr) =>
+          arr.findIndex(
+            (x) =>
+              x.user_id === m.user_id &&
+              x.title === m.title &&
+              Math.abs(new Date(x.created_at).getTime() - new Date(m.created_at).getTime()) < 60000,
+          ) === i,
+      );
+      const resolved = await resolveMemoryFields(deduped);
       setFeedMemories(resolved);
       setLoadingFeed(false);
     };
