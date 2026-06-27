@@ -516,25 +516,35 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
       if (cancelled) return;
 
-      if (unique.length >= REAL_CONTENT_THRESHOLD) {
+      const demoBubbles = getDemoBubbles();
+      usedZonesRef.current = new Set();
+
+      if (unique.length > 0) {
         usingRealRef.current = true;
         memoryPoolRef.current = unique;
-        memoryCursorRef.current = 0;
-        usedZonesRef.current = new Set();
+        memoryCursorRef.current = Math.min(4, unique.length);
+
+        const realSlots = Math.min(4, unique.length);
         const initial: BubbleItem[] = [];
-        const slots = Math.min(8, unique.length);
-        for (let i = 0; i < slots; i++) {
+        for (let i = 0; i < realSlots; i++) {
           usedZonesRef.current.add(i);
           const b = createBubbleFromMemory(unique[i], i);
           b.bornAt = Date.now() - i * 2000;
           initial.push(b);
         }
-        memoryCursorRef.current = slots;
-        setBubbles(initial);
+
+        const demoSlots = Math.min(4, demoBubbles.length);
+        for (let i = 0; i < demoSlots; i++) {
+          const zoneIndex = realSlots + i;
+          usedZonesRef.current.add(zoneIndex);
+          const demo = { ...demoBubbles[i], zoneIndex };
+          demo.bornAt = Date.now() - (realSlots + i) * 2000;
+          initial.push(demo);
+        }
+
+        setBubbles(initial.slice(0, 8));
       } else {
         usingRealRef.current = false;
-        usedZonesRef.current = new Set();
-        const demoBubbles = getDemoBubbles();
         demoBubbles.forEach((b, i) => {
           b.bornAt = Date.now() - i * 2000;
           usedZonesRef.current.add(b.zoneIndex);
