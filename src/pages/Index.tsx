@@ -161,12 +161,7 @@ const Index = () => {
             <div className="flex justify-center py-20">
               <div className="w-8 h-8 border-2 border-[#E8742A] border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : feedMemories.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-white/50 text-sm">Aucun souvenir pour l'instant</p>
-              <p className="text-white/30 text-xs mt-2">Sois le premier à en partager un</p>
-            </div>
-          ) : (
+          ) : feedMemories.length === 0 ? null : (
             feedMemories.map((memory) => {
               const displayName =
                 memory.profiles?.display_name?.split(" ")[0] || (memory.is_anonymous ? "Un Gardien" : "Quelqu'un");
