@@ -181,6 +181,7 @@ const AdminUpload = () => {
 
       const displayTitle = question.length > 60 ? question.substring(0, 60) + "..." : question;
 
+      // ✅ MODIFICATION — is_public: true forcé
       const { error: insertError } = await supabase.from("memories").insert({
         user_id: session.user.id,
         title: displayTitle,
@@ -188,7 +189,7 @@ const AdminUpload = () => {
         file_url: fileName,
         file_type: "video",
         thumbnail_url: null,
-        is_public: isPublic,
+        is_public: true,
         is_community: true,
         is_anonymous: isAnonymous,
         timeline: "memories",
