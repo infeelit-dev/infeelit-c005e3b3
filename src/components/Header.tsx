@@ -99,13 +99,16 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             alt="Infeelit"
             onClick={() => navigate("/")}
             style={{
-              height: "40px",
+              height: "52px",
               width: "auto",
               display: "block",
               margin: "0 auto",
               filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.9)) brightness(1.4) contrast(1.2)",
               cursor: "pointer",
+              transition: "transform 0.2s ease",
             }}
+            onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
           />
 
           {/* ACTIONS — colonne droite */}
