@@ -344,6 +344,102 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
         }
       `}</style>
 
+      <button
+        onClick={() => navigatePacket("prev")}
+        disabled={currentPacketIdx === 0 || isAnimating}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: "36px",
+          height: "72px",
+          background: currentPacketIdx === 0 ? "rgba(61,43,31,0.05)" : "rgba(232,116,42,0.12)",
+          border: "none",
+          borderRadius: "0 36px 36px 0",
+          cursor: currentPacketIdx === 0 ? "not-allowed" : "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 20,
+          transition: "background 0.2s ease",
+          backdropFilter: "blur(8px)",
+        }}
+        aria-label="Bulles précédentes"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M9 18l6-6-6-6"
+            stroke={currentPacketIdx === 0 ? "rgba(61,43,31,0.2)" : "#E8742A"}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      <button
+        onClick={() => navigatePacket("next")}
+        disabled={currentPacketIdx >= packets.length - 1 || isAnimating}
+        style={{
+          position: "absolute",
+          right: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: "36px",
+          height: "72px",
+          background:
+            currentPacketIdx >= packets.length - 1 ? "rgba(61,43,31,0.05)" : "rgba(232,116,42,0.12)",
+          border: "none",
+          borderRadius: "36px 0 0 36px",
+          cursor: currentPacketIdx >= packets.length - 1 ? "not-allowed" : "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 20,
+          transition: "background 0.2s ease",
+          backdropFilter: "blur(8px)",
+        }}
+        aria-label="Nouvelles bulles"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M15 18l-6-6 6-6"
+            stroke={currentPacketIdx >= packets.length - 1 ? "rgba(61,43,31,0.2)" : "#E8742A"}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      {packets.length > 1 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "90px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            gap: "6px",
+            zIndex: 20,
+          }}
+        >
+          {packets.map((_, idx) => (
+            <div
+              key={idx}
+              style={{
+                width: idx === currentPacketIdx ? "20px" : "6px",
+                height: "6px",
+                borderRadius: "999px",
+                background: idx === currentPacketIdx ? "#E8742A" : "rgba(232,116,42,0.3)",
+                transition: "all 0.3s ease",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <div className={`${exitClass} ${enterClass}`.trim()} style={{ position: "absolute", inset: 0 }}>
         {currentBubbles.map((bubble) => {
           const border = getBubbleBorder(bubble);
