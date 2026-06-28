@@ -11,6 +11,9 @@ interface ActionBarProps {
   userName: string;
   onReply?: () => void;
   onComment?: () => void;
+  mode?: "full" | "spark-share";
+  layout?: "horizontal" | "vertical";
+  theme?: "light" | "dark";
 }
 
 export default function ActionBar({
@@ -22,6 +25,9 @@ export default function ActionBar({
   userName,
   onReply,
   onComment,
+  mode = "full",
+  layout = "horizontal",
+  theme = "light",
 }: ActionBarProps) {
   const { lang } = useLanguage();
   const [sparks, setSparks] = useState(initialSparks);
@@ -38,25 +44,30 @@ export default function ActionBar({
   useEffect(() => {
     if (!userName || !memoryId) return;
     const check = async () => {
-      const [sparkRes, bookmarkRes] = await Promise.all([
+      const queries = [
         supabase
           .from("memory_sparks")
           .select("id")
           .eq("memory_id", memoryId)
           .eq("user_name", userName)
           .maybeSingle(),
-        supabase
-          .from("memory_bookmarks")
-          .select("id")
-          .eq("memory_id", memoryId)
-          .eq("user_name", userName)
-          .maybeSingle(),
-      ]);
-      if (sparkRes.data) setSparked(true);
-      if (bookmarkRes.data) setBookmarked(true);
+      ];
+      if (mode === "full") {
+        queries.push(
+          supabase
+            .from("memory_bookmarks")
+            .select("id")
+            .eq("memory_id", memoryId)
+            .eq("user_name", userName)
+            .maybeSingle(),
+        );
+      }
+      const results = await Promise.all(queries);
+      if (results[0]?.data) setSparked(true);
+      if (mode === "full" && results[1]?.data) setBookmarked(true);
     };
     check();
-  }, [memoryId, userName]);
+  }, [memoryId, userName, mode]);
 
   // ✦ ÉTINCELLE (like)
   const handleSpark = async () => {
@@ -158,9 +169,11 @@ export default function ActionBar({
     opacity: loading ? 0.6 : 1,
   });
 
+  const inactiveColor = theme === "dark" ? "rgba(255,255,255,0.65)" : "rgba(61,43,31,0.5)";
+
   const iconStyle = (active: boolean, color: string) => ({
-    fontSize: "22px",
-    color: active ? color : "rgba(61,43,31,0.5)",
+    fontSize: layout === "vertical" ? "28px" : "22px",
+    color: active ? color : inactiveColor,
     transition: "transform 0.2s ease",
     transform: active ? "scale(1.15)" : "scale(1)",
   });
@@ -168,85 +181,76 @@ export default function ActionBar({
   const labelStyle = (active: boolean, color: string) => ({
     fontSize: "11px",
     fontWeight: 600,
-    color: active ? color : "rgba(61,43,31,0.45)",
+    color: active ? color : theme === "dark" ? "rgba(255,255,255,0.55)" : "rgba(61,43,31,0.45)",
     fontFamily: "system-ui, sans-serif",
     letterSpacing: "0.01em",
   });
 
   return (
-    <div style={{
-      display: "flex",
-      justifyContent: "space-around",
-      alignItems: "center",
-      padding: "8px 12px 12px",
-      borderTop: "1px solid rgba(232,116,42,0.07)",
-      background: "rgba(253,248,240,0.98)",
-    }}>
-
-      {/* ✦ ÉTINCELLE */}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: layout === "vertical" ? "column" : "row",
+        justifyContent: layout === "vertical" ? "flex-start" : "space-around",
+        alignItems: "center",
+        gap: layout === "vertical" ? "20px" : undefined,
+        padding: layout === "vertical" ? "0" : "8px 12px 12px",
+        borderTop: layout === "vertical" ? "none" : "1px solid rgba(232,116,42,0.07)",
+        background: layout === "vertical" ? "transparent" : "rgba(253,248,240,0.98)",
+      }}
+    >
       <button style={btnStyle(sparked, "#E8742A")} onClick={handleSpark}>
-        <span style={iconStyle(sparked, "#E8742A")}>
-          {sparked ? "✦" : "✧"}
-        </span>
+        <span style={iconStyle(sparked, "#E8742A")}>{sparked ? "✦" : "✧"}</span>
         <span style={labelStyle(sparked, "#E8742A")}>
-          {sparks > 0 ? sparks : (
-            lang === "fr" ? "Étincelle"
-            : lang === "ar" ? "شرارة"
-            : "Spark"
-          )}
+          {sparks > 0
+            ? sparks
+            : lang === "fr"
+              ? "Étincelle"
+              : lang === "ar"
+                ? "شرارة"
+                : "Spark"}
         </span>
       </button>
 
-      {/* 💬 COMMENTER */}
-      <button style={btnStyle(false, "#E8742A")} onClick={onComment}>
-        <span style={{ fontSize: "22px", color: "rgba(61,43,31,0.5)" }}>
-          💬
-        </span>
-        <span style={labelStyle(false, "#E8742A")}>
-          {comments > 0 ? comments : (
-            lang === "fr" ? "Commenter"
-            : lang === "ar" ? "تعليق"
-            : "Comment"
-          )}
-        </span>
-      </button>
+      {mode === "full" && (
+        <>
+          <button style={btnStyle(false, "#E8742A")} onClick={onComment}>
+            <span style={{ fontSize: "22px", color: inactiveColor }}>💬</span>
+            <span style={labelStyle(false, "#E8742A")}>
+              {comments > 0
+                ? comments
+                : lang === "fr"
+                  ? "Commenter"
+                  : lang === "ar"
+                    ? "تعليق"
+                    : "Comment"}
+            </span>
+          </button>
 
-      {/* 🎙️ ET TOI ? */}
-      <button style={btnStyle(false, "#E8742A")} onClick={onReply}>
-        <span style={{ fontSize: "22px", color: "rgba(61,43,31,0.5)" }}>
-          🎙️
-        </span>
-        <span style={labelStyle(false, "#E8742A")}>
-          {lang === "fr" ? "Et toi ?"
-          : lang === "ar" ? "وأنت؟"
-          : "And you?"}
-        </span>
-      </button>
+          <button style={btnStyle(false, "#E8742A")} onClick={onReply}>
+            <span style={{ fontSize: "22px", color: inactiveColor }}>🎙️</span>
+            <span style={labelStyle(false, "#E8742A")}>
+              {lang === "fr" ? "Et toi ?" : lang === "ar" ? "وأنت؟" : "And you?"}
+            </span>
+          </button>
+        </>
+      )}
 
-      {/* 📤 PARTAGER */}
       <button style={btnStyle(false, "#E8742A")} onClick={handleShare}>
-        <span style={{ fontSize: "22px", color: "rgba(61,43,31,0.5)" }}>
-          📤
-        </span>
+        <span style={{ fontSize: layout === "vertical" ? "28px" : "22px", color: inactiveColor }}>📤</span>
         <span style={labelStyle(false, "#E8742A")}>
-          {lang === "fr" ? "Partager"
-          : lang === "ar" ? "مشاركة"
-          : "Share"}
+          {lang === "fr" ? "Partager" : lang === "ar" ? "مشاركة" : "Share"}
         </span>
       </button>
 
-      {/* 🔖 GARDER */}
-      <button style={btnStyle(bookmarked, "#D4AF37")} onClick={handleBookmark}>
-        <span style={iconStyle(bookmarked, "#D4AF37")}>
-          {bookmarked ? "🔖" : "🔖"}
-        </span>
-        <span style={labelStyle(bookmarked, "#D4AF37")}>
-          {lang === "fr" ? "Garder"
-          : lang === "ar" ? "حفظ"
-          : "Save"}
-        </span>
-      </button>
-
+      {mode === "full" && (
+        <button style={btnStyle(bookmarked, "#D4AF37")} onClick={handleBookmark}>
+          <span style={iconStyle(bookmarked, "#D4AF37")}>{bookmarked ? "🔖" : "🔖"}</span>
+          <span style={labelStyle(bookmarked, "#D4AF37")}>
+            {lang === "fr" ? "Garder" : lang === "ar" ? "حفظ" : "Save"}
+          </span>
+        </button>
+      )}
     </div>
   );
 }

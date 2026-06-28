@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { resolveMemoryFields } from "@/lib/memoryUrl";
 import MemoryFullscreen from "@/components/MemoryFullscreen";
 import type { Timeline } from "@/types/timeline";
 
@@ -39,6 +40,7 @@ export interface BubbleData {
 }
 
 const PACKET_SIZE = 8;
+const SLIDE_MS = 280;
 
 const getBubbleSize = (sparks = 0, views = 0): number => {
   const score = sparks * 3 + views * 0.1;
@@ -50,18 +52,10 @@ const getBubbleSize = (sparks = 0, views = 0): number => {
 
 const getBubbleBorder = (bubble: BubbleData) => {
   if (bubble.is_family_circle) {
-    return {
-      color: "#D4AF37",
-      width: "3px",
-      animated: true,
-    };
+    return { color: "#D4AF37", width: "3px", animated: true };
   }
   if (bubble.is_following) {
-    return {
-      color: "#E8742A",
-      width: "2px",
-      animated: false,
-    };
+    return { color: "#E8742A", width: "2px", animated: false };
   }
   return null;
 };
@@ -116,13 +110,14 @@ interface BubbleCanvasProps {
 
 const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: BubbleCanvasProps) => {
   const { lang } = useLanguage();
+  const touchStartX = useRef(0);
   const [userName, setUserName] = useState("");
   const [packets, setPackets] = useState<BubbleData[][]>([]);
   const [currentPacketIdx, setCurrentPacketIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [exitClass, setExitClass] = useState("");
-  const [enterClass, setEnterClass] = useState("");
+  const [slideOffset, setSlideOffset] = useState(0);
+  const [slideTransition, setSlideTransition] = useState(false);
   const [selectedBubble, setSelectedBubble] = useState<BubbleData | null>(null);
   const [expandingId, setExpandingId] = useState<string | null>(null);
 
@@ -153,7 +148,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
         .order("created_at", { ascending: false })
         .limit(64);
 
-      const rows = data || [];
+      const rows = await resolveMemoryFields(data || []);
 
       const authorIds = Array.from(new Set(rows.map((m) => m.user_id).filter(Boolean)));
       const nameMap = new Map<string, string>();
@@ -253,24 +248,32 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
     if (nextIdx < 0 || nextIdx >= packets.length) return;
 
     setIsAnimating(true);
+    setSlideTransition(true);
+    setSlideOffset(direction === "next" ? -100 : 100);
+    await sleep(SLIDE_MS);
 
-    setExitClass("bubbles-gather");
-    await sleep(200);
-
-    setExitClass(direction === "next" ? "bubbles-exit-left" : "bubbles-exit-right");
-    await sleep(250);
-
+    setSlideTransition(false);
     setCurrentPacketIdx(nextIdx);
-    setExitClass("");
+    setSlideOffset(direction === "next" ? 100 : -100);
+    await sleep(20);
 
-    setEnterClass(direction === "next" ? "bubbles-enter-right" : "bubbles-enter-left");
-    await sleep(50);
+    setSlideTransition(true);
+    setSlideOffset(0);
+    await sleep(SLIDE_MS);
 
-    setEnterClass("bubbles-disperse");
-    await sleep(300);
-
-    setEnterClass("");
+    setSlideTransition(false);
     setIsAnimating(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isAnimating || selectedBubble) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (delta > 60) navigatePacket("prev");
+    else if (delta < -60) navigatePacket("next");
   };
 
   const handleBubbleTap = async (bubble: BubbleData) => {
@@ -290,6 +293,138 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
   const handleCloseMemory = () => {
     setSelectedBubble(null);
   };
+
+  const renderBubbles = (bubbles: BubbleData[]) =>
+    bubbles.map((bubble) => {
+      const border = getBubbleBorder(bubble);
+      const isExpanding = expandingId === bubble.id;
+      const floatPaused = isAnimating || !!selectedBubble;
+
+      return (
+        <div
+          key={bubble.id}
+          className={`bubble-item ${isExpanding ? "bubble-expanding" : ""}`}
+          onClick={() => handleBubbleTap(bubble)}
+          style={{
+            position: "absolute",
+            left: `${bubble.x}%`,
+            top: `${bubble.y}%`,
+            transform: "translate(-50%, -50%)",
+            width: `${bubble.size}px`,
+            height: `${bubble.size}px`,
+            borderRadius: "50%",
+            cursor: "pointer",
+            overflow: "hidden",
+            animation: floatPaused
+              ? "none"
+              : border?.animated
+                ? `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite, goldPulse 2s ease-in-out infinite`
+                : `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`,
+            boxShadow: border
+              ? border.animated
+                ? undefined
+                : `0 0 0 ${border.width} ${border.color}, 0 4px 20px rgba(0,0,0,0.15)`
+              : bubble.type === "demo"
+                ? "0 0 0 2px dashed rgba(232,116,42,0.45), 0 4px 20px rgba(0,0,0,0.12)"
+                : "0 4px 20px rgba(0,0,0,0.15)",
+            zIndex: bubble.is_family_circle ? 5 : bubble.is_following ? 4 : 3,
+            willChange: "transform",
+          }}
+        >
+          {bubble.thumbnail_url ? (
+            <img
+              src={bubble.thumbnail_url}
+              alt={bubble.title}
+              loading="lazy"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                pointerEvents: "none",
+                filter: bubble.type === "demo" ? "sepia(20%) brightness(0.92)" : undefined,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                background:
+                  bubble.type === "demo"
+                    ? "linear-gradient(135deg, #E8742A, #D4621A)"
+                    : "linear-gradient(135deg, #2D1810, #8B3A1A)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <span style={{ fontSize: bubble.size > 120 ? "28px" : "20px", opacity: 0.8 }}>
+                {bubble.file_type === "audio" ? "🎙️" : "✦"}
+              </span>
+            </div>
+          )}
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to top, rgba(45,24,16,0.7) 0%, transparent 50%)",
+              pointerEvents: "none",
+            }}
+          />
+
+          {bubble.size >= 110 && bubble.title && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "8px",
+                left: "8px",
+                right: "8px",
+                pointerEvents: "none",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: bubble.size >= 140 ? "11px" : "9px",
+                  color: "#fff",
+                  margin: 0,
+                  lineHeight: 1.3,
+                  fontFamily: "Georgia, serif",
+                  fontStyle: "italic",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                }}
+              >
+                {bubble.title}
+              </p>
+            </div>
+          )}
+
+          {bubble.is_family_circle && (
+            <div
+              style={{
+                position: "absolute",
+                top: "6px",
+                right: "6px",
+                width: "16px",
+                height: "16px",
+                borderRadius: "50%",
+                background: "#D4AF37",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "8px",
+              }}
+            >
+              ✦
+            </div>
+          )}
+        </div>
+      );
+    });
 
   if (loading) {
     return (
@@ -319,6 +454,8 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
 
   return (
     <div
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       style={{
         position: "relative",
         width: "100%",
@@ -334,37 +471,8 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
           66% { transform: translate(-50%, -50%) translateY(6px) rotate(-1deg); }
         }
         @keyframes goldPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.6), 0 4px 20px rgba(0,0,0,0.15); }
-          50% { box-shadow: 0 0 0 6px rgba(212,175,55,0), 0 4px 30px rgba(212,175,55,0.4); }
-        }
-
-        .bubbles-gather .bubble-item {
-          transition: transform 0.2s ease-in !important;
-          transform: translate(calc(50vw - 50%), calc(50vh - 50%)) !important;
-        }
-        .bubbles-exit-left .bubble-item {
-          transition: transform 0.25s ease-in !important;
-          transform: translate(calc(-100vw), calc(50vh - 50%)) !important;
-        }
-        .bubbles-exit-right .bubble-item {
-          transition: transform 0.25s ease-in !important;
-          transform: translate(calc(100vw), calc(50vh - 50%)) !important;
-        }
-        .bubbles-enter-right .bubble-item {
-          transition: none !important;
-          transform: translate(calc(100vw), calc(50vh - 50%)) !important;
-          opacity: 0 !important;
-        }
-        .bubbles-enter-left .bubble-item {
-          transition: none !important;
-          transform: translate(calc(-100vw), calc(50vh - 50%)) !important;
-          opacity: 0 !important;
-        }
-        .bubbles-disperse .bubble-item {
-          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-                      opacity 0.2s ease !important;
-          transform: translate(-50%, -50%) !important;
-          opacity: 1 !important;
+          0%, 100% { outline: 0 solid rgba(212,175,55,0.5); }
+          50% { outline: 4px solid rgba(212,175,55,0); }
         }
         @keyframes bubbleExpand {
           0% { transform: translate(-50%, -50%) scale(1); }
@@ -372,6 +480,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
         }
         .bubble-expanding {
           animation: bubbleExpand 0.2s ease-out forwards !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .bubble-item { animation: none !important; }
         }
       `}</style>
 
@@ -448,7 +559,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
         <div
           style={{
             position: "absolute",
-            bottom: "90px",
+            bottom: "16px",
             left: "50%",
             transform: "translateX(-50%)",
             display: "flex",
@@ -471,129 +582,16 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
         </div>
       )}
 
-      <div className={`${exitClass} ${enterClass}`.trim()} style={{ position: "absolute", inset: 0 }}>
-        {currentBubbles.map((bubble) => {
-          const border = getBubbleBorder(bubble);
-          const isExpanding = expandingId === bubble.id;
-
-          return (
-          <div
-            key={bubble.id}
-            className={`bubble-item ${isExpanding ? "bubble-expanding" : ""}`}
-            onClick={() => handleBubbleTap(bubble)}
-            style={{
-              position: "absolute",
-              left: `${bubble.x}%`,
-              top: `${bubble.y}%`,
-              transform: "translate(-50%, -50%)",
-              width: `${bubble.size}px`,
-              height: `${bubble.size}px`,
-              borderRadius: "50%",
-              cursor: "pointer",
-              overflow: "hidden",
-              animation: border?.animated
-                ? `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite, goldPulse 2s ease-in-out infinite`
-                : `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`,
-              boxShadow: border
-                ? border.animated
-                  ? undefined
-                  : `0 0 0 ${border.width} ${border.color}, 0 4px 20px rgba(0,0,0,0.15)`
-                : "0 4px 20px rgba(0,0,0,0.15)",
-              zIndex: bubble.is_family_circle ? 5 : bubble.is_following ? 4 : 3,
-            }}
-          >
-            {bubble.thumbnail_url ? (
-              <img
-                src={bubble.thumbnail_url}
-                alt={bubble.title}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  pointerEvents: "none",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  background:
-                    bubble.type === "demo"
-                      ? "linear-gradient(135deg, #E8742A, #D4621A)"
-                      : "linear-gradient(135deg, #2D1810, #8B3A1A)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <span style={{ fontSize: bubble.size > 120 ? "28px" : "20px", opacity: 0.8 }}>
-                  {bubble.file_type === "audio" ? "🎙️" : "✦"}
-                </span>
-              </div>
-            )}
-
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "linear-gradient(to top, rgba(45,24,16,0.7) 0%, transparent 50%)",
-                pointerEvents: "none",
-              }}
-            />
-
-            {bubble.size >= 110 && bubble.title && (
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "8px",
-                  left: "8px",
-                  right: "8px",
-                  pointerEvents: "none",
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: bubble.size >= 140 ? "11px" : "9px",
-                    color: "#fff",
-                    margin: 0,
-                    lineHeight: 1.3,
-                    fontFamily: "Georgia, serif",
-                    fontStyle: "italic",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-                  }}
-                >
-                  {bubble.title}
-                </p>
-              </div>
-            )}
-
-            {bubble.is_family_circle && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "6px",
-                  right: "6px",
-                  width: "16px",
-                  height: "16px",
-                  borderRadius: "50%",
-                  background: "#D4AF37",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "8px",
-                }}
-              >
-                ✦
-              </div>
-            )}
-          </div>
-          );
-        })}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          transform: `translateX(${slideOffset}%)`,
+          transition: slideTransition ? `transform ${SLIDE_MS}ms ease-in-out` : "none",
+          opacity: slideOffset === 0 ? 1 : 0.85,
+        }}
+      >
+        {renderBubbles(currentBubbles)}
       </div>
 
       {selectedBubble && (
