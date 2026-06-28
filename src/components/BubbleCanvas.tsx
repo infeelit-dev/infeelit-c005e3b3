@@ -106,6 +106,8 @@ const getDemoBubbles = (): BubbleData[] => {
   }));
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 interface BubbleCanvasProps {
   onBubbleClick?: (question: string, category: "past") => void;
   activeTimeline: Timeline;
@@ -116,6 +118,10 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
   const [packets, setPackets] = useState<BubbleData[][]>([]);
   const [currentPacketIdx, setCurrentPacketIdx] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animDirection, setAnimDirection] = useState<"left" | "right" | null>(null);
+  const [exitClass, setExitClass] = useState("");
+  const [enterClass, setEnterClass] = useState("");
 
   useEffect(() => {
     const loadMemories = async () => {
@@ -225,7 +231,37 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
 
   const currentBubbles = packets[currentPacketIdx] || [];
 
+  const navigatePacket = async (direction: "next" | "prev") => {
+    if (isAnimating) return;
+
+    const nextIdx = direction === "next" ? currentPacketIdx + 1 : currentPacketIdx - 1;
+    if (nextIdx < 0 || nextIdx >= packets.length) return;
+
+    setIsAnimating(true);
+    setAnimDirection(direction === "next" ? "left" : "right");
+
+    setExitClass("bubbles-gather");
+    await sleep(200);
+
+    setExitClass(direction === "next" ? "bubbles-exit-left" : "bubbles-exit-right");
+    await sleep(250);
+
+    setCurrentPacketIdx(nextIdx);
+    setExitClass("");
+
+    setEnterClass(direction === "next" ? "bubbles-enter-right" : "bubbles-enter-left");
+    await sleep(50);
+
+    setEnterClass("bubbles-disperse");
+    await sleep(300);
+
+    setEnterClass("");
+    setIsAnimating(false);
+    setAnimDirection(null);
+  };
+
   const handleBubbleTap = (bubble: BubbleData) => {
+    if (isAnimating) return;
     if (bubble.type === "demo" && onBubbleClick && bubble.title) {
       onBubbleClick(bubble.title, "past");
     }
@@ -277,9 +313,38 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
           0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.6), 0 4px 20px rgba(0,0,0,0.15); }
           50% { box-shadow: 0 0 0 6px rgba(212,175,55,0), 0 4px 30px rgba(212,175,55,0.4); }
         }
+
+        .bubbles-gather .bubble-item {
+          transition: transform 0.2s ease-in !important;
+          transform: translate(calc(50vw - 50%), calc(50vh - 50%)) !important;
+        }
+        .bubbles-exit-left .bubble-item {
+          transition: transform 0.25s ease-in !important;
+          transform: translate(calc(-100vw), calc(50vh - 50%)) !important;
+        }
+        .bubbles-exit-right .bubble-item {
+          transition: transform 0.25s ease-in !important;
+          transform: translate(calc(100vw), calc(50vh - 50%)) !important;
+        }
+        .bubbles-enter-right .bubble-item {
+          transition: none !important;
+          transform: translate(calc(100vw), calc(50vh - 50%)) !important;
+          opacity: 0 !important;
+        }
+        .bubbles-enter-left .bubble-item {
+          transition: none !important;
+          transform: translate(calc(-100vw), calc(50vh - 50%)) !important;
+          opacity: 0 !important;
+        }
+        .bubbles-disperse .bubble-item {
+          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                      opacity 0.2s ease !important;
+          transform: translate(-50%, -50%) !important;
+          opacity: 1 !important;
+        }
       `}</style>
 
-      <div style={{ position: "absolute", inset: 0 }}>
+      <div className={`${exitClass} ${enterClass}`.trim()} style={{ position: "absolute", inset: 0 }}>
         {currentBubbles.map((bubble) => {
           const border = getBubbleBorder(bubble);
 
