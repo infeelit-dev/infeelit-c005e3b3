@@ -233,17 +233,49 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   return (
     <>
       <style>{`
-        @keyframes heartbeatPulse{0%,100%{transform:scale(1);box-shadow:0 0 25px rgba(255,180,40,0.5),0 0 50px rgba(232,116,42,0.3),0 0 80px rgba(255,200,60,0.15)}8%{transform:scale(1.08);box-shadow:0 0 35px rgba(255,200,60,0.8),0 0 70px rgba(232,116,42,0.5),0 0 100px rgba(255,220,80,0.3)}16%{transform:scale(1);box-shadow:0 0 25px rgba(255,180,40,0.5),0 0 50px rgba(232,116,42,0.3),0 0 80px rgba(255,200,60,0.15)}24%{transform:scale(1.06);box-shadow:0 0 30px rgba(255,200,60,0.6),0 0 55px rgba(232,116,42,0.4),0 0 85px rgba(255,220,80,0.2)}32%{transform:scale(1);box-shadow:0 0 25px rgba(255,180,40,0.5),0 0 50px rgba(232,116,42,0.3),0 0 80px rgba(255,200,60,0.15)}}
+        @keyframes heartbeatPulse{
+          0%,100%{
+            transform:scale(1);
+            filter:drop-shadow(0 0 10px rgba(255,180,40,0.55)) drop-shadow(0 0 22px rgba(232,116,42,0.28));
+          }
+          8%{
+            transform:scale(1.08);
+            filter:drop-shadow(0 0 16px rgba(255,200,60,0.75)) drop-shadow(0 0 32px rgba(232,116,42,0.45));
+          }
+          16%{
+            transform:scale(1);
+            filter:drop-shadow(0 0 10px rgba(255,180,40,0.55)) drop-shadow(0 0 22px rgba(232,116,42,0.28));
+          }
+          24%{
+            transform:scale(1.06);
+            filter:drop-shadow(0 0 14px rgba(255,200,60,0.65)) drop-shadow(0 0 26px rgba(232,116,42,0.35));
+          }
+          32%{
+            transform:scale(1);
+            filter:drop-shadow(0 0 10px rgba(255,180,40,0.55)) drop-shadow(0 0 22px rgba(232,116,42,0.28));
+          }
+        }
         @keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.18)}28%{transform:scale(1)}42%{transform:scale(1.10)}70%{transform:scale(1)}}
         @keyframes particleUp{0%{transform:translateY(0) translateX(0) scale(1);opacity:1}100%{transform:translateY(-50px) translateX(var(--dx)) scale(0);opacity:0}}
         @keyframes innerGlowRotate{0%{opacity:.6;transform:rotate(0deg)}100%{opacity:1;transform:rotate(360deg)}}
         @keyframes expandIn{0%{transform:scale(.2);opacity:0}60%{transform:scale(1.05);opacity:1}100%{transform:scale(1);opacity:1}}
-        @keyframes gentleApproach{0%{transform:translate(-50%,-50%) scale(1);box-shadow:0 0 25px rgba(255,180,40,0.5)}50%{transform:translate(-50%,-50%) scale(1.4);box-shadow:0 0 60px rgba(255,180,40,0.8),0 0 120px rgba(232,116,42,0.4)}100%{transform:translate(-50%,-50%) scale(1.2);box-shadow:0 0 80px rgba(255,200,60,0.9),0 0 150px rgba(232,116,42,0.5)}}
+        @keyframes gentleApproach{
+          0%{transform:translate(-50%,-50%) scale(1);filter:drop-shadow(0 0 12px rgba(255,180,40,0.5))}
+          50%{transform:translate(-50%,-50%) scale(1.4);filter:drop-shadow(0 0 28px rgba(255,180,40,0.75)) drop-shadow(0 0 48px rgba(232,116,42,0.35))}
+          100%{transform:translate(-50%,-50%) scale(1.2);filter:drop-shadow(0 0 36px rgba(255,200,60,0.85)) drop-shadow(0 0 56px rgba(232,116,42,0.4))}
+        }
         .heartbeat-pulse{animation:heartbeatPulse 2.5s ease-in-out infinite}
         .heartbeat-symbol{animation:heartbeat 0.86s ease-in-out infinite}
         .inner-glow-rotate{animation:innerGlowRotate 6s linear infinite}
         .expand-in{animation:expandIn .5s cubic-bezier(0.175,0.885,0.32,1.275) forwards}
         .gentle-approach{animation:gentleApproach 3s ease-in-out infinite}
+        .spark-bubble-core{
+          border-radius:50%;
+          overflow:hidden;
+          isolation:isolate;
+          -webkit-mask-image:-webkit-radial-gradient(white,black);
+          mask-image:radial-gradient(white,black);
+        }
         .snap-scroll{scroll-snap-type:x mandatory}
         .snap-card{scroll-snap-align:center}
         .hide-scroll{scrollbar-width:none}
@@ -261,101 +293,125 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
             height: "90px",
             transition: "left 8s ease-in-out, top 8s ease-in-out",
             transform: "translate(-50%,-50%)",
+            borderRadius: "50%",
+            overflow: "visible",
           }}
         >
-          {[...Array(10)].map((_, i) => (
-            <div
-              key={i}
-              style={
-                {
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  width: i % 3 === 0 ? "4px" : "2.5px",
-                  height: i % 3 === 0 ? "4px" : "2.5px",
-                  borderRadius: "50%",
-                  background: `hsl(${35 + i * 4},90%,${60 + i * 2}%)`,
-                  boxShadow: "0 0 5px rgba(255,200,60,0.9)",
-                  animation: `particleUp ${2.5 + Math.random() * 2}s ease-out infinite`,
-                  animationDelay: `${i * 0.35}s`,
-                  "--dx": `${(Math.random() - 0.5) * 40}px`,
-                } as React.CSSProperties
-              }
-            />
-          ))}
           <div
-            className="heartbeat-pulse absolute rounded-full"
+            className="spark-bubble-core"
             style={{
+              position: "relative",
               width: "90px",
               height: "90px",
-              background:
-                "radial-gradient(circle at 45% 45%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.85) 25%, rgba(232,116,42,0.5) 55%, rgba(180,70,10,0.15) 100%)",
-              border: "2px solid rgba(255,200,60,0.7)",
             }}
           >
+            {[...Array(10)].map((_, i) => (
+              <div
+                key={i}
+                style={
+                  {
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    width: i % 3 === 0 ? "4px" : "2.5px",
+                    height: i % 3 === 0 ? "4px" : "2.5px",
+                    borderRadius: "50%",
+                    background: `hsl(${35 + i * 4},90%,${60 + i * 2}%)`,
+                    filter: "drop-shadow(0 0 5px rgba(255,200,60,0.9))",
+                    animation: `particleUp ${2.5 + Math.random() * 2}s ease-out infinite`,
+                    animationDelay: `${i * 0.35}s`,
+                    "--dx": `${(Math.random() - 0.5) * 40}px`,
+                  } as React.CSSProperties
+                }
+              />
+            ))}
             <div
-              className="inner-glow-rotate absolute inset-0 rounded-full"
+              className="heartbeat-pulse absolute rounded-full"
               style={{
+                inset: 0,
                 background:
-                  "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.4) 25%, transparent 50%, rgba(255,255,255,0.2) 75%, transparent 100%)",
-                opacity: 0.7,
+                  "radial-gradient(circle at 45% 45%, rgba(255,220,80,0.95) 0%, rgba(255,180,40,0.85) 25%, rgba(232,116,42,0.5) 55%, rgba(180,70,10,0.15) 100%)",
+                border: "2px solid rgba(255,200,60,0.7)",
+                borderRadius: "50%",
+                overflow: "hidden",
               }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <img
-                src={infeeilitSymbol}
-                alt="Infeelit"
+            >
+              <div
+                className="inner-glow-rotate absolute inset-0 rounded-full"
                 style={{
-                  width: "200px",
-                  height: "200px",
-                  objectFit: "contain",
-                  animation: "heartbeat 0.86s ease-in-out infinite",
-                  filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
-                  mixBlendMode: "screen",
-                  position: "absolute",
+                  background:
+                    "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.4) 25%, transparent 50%, rgba(255,255,255,0.2) 75%, transparent 100%)",
+                  opacity: 0.7,
+                  borderRadius: "50%",
                 }}
               />
-            </div>
-            {sparkBalance > 0 && (
               <div
-                className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center rounded-full"
+                style={{ overflow: "hidden", borderRadius: "50%" }}
+              >
+                <img
+                  src={infeeilitSymbol}
+                  alt="Infeelit"
+                  style={{
+                    width: "200px",
+                    height: "200px",
+                    objectFit: "contain",
+                    animation: "heartbeat 0.86s ease-in-out infinite",
+                    filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
+                    mixBlendMode: "screen",
+                    position: "absolute",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          {sparkBalance > 0 && (
+            <div
+              className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full flex items-center justify-center"
+              style={{
+                background: "rgba(0,0,0,0.7)",
+                border: "1px solid rgba(255,200,60,0.6)",
+                filter: "drop-shadow(0 0 8px rgba(255,200,60,0.4))",
+              }}
+            >
+              <span
                 style={{
-                  background: "rgba(0,0,0,0.7)",
-                  border: "1px solid rgba(255,200,60,0.6)",
-                  boxShadow: "0 0 8px rgba(255,200,60,0.4)",
+                  fontSize: "9px",
+                  color: "#FFD700",
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  textShadow: "0 0 4px rgba(255,200,60,0.8)",
                 }}
               >
-                <span
-                  style={{
-                    fontSize: "9px",
-                    color: "#FFD700",
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    textShadow: "0 0 4px rgba(255,200,60,0.8)",
-                  }}
-                >
-                  ✦{sparkBalance}
-                </span>
-              </div>
-            )}
-            {showBadge && (
-              <div
-                className="absolute -top-2 -left-2 px-1.5 py-0.5 rounded-full flex items-center justify-center"
-                style={{ background: "rgba(232,116,42,0.9)", boxShadow: "0 0 6px rgba(232,116,42,0.4)" }}
-              >
-                <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>
-                  {progress}/{threshold} ✦
-                </span>
-              </div>
-            )}
-          </div>
+                ✦{sparkBalance}
+              </span>
+            </div>
+          )}
+          {showBadge && (
+            <div
+              className="absolute -top-2 -left-2 px-1.5 py-0.5 rounded-full flex items-center justify-center"
+              style={{
+                background: "rgba(232,116,42,0.9)",
+                filter: "drop-shadow(0 0 6px rgba(232,116,42,0.4))",
+              }}
+            >
+              <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>
+                {progress}/{threshold} ✦
+              </span>
+            </div>
+          )}
         </button>
       )}
 
       {(expanded || forceOpen) && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center"
-          style={{ background: "rgba(253,248,240,0.97)", backdropFilter: "blur(20px)" }}
+          style={{
+            background: "rgba(253,248,240,0.97)",
+            backdropFilter: "blur(20px)",
+            isolation: "isolate",
+            overflow: "hidden",
+          }}
           onClick={handleClose}
         >
           <div
