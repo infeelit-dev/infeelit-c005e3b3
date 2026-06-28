@@ -47,6 +47,24 @@ const getBubbleSize = (sparks = 0, views = 0): number => {
   return 80;
 };
 
+const getBubbleBorder = (bubble: BubbleData) => {
+  if (bubble.is_family_circle) {
+    return {
+      color: "#D4AF37",
+      width: "3px",
+      animated: true,
+    };
+  }
+  if (bubble.is_following) {
+    return {
+      color: "#E8742A",
+      width: "2px",
+      animated: false,
+    };
+  }
+  return null;
+};
+
 const generatePositions = (_sizes: number[]): Array<{ x: number; y: number }> => {
   const zones = [
     { x: [8, 30], y: [12, 30] },
@@ -128,6 +146,36 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
         });
       }
 
+      const session = await supabase.auth.getSession();
+      const userId = session.data.session?.user?.id;
+
+      let familyIds: string[] = [];
+      let followingIds: string[] = [];
+
+      if (userId) {
+        const { data: memberOf } = await supabase
+          .from("circle_members")
+          .select("circle_id")
+          .eq("user_id", userId);
+
+        if (memberOf?.length) {
+          const circleIds = memberOf.map((m) => m.circle_id);
+          const { data: memberRows } = await supabase
+            .from("circle_members")
+            .select("user_id")
+            .in("circle_id", circleIds);
+          familyIds = Array.from(
+            new Set((memberRows || []).map((r) => r.user_id).filter((id) => id !== userId)),
+          );
+        }
+
+        const { data: followData } = await (supabase as any)
+          .from("follows")
+          .select("following_id")
+          .eq("follower_id", userId);
+        followingIds = (followData || []).map((r: { following_id: string }) => r.following_id);
+      }
+
       const positions = generatePositions(Array(rows.length).fill(80));
 
       const bubbles: BubbleData[] = rows.map((m, i) => ({
@@ -142,8 +190,8 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
         sparks_count: m.sparks_count || 0,
         views_count: m.views_count || 0,
         created_at: m.created_at,
-        is_family_circle: false,
-        is_following: false,
+        is_family_circle: familyIds.includes(m.user_id || ""),
+        is_following: followingIds.includes(m.user_id || ""),
         size: getBubbleSize(m.sparks_count || 0, m.views_count || 0),
         x: positions[i % positions.length].x,
         y: positions[i % positions.length].y,
@@ -225,10 +273,17 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
           33% { transform: translate(-50%, -50%) translateY(-12px) rotate(1deg); }
           66% { transform: translate(-50%, -50%) translateY(6px) rotate(-1deg); }
         }
+        @keyframes goldPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.6), 0 4px 20px rgba(0,0,0,0.15); }
+          50% { box-shadow: 0 0 0 6px rgba(212,175,55,0), 0 4px 30px rgba(212,175,55,0.4); }
+        }
       `}</style>
 
       <div style={{ position: "absolute", inset: 0 }}>
-        {currentBubbles.map((bubble) => (
+        {currentBubbles.map((bubble) => {
+          const border = getBubbleBorder(bubble);
+
+          return (
           <div
             key={bubble.id}
             className="bubble-item"
@@ -243,9 +298,15 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
               borderRadius: "50%",
               cursor: "pointer",
               overflow: "hidden",
-              animation: `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`,
-              boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-              zIndex: 3,
+              animation: border?.animated
+                ? `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite, goldPulse 2s ease-in-out infinite`
+                : `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`,
+              boxShadow: border
+                ? border.animated
+                  ? undefined
+                  : `0 0 0 ${border.width} ${border.color}, 0 4px 20px rgba(0,0,0,0.15)`
+                : "0 4px 20px rgba(0,0,0,0.15)",
+              zIndex: bubble.is_family_circle ? 5 : bubble.is_following ? 4 : 3,
             }}
           >
             {bubble.thumbnail_url ? (
@@ -317,8 +378,29 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
                 </p>
               </div>
             )}
+
+            {bubble.is_family_circle && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "6px",
+                  right: "6px",
+                  width: "16px",
+                  height: "16px",
+                  borderRadius: "50%",
+                  background: "#D4AF37",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "8px",
+                }}
+              >
+                ✦
+              </div>
+            )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
