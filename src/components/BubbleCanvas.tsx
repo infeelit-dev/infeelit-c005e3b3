@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import MemoryFullscreen from "@/components/MemoryFullscreen";
 import type { Timeline } from "@/types/timeline";
 
 import imgGrandfather from "@/assets/grandfather.jpg";
@@ -115,13 +116,27 @@ interface BubbleCanvasProps {
 
 const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: BubbleCanvasProps) => {
   const { lang } = useLanguage();
+  const [userName, setUserName] = useState("");
   const [packets, setPackets] = useState<BubbleData[][]>([]);
   const [currentPacketIdx, setCurrentPacketIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [animDirection, setAnimDirection] = useState<"left" | "right" | null>(null);
   const [exitClass, setExitClass] = useState("");
   const [enterClass, setEnterClass] = useState("");
+  const [selectedBubble, setSelectedBubble] = useState<BubbleData | null>(null);
+  const [expandingId, setExpandingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const local = localStorage.getItem("infeelit_user_name");
+    if (local) {
+      setUserName(local);
+      return;
+    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const name = session?.user?.user_metadata?.display_name || "";
+      if (name) setUserName(name);
+    });
+  }, []);
 
   useEffect(() => {
     const loadMemories = async () => {
@@ -238,7 +253,6 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
     if (nextIdx < 0 || nextIdx >= packets.length) return;
 
     setIsAnimating(true);
-    setAnimDirection(direction === "next" ? "left" : "right");
 
     setExitClass("bubbles-gather");
     await sleep(200);
@@ -257,14 +271,24 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
 
     setEnterClass("");
     setIsAnimating(false);
-    setAnimDirection(null);
   };
 
-  const handleBubbleTap = (bubble: BubbleData) => {
+  const handleBubbleTap = async (bubble: BubbleData) => {
     if (isAnimating) return;
+
     if (bubble.type === "demo" && onBubbleClick && bubble.title) {
       onBubbleClick(bubble.title, "past");
+      return;
     }
+
+    setExpandingId(bubble.id);
+    await sleep(200);
+    setSelectedBubble(bubble);
+    setExpandingId(null);
+  };
+
+  const handleCloseMemory = () => {
+    setSelectedBubble(null);
   };
 
   if (loading) {
@@ -341,6 +365,13 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
                       opacity 0.2s ease !important;
           transform: translate(-50%, -50%) !important;
           opacity: 1 !important;
+        }
+        @keyframes bubbleExpand {
+          0% { transform: translate(-50%, -50%) scale(1); }
+          100% { transform: translate(-50%, -50%) scale(1.15); }
+        }
+        .bubble-expanding {
+          animation: bubbleExpand 0.2s ease-out forwards !important;
         }
       `}</style>
 
@@ -443,11 +474,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
       <div className={`${exitClass} ${enterClass}`.trim()} style={{ position: "absolute", inset: 0 }}>
         {currentBubbles.map((bubble) => {
           const border = getBubbleBorder(bubble);
+          const isExpanding = expandingId === bubble.id;
 
           return (
           <div
             key={bubble.id}
-            className="bubble-item"
+            className={`bubble-item ${isExpanding ? "bubble-expanding" : ""}`}
             onClick={() => handleBubbleTap(bubble)}
             style={{
               position: "absolute",
@@ -563,6 +595,15 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: Bubble
           );
         })}
       </div>
+
+      {selectedBubble && (
+        <MemoryFullscreen
+          bubble={selectedBubble}
+          onClose={handleCloseMemory}
+          userName={userName}
+          lang={lang}
+        />
+      )}
     </div>
   );
 };
