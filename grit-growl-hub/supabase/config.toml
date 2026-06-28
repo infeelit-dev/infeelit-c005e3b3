@@ -1,0 +1,4 @@
+project_id = "uezqiibyzdmzulqnemzu"
+
+[functions.pulse-engine]
+verify_jwt = false
