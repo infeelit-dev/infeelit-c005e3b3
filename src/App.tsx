@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { HeaderProvider } from "@/components/Header";
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -47,7 +48,11 @@ const App = () => (
             <Route path="/portrait" element={<Navigate to="/" replace />} />
             <Route path="/login" element={<Navigate to="/welcome" replace />} />
             <Route path="/chats" element={<Navigate to="/whispers" replace />} />
-            <Route path="/circles" element={<Circle />} />
+            <Route path="/circles" element={
+              <HeaderProvider showBack pageTitle="Ma famille">
+                <Circle />
+              </HeaderProvider>
+            } />
 
             {/* Routes fonctionnelles */}
             <Route path="/auth/callback" element={<AuthCallback />} />
@@ -56,14 +61,30 @@ const App = () => (
             <Route path="/verify" element={<Verify />} />
             <Route path="/identity" element={<FamilyIdentity />} />
             <Route path="/loading" element={<Loading />} />
-            <Route path="/record" element={<Record />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/record" element={
+              <HeaderProvider showBack pageTitle="Enregistrer">
+                <Record />
+              </HeaderProvider>
+            } />
+            <Route path="/profile" element={
+              <HeaderProvider showBack pageTitle="Mon espace">
+                <Profile />
+              </HeaderProvider>
+            } />
             <Route path="/about" element={<About />} />
-            <Route path="/places" element={<Places />} />
+            <Route path="/places" element={
+              <HeaderProvider showBack pageTitle="Places">
+                <Places />
+              </HeaderProvider>
+            } />
             <Route path="/create-circle" element={<CreateCircle />} />
             <Route path="/join/:code" element={<JoinCircle />} />
             <Route path="/search" element={<Search />} />
-            <Route path="/contact" element={<Contact />} />
+            <Route path="/contact" element={
+              <HeaderProvider showBack pageTitle="Contact">
+                <Contact />
+              </HeaderProvider>
+            } />
             <Route path="/admin" element={<AdminUpload />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

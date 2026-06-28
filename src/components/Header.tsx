@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,9 +9,32 @@ import infeelit from "@/assets/infeelit-logo.png";
 interface HeaderProps {
   activeTimeline: Timeline;
   onTimelineChange: (t: Timeline) => void;
+  showBack?: boolean;
+  pageTitle?: string;
 }
 
-const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
+export const HeaderOverrideContext = createContext<{ showBack?: boolean; pageTitle?: string }>({});
+
+export function HeaderProvider({
+  showBack,
+  pageTitle,
+  children,
+}: {
+  showBack?: boolean;
+  pageTitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <HeaderOverrideContext.Provider value={{ showBack, pageTitle }}>
+      {children}
+    </HeaderOverrideContext.Provider>
+  );
+}
+
+const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: HeaderProps) => {
+  const headerOverride = useContext(HeaderOverrideContext);
+  const effectiveShowBack = showBack ?? headerOverride.showBack;
+  const effectivePageTitle = pageTitle ?? headerOverride.pageTitle;
   const navigate = useNavigate();
   const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -74,24 +97,53 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             direction: "ltr",
           }}
         >
-          {/* BURGER — colonne gauche */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(255,255,255,0.15)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            <Menu size={18} color="#fff" />
-          </button>
+          {/* Gauche : Burger OU Retour */}
+          {effectiveShowBack ? (
+            <button
+              onClick={() => navigate(-1)}
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "50%",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                backdropFilter: "blur(8px)",
+              }}
+              aria-label="Retour"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M19 12H5M12 5l-7 7 7 7"
+                  stroke="white"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={() => setMenuOpen(true)}
+              style={{
+                width: "34px",
+                height: "34px",
+                borderRadius: "50%",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <Menu size={18} color="#fff" />
+            </button>
+          )}
 
           {/* LOGO — colonne centrale */}
           <img
@@ -253,7 +305,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* BLOC 2 — NAV MEMORIES | INSTANT | FOREVER — grid 1fr 1fr 1fr */}
+        {/* BLOC 2 — pageTitle OU NAV MEMORIES | INSTANT | FOREVER */}
         <div
           style={{
             width: "100%",
@@ -261,6 +313,21 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
             paddingRight: "16px",
           }}
         >
+          {effectiveShowBack && effectivePageTitle ? (
+            <p
+              style={{
+                margin: 0,
+                paddingBottom: "6px",
+                textAlign: "center",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "15px",
+                textShadow: "0 1px 8px rgba(0,0,0,0.9)",
+              }}
+            >
+              {effectivePageTitle}
+            </p>
+          ) : (
           <nav
             style={{
               display: "grid",
@@ -309,6 +376,7 @@ const Header = ({ activeTimeline, onTimelineChange }: HeaderProps) => {
               );
             })}
           </nav>
+          )}
         </div>
       </header>
 
