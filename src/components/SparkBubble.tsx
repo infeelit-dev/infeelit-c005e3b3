@@ -295,6 +295,8 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
             transform: "translate(-50%,-50%)",
             borderRadius: "50%",
             overflow: "visible",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
           }}
         >
           <div
@@ -303,6 +305,13 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
               position: "relative",
               width: "90px",
               height: "90px",
+              clipPath: "circle(50%)",
+              WebkitClipPath: "circle(50%)",
+              overflow: "hidden",
+              borderRadius: "50%",
+              WebkitMaskImage: "-webkit-radial-gradient(circle, white 100%, black 100%)",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
             }}
           >
             {[...Array(10)].map((_, i) => (
@@ -334,6 +343,11 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                 border: "2px solid rgba(255,200,60,0.7)",
                 borderRadius: "50%",
                 overflow: "hidden",
+                clipPath: "circle(50%)",
+                WebkitClipPath: "circle(50%)",
+                WebkitMaskImage: "-webkit-radial-gradient(circle, white 100%, black 100%)",
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
               }}
             >
               <div
@@ -343,6 +357,12 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                     "conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.4) 25%, transparent 50%, rgba(255,255,255,0.2) 75%, transparent 100%)",
                   opacity: 0.7,
                   borderRadius: "50%",
+                  clipPath: "circle(50%)",
+                  WebkitClipPath: "circle(50%)",
+                  overflow: "hidden",
+                  WebkitMaskImage: "-webkit-radial-gradient(circle, white 100%, black 100%)",
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
                 }}
               />
               <div
@@ -360,6 +380,8 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                     filter: "drop-shadow(0 0 14px rgba(255,200,60,0.95))",
                     mixBlendMode: "screen",
                     position: "absolute",
+                    backfaceVisibility: "hidden",
+                    WebkitBackfaceVisibility: "hidden",
                   }}
                 />
               </div>
