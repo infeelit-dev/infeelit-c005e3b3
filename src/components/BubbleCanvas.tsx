@@ -1,7 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { Play, Volume2, Video, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
 
@@ -13,908 +11,315 @@ import imgBirth from "@/assets/birth.jpg";
 import imgLove from "@/assets/love.jpg";
 import imgHouse from "@/assets/house.jpg";
 import imgPicnic from "@/assets/picnic.jpg";
-import imgTravel from "@/assets/travel.jpg";
-import imgGraduate from "@/assets/graduate.jpg";
 
-const REAL_CONTENT_THRESHOLD = 3;
-
-const THEME_IMAGES: Record<string, string> = {
-  enfant: imgChild,
-  child: imgChild,
-  طفل: imgChild,
-  père: imgGrandfather,
-  father: imgGrandfather,
-  أب: imgGrandfather,
-  mère: imgGrandfather,
-  mother: imgGrandfather,
-  أم: imgGrandfather,
-  maison: imgHouse,
-  home: imgHouse,
-  بيت: imgHouse,
-  amour: imgLove,
-  love: imgLove,
-  حب: imgLove,
-  voyage: imgTravel,
-  travel: imgTravel,
-  سفر: imgTravel,
-  mariage: imgMarry,
-  marry: imgMarry,
-  زواج: imgMarry,
-  naissance: imgBirth,
-  birth: imgBirth,
-  ولادة: imgBirth,
-  diplôme: imgGraduate,
-  graduate: imgGraduate,
-  تخرج: imgGraduate,
-  pique: imgPicnic,
-  picnic: imgPicnic,
-  نزهة: imgPicnic,
-  repos: imgRelax,
-  relax: imgRelax,
-  راحة: imgRelax,
-};
-
-const DEMO_QUESTIONS: Record<
-  string,
-  { fr: string; en: string; ar: string; image: string; size: number; x: number; y: number; colorMode: string }[]
-> = {
-  memories: [
-    {
-      fr: "L'odeur de sa cuisine",
-      en: "The scent of her kitchen",
-      ar: "رائحة مطبخها",
-      image: imgGrandfather,
-      size: 130,
-      x: 5,
-      y: 15,
-      colorMode: "sepia",
-    },
-    {
-      fr: "Ton plus vieux fou rire",
-      en: "Your earliest belly laugh",
-      ar: "أول ضحكة من القلب",
-      image: imgChild,
-      size: 110,
-      x: 55,
-      y: 10,
-      colorMode: "color",
-    },
-    {
-      fr: "Leur geste d'amour muet",
-      en: "Their silent act of love",
-      ar: "لفتة حب صامتة",
-      image: imgMarry,
-      size: 140,
-      x: 25,
-      y: 38,
-      colorMode: "sepia",
-    },
-    {
-      fr: "Le bruit de la maison",
-      en: "The sound of home",
-      ar: "صوت البيت",
-      image: imgPicnic,
-      size: 90,
-      x: 5,
-      y: 52,
-      colorMode: "color",
-    },
-    {
-      fr: "Le café des matins",
-      en: "The morning coffee",
-      ar: "قهوة الصباح",
-      image: imgLove,
-      size: 115,
-      x: 45,
-      y: 68,
-      colorMode: "sepia",
-    },
-    {
-      fr: "Le vêtement de ton père",
-      en: "Your father's old coat",
-      ar: "رداء والدك القديم",
-      image: imgTravel,
-      size: 100,
-      x: 65,
-      y: 55,
-      colorMode: "sepia",
-    },
-    {
-      fr: "Leur secret de bonheur",
-      en: "Their secret to happiness",
-      ar: "سر سعادتهم",
-      image: imgRelax,
-      size: 95,
-      x: 70,
-      y: 20,
-      colorMode: "color",
-    },
-    { fr: "", en: "", ar: "", image: imgBirth, size: 40, x: 88, y: 8, colorMode: "sepia" },
-    { fr: "", en: "", ar: "", image: imgGraduate, size: 35, x: 3, y: 88, colorMode: "sepia" },
-  ],
-  instant: [
-    {
-      fr: "Ton doudou fétiche",
-      en: "Your favorite plushie",
-      ar: "دميتك المفضلة",
-      image: imgLove,
-      size: 130,
-      x: 10,
-      y: 18,
-      colorMode: "color",
-    },
-    {
-      fr: "Votre langage secret",
-      en: "Your secret language",
-      ar: "لغتكم السرية",
-      image: imgChild,
-      size: 110,
-      x: 55,
-      y: 12,
-      colorMode: "color",
-    },
-    {
-      fr: "Ta première cabane",
-      en: "Your first secret fort",
-      ar: "مخبؤك الأول",
-      image: imgPicnic,
-      size: 95,
-      x: 70,
-      y: 35,
-      colorMode: "sepia",
-    },
-    {
-      fr: "Le pacte de sang",
-      en: "The childhood pact",
-      ar: "عهد الطفولة",
-      image: imgTravel,
-      size: 120,
-      x: 20,
-      y: 50,
-      colorMode: "color",
-    },
-    {
-      fr: "Ton goûter d'enfance",
-      en: "Your childhood snack",
-      ar: "وجبة طفولتك الخفيفة",
-      image: imgMarry,
-      size: 100,
-      x: 60,
-      y: 65,
-      colorMode: "color",
-    },
-    { fr: "", en: "", ar: "", image: imgRelax, size: 45, x: 85, y: 70, colorMode: "sepia" },
-    { fr: "", en: "", ar: "", image: imgHouse, size: 35, x: 5, y: 80, colorMode: "color" },
-  ],
-  forever: [
-    {
-      fr: "S'ils t'écoutaient ce soir",
-      en: "If they heard you tonight",
-      ar: "لو سمعوك الليلة",
-      image: imgGraduate,
-      size: 140,
-      x: 8,
-      y: 18,
-      colorMode: "color",
-    },
-    {
-      fr: "Le merci suspendu",
-      en: "The unspoken thank you",
-      ar: "شكر لم يُقل بعد",
-      image: imgHouse,
-      size: 120,
-      x: 58,
-      y: 12,
-      colorMode: "sepia",
-    },
-    {
-      fr: "Le nom que tu portes",
-      en: "The name you carry",
-      ar: "الاسم الذي تحمله",
-      image: imgRelax,
-      size: 130,
-      x: 22,
-      y: 40,
-      colorMode: "color",
-    },
-    {
-      fr: "La maison quittée",
-      en: "The house left behind",
-      ar: "البيت الذي غادرته",
-      image: imgMarry,
-      size: 105,
-      x: 68,
-      y: 42,
-      colorMode: "color",
-    },
-    {
-      fr: "La valeur héritée",
-      en: "The inherited value",
-      ar: "القيمة الموروثة",
-      image: imgLove,
-      size: 115,
-      x: 12,
-      y: 62,
-      colorMode: "sepia",
-    },
-    {
-      fr: "Leur sacrifice invisible",
-      en: "Their invisible sacrifice",
-      ar: "تضحيتهم غير المرئية",
-      image: imgBirth,
-      size: 100,
-      x: 55,
-      y: 65,
-      colorMode: "color",
-    },
-    {
-      fr: "Le fauteuil de ton grand-père",
-      en: "Your grandfather's chair",
-      ar: "كرسي جدك المفضل",
-      image: imgGrandfather,
-      size: 110,
-      x: 72,
-      y: 28,
-      colorMode: "sepia",
-    },
-    { fr: "", en: "", ar: "", image: imgTravel, size: 38, x: 85, y: 55, colorMode: "color" },
-    { fr: "", en: "", ar: "", image: imgChild, size: 30, x: 3, y: 75, colorMode: "sepia" },
-  ],
-};
-
-const ZONES = [
-  { xMin: 5, xMax: 28, yMin: 10, yMax: 33 },
-  { xMin: 62, xMax: 88, yMin: 10, yMax: 33 },
-  { xMin: 5, xMax: 28, yMin: 38, yMax: 62 },
-  { xMin: 62, xMax: 88, yMin: 38, yMax: 62 },
-  { xMin: 5, xMax: 28, yMin: 67, yMax: 88 },
-  { xMin: 62, xMax: 88, yMin: 67, yMax: 88 },
-  { xMin: 32, xMax: 48, yMin: 10, yMax: 30 },
-  { xMin: 48, xMax: 65, yMin: 65, yMax: 88 },
-];
-
-const BUBBLE_LIFETIME = 22000;
-const ROTATION_INTERVAL = 7000;
-const DYING_DURATION = 800;
-
-const ANIMS = ["bubble-float-1", "bubble-float-2", "bubble-float-3"];
-const LAYERS = [
-  { label: "large", sizeMin: 130, sizeMax: 155, opacity: 1, zIndex: 10, durMin: 18, durMax: 22 },
-  { label: "large", sizeMin: 130, sizeMax: 155, opacity: 1, zIndex: 10, durMin: 18, durMax: 22 },
-  { label: "medium", sizeMin: 90, sizeMax: 115, opacity: 0.9, zIndex: 8, durMin: 14, durMax: 18 },
-  { label: "medium", sizeMin: 90, sizeMax: 115, opacity: 0.9, zIndex: 8, durMin: 14, durMax: 18 },
-  { label: "medium", sizeMin: 90, sizeMax: 115, opacity: 0.9, zIndex: 8, durMin: 14, durMax: 18 },
-  { label: "small", sizeMin: 55, sizeMax: 80, opacity: 0.7, zIndex: 6, durMin: 10, durMax: 14 },
-  { label: "small", sizeMin: 55, sizeMax: 80, opacity: 0.7, zIndex: 6, durMin: 10, durMax: 14 },
-  { label: "small", sizeMin: 55, sizeMax: 80, opacity: 0.7, zIndex: 6, durMin: 10, durMax: 14 },
-];
-
-interface MemoryFromDB {
+export interface BubbleData {
   id: string;
-  title: string | null;
-  file_url: string;
-  file_type: string | null;
-  thumbnail_url: string | null;
-  is_anonymous: boolean;
-  is_community: boolean;
-  created_at: string;
-  user_id: string;
-  display_name?: string | null;
-}
-
-interface BubbleItem {
-  id: string;
+  type: "real" | "demo";
   title: string;
-  file_url: string;
-  file_type: string;
-  thumbnail_url: string | null;
-  isAnonymous: boolean;
-  displayName: string;
-  createdAt: string;
-  image: string;
-  size: number;
+  thumbnail_url?: string | null;
+  file_url?: string | null;
+  file_type?: "video" | "audio" | string | null;
+  question_fr?: string | null;
+  question_en?: string | null;
+  question_ar?: string | null;
+  user_id?: string;
+  user_name?: string;
+  user_location?: string;
+  is_family_circle?: boolean;
+  is_following?: boolean;
+  sparks_count?: number;
+  views_count?: number;
+  created_at?: string;
   x: number;
   y: number;
-  opacity: number;
-  zIndex: number;
-  animClass: string;
-  animDuration: string;
-  animDelay: string;
-  isDemo: boolean;
-  zoneIndex: number;
-  bornAt: number;
-  dying?: boolean;
+  size: number;
+  animDelay: number;
+  animDuration: number;
 }
+
+const PACKET_SIZE = 8;
+
+const getBubbleSize = (sparks = 0, views = 0): number => {
+  const score = sparks * 3 + views * 0.1;
+  if (score > 200) return 170;
+  if (score > 50) return 140;
+  if (score > 10) return 110;
+  return 80;
+};
+
+const generatePositions = (_sizes: number[]): Array<{ x: number; y: number }> => {
+  const zones = [
+    { x: [8, 30], y: [12, 30] },
+    { x: [35, 60], y: [8, 25] },
+    { x: [62, 85], y: [12, 30] },
+    { x: [5, 28], y: [35, 55] },
+    { x: [55, 82], y: [32, 52] },
+    { x: [15, 45], y: [55, 75] },
+    { x: [45, 75], y: [58, 78] },
+    { x: [62, 88], y: [60, 80] },
+  ];
+
+  return zones.map((zone) => ({
+    x: zone.x[0] + Math.random() * (zone.x[1] - zone.x[0]),
+    y: zone.y[0] + Math.random() * (zone.y[1] - zone.y[0]),
+  }));
+};
+
+const DEMO_BUBBLES: Omit<BubbleData, "x" | "y" | "size" | "animDelay" | "animDuration">[] = [
+  { id: "demo-1", type: "demo", title: "L'odeur de sa cuisine", thumbnail_url: imgGrandfather },
+  { id: "demo-2", type: "demo", title: "Ton plus vieux fou rire", thumbnail_url: imgChild },
+  { id: "demo-3", type: "demo", title: "Leur geste d'amour muet", thumbnail_url: imgMarry },
+  { id: "demo-4", type: "demo", title: "Le bruit de la maison", thumbnail_url: imgPicnic },
+  { id: "demo-5", type: "demo", title: "Le café des matins", thumbnail_url: imgLove },
+  { id: "demo-6", type: "demo", title: "Le vêtement de ton père", thumbnail_url: imgHouse },
+  { id: "demo-7", type: "demo", title: "Leur secret de bonheur", thumbnail_url: imgRelax },
+  { id: "demo-8", type: "demo", title: "La première étreinte", thumbnail_url: imgBirth },
+];
+
+const getDemoBubbles = (): BubbleData[] => {
+  const positions = generatePositions(Array(8).fill(80));
+  return DEMO_BUBBLES.map((demo, i) => ({
+    ...demo,
+    size: 80,
+    x: positions[i].x,
+    y: positions[i].y,
+    animDelay: Math.random() * 3,
+    animDuration: 3 + Math.random() * 4,
+  }));
+};
 
 interface BubbleCanvasProps {
   onBubbleClick?: (question: string, category: "past") => void;
   activeTimeline: Timeline;
 }
 
-const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
-  const navigate = useNavigate();
+const BubbleCanvas = ({ onBubbleClick, activeTimeline: _activeTimeline }: BubbleCanvasProps) => {
   const { lang } = useLanguage();
-  const [userName, setUserName] = useState("");
-  const [bubbles, setBubbles] = useState<BubbleItem[]>([]);
-  const [selectedBubble, setSelectedBubble] = useState<BubbleItem | null>(null);
-  const [showOverlay, setShowOverlay] = useState(false);
-  const [showMirror, setShowMirror] = useState(false);
-  const [mirrorQuestion, setMirrorQuestion] = useState("");
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const usedZonesRef = useRef<Set<number>>(new Set());
-  const bubbleIdCounter = useRef(0);
-  const memoryPoolRef = useRef<MemoryFromDB[]>([]);
-  const memoryCursorRef = useRef(0);
-  const usingRealRef = useRef(false);
+  const [packets, setPackets] = useState<BubbleData[][]>([]);
+  const [currentPacketIdx, setCurrentPacketIdx] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getName = async () => {
-      const local = localStorage.getItem("infeelit_user_name");
-      if (local) {
-        setUserName(local);
-        return;
-      }
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const name = session?.user?.user_metadata?.display_name || "";
-      if (name) {
-        localStorage.setItem("infeelit_user_name", name);
-        setUserName(name);
-      }
-    };
-    getName();
-  }, []);
-
-  const getThemedImage = useCallback((title: string): string => {
-    const lower = title.toLowerCase();
-    for (const [keyword, img] of Object.entries(THEME_IMAGES)) {
-      if (lower.includes(keyword)) return img;
-    }
-    return imgRelax;
-  }, []);
-
-  const getDemoBubbles = useCallback((): BubbleItem[] => {
-    const questions = DEMO_QUESTIONS[activeTimeline] || DEMO_QUESTIONS.memories;
-    const langKey = (lang === "fr" ? "fr" : lang === "ar" ? "ar" : "en") as "fr" | "en" | "ar";
-    return questions
-      .filter((q) => q[langKey] && q[langKey].length > 0)
-      .map((q, i) => {
-        const zone = ZONES[i % ZONES.length];
-        const layer = LAYERS[i % LAYERS.length];
-        const size = layer.sizeMin + Math.random() * (layer.sizeMax - layer.sizeMin);
-        const x = zone.xMin + Math.random() * (zone.xMax - zone.xMin);
-        const y = zone.yMin + Math.random() * (zone.yMax - zone.yMin);
-        const dur = layer.durMin + Math.random() * (layer.durMax - layer.durMin);
-        bubbleIdCounter.current += 1;
-        return {
-          id: `demo-${bubbleIdCounter.current}`,
-          title: q[langKey] || q.en || "",
-          file_url: "",
-          file_type: "question",
-          thumbnail_url: null,
-          isAnonymous: false,
-          displayName: "",
-          createdAt: "",
-          image: q.image,
-          size,
-          x,
-          y,
-          opacity: layer.opacity,
-          zIndex: layer.zIndex,
-          animClass: ANIMS[i % 3],
-          animDuration: `${dur}s`,
-          animDelay: `${Math.random() * 8}s`,
-          isDemo: true,
-          zoneIndex: i,
-          bornAt: Date.now(),
-        };
-      });
-  }, [activeTimeline, lang]);
-
-  const createBubbleFromMemory = useCallback(
-    (mem: MemoryFromDB, zoneIndex: number): BubbleItem => {
-      const zone = ZONES[zoneIndex % ZONES.length];
-      const layer = LAYERS[zoneIndex % LAYERS.length];
-      const size = layer.sizeMin + Math.random() * (layer.sizeMax - layer.sizeMin);
-      const x = zone.xMin + Math.random() * (zone.xMax - zone.xMin);
-      const y = zone.yMin + Math.random() * (zone.yMax - zone.yMin);
-      const dur = layer.durMin + Math.random() * (layer.durMax - layer.durMin);
-      const image = mem.thumbnail_url || getThemedImage(mem.title || "");
-      const displayName = mem.is_anonymous
-        ? "Un Gardien"
-        : mem.display_name?.split(" ")[0] || "Un Gardien";
-      bubbleIdCounter.current += 1;
-      return {
-        id: `mem-${bubbleIdCounter.current}`,
-        title: mem.title || "A memory",
-        file_url: mem.file_url,
-        file_type: mem.file_type || "audio",
-        thumbnail_url: mem.thumbnail_url,
-        isAnonymous: mem.is_anonymous,
-        displayName,
-        createdAt: mem.created_at,
-        image,
-        size,
-        x,
-        y,
-        opacity: layer.opacity,
-        zIndex: layer.zIndex,
-        animClass: ANIMS[zoneIndex % 3],
-        animDuration: `${dur}s`,
-        animDelay: `${Math.random() * 8}s`,
-        isDemo: false,
-        zoneIndex,
-        bornAt: Date.now(),
-      };
-    },
-    [getThemedImage],
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-
     const loadMemories = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      setLoading(true);
 
-      const selectCols =
-        "id, title, file_url, file_type, thumbnail_url, is_anonymous, is_community, created_at, user_id";
-
-      const { data: communityMems } = await supabase
+      const { data } = await supabase
         .from("memories")
-        .select(selectCols)
+        .select(
+          "id, title, thumbnail_url, file_url, file_type, user_id, sparks_count, views_count, created_at",
+        )
+        .eq("is_public", true)
         .eq("is_community", true)
+        .not("moderation_status", "eq", "rejected")
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(64);
 
-      let circleMems: MemoryFromDB[] = [];
-      if (session?.user) {
-        const { data: memberOf } = await supabase
-          .from("circle_members")
-          .select("circle_id")
-          .eq("user_id", session.user.id);
+      const rows = data || [];
 
-        if (memberOf?.length) {
-          const circleIds = memberOf.map((m) => m.circle_id);
-          const { data: memberRows } = await supabase
-            .from("circle_members")
-            .select("user_id")
-            .in("circle_id", circleIds);
-          const peerIds = Array.from(new Set((memberRows || []).map((r) => r.user_id)));
-          if (peerIds.length) {
-            const { data: cMems } = await supabase
-              .from("memories")
-              .select(selectCols)
-              .in("user_id", peerIds)
-              .order("created_at", { ascending: false })
-              .limit(10);
-            circleMems = (cMems as unknown as MemoryFromDB[]) || [];
-          }
-        }
-      }
-
-      const all = [...circleMems, ...((communityMems as unknown as MemoryFromDB[]) || [])];
-      const unique = all.filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i);
-
-      // Resolve display names in one batch
-      const authorIds = Array.from(
-        new Set(unique.filter((m) => !m.is_anonymous).map((m) => m.user_id)),
-      );
+      const authorIds = Array.from(new Set(rows.map((m) => m.user_id).filter(Boolean)));
+      const nameMap = new Map<string, string>();
       if (authorIds.length) {
         const { data: profs } = await supabase
           .from("profiles")
           .select("user_id, display_name")
           .in("user_id", authorIds);
-        const nameMap = new Map((profs || []).map((p) => [p.user_id, p.display_name]));
-        unique.forEach((m) => {
-          m.display_name = nameMap.get(m.user_id) ?? null;
+        (profs || []).forEach((p) => {
+          if (p.display_name) nameMap.set(p.user_id, p.display_name.split(" ")[0]);
         });
       }
 
-      if (cancelled) return;
+      const positions = generatePositions(Array(rows.length).fill(80));
 
-      const demoBubbles = getDemoBubbles();
-      usedZonesRef.current = new Set();
+      const bubbles: BubbleData[] = rows.map((m, i) => ({
+        id: m.id,
+        type: "real" as const,
+        title: m.title || "Un souvenir",
+        thumbnail_url: m.thumbnail_url,
+        file_url: m.file_url,
+        file_type: m.file_type,
+        user_id: m.user_id,
+        user_name: nameMap.get(m.user_id) || "Quelqu'un",
+        sparks_count: m.sparks_count || 0,
+        views_count: m.views_count || 0,
+        created_at: m.created_at,
+        is_family_circle: false,
+        is_following: false,
+        size: getBubbleSize(m.sparks_count || 0, m.views_count || 0),
+        x: positions[i % positions.length].x,
+        y: positions[i % positions.length].y,
+        animDelay: Math.random() * 3,
+        animDuration: 3 + Math.random() * 4,
+      }));
 
-      if (unique.length > 0) {
-        usingRealRef.current = true;
-        memoryPoolRef.current = unique;
-        memoryCursorRef.current = Math.min(4, unique.length);
+      const demos = getDemoBubbles();
+      const combined = bubbles.length < 8 ? [...bubbles, ...demos.slice(0, 8 - bubbles.length)] : bubbles;
 
-        const realSlots = Math.min(4, unique.length);
-        const initial: BubbleItem[] = [];
-        for (let i = 0; i < realSlots; i++) {
-          usedZonesRef.current.add(i);
-          const b = createBubbleFromMemory(unique[i], i);
-          b.bornAt = Date.now() - i * 2000;
-          initial.push(b);
-        }
-
-        const demoSlots = Math.min(4, demoBubbles.length);
-        for (let i = 0; i < demoSlots; i++) {
-          const zoneIndex = realSlots + i;
-          usedZonesRef.current.add(zoneIndex);
-          const demo = { ...demoBubbles[i], zoneIndex };
-          demo.bornAt = Date.now() - (realSlots + i) * 2000;
-          initial.push(demo);
-        }
-
-        setBubbles(initial.slice(0, 8));
-      } else {
-        usingRealRef.current = false;
-        demoBubbles.forEach((b, i) => {
-          b.bornAt = Date.now() - i * 2000;
-          usedZonesRef.current.add(b.zoneIndex);
-        });
-        setBubbles(demoBubbles.slice(0, 8));
+      const newPackets: BubbleData[][] = [];
+      for (let i = 0; i < combined.length; i += PACKET_SIZE) {
+        const packet = combined.slice(i, i + PACKET_SIZE);
+        const pPositions = generatePositions(packet.map((b) => b.size));
+        newPackets.push(
+          packet.map((b, j) => ({
+            ...b,
+            x: pPositions[j].x,
+            y: pPositions[j].y,
+          })),
+        );
       }
+
+      setPackets(newPackets.length ? newPackets : [demos]);
+      setCurrentPacketIdx(0);
+      setLoading(false);
     };
 
     loadMemories();
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTimeline, createBubbleFromMemory, getDemoBubbles]);
+  }, []);
 
-  // Lifecycle: rotate one bubble every ROTATION_INTERVAL — mark dying, then replace
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setBubbles((prev) => {
-        const alive = prev.filter((b) => !b.dying);
-        if (alive.length === 0) return prev;
-        const oldest = alive.reduce((a, b) => (a.bornAt < b.bornAt ? a : b));
-        if (Date.now() - oldest.bornAt < BUBBLE_LIFETIME * 0.4) return prev;
-        return prev.map((b) => (b.id === oldest.id ? { ...b, dying: true } : b));
-      });
+  const currentBubbles = packets[currentPacketIdx] || [];
 
-      // After dying animation, swap in a fresh bubble in the freed zone
-      setTimeout(() => {
-        setBubbles((prev) => {
-          const dying = prev.find((b) => b.dying);
-          if (!dying) return prev;
-          const remaining = prev.filter((b) => b.id !== dying.id);
-          usedZonesRef.current.delete(dying.zoneIndex);
-
-          if (usingRealRef.current && memoryPoolRef.current.length) {
-            const pool = memoryPoolRef.current;
-            const nextMem = pool[memoryCursorRef.current % pool.length];
-            memoryCursorRef.current += 1;
-            usedZonesRef.current.add(dying.zoneIndex);
-            const fresh = createBubbleFromMemory(nextMem, dying.zoneIndex);
-            return [...remaining, fresh];
-          }
-
-          // Demo fallback: refresh a demo bubble in that zone
-          const newDemo = getDemoBubbles().find(
-            (d) => !remaining.some((r) => r.zoneIndex === d.zoneIndex),
-          );
-          if (newDemo) {
-            newDemo.zoneIndex = dying.zoneIndex;
-            usedZonesRef.current.add(dying.zoneIndex);
-            return [...remaining, newDemo];
-          }
-          return remaining;
-        });
-      }, DYING_DURATION);
-    }, ROTATION_INTERVAL);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [createBubbleFromMemory, getDemoBubbles]);
-
-  const handleBubbleTap = (bubble: BubbleItem) => {
-    if (bubble.isDemo) {
-      if (onBubbleClick && bubble.title) {
-        onBubbleClick(bubble.title, "past");
-      }
-      return;
+  const handleBubbleTap = (bubble: BubbleData) => {
+    if (bubble.type === "demo" && onBubbleClick && bubble.title) {
+      onBubbleClick(bubble.title, "past");
     }
-    setSelectedBubble(bubble);
-    setShowOverlay(true);
-    setTimeout(() => setShowOverlay(false), 3000);
   };
 
-  const handleClosePlayer = () => {
-    setSelectedBubble(null);
-    setShowMirror(false);
-    setMirrorQuestion("");
-  };
-
-  const handleMediaEnded = () => {
-    if (!selectedBubble) return;
-    const name = userName || "toi";
-    const mirror =
-      lang === "fr"
-        ? `Et toi ${name}, qu'as-tu ressenti en écoutant "${selectedBubble.title}" ?`
-        : lang === "ar"
-          ? `وأنت ${name}، ماذا شعرت وأنت تستمع إلى "${selectedBubble.title}" ؟`
-          : `And you ${name}, what did you feel listening to "${selectedBubble.title}"?`;
-    setMirrorQuestion(mirror);
-    setShowMirror(true);
-  };
-
-  const handleRecordMirror = () => {
-    navigate("/record", { state: { question: mirrorQuestion, category: "past", fromMemory: true } });
-    handleClosePlayer();
-  };
-
-  const getShortTitle = (title: string): string => {
-    const words = title.split(" ").slice(0, 4);
-    return words.join(" ") + (words.length < title.split(" ").length ? "..." : "");
-  };
+  if (loading) {
+    return (
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "28px",
+            height: "28px",
+            border: "2px solid rgba(232,116,42,0.2)",
+            borderTopColor: "#E8742A",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
-    <div className="absolute inset-0 z-[1] overflow-hidden">
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        overflow: "hidden",
+        background: "transparent",
+      }}
+    >
       <style>{`
-        @keyframes bubble-float-1 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          20%  { transform: translate3d(12px, -18px, 0) scale(1.02); }
-          40%  { transform: translate3d(-8px, -12px, 0) scale(0.98); }
-          60%  { transform: translate3d(15px, 8px, 0) scale(1.01); }
-          80%  { transform: translate3d(-10px, 15px, 0) scale(0.99); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+        @keyframes bubbleFloat {
+          0%, 100% { transform: translate(-50%, -50%) translateY(0px) rotate(0deg); }
+          33% { transform: translate(-50%, -50%) translateY(-12px) rotate(1deg); }
+          66% { transform: translate(-50%, -50%) translateY(6px) rotate(-1deg); }
         }
-        @keyframes bubble-float-2 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          25%  { transform: translate3d(-15px, -20px, 0) scale(1.03); }
-          50%  { transform: translate3d(10px, -8px, 0) scale(0.97); }
-          75%  { transform: translate3d(-12px, 12px, 0) scale(1.02); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
-        }
-        @keyframes bubble-float-3 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          33%  { transform: translate3d(18px, -15px, 0) scale(0.98); }
-          66%  { transform: translate3d(-14px, 10px, 0) scale(1.03); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
-        }
-        @keyframes bubble-born {
-          from { opacity: 0; transform: scale(0.3); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-        @keyframes bubble-die {
-          from { opacity: 1; transform: scale(1); }
-          to   { opacity: 0; transform: scale(0.3); }
-        }
-        .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
-        .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
-        .bubble-float-3 { animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
-        .bubble-dying { animation: bubble-die 0.8s ease-in forwards; }
       `}</style>
 
-      {bubbles.map((bubble) => (
-        <button
-          key={bubble.id}
-          onClick={() => handleBubbleTap(bubble)}
-          className={`absolute rounded-full overflow-hidden cursor-pointer ${bubble.dying ? "bubble-dying" : bubble.animClass}`}
-          style={
-            {
-              width: `${bubble.size}px`,
-              height: `${bubble.size}px`,
+      <div style={{ position: "absolute", inset: 0 }}>
+        {currentBubbles.map((bubble) => (
+          <div
+            key={bubble.id}
+            className="bubble-item"
+            onClick={() => handleBubbleTap(bubble)}
+            style={{
+              position: "absolute",
               left: `${bubble.x}%`,
               top: `${bubble.y}%`,
-              opacity: selectedBubble && selectedBubble.id !== bubble.id ? 0.25 : bubble.opacity,
-              filter: selectedBubble && selectedBubble.id !== bubble.id ? "blur(3px)" : undefined,
-              transition: "opacity 0.4s ease, filter 0.4s ease",
-              zIndex: bubble.zIndex,
-              border: bubble.isDemo ? "2px solid rgba(232,116,42,0.55)" : "2.5px solid rgba(107,78,155,0.7)",
-              boxShadow: bubble.isDemo ? "0 0 20px rgba(232,116,42,0.2)" : "0 0 20px rgba(107,78,155,0.25)",
-              "--dur": bubble.animDuration,
-              "--delay": bubble.animDelay,
-              willChange: "transform",
-            } as React.CSSProperties
-          }
-        >
-          <img
-            src={bubble.image}
-            alt=""
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center top",
-              filter: bubble.isDemo ? "grayscale(60%) sepia(40%) brightness(0.85)" : "sepia(30%) brightness(0.9)",
+              transform: "translate(-50%, -50%)",
+              width: `${bubble.size}px`,
+              height: `${bubble.size}px`,
+              borderRadius: "50%",
+              cursor: "pointer",
+              overflow: "hidden",
+              animation: `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+              zIndex: 3,
             }}
-          />
+          >
+            {bubble.thumbnail_url ? (
+              <img
+                src={bubble.thumbnail_url}
+                alt={bubble.title}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  pointerEvents: "none",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  background:
+                    bubble.type === "demo"
+                      ? "linear-gradient(135deg, #E8742A, #D4621A)"
+                      : "linear-gradient(135deg, #2D1810, #8B3A1A)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span style={{ fontSize: bubble.size > 120 ? "28px" : "20px", opacity: 0.8 }}>
+                  {bubble.file_type === "audio" ? "🎙️" : "✦"}
+                </span>
+              </div>
+            )}
 
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)",
-            }}
-          />
-
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
-            }}
-          />
-
-          {!bubble.isDemo && bubble.file_type === "audio" && (
             <div
               style={{
                 position: "absolute",
                 inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "3px",
-                paddingBottom: "20px",
+                background: "linear-gradient(to top, rgba(45,24,16,0.7) 0%, transparent 50%)",
+                pointerEvents: "none",
               }}
-            >
-              {[14, 22, 10, 18, 26].map((h, k) => (
-                <div
-                  key={k}
-                  style={{
-                    width: "3px",
-                    height: `${h}px`,
-                    backgroundColor: "#c4b5fd",
-                    borderRadius: "2px",
-                    opacity: 0.8,
-                    animation: `audioWaveGlow ${0.7 + (k % 3) * 0.2}s ease-in-out infinite`,
-                    animationDelay: `${k * 0.06}s`,
-                  }}
-                />
-              ))}
-            </div>
-          )}
+            />
 
-          <div style={{ position: "absolute", top: "6px", right: "6px" }}>
-            <div
-              style={{
-                width: "20px",
-                height: "20px",
-                borderRadius: "50%",
-                backgroundColor: "rgba(0,0,0,0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {bubble.isDemo ? (
-                <span style={{ fontSize: "10px", color: "#E8742A", fontWeight: 900 }}>?</span>
-              ) : bubble.file_type === "video" ? (
-                <Play size={10} color="#fff" fill="#fff" />
-              ) : (
-                <Volume2 size={10} color="#c4b5fd" />
-              )}
-            </div>
-          </div>
-
-          {bubble.size >= 90 && (
-            <div
-              style={{ position: "absolute", bottom: "8px", left: 0, right: 0, padding: "0 8px", textAlign: "center" }}
-            >
-              {!bubble.isDemo && (
+            {bubble.size >= 110 && bubble.title && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "8px",
+                  left: "8px",
+                  right: "8px",
+                  pointerEvents: "none",
+                }}
+              >
                 <p
                   style={{
-                    fontSize: "8px",
-                    fontWeight: 700,
+                    fontSize: bubble.size >= 140 ? "11px" : "9px",
                     color: "#fff",
-                    textTransform: "uppercase",
-                    marginBottom: "1px",
+                    margin: 0,
+                    lineHeight: 1.3,
+                    fontFamily: "Georgia, serif",
+                    fontStyle: "italic",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
                     textShadow: "0 1px 4px rgba(0,0,0,0.8)",
                   }}
                 >
-                  {bubble.displayName}
+                  {bubble.title}
                 </p>
-              )}
-              <p
-                style={{
-                  fontSize: "7px",
-                  fontStyle: "italic",
-                  color: "rgba(255,255,255,0.7)",
-                  lineHeight: 1.2,
-                  textShadow: "0 1px 3px rgba(0,0,0,0.7)",
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                }}
-              >
-                {getShortTitle(bubble.title)}
-              </p>
-            </div>
-          )}
-        </button>
-      ))}
-
-      {selectedBubble && !selectedBubble.isDemo && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6"
-          onClick={handleClosePlayer}
-        >
-          <div
-            className="relative w-full max-w-[340px] rounded-full overflow-hidden"
-            style={{ aspectRatio: selectedBubble.file_type === "audio" ? "16/9" : "4/5" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {selectedBubble.file_type === "video" && selectedBubble.file_url ? (
-              <video
-                src={selectedBubble.file_url}
-                controls
-                autoPlay
-                onEnded={handleMediaEnded}
-                className="w-full h-full object-cover"
-                style={{ borderRadius: "50%" }}
-              />
-            ) : selectedBubble.file_type === "audio" && selectedBubble.file_url ? (
-              <audio
-                src={selectedBubble.file_url}
-                controls
-                autoPlay
-                onEnded={handleMediaEnded}
-                className="w-[80%] mx-auto mt-[40%]"
-              />
-            ) : (
-              <img
-                src={selectedBubble.image}
-                alt=""
-                className="w-full h-full object-cover"
-                style={{ borderRadius: "50%", filter: "sepia(30%) brightness(0.8)" }}
-              />
-            )}
-
-            {showOverlay && (
-              <div
-                className="absolute top-0 left-0 right-0 px-5 py-4 z-10"
-                style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)" }}
-              >
-                <p className="text-[10px] text-white/50 uppercase tracking-[0.2em] font-bold mb-1.5">
-                  {lang === "fr" ? "Ils ont demandé..." : lang === "ar" ? "سألوا..." : "They asked..."}
-                </p>
-                <p className="text-[15px] text-white italic font-serif leading-relaxed">"{selectedBubble.title}"</p>
-              </div>
-            )}
-
-            <div className="absolute bottom-4 left-0 right-0 text-center">
-              <p className="text-white/60 text-xs font-bold">
-                {selectedBubble.displayName} · {new Date(selectedBubble.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-
-            {showMirror && (
-              <div
-                className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-6 px-6 z-20"
-                style={{ borderRadius: "50%" }}
-              >
-                <p className="text-white text-lg italic font-serif text-center leading-relaxed">"{mirrorQuestion}"</p>
-                <button
-                  onClick={handleRecordMirror}
-                  className="px-6 py-3 rounded-full font-bold text-sm"
-                  style={{
-                    background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                    color: "#fff",
-                    boxShadow: "0 0 24px rgba(232,116,42,0.5)",
-                  }}
-                >
-                  {lang === "fr" ? "Je veux raconter ça" : lang === "ar" ? "أريد أن أحكي هذا" : "I want to tell this"}
-                </button>
-                <button onClick={handleClosePlayer} className="text-white/30 text-xs">
-                  {lang === "fr" ? "Plus tard" : lang === "ar" ? "لاحقاً" : "Later"}
-                </button>
               </div>
             )}
           </div>
-
-          <button
-            onClick={handleClosePlayer}
-            className="absolute top-6 right-6 p-3 rounded-full bg-white/10 text-white"
-          >
-            <X size={22} />
-          </button>
-        </div>
-      )}
-
-      <style>{`@keyframes audioWaveGlow{0%,100%{opacity:.7}50%{opacity:1}}`}</style>
+        ))}
+      </div>
     </div>
   );
 };
