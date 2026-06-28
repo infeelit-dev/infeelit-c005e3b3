@@ -159,69 +159,6 @@ const Places = () => {
     loadGeoMemories();
   }, []);
 
-  const applyMapStyle = (m: mapboxgl.Map) => {
-    try {
-      m.setPaintProperty("background", "background-color", "#FDF8F0");
-    } catch {
-      /* layer may not exist */
-    }
-
-    try {
-      m.setPaintProperty("water", "fill-color", "#E8DCC8");
-    } catch {
-      /* layer may not exist */
-    }
-
-    ["landcover", "national-park", "landuse"].forEach((layer) => {
-      try {
-        m.setPaintProperty(layer, "fill-color", "#F5EDD8");
-      } catch {
-        /* layer may not exist */
-      }
-    });
-
-    try {
-      m.setPaintProperty("building", "fill-color", "#F0E6D3");
-      m.setPaintProperty("building", "fill-opacity", 0.6);
-    } catch {
-      /* layer may not exist */
-    }
-
-    ["road-primary", "road-secondary", "road-street", "road-minor", "road-path"].forEach((layer) => {
-      try {
-        m.setPaintProperty(layer, "line-color", "#D4AF37");
-        m.setPaintProperty(layer, "line-opacity", 0.12);
-      } catch {
-        /* layer may not exist */
-      }
-    });
-
-    try {
-      m.setPaintProperty("hillshade", "exaggeration", 0.3);
-    } catch {
-      /* layer may not exist */
-    }
-
-    const labelLayers = [
-      "poi-label",
-      "road-label",
-      "waterway-label",
-      "natural-line-label",
-      "water-label",
-      "landuse-label",
-      "state-label",
-      "country-label",
-      "settlement-label",
-    ];
-    labelLayers.forEach((layer) => {
-      try {
-        m.setLayoutProperty(layer, "visibility", "none");
-      } catch {
-        /* layer may not exist */
-      }
-    });
-  };
-
   const setupHeatmap = (m: mapboxgl.Map, currentPins: MemoryPin[]) => {
     if (!m.getSource("memories-heat")) {
       m.addSource("memories-heat", {
@@ -363,36 +300,106 @@ const Places = () => {
   useEffect(() => {
     if (!MAPBOX_TOKEN || map.current || !mapContainer.current || loading) return;
 
-    const onMapLoad = (currentPins: MemoryPin[]) => {
+    const DUBAI_CENTER: [number, number] = [55.2708, 25.2048];
+    const DUBAI_ZOOM = 11;
+
+    const onMapLoad = (
+      currentPins: MemoryPin[],
+      userLng?: number,
+      userLat?: number,
+    ) => {
       const m = map.current!;
-      applyMapStyle(m);
+      console.log("Mapbox layers:", m.getStyle().layers.map((l) => l.id));
+
+      try {
+        m.setPaintProperty("background", "background-color", "#FDF8F0");
+      } catch {
+        /* layer may not exist */
+      }
+
+      ["landuse", "landcover", "national-park"].forEach((id) => {
+        try {
+          m.setPaintProperty(id, "fill-color", "#F5EDD8");
+        } catch {
+          /* layer may not exist */
+        }
+      });
+
+      try {
+        m.setPaintProperty("water", "fill-color", "#E8DCC8");
+      } catch {
+        /* layer may not exist */
+      }
+
+      ["road-primary", "road-secondary-tertiary", "road-street", "road-minor"].forEach((id) => {
+        try {
+          m.setPaintProperty(id, "line-color", "#D4AF37");
+          m.setPaintProperty(id, "line-opacity", 0.12);
+        } catch {
+          /* layer may not exist */
+        }
+      });
+
+      try {
+        m.setPaintProperty("hillshade", "hillshade-exaggeration", 0.3);
+      } catch {
+        /* layer may not exist */
+      }
+
+      try {
+        m.setPaintProperty("building", "fill-color", "#F0E8D8");
+        m.setPaintProperty("building", "fill-opacity", 0.4);
+      } catch {
+        /* layer may not exist */
+      }
+
+      const labelLayers = [
+        "poi-label",
+        "road-label",
+        "waterway-label",
+        "natural-line-label",
+        "water-label",
+        "landuse-label",
+        "state-label",
+        "country-label",
+        "settlement-label",
+      ];
+      labelLayers.forEach((layer) => {
+        try {
+          m.setLayoutProperty(layer, "visibility", "none");
+        } catch {
+          /* layer may not exist */
+        }
+      });
+
       setupHeatmap(m, currentPins);
       syncMarkers(currentPins);
+
+      if (userLng !== undefined && userLat !== undefined) {
+        addUserRadar(userLng, userLat);
+      }
     };
 
-    const startMap = (lng: number, lat: number, zoom: number, currentPins: MemoryPin[]) => {
+    const startMap = (
+      center: [number, number],
+      zoom: number,
+      currentPins: MemoryPin[],
+      userLng?: number,
+      userLat?: number,
+    ) => {
       if (!mapContainer.current || map.current) return;
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: "mapbox://styles/mapbox/outdoors-v12",
-        center: [lng, lat],
+        center,
         zoom,
         pitch: 15,
         bearing: 0,
         attributionControl: false,
       });
 
-      map.current.on("load", () => onMapLoad(currentPins));
-    };
-
-    const onGeoFail = (currentPins: MemoryPin[]) => {
-      if (currentPins.length > 0) {
-        startMap(currentPins[0].lng, currentPins[0].lat, 2, currentPins);
-        map.current!.once("load", () => fitBoundsToPins(currentPins));
-      } else {
-        startMap(20, 20, 2, currentPins);
-      }
+      map.current.on("load", () => onMapLoad(currentPins, userLng, userLat));
     };
 
     const initializeMap = (currentPins: MemoryPin[]) => {
@@ -401,14 +408,15 @@ const Places = () => {
           (position) => {
             const { latitude, longitude } = position.coords;
             setUserLocation({ lat: latitude, lng: longitude });
-            startMap(longitude, latitude, 12, currentPins);
-            map.current!.once("load", () => addUserRadar(longitude, latitude));
+            startMap([longitude, latitude], 12, currentPins, longitude, latitude);
           },
-          () => onGeoFail(currentPins),
-          { timeout: 5000, maximumAge: 60000 },
+          () => {
+            startMap(DUBAI_CENTER, DUBAI_ZOOM, currentPins);
+          },
+          { timeout: 3000, maximumAge: 300000 },
         );
       } else {
-        onGeoFail(currentPins);
+        startMap(DUBAI_CENTER, DUBAI_ZOOM, currentPins);
       }
     };
 
