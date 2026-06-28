@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.1";
 
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
 
     let originalTranscript = title || "";
 
-    if (file_url && OPENAI_API_KEY) {
+    if (file_url && GROQ_API_KEY) {
       try {
         const { data: fileData, error: fileError } = await supabase.storage.from("memories").download(file_url);
 
@@ -44,13 +44,13 @@ Deno.serve(async (req) => {
           const ext = file_url.split(".").pop()?.toLowerCase() || "webm";
           const formData = new FormData();
           formData.append("file", fileData, `audio.${ext}`);
-          formData.append("model", "whisper-1");
+          formData.append("model", "whisper-large-v3");
           formData.append("response_format", "text");
 
-          const whisperResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+          const whisperResponse = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${OPENAI_API_KEY}`,
+              Authorization: `Bearer ${GROQ_API_KEY}`,
             },
             body: formData,
           });
@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
           }
         }
       } catch (whisperError) {
-        console.error("Whisper failed, using title as fallback:", whisperError);
+        console.error("Groq Whisper failed, using title as fallback:", whisperError);
       }
     }
 
