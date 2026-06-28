@@ -77,6 +77,7 @@ export type Database = {
         Row: {
           aura_intensity: number | null
           background_image_url: string | null
+          comments_count: number
           created_at: string
           description: string | null
           file_type: string | null
@@ -85,17 +86,21 @@ export type Database = {
           is_anonymous: boolean
           is_community: boolean
           is_public: boolean
+          moderation_status: string
           spark_reward: number | null
           sparks_count: number
           thumbnail_url: string | null
           timeline: string
           title: string | null
+          translation_status: string | null
           updated_at: string
           user_id: string
+          views_count: number
         }
         Insert: {
           aura_intensity?: number | null
           background_image_url?: string | null
+          comments_count?: number
           created_at?: string
           description?: string | null
           file_type?: string | null
@@ -104,17 +109,21 @@ export type Database = {
           is_anonymous?: boolean
           is_community?: boolean
           is_public?: boolean
+          moderation_status?: string
           spark_reward?: number | null
           sparks_count?: number
           thumbnail_url?: string | null
           timeline?: string
           title?: string | null
+          translation_status?: string | null
           updated_at?: string
           user_id: string
+          views_count?: number
         }
         Update: {
           aura_intensity?: number | null
           background_image_url?: string | null
+          comments_count?: number
           created_at?: string
           description?: string | null
           file_type?: string | null
@@ -123,13 +132,16 @@ export type Database = {
           is_anonymous?: boolean
           is_community?: boolean
           is_public?: boolean
+          moderation_status?: string
           spark_reward?: number | null
           sparks_count?: number
           thumbnail_url?: string | null
           timeline?: string
           title?: string | null
+          translation_status?: string | null
           updated_at?: string
           user_id?: string
+          views_count?: number
         }
         Relationships: []
       }
@@ -158,6 +170,73 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "memory_bookmarks_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memory_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          memory_id: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          memory_id: string
+          user_id?: string
+          user_name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          memory_id?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memory_comments_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memory_reports: {
+        Row: {
+          created_at: string
+          id: string
+          memory_id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          memory_id: string
+          reason: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          memory_id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memory_reports_memory_id_fkey"
             columns: ["memory_id"]
             isOneToOne: false
             referencedRelation: "memories"
