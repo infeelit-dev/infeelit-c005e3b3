@@ -204,15 +204,19 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   } | null>(null);
   const [openMemory, setOpenMemory] = useState<BubbleData | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+  const [constellationQueue, setConstellationQueue] = useState<BubbleData[]>([]);
+  const constellationQueueRef = useRef<BubbleData[]>([]);
 
-  const touchStartBubble = useRef<string | null>(null);
-  const touchedBubbles = useRef<string[]>([]);
-  const isGesturing = useRef(false);
-  const touchHandledRef = useRef(false);
+  const isPressingRef = useRef(false);
+  const selectedPathRef = useRef<string[]>([]);
 
   useEffect(() => {
     seenIdsRef.current = seenIds;
   }, [seenIds]);
+
+  useEffect(() => {
+    constellationQueueRef.current = constellationQueue;
+  }, [constellationQueue]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -333,54 +337,74 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     }
   };
 
+  const replaceBubble = useCallback((viewedBubble: BubbleData) => {
+    if (!useRealFeed) return;
+
+    setMemoryQueue((currentQueue) => {
+      if (currentQueue.length > 0) {
+        const [nextBubble, ...remainingQueue] = currentQueue;
+
+        setVisibleBubbles((prev) => {
+          const newPosition = getNewPosition(
+            prev.filter((b) => b.id !== viewedBubble.id),
+            nextBubble.size,
+          );
+
+          const newBubble: BubbleData = {
+            ...nextBubble,
+            x: newPosition.x,
+            y: newPosition.y,
+            animDelay: Math.random() * 2,
+            animDuration: 3 + Math.random() * 4,
+            isEntering: true,
+          };
+
+          const withExiting = prev.map((b) =>
+            b.id === viewedBubble.id ? { ...b, isExiting: true } : b,
+          );
+
+          setTimeout(() => {
+            setVisibleBubbles((current) => [
+              ...current.filter((b) => b.id !== viewedBubble.id),
+              newBubble,
+            ]);
+
+            setTimeout(() => {
+              setVisibleBubbles((current) =>
+                current.map((b) => (b.id === newBubble.id ? { ...b, isEntering: false } : b)),
+              );
+            }, 600);
+          }, 500);
+
+          return withExiting;
+        });
+
+        return remainingQueue;
+      }
+
+      setVisibleBubbles((prev) => prev.filter((b) => b.id !== viewedBubble.id));
+      reloadMoreMemories();
+      return currentQueue;
+    });
+  }, [useRealFeed]);
+
   const handleCloseMemory = (viewedBubble: BubbleData) => {
     setOpenMemory(null);
     setSeenIds((prev) => new Set([...prev, viewedBubble.id]));
 
-    if (memoryQueue.length > 0) {
-      const [nextBubble, ...remainingQueue] = memoryQueue;
-      setMemoryQueue(remainingQueue);
-
-      const newPosition = getNewPosition(
-        visibleBubbles.filter((b) => b.id !== viewedBubble.id),
-        nextBubble.size,
-      );
-
-      const newBubble: BubbleData = {
-        ...nextBubble,
-        x: newPosition.x,
-        y: newPosition.y,
-        animDelay: Math.random() * 2,
-        animDuration: 3 + Math.random() * 4,
-        isEntering: true,
-      };
-
-      setVisibleBubbles((prev) =>
-        prev.map((b) => (b.id === viewedBubble.id ? { ...b, isExiting: true } : b)),
-      );
-
+    const queue = constellationQueueRef.current;
+    if (queue.length > 0) {
+      const [next, ...rest] = queue;
+      setConstellationQueue(rest);
       setTimeout(() => {
-        setVisibleBubbles((prev) => [
-          ...prev.filter((b) => b.id !== viewedBubble.id),
-          newBubble,
-        ]);
-
-        setTimeout(() => {
-          setVisibleBubbles((prev) =>
-            prev.map((b) => (b.id === newBubble.id ? { ...b, isEntering: false } : b)),
-          );
-        }, 600);
-      }, 500);
+        handleBubbleTap(next);
+      }, 300);
     } else {
-      setVisibleBubbles((prev) => prev.filter((b) => b.id !== viewedBubble.id));
-      reloadMoreMemories();
+      replaceBubble(viewedBubble);
     }
   };
 
-  const handleBubbleTap = (
-    bubble: BubbleData,
-    event?: React.MouseEvent | React.TouchEvent,
-  ) => {
+  const handleBubbleTap = useCallback((bubble: BubbleData) => {
     if (bubble.type === "demo") {
       if (onBubbleClick && bubble.title) {
         onBubbleClick(bubble.title, "past");
@@ -391,20 +415,14 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     let centerX: number;
     let centerY: number;
 
-    if (event?.currentTarget) {
-      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const el = document.querySelector(`[data-bubble-id="${bubble.id}"]`);
+    if (el) {
+      const rect = el.getBoundingClientRect();
       centerX = rect.left + rect.width / 2;
       centerY = rect.top + rect.height / 2;
     } else {
-      const el = document.querySelector(`[data-bubble-id="${bubble.id}"]`);
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        centerX = rect.left + rect.width / 2;
-        centerY = rect.top + rect.height / 2;
-      } else {
-        centerX = (bubble.x / 100) * window.innerWidth;
-        centerY = (bubble.y / 100) * window.innerHeight;
-      }
+      centerX = (bubble.x / 100) * window.innerWidth;
+      centerY = (bubble.y / 100) * window.innerHeight;
     }
 
     setBloomingBubble({
@@ -418,20 +436,57 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       setBloomingBubble(null);
       setOpenMemory(bubble);
     }, 500);
-  };
+  }, [onBubbleClick]);
 
-  const handleConstellationGesture = (ids: string[]) => {
-    const allBubbles = useRealFeed ? visibleBubbles : demoBubbles;
-    const orderedBubbles = ids
-      .map((id) => allBubbles.find((b) => b.id === id))
-      .filter((b): b is BubbleData => Boolean(b));
+  const handleConstellationGesture = useCallback(
+    (bubbles: BubbleData[]) => {
+      if (bubbles.length === 0) return;
+      setConstellationQueue(bubbles.slice(1));
+      handleBubbleTap(bubbles[0]);
+    },
+    [handleBubbleTap],
+  );
 
-    if (orderedBubbles.length === 0) return;
+  const getActiveBubbles = useCallback((): BubbleData[] => {
+    return useRealFeed ? visibleBubbles : demoBubbles;
+  }, [useRealFeed, visibleBubbles, demoBubbles]);
 
-    handleBubbleTap(orderedBubbles[0]!);
-    // TODO V2 : jouer toutes les bulles en séquence
-    // setConstellationQueue(orderedBubbles);
-  };
+  const addBubbleToPath = useCallback((bubbleId: string) => {
+    if (!isPressingRef.current) return;
+    if (selectedPathRef.current.includes(bubbleId)) return;
+
+    selectedPathRef.current = [...selectedPathRef.current, bubbleId];
+    setHighlightedIds([...selectedPathRef.current]);
+  }, []);
+
+  const startPress = useCallback((bubbleId: string) => {
+    isPressingRef.current = true;
+    selectedPathRef.current = [bubbleId];
+    setHighlightedIds([bubbleId]);
+  }, []);
+
+  const finishGesture = useCallback(() => {
+    if (!isPressingRef.current) return;
+    isPressingRef.current = false;
+
+    const path = selectedPathRef.current;
+    selectedPathRef.current = [];
+    setHighlightedIds([]);
+
+    if (path.length === 0) return;
+
+    const bubbles = getActiveBubbles();
+
+    if (path.length === 1) {
+      const bubble = bubbles.find((b) => b.id === path[0]);
+      if (bubble) handleBubbleTap(bubble);
+    } else {
+      const orderedBubbles = path
+        .map((id) => bubbles.find((b) => b.id === id))
+        .filter((b): b is BubbleData => Boolean(b));
+      handleConstellationGesture(orderedBubbles);
+    }
+  }, [getActiveBubbles, handleBubbleTap, handleConstellationGesture]);
 
   const getShortTitle = (title: string): string => {
     const words = title.split(" ").slice(0, 4);
@@ -467,48 +522,23 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         role="button"
         tabIndex={0}
         data-bubble-id={bubble.id}
-        onClick={() => {
-          if (touchHandledRef.current) {
-            touchHandledRef.current = false;
-            return;
-          }
-          if (!isGesturing.current) {
-            handleBubbleTap(bubble);
-          }
+        onMouseDown={(e) => {
+          e.preventDefault();
+          startPress(bubble.id);
         }}
         onTouchStart={(e) => {
           e.preventDefault();
-          isGesturing.current = false;
-          touchStartBubble.current = bubble.id;
-          touchedBubbles.current = [bubble.id];
-          setHighlightedIds([bubble.id]);
+          startPress(bubble.id);
         }}
-        onTouchMove={(e) => {
-          e.preventDefault();
-          isGesturing.current = true;
-          const touch = e.touches[0];
-          const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-          const bubbleEl = elementUnder?.closest("[data-bubble-id]");
-          if (bubbleEl) {
-            const id = bubbleEl.getAttribute("data-bubble-id");
-            if (id && !touchedBubbles.current.includes(id)) {
-              touchedBubbles.current = [...touchedBubbles.current, id];
-              setHighlightedIds([...touchedBubbles.current]);
-            }
-          }
+        onMouseEnter={() => {
+          addBubbleToPath(bubble.id);
+        }}
+        onMouseUp={() => {
+          finishGesture();
         }}
         onTouchEnd={(e) => {
           e.preventDefault();
-          if (!isGesturing.current) {
-            touchHandledRef.current = true;
-            handleBubbleTap(bubble, e);
-          } else if (touchedBubbles.current.length > 1) {
-            handleConstellationGesture(touchedBubbles.current);
-          }
-          isGesturing.current = false;
-          touchStartBubble.current = null;
-          touchedBubbles.current = [];
-          setHighlightedIds([]);
+          finishGesture();
         }}
         className={`absolute rounded-full overflow-hidden cursor-pointer ${animation || isHighlighted ? "" : bubble.floatClass}`}
         style={{
@@ -516,20 +546,22 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           height: `${bubble.size}px`,
           left: `${bubble.x}%`,
           top: `${bubble.y}%`,
-          transform: isHighlighted
-            ? "translate(-50%, -50%) scale(1.1)"
-            : "translate(-50%, -50%) scale(1)",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease",
-          zIndex: isHighlighted || bubble.isEntering ? 20 : 10,
+          outline: isHighlighted ? "3px solid #E8742A" : "none",
+          outlineOffset: "2px",
+          transform: `translate(-50%, -50%) scale(${isHighlighted ? 1.08 : 1})`,
+          filter: isHighlighted
+            ? "drop-shadow(0 0 12px rgba(232,116,42,0.7)) brightness(1.1)"
+            : "none",
+          transition: "transform 0.15s ease, filter 0.15s ease, outline 0.15s ease",
+          zIndex: isHighlighted ? 15 : bubble.isEntering ? 20 : 10,
           border:
             bubble.type === "demo"
               ? "2px solid rgba(232,116,42,0.55)"
               : "2.5px solid rgba(212,175,55,0.75)",
-          boxShadow: isHighlighted
-            ? "0 0 0 3px #E8742A, 0 0 20px rgba(232,116,42,0.6)"
-            : defaultBoxShadow,
+          boxShadow: isHighlighted ? "none" : defaultBoxShadow,
           pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
           WebkitTapHighlightColor: "transparent",
+          userSelect: "none",
           ...floatStyle,
         }}
       >
@@ -667,11 +699,27 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   return (
     <div
       className="absolute inset-0 z-[1] overflow-hidden"
-      style={{ touchAction: "none" }}
+      style={{ touchAction: "none", userSelect: "none" }}
       onTouchMove={(e) => {
-        if (isGesturing.current) {
-          e.preventDefault();
-        }
+        if (!isPressingRef.current) return;
+        e.preventDefault();
+
+        const touch = e.touches[0];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const bubbleEl = el?.closest("[data-bubble-id]");
+        if (!bubbleEl) return;
+
+        const id = bubbleEl.getAttribute("data-bubble-id");
+        if (id) addBubbleToPath(id);
+      }}
+      onTouchEnd={() => {
+        finishGesture();
+      }}
+      onMouseUp={() => {
+        finishGesture();
+      }}
+      onMouseLeave={() => {
+        if (isPressingRef.current) finishGesture();
       }}
     >
       <style>{`
