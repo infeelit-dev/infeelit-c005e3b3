@@ -209,11 +209,13 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   } | null>(null);
   const [openMemory, setOpenMemory] = useState<BubbleData | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+  const [isPressing, setIsPressing] = useState(false);
   const [constellationQueue, setConstellationQueue] = useState<BubbleData[]>([]);
   const constellationQueueRef = useRef<BubbleData[]>([]);
 
   const isPressingRef = useRef(false);
   const selectedPathRef = useRef<string[]>([]);
+  const lastMousePos = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     seenIdsRef.current = seenIds;
@@ -474,6 +476,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   const startPress = useCallback((bubbleId: string) => {
     isPressingRef.current = true;
+    setIsPressing(true);
     selectedPathRef.current = [bubbleId];
     setHighlightedIds([bubbleId]);
   }, []);
@@ -481,6 +484,8 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   const finishGesture = useCallback(() => {
     if (!isPressingRef.current) return;
     isPressingRef.current = false;
+    setIsPressing(false);
+    lastMousePos.current = null;
 
     const path = selectedPathRef.current;
     selectedPathRef.current = [];
@@ -572,6 +577,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
           WebkitTapHighlightColor: "transparent",
           userSelect: "none",
+          animationPlayState: isPressing ? "paused" : "running",
           ...floatStyle,
         }}
       >
@@ -724,6 +730,14 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       onMouseMove={(e) => {
         if (!isPressingRef.current) return;
 
+        const moved =
+          !lastMousePos.current ||
+          Math.abs(e.clientX - lastMousePos.current.x) > 8 ||
+          Math.abs(e.clientY - lastMousePos.current.y) > 8;
+        if (!moved) return;
+
+        lastMousePos.current = { x: e.clientX, y: e.clientY };
+
         const el = document.elementFromPoint(e.clientX, e.clientY);
         const bubbleEl = el?.closest("[data-bubble-id]");
         if (!bubbleEl) return;
@@ -751,6 +765,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         finishGesture();
       }}
       onMouseUp={() => {
+        lastMousePos.current = null;
         finishGesture();
       }}
       onMouseLeave={() => {
