@@ -203,6 +203,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     size: number;
   } | null>(null);
   const [openMemory, setOpenMemory] = useState<BubbleData | null>(null);
+  const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+
+  const touchStartBubble = useRef<string | null>(null);
+  const touchedBubbles = useRef<string[]>([]);
+  const isGesturing = useRef(false);
+  const touchHandledRef = useRef(false);
 
   useEffect(() => {
     seenIdsRef.current = seenIds;
@@ -373,7 +379,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   const handleBubbleTap = (
     bubble: BubbleData,
-    event: React.MouseEvent | React.TouchEvent,
+    event?: React.MouseEvent | React.TouchEvent,
   ) => {
     if (bubble.type === "demo") {
       if (onBubbleClick && bubble.title) {
@@ -382,9 +388,24 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       return;
     }
 
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    let centerX: number;
+    let centerY: number;
+
+    if (event?.currentTarget) {
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      centerX = rect.left + rect.width / 2;
+      centerY = rect.top + rect.height / 2;
+    } else {
+      const el = document.querySelector(`[data-bubble-id="${bubble.id}"]`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+      } else {
+        centerX = (bubble.x / 100) * window.innerWidth;
+        centerY = (bubble.y / 100) * window.innerHeight;
+      }
+    }
 
     setBloomingBubble({
       id: bubble.id,
@@ -397,6 +418,19 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       setBloomingBubble(null);
       setOpenMemory(bubble);
     }, 500);
+  };
+
+  const handleConstellationGesture = (ids: string[]) => {
+    const allBubbles = useRealFeed ? visibleBubbles : demoBubbles;
+    const orderedBubbles = ids
+      .map((id) => allBubbles.find((b) => b.id === id))
+      .filter((b): b is BubbleData => Boolean(b));
+
+    if (orderedBubbles.length === 0) return;
+
+    handleBubbleTap(orderedBubbles[0]!);
+    // TODO V2 : jouer toutes les bulles en séquence
+    // setConstellationQueue(orderedBubbles);
   };
 
   const getShortTitle = (title: string): string => {
@@ -412,34 +446,90 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       animation = "bubbleEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards";
     }
 
+    const isHighlighted = highlightedIds.includes(bubble.id);
+    const defaultBoxShadow =
+      bubble.type === "demo"
+        ? "0 0 20px rgba(232,116,42,0.2)"
+        : "0 0 24px rgba(212,175,55,0.35)";
+
     const floatStyle = animation
       ? { animation }
-      : ({
-          "--dur": `${bubble.animDuration}s`,
-          "--delay": `${bubble.animDelay}s`,
-        } as React.CSSProperties);
+      : isHighlighted
+        ? {}
+        : ({
+            "--dur": `${bubble.animDuration}s`,
+            "--delay": `${bubble.animDelay}s`,
+          } as React.CSSProperties);
 
     return (
-      <button
+      <div
         key={bubble.id}
-        onClick={(e) => handleBubbleTap(bubble, e)}
-        className={`absolute rounded-full overflow-hidden cursor-pointer ${animation ? "" : bubble.floatClass}`}
+        role="button"
+        tabIndex={0}
+        data-bubble-id={bubble.id}
+        onClick={() => {
+          if (touchHandledRef.current) {
+            touchHandledRef.current = false;
+            return;
+          }
+          if (!isGesturing.current) {
+            handleBubbleTap(bubble);
+          }
+        }}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          isGesturing.current = false;
+          touchStartBubble.current = bubble.id;
+          touchedBubbles.current = [bubble.id];
+          setHighlightedIds([bubble.id]);
+        }}
+        onTouchMove={(e) => {
+          e.preventDefault();
+          isGesturing.current = true;
+          const touch = e.touches[0];
+          const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+          const bubbleEl = elementUnder?.closest("[data-bubble-id]");
+          if (bubbleEl) {
+            const id = bubbleEl.getAttribute("data-bubble-id");
+            if (id && !touchedBubbles.current.includes(id)) {
+              touchedBubbles.current = [...touchedBubbles.current, id];
+              setHighlightedIds([...touchedBubbles.current]);
+            }
+          }
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          if (!isGesturing.current) {
+            touchHandledRef.current = true;
+            handleBubbleTap(bubble, e);
+          } else if (touchedBubbles.current.length > 1) {
+            handleConstellationGesture(touchedBubbles.current);
+          }
+          isGesturing.current = false;
+          touchStartBubble.current = null;
+          touchedBubbles.current = [];
+          setHighlightedIds([]);
+        }}
+        className={`absolute rounded-full overflow-hidden cursor-pointer ${animation || isHighlighted ? "" : bubble.floatClass}`}
         style={{
           width: `${bubble.size}px`,
           height: `${bubble.size}px`,
           left: `${bubble.x}%`,
           top: `${bubble.y}%`,
-          transform: "translate(-50%, -50%)",
-          zIndex: bubble.isEntering ? 20 : 10,
+          transform: isHighlighted
+            ? "translate(-50%, -50%) scale(1.1)"
+            : "translate(-50%, -50%) scale(1)",
+          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          zIndex: isHighlighted || bubble.isEntering ? 20 : 10,
           border:
             bubble.type === "demo"
               ? "2px solid rgba(232,116,42,0.55)"
               : "2.5px solid rgba(212,175,55,0.75)",
-          boxShadow:
-            bubble.type === "demo"
-              ? "0 0 20px rgba(232,116,42,0.2)"
-              : "0 0 24px rgba(212,175,55,0.35)",
+          boxShadow: isHighlighted
+            ? "0 0 0 3px #E8742A, 0 0 20px rgba(232,116,42,0.6)"
+            : defaultBoxShadow,
           pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
+          WebkitTapHighlightColor: "transparent",
           ...floatStyle,
         }}
       >
@@ -568,15 +658,26 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             </p>
           </div>
         )}
-      </button>
+      </div>
     );
   };
 
   const bubblesToRender = useRealFeed ? visibleBubbles : demoBubbles;
 
   return (
-    <div className="absolute inset-0 z-[1] overflow-hidden">
+    <div
+      className="absolute inset-0 z-[1] overflow-hidden"
+      style={{ touchAction: "none" }}
+      onTouchMove={(e) => {
+        if (isGesturing.current) {
+          e.preventDefault();
+        }
+      }}
+    >
       <style>{`
+        [data-bubble-id] {
+          -webkit-tap-highlight-color: transparent;
+        }
         @keyframes bloomExpand {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
           30% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
