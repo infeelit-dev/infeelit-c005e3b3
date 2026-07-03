@@ -215,7 +215,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   const isPressingRef = useRef(false);
   const selectedPathRef = useRef<string[]>([]);
-  const lastMousePos = useRef<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     seenIdsRef.current = seenIds;
@@ -466,42 +466,48 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     return useRealFeed ? visibleBubbles : demoBubbles;
   }, [useRealFeed, visibleBubbles, demoBubbles]);
 
-  const addBubbleToPath = useCallback((bubbleId: string) => {
-    if (!isPressingRef.current) return;
-    if (selectedPathRef.current.includes(bubbleId)) return;
-
-    selectedPathRef.current = [...selectedPathRef.current, bubbleId];
-    setHighlightedIds([...selectedPathRef.current]);
-  }, []);
-
-  const startPress = useCallback((bubbleId: string) => {
+  const startSelection = useCallback((bubbleId: string) => {
     isPressingRef.current = true;
     setIsPressing(true);
     selectedPathRef.current = [bubbleId];
     setHighlightedIds([bubbleId]);
   }, []);
 
-  const finishGesture = useCallback(() => {
+  const addToPath = useCallback((clientX: number, clientY: number) => {
     if (!isPressingRef.current) return;
+
+    const el = document.elementFromPoint(clientX, clientY);
+    const bubbleEl = el?.closest("[data-bubble-id]");
+    if (!bubbleEl) return;
+
+    const id = bubbleEl.getAttribute("data-bubble-id");
+    if (!id) return;
+    if (selectedPathRef.current.includes(id)) return;
+
+    selectedPathRef.current = [...selectedPathRef.current, id];
+    setHighlightedIds([...selectedPathRef.current]);
+  }, []);
+
+  const endSelection = useCallback(() => {
+    if (!isPressingRef.current) return;
+
     isPressingRef.current = false;
     setIsPressing(false);
-    lastMousePos.current = null;
 
-    const path = selectedPathRef.current;
+    const path = [...selectedPathRef.current];
     selectedPathRef.current = [];
     setHighlightedIds([]);
 
     if (path.length === 0) return;
 
     const bubbles = getActiveBubbles();
+    const orderedBubbles = path
+      .map((id) => bubbles.find((b) => b.id === id))
+      .filter((b): b is BubbleData => Boolean(b));
 
-    if (path.length === 1) {
-      const bubble = bubbles.find((b) => b.id === path[0]);
-      if (bubble) handleBubbleTap(bubble);
-    } else {
-      const orderedBubbles = path
-        .map((id) => bubbles.find((b) => b.id === id))
-        .filter((b): b is BubbleData => Boolean(b));
+    if (orderedBubbles.length === 1) {
+      handleBubbleTap(orderedBubbles[0]);
+    } else if (orderedBubbles.length > 1) {
       handleConstellationGesture(orderedBubbles);
     }
   }, [getActiveBubbles, handleBubbleTap, handleConstellationGesture]);
@@ -542,32 +548,28 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         data-bubble-id={bubble.id}
         onMouseDown={(e) => {
           e.preventDefault();
-          startPress(bubble.id);
+          startSelection(bubble.id);
         }}
         onTouchStart={(e) => {
           e.preventDefault();
-          startPress(bubble.id);
+          e.stopPropagation();
+          startSelection(bubble.id);
         }}
-        onMouseUp={() => {
-          finishGesture();
-        }}
-        onTouchEnd={(e) => {
-          e.preventDefault();
-          finishGesture();
-        }}
-        className={`absolute rounded-full overflow-hidden cursor-pointer ${animation || isHighlighted ? "" : bubble.floatClass}`}
+        className={`absolute rounded-full overflow-hidden ${animation || isHighlighted ? "" : bubble.floatClass}`}
         style={{
           width: `${bubble.size}px`,
           height: `${bubble.size}px`,
           left: `${bubble.x}%`,
           top: `${bubble.y}%`,
           outline: isHighlighted ? "3px solid #E8742A" : "none",
-          outlineOffset: "2px",
-          transform: `translate(-50%, -50%) scale(${isHighlighted ? 1.08 : 1})`,
+          outlineOffset: "3px",
+          transform: `translate(-50%, -50%) scale(${isHighlighted ? 1.1 : 1})`,
           filter: isHighlighted
-            ? "drop-shadow(0 0 12px rgba(232,116,42,0.7)) brightness(1.1)"
+            ? "drop-shadow(0 0 16px rgba(232,116,42,0.8)) brightness(1.15)"
             : "none",
-          transition: "transform 0.15s ease, filter 0.15s ease, outline 0.15s ease",
+          transition: isHighlighted
+            ? "transform 0.15s ease, filter 0.15s ease"
+            : "transform 0.3s ease, filter 0.3s ease",
           zIndex: isHighlighted ? 15 : bubble.isEntering ? 20 : 10,
           border:
             bubble.type === "demo"
@@ -575,6 +577,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
               : "2.5px solid rgba(212,175,55,0.75)",
           boxShadow: isHighlighted ? "none" : defaultBoxShadow,
           pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
+          cursor: "pointer",
           WebkitTapHighlightColor: "transparent",
           userSelect: "none",
           animationPlayState: isPressing ? "paused" : "running",
@@ -725,51 +728,26 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   return (
     <div
+      ref={containerRef}
       className="absolute inset-0 z-[1] overflow-hidden"
-      style={{ touchAction: "none", userSelect: "none" }}
-      onMouseMove={(e) => {
-        if (!isPressingRef.current) return;
-
-        const moved =
-          !lastMousePos.current ||
-          Math.abs(e.clientX - lastMousePos.current.x) > 8 ||
-          Math.abs(e.clientY - lastMousePos.current.y) > 8;
-        if (!moved) return;
-
-        lastMousePos.current = { x: e.clientX, y: e.clientY };
-
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const bubbleEl = el?.closest("[data-bubble-id]");
-        if (!bubbleEl) return;
-
-        const id = bubbleEl.getAttribute("data-bubble-id");
-        if (!id) return;
-        if (selectedPathRef.current.includes(id)) return;
-
-        selectedPathRef.current = [...selectedPathRef.current, id];
-        setHighlightedIds([...selectedPathRef.current]);
+      style={{
+        touchAction: "none",
+        userSelect: "none",
+        cursor: isPressing ? "crosshair" : "default",
       }}
+      onTouchStart={(e) => e.preventDefault()}
       onTouchMove={(e) => {
-        if (!isPressingRef.current) return;
         e.preventDefault();
-
         const touch = e.touches[0];
-        const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        const bubbleEl = el?.closest("[data-bubble-id]");
-        if (!bubbleEl) return;
-
-        const id = bubbleEl.getAttribute("data-bubble-id");
-        if (id) addBubbleToPath(id);
+        addToPath(touch.clientX, touch.clientY);
       }}
-      onTouchEnd={() => {
-        finishGesture();
+      onTouchEnd={() => endSelection()}
+      onMouseMove={(e) => {
+        addToPath(e.clientX, e.clientY);
       }}
-      onMouseUp={() => {
-        lastMousePos.current = null;
-        finishGesture();
-      }}
+      onMouseUp={() => endSelection()}
       onMouseLeave={() => {
-        if (isPressingRef.current) finishGesture();
+        if (isPressingRef.current) endSelection();
       }}
     >
       <style>{`
