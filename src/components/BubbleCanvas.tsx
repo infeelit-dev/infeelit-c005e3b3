@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Play, Volume2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -92,6 +93,9 @@ interface BubbleData {
   id: string;
   type: "real" | "demo";
   title: string;
+  question_fr?: string;
+  question_en?: string;
+  question_ar?: string;
   file_url?: string;
   file_type?: string | null;
   thumbnail_url?: string | null;
@@ -185,6 +189,7 @@ function getThemedImage(title: string): string {
 const FLOAT_CLASSES = ["bubble-float-1", "bubble-float-2", "bubble-float-3"];
 
 const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
+  const navigate = useNavigate();
   const { lang } = useLanguage();
   const userName = useUserName();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
@@ -262,6 +267,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         id: `demo-${i}-${langKey}`,
         type: "demo" as const,
         title: q[langKey] || q.en || "",
+        question_fr: q.fr,
+        question_en: q.en,
+        question_ar: q.ar,
         image: q.image,
         size: q.size,
         x: q.x,
@@ -404,39 +412,44 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     }
   };
 
-  const handleBubbleTap = useCallback((bubble: BubbleData) => {
-    if (bubble.type === "demo") {
-      if (onBubbleClick && bubble.title) {
-        onBubbleClick(bubble.title, "past");
+  const handleBubbleTap = useCallback(
+    (bubble: BubbleData) => {
+      if (bubble.type === "demo") {
+        navigate("/record", {
+          state: {
+            preSelectedQuestion: {
+              fr: bubble.question_fr || bubble.title,
+              en: bubble.question_en || bubble.title,
+              ar: bubble.question_ar || bubble.title,
+            },
+          },
+        });
+        return;
       }
-      return;
-    }
 
-    let centerX: number;
-    let centerY: number;
+      const el = document.querySelector(`[data-bubble-id="${bubble.id}"]`);
+      let bloomX = (bubble.x / 100) * window.innerWidth;
+      let bloomY = (bubble.y / 100) * window.innerHeight;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        bloomX = rect.left + rect.width / 2;
+        bloomY = rect.top + rect.height / 2;
+      }
 
-    const el = document.querySelector(`[data-bubble-id="${bubble.id}"]`);
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      centerX = rect.left + rect.width / 2;
-      centerY = rect.top + rect.height / 2;
-    } else {
-      centerX = (bubble.x / 100) * window.innerWidth;
-      centerY = (bubble.y / 100) * window.innerHeight;
-    }
+      setBloomingBubble({
+        id: bubble.id,
+        x: bloomX,
+        y: bloomY,
+        size: bubble.size,
+      });
 
-    setBloomingBubble({
-      id: bubble.id,
-      x: centerX,
-      y: centerY,
-      size: bubble.size,
-    });
-
-    setTimeout(() => {
-      setBloomingBubble(null);
-      setOpenMemory(bubble);
-    }, 500);
-  }, [onBubbleClick]);
+      setTimeout(() => {
+        setBloomingBubble(null);
+        setOpenMemory(bubble);
+      }, 500);
+    },
+    [navigate],
+  );
 
   const handleConstellationGesture = useCallback(
     (bubbles: BubbleData[]) => {
@@ -530,9 +543,6 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           e.preventDefault();
           startPress(bubble.id);
         }}
-        onMouseEnter={() => {
-          addBubbleToPath(bubble.id);
-        }}
         onMouseUp={() => {
           finishGesture();
         }}
@@ -575,6 +585,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             height: "100%",
             objectFit: "cover",
             objectPosition: "center top",
+            pointerEvents: "none",
             filter:
               bubble.type === "demo"
                 ? "grayscale(60%) sepia(40%) brightness(0.85)"
@@ -586,6 +597,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           style={{
             position: "absolute",
             inset: 0,
+            pointerEvents: "none",
             background:
               "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)",
           }}
@@ -595,6 +607,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           style={{
             position: "absolute",
             inset: 0,
+            pointerEvents: "none",
             background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
           }}
         />
@@ -609,6 +622,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
               justifyContent: "center",
               gap: "3px",
               paddingBottom: "20px",
+              pointerEvents: "none",
             }}
           >
             {[14, 22, 10, 18, 26].map((h, k) => (
@@ -620,13 +634,14 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
                   backgroundColor: "#D4AF37",
                   borderRadius: "2px",
                   opacity: 0.8,
+                  pointerEvents: "none",
                 }}
               />
             ))}
           </div>
         )}
 
-        <div style={{ position: "absolute", top: "6px", right: "6px" }}>
+        <div style={{ position: "absolute", top: "6px", right: "6px", pointerEvents: "none" }}>
           <div
             style={{
               width: "20px",
@@ -636,14 +651,17 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              pointerEvents: "none",
             }}
           >
             {bubble.type === "demo" ? (
-              <span style={{ fontSize: "10px", color: "#E8742A", fontWeight: 900 }}>?</span>
+              <span style={{ fontSize: "10px", color: "#E8742A", fontWeight: 900, pointerEvents: "none" }}>
+                ?
+              </span>
             ) : bubble.file_type === "video" ? (
-              <Play size={10} color="#fff" fill="#fff" />
+              <Play size={10} color="#fff" fill="#fff" style={{ pointerEvents: "none" }} />
             ) : (
-              <Volume2 size={10} color="#D4AF37" />
+              <Volume2 size={10} color="#D4AF37" style={{ pointerEvents: "none" }} />
             )}
           </div>
         </div>
@@ -657,6 +675,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
               right: 0,
               padding: "0 8px",
               textAlign: "center",
+              pointerEvents: "none",
             }}
           >
             {bubble.type === "real" && bubble.user_name && (
@@ -668,6 +687,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
                   textTransform: "uppercase",
                   marginBottom: "1px",
                   textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                  pointerEvents: "none",
                 }}
               >
                 {bubble.user_name}
@@ -684,6 +704,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
+                pointerEvents: "none",
               }}
             >
               {getShortTitle(bubble.title)}
@@ -700,6 +721,20 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     <div
       className="absolute inset-0 z-[1] overflow-hidden"
       style={{ touchAction: "none", userSelect: "none" }}
+      onMouseMove={(e) => {
+        if (!isPressingRef.current) return;
+
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const bubbleEl = el?.closest("[data-bubble-id]");
+        if (!bubbleEl) return;
+
+        const id = bubbleEl.getAttribute("data-bubble-id");
+        if (!id) return;
+        if (selectedPathRef.current.includes(id)) return;
+
+        selectedPathRef.current = [...selectedPathRef.current, id];
+        setHighlightedIds([...selectedPathRef.current]);
+      }}
       onTouchMove={(e) => {
         if (!isPressingRef.current) return;
         e.preventDefault();
