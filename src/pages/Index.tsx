@@ -5,11 +5,12 @@ import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
 import BubbleCanvas from "@/components/BubbleCanvas";
-import { useLanguage } from "@/contexts/LanguageContext";
+import useUserName from "@/hooks/useUserName";
 import type { Timeline } from "@/types/timeline";
 
 const Index = () => {
   const navigate = useNavigate();
+  useUserName();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
@@ -38,7 +39,7 @@ const Index = () => {
       const m = memberships?.[0];
       if (!m) return;
       const { data: allMembers } = await supabase.from("circle_members").select("user_id").eq("circle_id", m.circle_id);
-      const ids = (allMembers ?? []).map((x: any) => x.user_id).filter((u: string) => u !== session.user.id);
+      const ids = (allMembers ?? []).map((x: { user_id: string }) => x.user_id).filter((u: string) => u !== session.user.id);
       if (ids.length === 0) return;
       const since =
         localStorage.getItem("infeelit_circle_last_visit") || new Date(Date.now() - 7 * 86400000).toISOString();
@@ -54,7 +55,7 @@ const Index = () => {
     };
   }, []);
 
-  const handleTimelineChange = (timeline: Timeline) => {
+  const handleTimelineChange = async (timeline: Timeline) => {
     setActiveTimeline(timeline);
   };
 
@@ -69,13 +70,10 @@ const Index = () => {
     return "linear-gradient(180deg, #7ec8c8 0%, #a8d8c8 30%, #f0e6d3 70%, #E8742A 100%)";
   };
 
-  const { rtl } = useLanguage();
-
   return (
     <div
       className="relative w-full h-screen overflow-hidden transition-all duration-700"
       style={{ background: getBackground() }}
-      dir={rtl ? "rtl" : "ltr"}
     >
       <style>{`
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
@@ -111,13 +109,7 @@ const Index = () => {
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
-
-      <div
-        className="absolute inset-x-0 z-[1]"
-        style={{ top: "130px", bottom: "90px" }}
-      >
-        <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
-      </div>
+      <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
       <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
     </div>
