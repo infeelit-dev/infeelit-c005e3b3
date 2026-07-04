@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -13,7 +13,9 @@ const Index = () => {
   useUserName();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
+  const [showPlusSheet, setShowPlusSheet] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const entryTime = Date.now();
@@ -61,6 +63,14 @@ const Index = () => {
 
   const handleBubbleClick = (question: string) => {
     navigate("/record", { state: { question } });
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setShowPlusSheet(false);
+    navigate("/record", { state: { importedFile: file, skipToImport: true } });
   };
 
   const getBackground = () => {
@@ -111,7 +121,98 @@ const Index = () => {
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
-      <CurvedBottomNav onPlusClick={() => setSparkForced(true)} circleBadge={circleBadge} />
+      <CurvedBottomNav onPlusClick={() => setShowPlusSheet(true)} circleBadge={circleBadge} />
+
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="video/*"
+        style={{ display: "none" }}
+        onChange={handleImportFile}
+      />
+
+      {showPlusSheet && (
+        <>
+          <div
+            onClick={() => setShowPlusSheet(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.45)",
+              zIndex: 45,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 46,
+              background: "#FDF8F0",
+              borderRadius: "24px 24px 0 0",
+              padding: "20px 20px calc(28px + env(safe-area-inset-bottom))",
+              boxShadow: "0 -8px 32px rgba(0,0,0,0.15)",
+            }}
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "4px",
+                borderRadius: "2px",
+                background: "rgba(61,43,31,0.15)",
+                margin: "0 auto 20px",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setShowPlusSheet(false);
+                navigate("/record");
+              }}
+              style={{
+                width: "100%",
+                padding: "16px 20px",
+                borderRadius: "16px",
+                background: "rgba(232,116,42,0.1)",
+                border: "1px solid rgba(232,116,42,0.25)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                marginBottom: "10px",
+                textAlign: "left",
+              }}
+            >
+              <span style={{ fontSize: "24px" }}>🎙️</span>
+              <span style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F" }}>
+                Enregistrer un souvenir
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => importInputRef.current?.click()}
+              style={{
+                width: "100%",
+                padding: "16px 20px",
+                borderRadius: "16px",
+                background: "rgba(61,43,31,0.06)",
+                border: "1px solid rgba(61,43,31,0.12)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                textAlign: "left",
+              }}
+            >
+              <span style={{ fontSize: "24px" }}>📁</span>
+              <span style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F" }}>
+                Importer depuis ma galerie
+              </span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

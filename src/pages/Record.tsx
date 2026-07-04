@@ -87,6 +87,7 @@ const capturePosterFrame = (el: HTMLVideoElement): Promise<Blob | null> =>
 
 type Stage =
   | "freeTitle"
+  | "importPeriod"
   | "question"
   | "background"
   | "countdown"
@@ -229,6 +230,8 @@ const Record = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const isPublishingRef = useRef(false);
   const deliverAtRef = useRef<string>("");
+  const isImportModeRef = useRef(false);
+  const importTimelineRef = useRef<"memories" | "instant" | "forever">("memories");
 
   const [stage, setStage] = useState<Stage>("question");
   const [deliverAt, setDeliverAt] = useState("");
@@ -257,6 +260,8 @@ const Record = () => {
   const [autoThumbnails, setAutoThumbnails] = useState<string[]>([]);
   const [selectedThumbnail, setSelectedThumbnail] = useState<string | null>(null);
   const [thumbnailsLoading, setThumbnailsLoading] = useState(false);
+  const [isImportMode, setIsImportMode] = useState(false);
+  const [importTimeline, setImportTimeline] = useState<"memories" | "instant" | "forever">("memories");
 
   const location = useLocation();
   const preSelected = location.state?.preSelectedQuestion;
@@ -276,6 +281,7 @@ const Record = () => {
   const auraBackground = bgImage || (useAsAura ? customThumb || thumbCards[selectedThumb] : null);
 
   useEffect(() => {
+    if (isImportModeRef.current) return;
     if (isFreeMode) {
       setStage("freeTitle");
       setFollowupQuestions([]);
@@ -283,6 +289,40 @@ const Record = () => {
       setStage("question");
     }
   }, [isFreeMode]);
+
+  useEffect(() => {
+    const file = location.state?.importedFile as File | undefined;
+    if (!location.state?.skipToImport || !file) return;
+
+    isImportModeRef.current = true;
+    setIsImportMode(true);
+    setAudioMode(false);
+    typeRef.current = "video";
+    setLocalBlob(file);
+    clipsRef.current = [{ blob: file, question: "", posterBlob: null }];
+    setThumbnailsLoading(true);
+    setStage("freeTitle");
+
+    (async () => {
+      try {
+        const frames = await extractFrames(file);
+        setAutoThumbnails(frames);
+        if (frames.length > 0) {
+          setSelectedThumbnail(frames[0]);
+          try {
+            const response = await fetch(frames[0]);
+            posterRef.current = await response.blob();
+          } catch {
+            // keep without poster
+          }
+        }
+      } catch (err) {
+        console.error("Import thumbnail extraction failed:", err);
+      } finally {
+        setThumbnailsLoading(false);
+      }
+    })();
+  }, [location.state]);
 
   useEffect(() => {
     if (isFreeMode) return;
@@ -648,9 +688,12 @@ const Record = () => {
     userIdRef.current = uid;
     const urls: string[] = [];
     for (const cl of clipsRef.current) {
-      const m = getMimeType(audioMode);
+      const m =
+        isImportModeRef.current && cl.blob.type
+          ? cl.blob.type
+          : getMimeType(audioMode);
       const ts = Date.now() + Math.random();
-      const ext = m.includes("mp4") ? "mp4" : "webm";
+      const ext = m.includes("mp4") ? "mp4" : m.includes("quicktime") ? "mov" : "webm";
       const fn = uid + "/" + ts + "_memory." + ext;
       const pn = uid + "/" + ts + "_poster.jpg";
       try {
@@ -823,8 +866,13 @@ const Record = () => {
             file_url: finalUrl,
             file_type: typeRef.current,
             thumbnail_url: finalThumbnailUrl || thumbUrlRef.current || null,
-            timeline:
-              recordMode === "forever" ? "forever" : recordMode === "instant" ? "instant" : "memories",
+            timeline: isImportModeRef.current
+              ? importTimelineRef.current
+              : recordMode === "forever"
+                ? "forever"
+                : recordMode === "instant"
+                  ? "instant"
+                  : "memories",
             is_public: isCommunityRef.current,
             is_community: isCommunityRef.current,
             is_anonymous: isAnonymousRef.current,
@@ -1342,14 +1390,49 @@ const Record = () => {
         </div>
       </div>
 
-      {stage === "freeTitle" && (
+      {stage === "freeTitle" && isImportMode && thumbnailsLoading && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 20,
+            background: "linear-gradient(160deg, #FDF8F0 0%, #FEF0E0 50%, #FDF8F0 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "60px 24px 40px",
+            gap: "12px",
+          }}
+        >
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              border: "3px solid rgba(232,116,42,0.2)",
+              borderTop: "3px solid #E8742A",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <p style={{ fontSize: "13px", color: "rgba(61,43,31,0.5)" }}>
+            {lang === "fr"
+              ? "Génération des aperçus…"
+              : lang === "ar"
+                ? "جارٍ إنشاء الصور المصغّرة…"
+                : "Generating previews…"}
+          </p>
+        </div>
+      )}
+
+      {stage === "freeTitle" && !(isImportMode && thumbnailsLoading) && (
         <div
           style={{
             position: "absolute",
             inset: 0,
             zIndex: 20,
             background:
-              recordMode === "forever"
+              !isImportMode && recordMode === "forever"
                 ? "linear-gradient(160deg, #0a0a1a 0%, #1a1040 50%, #2D1810 100%)"
                 : "linear-gradient(160deg, #FDF8F0 0%, #FEF0E0 50%, #FDF8F0 100%)",
             display: "flex",
@@ -1359,7 +1442,9 @@ const Record = () => {
             padding: "60px 24px 40px",
           }}
         >
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>{recordMode === "forever" ? "✉️" : "⚡"}</div>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+            {isImportMode ? "📁" : recordMode === "forever" ? "✉️" : "⚡"}
+          </div>
 
           <p
             style={{
@@ -1371,17 +1456,23 @@ const Record = () => {
               marginBottom: "8px",
             }}
           >
-            {recordMode === "forever"
+            {isImportMode
               ? lang === "fr"
-                ? "Message pour le futur"
+                ? "Vidéo importée"
                 : lang === "ar"
-                  ? "رسالة للمستقبل"
-                  : "Message for the future"
-              : lang === "fr"
-                ? "Souvenir spontané"
-                : lang === "ar"
-                  ? "ذكرى عفوية"
-                  : "Spontaneous memory"}
+                  ? "فيديو مستورد"
+                  : "Imported video"
+              : recordMode === "forever"
+                ? lang === "fr"
+                  ? "Message pour le futur"
+                  : lang === "ar"
+                    ? "رسالة للمستقبل"
+                    : "Message for the future"
+                : lang === "fr"
+                  ? "Souvenir spontané"
+                  : lang === "ar"
+                    ? "ذكرى عفوية"
+                    : "Spontaneous memory"}
           </p>
 
           <p
@@ -1389,7 +1480,7 @@ const Record = () => {
               fontSize: "16px",
               fontFamily: "Georgia, serif",
               fontStyle: "italic",
-              color: recordMode === "forever" ? "rgba(255,255,255,0.7)" : "#3D2B1F",
+              color: !isImportMode && recordMode === "forever" ? "rgba(255,255,255,0.7)" : "#3D2B1F",
               marginBottom: "24px",
               textAlign: "center",
             }}
@@ -1406,17 +1497,23 @@ const Record = () => {
             value={memoryTitle}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={
-              recordMode === "forever"
+              isImportMode
                 ? lang === "fr"
-                  ? "Ex : Pour toi, le jour de ton mariage"
+                  ? "Ex : Vacances en famille 2024"
                   : lang === "ar"
-                    ? "مثال: إليك، يوم زفافك"
-                    : "Ex: For you, on your wedding day"
-                : lang === "fr"
-                  ? "Ex : Devant ma maison d'enfance"
-                  : lang === "ar"
-                    ? "مثال: أمام بيت طفولتي"
-                    : "Ex: In front of my childhood home"
+                    ? "مثال: عطلة عائلية 2024"
+                    : "Ex: Family vacation 2024"
+                : recordMode === "forever"
+                  ? lang === "fr"
+                    ? "Ex : Pour toi, le jour de ton mariage"
+                    : lang === "ar"
+                      ? "مثال: إليك، يوم زفافك"
+                      : "Ex: For you, on your wedding day"
+                  : lang === "fr"
+                    ? "Ex : Devant ma maison d'enfance"
+                    : lang === "ar"
+                      ? "مثال: أمام بيت طفولتي"
+                      : "Ex: In front of my childhood home"
             }
             style={{
               width: "100%",
@@ -1424,9 +1521,9 @@ const Record = () => {
               padding: "16px 20px",
               borderRadius: "16px",
               border: "1.5px solid rgba(232,116,42,0.3)",
-              background: recordMode === "forever" ? "rgba(255,255,255,0.08)" : "#fff",
+              background: !isImportMode && recordMode === "forever" ? "rgba(255,255,255,0.08)" : "#fff",
               fontSize: "16px",
-              color: recordMode === "forever" ? "#fff" : "#3D2B1F",
+              color: !isImportMode && recordMode === "forever" ? "#fff" : "#3D2B1F",
               outline: "none",
               boxSizing: "border-box",
               marginBottom: "16px",
@@ -1435,7 +1532,7 @@ const Record = () => {
             dir={rtl ? "rtl" : "ltr"}
           />
 
-          {recordMode === "forever" && (
+          {!isImportMode && recordMode === "forever" && (
             <div style={{ width: "100%", maxWidth: "360px", marginBottom: "16px" }}>
               <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", marginBottom: "8px" }}>
                 {lang === "fr" ? "Date de livraison" : lang === "ar" ? "تاريخ التسليم" : "Delivery date"}
@@ -1466,18 +1563,24 @@ const Record = () => {
           <button
             onClick={() => {
               if (!memoryTitle.trim()) return;
-              if (recordMode === "forever" && !deliverAtRef.current) return;
+              if (!isImportMode && recordMode === "forever" && !deliverAtRef.current) return;
               questionRef.current = memoryTitle.trim();
-              goToBackground(false);
+              if (isImportMode) {
+                setStage("importPeriod");
+              } else {
+                goToBackground(false);
+              }
             }}
-            disabled={!memoryTitle.trim() || (recordMode === "forever" && !deliverAt)}
+            disabled={
+              !memoryTitle.trim() || (!isImportMode && recordMode === "forever" && !deliverAt)
+            }
             style={{
               width: "100%",
               maxWidth: "360px",
               padding: "18px",
               borderRadius: "18px",
               background:
-                memoryTitle.trim() && (recordMode !== "forever" || deliverAt)
+                memoryTitle.trim() && (isImportMode || recordMode !== "forever" || deliverAt)
                   ? "linear-gradient(135deg, #E8742A, #D4621A)"
                   : "rgba(232,116,42,0.3)",
               color: "#fff",
@@ -1485,18 +1588,26 @@ const Record = () => {
               fontSize: "16px",
               border: "none",
               cursor:
-                memoryTitle.trim() && (recordMode !== "forever" || deliverAt) ? "pointer" : "not-allowed",
+                memoryTitle.trim() && (isImportMode || recordMode !== "forever" || deliverAt)
+                  ? "pointer"
+                  : "not-allowed",
               boxShadow:
-                memoryTitle.trim() && (recordMode !== "forever" || deliverAt)
+                memoryTitle.trim() && (isImportMode || recordMode !== "forever" || deliverAt)
                   ? "0 4px 20px rgba(232,116,42,0.4)"
                   : "none",
             }}
           >
-            {lang === "fr"
-              ? "Enregistrer ce moment →"
-              : lang === "ar"
-                ? "→ سجّل هذه اللحظة"
-                : "Record this moment →"}
+            {isImportMode
+              ? lang === "fr"
+                ? "Continuer →"
+                : lang === "ar"
+                  ? "→ متابعة"
+                  : "Continue →"
+              : lang === "fr"
+                ? "Enregistrer ce moment →"
+                : lang === "ar"
+                  ? "→ سجّل هذه اللحظة"
+                  : "Record this moment →"}
           </button>
 
           <button
@@ -1505,12 +1616,118 @@ const Record = () => {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: recordMode === "forever" ? "rgba(255,255,255,0.4)" : "rgba(61,43,31,0.45)",
+              color:
+                !isImportMode && recordMode === "forever"
+                  ? "rgba(255,255,255,0.4)"
+                  : "rgba(61,43,31,0.45)",
               fontSize: "13px",
               marginTop: "16px",
             }}
           >
             {lang === "fr" ? "← Retour" : lang === "ar" ? "→ رجوع" : "← Back"}
+          </button>
+        </div>
+      )}
+
+      {stage === "importPeriod" && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 20,
+            background: "linear-gradient(160deg, #FDF8F0 0%, #FEF0E0 50%, #FDF8F0 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "60px 24px 40px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 900,
+              letterSpacing: "0.3em",
+              color: "#E8742A",
+              textTransform: "uppercase",
+              marginBottom: "8px",
+            }}
+          >
+            {lang === "fr" ? "Choisir la période" : lang === "ar" ? "اختر الفترة" : "Choose period"}
+          </p>
+          <p
+            style={{
+              fontSize: "16px",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              color: "#3D2B1F",
+              marginBottom: "24px",
+              textAlign: "center",
+            }}
+          >
+            {lang === "fr"
+              ? "Où classer ce souvenir ?"
+              : lang === "ar"
+                ? "أين تصنّف هذه الذكرى؟"
+                : "Where does this memory belong?"}
+          </p>
+
+          {(
+            [
+              { id: "memories" as const, label: "Memories", icon: "🌅" },
+              { id: "instant" as const, label: "Instant", icon: "⚡" },
+              { id: "forever" as const, label: "Forever", icon: "✉️" },
+            ] as const
+          ).map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => {
+                setImportTimeline(option.id);
+                importTimelineRef.current = option.id;
+              }}
+              style={{
+                width: "100%",
+                maxWidth: "360px",
+                padding: "16px 20px",
+                borderRadius: "16px",
+                background: importTimeline === option.id ? "rgba(232,116,42,0.12)" : "#fff",
+                border:
+                  importTimeline === option.id
+                    ? "2px solid #E8742A"
+                    : "1px solid rgba(232,116,42,0.2)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                marginBottom: "10px",
+                textAlign: "left",
+              }}
+            >
+              <span style={{ fontSize: "24px" }}>{option.icon}</span>
+              <span style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F" }}>{option.label}</span>
+            </button>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => setStage("visibility")}
+            style={{
+              width: "100%",
+              maxWidth: "360px",
+              padding: "18px",
+              borderRadius: "18px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "16px",
+              border: "none",
+              cursor: "pointer",
+              marginTop: "8px",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+            }}
+          >
+            {lang === "fr" ? "Continuer →" : lang === "ar" ? "→ متابعة" : "Continue →"}
           </button>
         </div>
       )}
