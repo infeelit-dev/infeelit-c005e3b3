@@ -138,7 +138,7 @@ const getFollowupsFromQuestion = (questionText: string, lang: string, name: stri
   }
 };
 
-const extractFrames = async (videoBlob: Blob, count: number = 3): Promise<string[]> => {
+const extractFrames = async (videoBlob: Blob): Promise<string[]> => {
   return new Promise((resolve) => {
     const video = document.createElement("video");
     const url = URL.createObjectURL(videoBlob);
@@ -146,34 +146,39 @@ const extractFrames = async (videoBlob: Blob, count: number = 3): Promise<string
     video.muted = true;
     video.playsInline = true;
 
-    const canvas = document.createElement("canvas");
-    canvas.width = 480;
-    canvas.height = 270;
-    const ctx = canvas.getContext("2d");
-    const frames: string[] = [];
-
-    video.onloadedmetadata = async () => {
-      const duration = video.duration;
-      const points = [0.05, 0.4, 0.75];
-
-      for (const point of points.slice(0, count)) {
-        await new Promise<void>((res) => {
-          video.currentTime = duration * point;
-          video.onseeked = () => {
-            if (ctx) {
-              ctx.drawImage(video, 0, 0, 480, 270);
-              frames.push(canvas.toDataURL("image/jpeg", 0.85));
-            }
-            res();
-          };
-        });
-      }
-
+    const timeoutId = setTimeout(() => {
       URL.revokeObjectURL(url);
-      resolve(frames);
+      resolve([]);
+    }, 5000);
+
+    video.onloadedmetadata = () => {
+      video.currentTime = Math.min(1, video.duration * 0.1);
+    };
+
+    video.onseeked = () => {
+      clearTimeout(timeoutId);
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 480;
+        canvas.height = 270;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, 480, 270);
+          const frame = canvas.toDataURL("image/jpeg", 0.8);
+          URL.revokeObjectURL(url);
+          resolve([frame]);
+        } else {
+          URL.revokeObjectURL(url);
+          resolve([]);
+        }
+      } catch {
+        URL.revokeObjectURL(url);
+        resolve([]);
+      }
     };
 
     video.onerror = () => {
+      clearTimeout(timeoutId);
       URL.revokeObjectURL(url);
       resolve([]);
     };
@@ -1989,7 +1994,7 @@ const Record = () => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
+                gridTemplateColumns: "1fr",
                 gap: "8px",
                 marginBottom: "20px",
               }}
@@ -2013,7 +2018,15 @@ const Record = () => {
                   <img
                     src={frame}
                     alt={`Frame ${idx + 1}`}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                      aspectRatio: "16/9",
+                      maxWidth: "320px",
+                      margin: "0 auto",
+                    }}
                   />
                   {selectedThumbnail === frame && (
                     <div
