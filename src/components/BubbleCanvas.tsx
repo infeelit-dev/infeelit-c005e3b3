@@ -182,7 +182,7 @@ function getBubbleAnimProps(index: number): Pick<BubbleData, "animClass" | "anim
   return {
     animClass: `bubble-float-${(index % 3) + 1}`,
     animDuration: `${4 + Math.random() * 4}s`,
-    animDelay: `${Math.random() * 8}s`,
+    animDelay: `-${Math.random() * 8}s`,
   };
 }
 
