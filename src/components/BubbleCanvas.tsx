@@ -113,7 +113,6 @@ interface BubbleData {
   y: number;
   animDelay: number;
   animDuration: number;
-  floatClass: string;
   isExiting?: boolean;
   isEntering?: boolean;
 }
@@ -186,7 +185,7 @@ function getThemedImage(title: string): string {
   return imgRelax;
 }
 
-const FLOAT_CLASSES = ["bubble-float-1", "bubble-float-2", "bubble-float-3"];
+const FLOAT_ANIMS = ["bubbleFloat1", "bubbleFloat2", "bubbleFloat3", "bubbleFloat4"];
 
 const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   const navigate = useNavigate();
@@ -267,7 +266,6 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       y: 0,
       animDelay: Math.random() * 3,
       animDuration: 3 + Math.random() * 4,
-      floatClass: FLOAT_CLASSES[index % 3],
     }),
     [],
   );
@@ -290,7 +288,6 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         y: q.y,
         animDelay: Math.random() * 3,
         animDuration: 3 + Math.random() * 4,
-        floatClass: FLOAT_CLASSES[i % 3],
       }));
   }, [activeTimeline, lang]);
 
@@ -569,7 +566,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     return words.join(" ") + (words.length < title.split(" ").length ? "..." : "");
   };
 
-  const renderBubble = (bubble: BubbleData) => {
+  const renderBubble = (bubble: BubbleData, index: number) => {
     const isHighlighted = highlightedIds.includes(bubble.id);
     const isHovered = hoveredId === bubble.id;
     const isSelected = selectedIds.includes(bubble.id);
@@ -582,11 +579,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         ? "0 0 20px rgba(232,116,42,0.2)"
         : "0 0 24px rgba(212,175,55,0.35)";
 
-    const innerAnimation = bubble.isExiting
+    const floatAnim = FLOAT_ANIMS[index % 4];
+    const bubbleAnimation = bubble.isExiting
       ? "bubbleExit 0.5s ease-in forwards"
       : bubble.isEntering
         ? "bubbleEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
-        : `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`;
+        : `${floatAnim} ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`;
 
     const imageSrc = bubble.image || bubble.thumbnail_url || imgRelax;
 
@@ -597,8 +595,6 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           position: "absolute",
           left: `${bubble.x}%`,
           top: `${bubble.y}%`,
-          transform: `translate(-50%, -50%) scale(${showActive ? 1.08 : 1})`,
-          transition: "transform 0.2s ease",
           zIndex: showActive ? 15 : bubble.isEntering ? 20 : 10,
           pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
         }}
@@ -631,13 +627,15 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             endSelection();
           }}
           style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
             width: `${bubble.size}px`,
             height: `${bubble.size}px`,
             borderRadius: "50%",
             overflow: "hidden",
             cursor: "pointer",
-            position: "relative",
-            animation: innerAnimation,
+            animation: bubbleAnimation,
             animationPlayState: isPressing && !bubble.isExiting && !bubble.isEntering ? "paused" : "running",
             outline: showActive ? "3px solid #E8742A" : "none",
             outlineOffset: "3px",
@@ -678,7 +676,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
               position: "absolute",
               inset: 0,
               background:
-                "linear-gradient(to top, rgba(45,24,16,0.7) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)",
+                "linear-gradient(to top, rgba(45,24,16,0.7) 0%, transparent 50%)",
               pointerEvents: "none",
             }}
           />
@@ -775,7 +773,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
                 style={{
                   fontSize: bubble.size >= 140 ? "11px" : bubble.size >= 110 ? "9px" : "7px",
                   fontStyle: "italic",
-                  color: "rgba(255,255,255,0.85)",
+                  color: "#fff",
                   lineHeight: 1.3,
                   fontFamily: "Georgia, serif",
                   margin: 0,
@@ -800,22 +798,22 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             onClick={(e) => toggleSelect(bubble.id, e)}
             style={{
               position: "absolute",
-              top: "6px",
-              left: "6px",
+              top: "4px",
+              left: "4px",
               width: "22px",
               height: "22px",
               borderRadius: "50%",
               background: isSelected ? "#E8742A" : "rgba(255,255,255,0.92)",
-              border: isSelected ? "2px solid #D4AF37" : "2px solid rgba(61,43,31,0.25)",
+              border: isSelected ? "2px solid #D4AF37" : "2px solid rgba(61,43,31,0.2)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 10,
-              transition: "all 0.15s ease",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+              zIndex: 20,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
               pointerEvents: "auto",
               animation: "none",
+              transform: "none",
             }}
           >
             {isSelected && (
@@ -879,19 +877,41 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           100% { opacity: 0; transform: scale(0); border-radius: 50%; }
         }
         @keyframes bubbleExit {
-          0% { transform: translateY(0px) scale(1); opacity: 1; }
-          100% { transform: translateY(0px) scale(0.3); opacity: 0; }
+          0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -50%) translate(0px, 0px) scale(0.3); opacity: 0; }
         }
         @keyframes bubbleEnter {
-          0% { transform: translateY(0px) scale(0); opacity: 0; }
-          60% { transform: translateY(0px) scale(1.1); opacity: 1; }
-          100% { transform: translateY(0px) scale(1); opacity: 1; }
+          0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(0); opacity: 0; }
+          60% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1.1); opacity: 1; }
+          100% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1); opacity: 1; }
         }
-        @keyframes bubbleFloat {
-          0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
-          25% { transform: translateY(-14px) rotate(1.5deg) scale(1.02); }
-          50% { transform: translateY(-8px) rotate(-0.5deg) scale(0.99); }
-          75% { transform: translateY(8px) rotate(-1.5deg) scale(1.01); }
+        @keyframes bubbleFloat1 {
+          0%   { transform: translate(-50%, -50%) translate(0px, 0px); }
+          25%  { transform: translate(-50%, -50%) translate(18px, -22px); }
+          50%  { transform: translate(-50%, -50%) translate(-12px, -15px); }
+          75%  { transform: translate(-50%, -50%) translate(-20px, 10px); }
+          100% { transform: translate(-50%, -50%) translate(0px, 0px); }
+        }
+        @keyframes bubbleFloat2 {
+          0%   { transform: translate(-50%, -50%) translate(0px, 0px); }
+          25%  { transform: translate(-50%, -50%) translate(-16px, 18px); }
+          50%  { transform: translate(-50%, -50%) translate(20px, 12px); }
+          75%  { transform: translate(-50%, -50%) translate(8px, -20px); }
+          100% { transform: translate(-50%, -50%) translate(0px, 0px); }
+        }
+        @keyframes bubbleFloat3 {
+          0%   { transform: translate(-50%, -50%) translate(0px, 0px); }
+          33%  { transform: translate(-50%, -50%) translate(22px, 15px); }
+          66%  { transform: translate(-50%, -50%) translate(-18px, -18px); }
+          100% { transform: translate(-50%, -50%) translate(0px, 0px); }
+        }
+        @keyframes bubbleFloat4 {
+          0%   { transform: translate(-50%, -50%) translate(0px, 0px); }
+          20%  { transform: translate(-50%, -50%) translate(-20px, -10px); }
+          40%  { transform: translate(-50%, -50%) translate(10px, 20px); }
+          60%  { transform: translate(-50%, -50%) translate(18px, -15px); }
+          80%  { transform: translate(-50%, -50%) translate(-8px, 12px); }
+          100% { transform: translate(-50%, -50%) translate(0px, 0px); }
         }
         @keyframes fadeUp {
           from { transform: translateX(-50%) translateY(10px); opacity: 0; }
@@ -899,7 +919,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         }
       `}</style>
 
-      {bubblesToRender.map(renderBubble)}
+      {bubblesToRender.map((bubble, index) => renderBubble(bubble, index))}
 
       {selectedIds.length > 0 && (
         <div
