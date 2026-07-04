@@ -233,7 +233,6 @@ export default function MemoryFullscreen({
             transcript_ar={bubble.transcript_ar ?? undefined}
             translation_status={bubble.translation_status ?? undefined}
             detected_lang={bubble.detected_lang ?? undefined}
-            currentLang={lang}
           />
         )}
       </div>
