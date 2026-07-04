@@ -182,7 +182,7 @@ function getBubbleAnimProps(index: number): Pick<BubbleData, "animClass" | "anim
   return {
     animClass: `bubble-float-${(index % 3) + 1}`,
     animDuration: `${4 + Math.random() * 4}s`,
-    animDelay: `${Math.random() * 8}s`,
+    animDelay: `-${Math.random() * 8}s`,
   };
 }
 
@@ -629,7 +629,15 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
               cursor: "pointer",
               "--dur": bubble.animDuration,
               "--delay": bubble.animDelay,
+              "--to-left": `calc(${6 - bubble.x}vw)`,
+              "--to-right": `calc(${92 - bubble.x}vw - ${bubble.size}px)`,
+              "--to-top": `calc(${8 - bubble.y}vh)`,
+              "--to-bottom": `calc(${86 - bubble.y}vh - ${bubble.size}px)`,
+              "--to-center-x": `calc(${50 - bubble.x}vw - ${bubble.size / 2}px)`,
+              "--to-center-y": `calc(${47 - bubble.y}vh - ${bubble.size / 2}px)`,
               willChange: "transform",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
               animationPlayState: isPressing && !bubble.isExiting ? "paused" : "running",
               outline: showActive ? "3px solid #E8742A" : "none",
               outlineOffset: "3px",
@@ -876,23 +884,25 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         }
         @keyframes bubble-float-1 {
           0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          20%  { transform: translate3d(12px, -18px, 0) scale(1.02); }
-          40%  { transform: translate3d(-8px, -12px, 0) scale(0.98); }
-          60%  { transform: translate3d(15px, 8px, 0) scale(1.01); }
-          80%  { transform: translate3d(-10px, 15px, 0) scale(0.99); }
+          20%  { transform: translate3d(var(--to-right), var(--to-top), 0) scale(1.02); }
+          40%  { transform: translate3d(var(--to-left), var(--to-bottom), 0) scale(0.98); }
+          60%  { transform: translate3d(var(--to-right), var(--to-bottom), 0) scale(1.01); }
+          80%  { transform: translate3d(var(--to-left), var(--to-top), 0) scale(0.99); }
           100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-float-2 {
           0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          25%  { transform: translate3d(-15px, -20px, 0) scale(1.03); }
-          50%  { transform: translate3d(10px, -8px, 0) scale(0.97); }
-          75%  { transform: translate3d(-12px, 12px, 0) scale(1.02); }
+          25%  { transform: translate3d(var(--to-left), var(--to-bottom), 0) scale(1.03); }
+          50%  { transform: translate3d(var(--to-right), var(--to-top), 0) scale(0.97); }
+          75%  { transform: translate3d(var(--to-left), var(--to-top), 0) scale(1.02); }
           100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-float-3 {
           0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          33%  { transform: translate3d(18px, -15px, 0) scale(0.98); }
-          66%  { transform: translate3d(-14px, 10px, 0) scale(1.03); }
+          22%  { transform: translate3d(var(--to-center-x), var(--to-top), 0) scale(0.98); }
+          44%  { transform: translate3d(var(--to-right), var(--to-center-y), 0) scale(1.03); }
+          66%  { transform: translate3d(var(--to-center-x), var(--to-bottom), 0) scale(0.99); }
+          88%  { transform: translate3d(var(--to-left), var(--to-center-y), 0) scale(1.02); }
           100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-born {
