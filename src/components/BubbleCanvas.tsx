@@ -570,89 +570,229 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   };
 
   const renderBubble = (bubble: BubbleData) => {
-    let animation: string | undefined;
-    if (bubble.isExiting) {
-      animation = "bubbleExit 0.5s ease-in forwards";
-    } else if (bubble.isEntering) {
-      animation = "bubbleEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards";
-    }
-
     const isHighlighted = highlightedIds.includes(bubble.id);
     const isHovered = hoveredId === bubble.id;
     const isSelected = selectedIds.includes(bubble.id);
     const showDragHighlight = isHighlighted;
     const showSelected = isSelected && !isPressing;
+    const showActive = showDragHighlight || showSelected;
+
     const defaultBoxShadow =
       bubble.type === "demo"
         ? "0 0 20px rgba(232,116,42,0.2)"
         : "0 0 24px rgba(212,175,55,0.35)";
 
-    const floatStyle = animation
-      ? { animation }
-      : showDragHighlight
-        ? {}
-        : ({
-            "--dur": `${bubble.animDuration}s`,
-            "--delay": `${bubble.animDelay}s`,
-          } as React.CSSProperties);
+    const innerAnimation = bubble.isExiting
+      ? "bubbleExit 0.5s ease-in forwards"
+      : bubble.isEntering
+        ? "bubbleEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+        : `bubbleFloat ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`;
+
+    const imageSrc = bubble.image || bubble.thumbnail_url || imgRelax;
 
     return (
       <div
         key={bubble.id}
-        role="button"
-        tabIndex={0}
-        data-bubble-id={bubble.id}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          startSelection(bubble.id);
-        }}
-        onTouchStart={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          startSelection(bubble.id);
+        style={{
+          position: "absolute",
+          left: `${bubble.x}%`,
+          top: `${bubble.y}%`,
+          transform: `translate(-50%, -50%) scale(${showActive ? 1.08 : 1})`,
+          transition: "transform 0.2s ease",
+          zIndex: showActive ? 15 : bubble.isEntering ? 20 : 10,
+          pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
         }}
         onMouseEnter={() => setHoveredId(bubble.id)}
         onMouseLeave={() => setHoveredId(null)}
-        onClick={(e) => {
-          if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
-          if (skipNextClickRef.current) {
-            skipNextClickRef.current = false;
-            return;
-          }
-          handleBubbleBodyClick(bubble);
-        }}
-        className={`absolute rounded-full overflow-hidden ${animation || showDragHighlight ? "" : bubble.floatClass}`}
-        style={{
-          width: `${bubble.size}px`,
-          height: `${bubble.size}px`,
-          left: `${bubble.x}%`,
-          top: `${bubble.y}%`,
-          outline: showDragHighlight || showSelected ? "3px solid #E8742A" : "none",
-          outlineOffset: "3px",
-          transform: `translate(-50%, -50%) scale(${showDragHighlight ? 1.1 : showSelected ? 1.08 : 1})`,
-          filter:
-            showDragHighlight
-              ? "drop-shadow(0 0 16px rgba(232,116,42,0.8)) brightness(1.15)"
-              : showSelected
-                ? "drop-shadow(0 0 14px rgba(232,116,42,0.7))"
-                : "none",
-          transition: showDragHighlight || showSelected
-            ? "transform 0.15s ease, filter 0.15s ease"
-            : "transform 0.2s ease, filter 0.2s ease",
-          zIndex: showDragHighlight || showSelected ? 15 : bubble.isEntering ? 20 : 10,
-          border:
-            bubble.type === "demo"
-              ? "2px solid rgba(232,116,42,0.55)"
-              : "2.5px solid rgba(212,175,55,0.75)",
-          boxShadow: showDragHighlight || showSelected ? "none" : defaultBoxShadow,
-          pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
-          cursor: "pointer",
-          WebkitTapHighlightColor: "transparent",
-          userSelect: "none",
-          animationPlayState: isPressing ? "paused" : "running",
-          ...floatStyle,
-        }}
       >
+        <div
+          role="button"
+          tabIndex={0}
+          data-bubble-id={bubble.id}
+          onClick={(e) => {
+            if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
+            if (skipNextClickRef.current) {
+              skipNextClickRef.current = false;
+              return;
+            }
+            handleBubbleBodyClick(bubble);
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            startSelection(bubble.id);
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            startSelection(bubble.id);
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            endSelection();
+          }}
+          style={{
+            width: `${bubble.size}px`,
+            height: `${bubble.size}px`,
+            borderRadius: "50%",
+            overflow: "hidden",
+            cursor: "pointer",
+            position: "relative",
+            animation: innerAnimation,
+            animationPlayState: isPressing && !bubble.isExiting && !bubble.isEntering ? "paused" : "running",
+            outline: showActive ? "3px solid #E8742A" : "none",
+            outlineOffset: "3px",
+            border:
+              bubble.type === "demo"
+                ? "2px solid rgba(232,116,42,0.55)"
+                : "2.5px solid rgba(212,175,55,0.75)",
+            boxShadow: showActive ? "none" : defaultBoxShadow,
+            filter: showActive
+              ? "drop-shadow(0 0 14px rgba(232,116,42,0.7)) brightness(1.1)"
+              : "none",
+            transition: "filter 0.2s ease, outline 0.15s ease",
+            clipPath: "circle(50%)",
+            WebkitClipPath: "circle(50%)",
+            WebkitTapHighlightColor: "transparent",
+            userSelect: "none",
+          }}
+        >
+          <img
+            src={imageSrc}
+            alt={bubble.title}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center top",
+              pointerEvents: "none",
+              display: "block",
+              filter:
+                bubble.type === "demo"
+                  ? "grayscale(60%) sepia(40%) brightness(0.85)"
+                  : "sepia(20%) brightness(0.92)",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to top, rgba(45,24,16,0.7) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
+              pointerEvents: "none",
+            }}
+          />
+
+          {bubble.type === "real" && bubble.file_type === "audio" && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "3px",
+                paddingBottom: "20px",
+                pointerEvents: "none",
+              }}
+            >
+              {[14, 22, 10, 18, 26].map((h, k) => (
+                <div
+                  key={k}
+                  style={{
+                    width: "3px",
+                    height: `${h}px`,
+                    backgroundColor: "#D4AF37",
+                    borderRadius: "2px",
+                    opacity: 0.8,
+                    pointerEvents: "none",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          <div style={{ position: "absolute", top: "6px", right: "6px", pointerEvents: "none" }}>
+            <div
+              style={{
+                width: "20px",
+                height: "20px",
+                borderRadius: "50%",
+                backgroundColor: "rgba(0,0,0,0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                pointerEvents: "none",
+              }}
+            >
+              {bubble.type === "demo" ? (
+                <span style={{ fontSize: "10px", color: "#E8742A", fontWeight: 900, pointerEvents: "none" }}>
+                  ?
+                </span>
+              ) : bubble.file_type === "video" ? (
+                <Play size={10} color="#fff" fill="#fff" style={{ pointerEvents: "none" }} />
+              ) : (
+                <Volume2 size={10} color="#D4AF37" style={{ pointerEvents: "none" }} />
+              )}
+            </div>
+          </div>
+
+          {bubble.size >= 90 && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "8px",
+                left: "8px",
+                right: "8px",
+                pointerEvents: "none",
+              }}
+            >
+              {bubble.type === "real" && bubble.user_name && (
+                <p
+                  style={{
+                    fontSize: "8px",
+                    fontWeight: 700,
+                    color: "#fff",
+                    textTransform: "uppercase",
+                    marginBottom: "1px",
+                    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {bubble.user_name}
+                </p>
+              )}
+              <p
+                style={{
+                  fontSize: bubble.size >= 140 ? "11px" : bubble.size >= 110 ? "9px" : "7px",
+                  fontStyle: "italic",
+                  color: "rgba(255,255,255,0.85)",
+                  lineHeight: 1.3,
+                  fontFamily: "Georgia, serif",
+                  margin: 0,
+                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  pointerEvents: "none",
+                }}
+              >
+                {getShortTitle(bubble.title)}
+              </p>
+            </div>
+          )}
+        </div>
+
         {(isHovered || isSelected) && (
           <button
             type="button"
@@ -660,174 +800,30 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             onClick={(e) => toggleSelect(bubble.id, e)}
             style={{
               position: "absolute",
-              top: "8px",
-              left: "8px",
+              top: "6px",
+              left: "6px",
               width: "22px",
               height: "22px",
               borderRadius: "50%",
-              background: isSelected ? "#E8742A" : "rgba(255,255,255,0.9)",
-              border: isSelected ? "2px solid #D4AF37" : "2px solid rgba(61,43,31,0.3)",
+              background: isSelected ? "#E8742A" : "rgba(255,255,255,0.92)",
+              border: isSelected ? "2px solid #D4AF37" : "2px solid rgba(61,43,31,0.25)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               zIndex: 10,
               transition: "all 0.15s ease",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
               pointerEvents: "auto",
+              animation: "none",
             }}
           >
             {isSelected && (
-              <span
-                style={{
-                  color: "#fff",
-                  fontSize: "12px",
-                  fontWeight: 900,
-                  lineHeight: 1,
-                  pointerEvents: "none",
-                }}
-              >
+              <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900, pointerEvents: "none" }}>
                 ✦
               </span>
             )}
           </button>
-        )}
-
-        <img
-          src={bubble.image || imgRelax}
-          alt=""
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "center top",
-            pointerEvents: "none",
-            filter:
-              bubble.type === "demo"
-                ? "grayscale(60%) sepia(40%) brightness(0.85)"
-                : "sepia(20%) brightness(0.92)",
-          }}
-        />
-
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)",
-          }}
-        />
-
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
-          }}
-        />
-
-        {bubble.type === "real" && bubble.file_type === "audio" && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "3px",
-              paddingBottom: "20px",
-              pointerEvents: "none",
-            }}
-          >
-            {[14, 22, 10, 18, 26].map((h, k) => (
-              <div
-                key={k}
-                style={{
-                  width: "3px",
-                  height: `${h}px`,
-                  backgroundColor: "#D4AF37",
-                  borderRadius: "2px",
-                  opacity: 0.8,
-                  pointerEvents: "none",
-                }}
-              />
-            ))}
-          </div>
-        )}
-
-        <div style={{ position: "absolute", top: "6px", right: "6px", pointerEvents: "none" }}>
-          <div
-            style={{
-              width: "20px",
-              height: "20px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(0,0,0,0.4)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              pointerEvents: "none",
-            }}
-          >
-            {bubble.type === "demo" ? (
-              <span style={{ fontSize: "10px", color: "#E8742A", fontWeight: 900, pointerEvents: "none" }}>
-                ?
-              </span>
-            ) : bubble.file_type === "video" ? (
-              <Play size={10} color="#fff" fill="#fff" style={{ pointerEvents: "none" }} />
-            ) : (
-              <Volume2 size={10} color="#D4AF37" style={{ pointerEvents: "none" }} />
-            )}
-          </div>
-        </div>
-
-        {bubble.size >= 90 && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: "8px",
-              left: 0,
-              right: 0,
-              padding: "0 8px",
-              textAlign: "center",
-              pointerEvents: "none",
-            }}
-          >
-            {bubble.type === "real" && bubble.user_name && (
-              <p
-                style={{
-                  fontSize: "8px",
-                  fontWeight: 700,
-                  color: "#fff",
-                  textTransform: "uppercase",
-                  marginBottom: "1px",
-                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-                  pointerEvents: "none",
-                }}
-              >
-                {bubble.user_name}
-              </p>
-            )}
-            <p
-              style={{
-                fontSize: "7px",
-                fontStyle: "italic",
-                color: "rgba(255,255,255,0.7)",
-                lineHeight: 1.2,
-                textShadow: "0 1px 3px rgba(0,0,0,0.7)",
-                overflow: "hidden",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                pointerEvents: "none",
-              }}
-            >
-              {getShortTitle(bubble.title)}
-            </p>
-          </div>
         )}
       </div>
     );
@@ -883,38 +879,20 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           100% { opacity: 0; transform: scale(0); border-radius: 50%; }
         }
         @keyframes bubbleExit {
-          0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+          0% { transform: translateY(0px) scale(1); opacity: 1; }
+          100% { transform: translateY(0px) scale(0.3); opacity: 0; }
         }
         @keyframes bubbleEnter {
-          0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-          60% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          0% { transform: translateY(0px) scale(0); opacity: 0; }
+          60% { transform: translateY(0px) scale(1.1); opacity: 1; }
+          100% { transform: translateY(0px) scale(1); opacity: 1; }
         }
-        @keyframes bubble-float-1 {
-          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
-          20%  { transform: translate(-50%, -50%) translate3d(12px, -18px, 0) scale(1.02); }
-          40%  { transform: translate(-50%, -50%) translate3d(-8px, -12px, 0) scale(0.98); }
-          60%  { transform: translate(-50%, -50%) translate3d(15px, 8px, 0) scale(1.01); }
-          80%  { transform: translate(-50%, -50%) translate3d(-10px, 15px, 0) scale(0.99); }
-          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+        @keyframes bubbleFloat {
+          0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+          25% { transform: translateY(-14px) rotate(1.5deg) scale(1.02); }
+          50% { transform: translateY(-8px) rotate(-0.5deg) scale(0.99); }
+          75% { transform: translateY(8px) rotate(-1.5deg) scale(1.01); }
         }
-        @keyframes bubble-float-2 {
-          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
-          25%  { transform: translate(-50%, -50%) translate3d(-15px, -20px, 0) scale(1.03); }
-          50%  { transform: translate(-50%, -50%) translate3d(10px, -8px, 0) scale(0.97); }
-          75%  { transform: translate(-50%, -50%) translate3d(-12px, 12px, 0) scale(1.02); }
-          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
-        }
-        @keyframes bubble-float-3 {
-          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
-          33%  { transform: translate(-50%, -50%) translate3d(18px, -15px, 0) scale(0.98); }
-          66%  { transform: translate(-50%, -50%) translate3d(-14px, 10px, 0) scale(1.03); }
-          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
-        }
-        .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay); }
-        .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay); }
-        .bubble-float-3 { animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay); }
         @keyframes fadeUp {
           from { transform: translateX(-50%) translateY(10px); opacity: 0; }
           to { transform: translateX(-50%) translateY(0); opacity: 1; }
