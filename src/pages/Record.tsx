@@ -139,50 +139,58 @@ const getFollowupsFromQuestion = (questionText: string, lang: string, name: stri
 };
 
 const extractFrames = async (videoBlob: Blob): Promise<string[]> => {
-  return new Promise((resolve) => {
-    const video = document.createElement("video");
-    const url = URL.createObjectURL(videoBlob);
-    video.src = url;
-    video.muted = true;
-    video.playsInline = true;
+  const url = URL.createObjectURL(videoBlob);
+  const points = [0.08, 0.22, 0.38, 0.54, 0.70, 0.88];
 
-    const timeoutId = setTimeout(() => {
-      URL.revokeObjectURL(url);
-      resolve([]);
-    }, 5000);
+  const captureAt = (seekRatio: number): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const video = document.createElement("video");
+      video.src = url;
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "metadata";
 
-    video.onloadedmetadata = () => {
-      video.currentTime = Math.min(1, video.duration * 0.1);
-    };
+      const timeout = setTimeout(() => resolve(null), 8000);
 
-    video.onseeked = () => {
-      clearTimeout(timeoutId);
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = 480;
-        canvas.height = 270;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, 480, 270);
-          const frame = canvas.toDataURL("image/jpeg", 0.8);
-          URL.revokeObjectURL(url);
-          resolve([frame]);
-        } else {
-          URL.revokeObjectURL(url);
-          resolve([]);
+      video.onloadedmetadata = () => {
+        video.currentTime = Math.max(0.1, video.duration * seekRatio);
+      };
+
+      video.onseeked = () => {
+        clearTimeout(timeout);
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = 480;
+          canvas.height = 270;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, 480, 270);
+            resolve(canvas.toDataURL("image/jpeg", 0.8));
+          } else {
+            resolve(null);
+          }
+        } catch {
+          resolve(null);
         }
-      } catch {
-        URL.revokeObjectURL(url);
-        resolve([]);
-      }
-    };
+      };
 
-    video.onerror = () => {
-      clearTimeout(timeoutId);
-      URL.revokeObjectURL(url);
-      resolve([]);
-    };
-  });
+      video.onerror = () => {
+        clearTimeout(timeout);
+        resolve(null);
+      };
+    });
+  };
+
+  try {
+    const results = await Promise.all(
+      points.map((p) => captureAt(p))
+    );
+    URL.revokeObjectURL(url);
+    return results.filter((f): f is string => f !== null);
+  } catch {
+    URL.revokeObjectURL(url);
+    return [];
+  }
 };
 
 const Record = () => {
@@ -1994,7 +2002,7 @@ const Record = () => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr",
+                gridTemplateColumns: "1fr 1fr",
                 gap: "8px",
                 marginBottom: "20px",
               }}
