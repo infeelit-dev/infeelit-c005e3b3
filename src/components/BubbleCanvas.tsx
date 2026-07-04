@@ -210,12 +210,16 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   const [openMemory, setOpenMemory] = useState<BubbleData | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
   const [isPressing, setIsPressing] = useState(false);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [constellationQueue, setConstellationQueue] = useState<BubbleData[]>([]);
   const constellationQueueRef = useRef<BubbleData[]>([]);
 
   const isPressingRef = useRef(false);
   const selectedPathRef = useRef<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const skipNextClickRef = useRef(false);
+  const isTouchDevice = typeof window !== "undefined" && "ontouchstart" in window;
 
   useEffect(() => {
     seenIdsRef.current = seenIds;
@@ -229,6 +233,14 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setCurrentUserId(session?.user?.id);
     });
+  }, []);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedIds([]);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
   const mapMemoryToBubble = useCallback(
@@ -506,11 +518,51 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       .filter((b): b is BubbleData => Boolean(b));
 
     if (orderedBubbles.length === 1) {
-      handleBubbleTap(orderedBubbles[0]);
+      if (isTouchDevice) {
+        handleBubbleTap(orderedBubbles[0]);
+      }
     } else if (orderedBubbles.length > 1) {
+      skipNextClickRef.current = true;
       handleConstellationGesture(orderedBubbles);
     }
-  }, [getActiveBubbles, handleBubbleTap, handleConstellationGesture]);
+  }, [getActiveBubbles, handleBubbleTap, handleConstellationGesture, isTouchDevice]);
+
+  const toggleSelect = (bubbleId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedIds((prev) =>
+      prev.includes(bubbleId) ? prev.filter((id) => id !== bubbleId) : [...prev, bubbleId],
+    );
+  };
+
+  const handleBubbleBodyClick = (bubble: BubbleData) => {
+    const bubbles = getActiveBubbles();
+
+    if (selectedIds.length > 0) {
+      const finalPath = selectedIds.includes(bubble.id) ? selectedIds : [...selectedIds, bubble.id];
+      setSelectedIds([]);
+      const orderedBubbles = finalPath
+        .map((id) => bubbles.find((b) => b.id === id))
+        .filter((b): b is BubbleData => Boolean(b));
+
+      if (orderedBubbles.length === 1) {
+        handleBubbleTap(orderedBubbles[0]);
+      } else {
+        handleConstellationGesture(orderedBubbles);
+      }
+    } else {
+      handleBubbleTap(bubble);
+    }
+  };
+
+  const playSelected = () => {
+    if (selectedIds.length === 0) return;
+    const bubbles = getActiveBubbles();
+    const orderedBubbles = selectedIds
+      .map((id) => bubbles.find((b) => b.id === id))
+      .filter((b): b is BubbleData => Boolean(b));
+    setSelectedIds([]);
+    handleConstellationGesture(orderedBubbles);
+  };
 
   const getShortTitle = (title: string): string => {
     const words = title.split(" ").slice(0, 4);
@@ -526,6 +578,10 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     }
 
     const isHighlighted = highlightedIds.includes(bubble.id);
+    const isHovered = hoveredId === bubble.id;
+    const isSelected = selectedIds.includes(bubble.id);
+    const showDragHighlight = isHighlighted;
+    const showSelected = isSelected && !isPressing;
     const defaultBoxShadow =
       bubble.type === "demo"
         ? "0 0 20px rgba(232,116,42,0.2)"
@@ -533,7 +589,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
     const floatStyle = animation
       ? { animation }
-      : isHighlighted
+      : showDragHighlight
         ? {}
         : ({
             "--dur": `${bubble.animDuration}s`,
@@ -555,27 +611,40 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           e.stopPropagation();
           startSelection(bubble.id);
         }}
-        className={`absolute rounded-full overflow-hidden ${animation || isHighlighted ? "" : bubble.floatClass}`}
+        onMouseEnter={() => setHoveredId(bubble.id)}
+        onMouseLeave={() => setHoveredId(null)}
+        onClick={(e) => {
+          if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
+          if (skipNextClickRef.current) {
+            skipNextClickRef.current = false;
+            return;
+          }
+          handleBubbleBodyClick(bubble);
+        }}
+        className={`absolute rounded-full overflow-hidden ${animation || showDragHighlight ? "" : bubble.floatClass}`}
         style={{
           width: `${bubble.size}px`,
           height: `${bubble.size}px`,
           left: `${bubble.x}%`,
           top: `${bubble.y}%`,
-          outline: isHighlighted ? "3px solid #E8742A" : "none",
+          outline: showDragHighlight || showSelected ? "3px solid #E8742A" : "none",
           outlineOffset: "3px",
-          transform: `translate(-50%, -50%) scale(${isHighlighted ? 1.1 : 1})`,
-          filter: isHighlighted
-            ? "drop-shadow(0 0 16px rgba(232,116,42,0.8)) brightness(1.15)"
-            : "none",
-          transition: isHighlighted
+          transform: `translate(-50%, -50%) scale(${showDragHighlight ? 1.1 : showSelected ? 1.08 : 1})`,
+          filter:
+            showDragHighlight
+              ? "drop-shadow(0 0 16px rgba(232,116,42,0.8)) brightness(1.15)"
+              : showSelected
+                ? "drop-shadow(0 0 14px rgba(232,116,42,0.7))"
+                : "none",
+          transition: showDragHighlight || showSelected
             ? "transform 0.15s ease, filter 0.15s ease"
-            : "transform 0.3s ease, filter 0.3s ease",
-          zIndex: isHighlighted ? 15 : bubble.isEntering ? 20 : 10,
+            : "transform 0.2s ease, filter 0.2s ease",
+          zIndex: showDragHighlight || showSelected ? 15 : bubble.isEntering ? 20 : 10,
           border:
             bubble.type === "demo"
               ? "2px solid rgba(232,116,42,0.55)"
               : "2.5px solid rgba(212,175,55,0.75)",
-          boxShadow: isHighlighted ? "none" : defaultBoxShadow,
+          boxShadow: showDragHighlight || showSelected ? "none" : defaultBoxShadow,
           pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
           cursor: "pointer",
           WebkitTapHighlightColor: "transparent",
@@ -584,6 +653,46 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           ...floatStyle,
         }}
       >
+        {(isHovered || isSelected) && (
+          <button
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => toggleSelect(bubble.id, e)}
+            style={{
+              position: "absolute",
+              top: "8px",
+              left: "8px",
+              width: "22px",
+              height: "22px",
+              borderRadius: "50%",
+              background: isSelected ? "#E8742A" : "rgba(255,255,255,0.9)",
+              border: isSelected ? "2px solid #D4AF37" : "2px solid rgba(61,43,31,0.3)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 10,
+              transition: "all 0.15s ease",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              pointerEvents: "auto",
+            }}
+          >
+            {isSelected && (
+              <span
+                style={{
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  pointerEvents: "none",
+                }}
+              >
+                ✦
+              </span>
+            )}
+          </button>
+        )}
+
         <img
           src={bubble.image || imgRelax}
           alt=""
@@ -806,9 +915,85 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay); }
         .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay); }
         .bubble-float-3 { animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay); }
+        @keyframes fadeUp {
+          from { transform: translateX(-50%) translateY(10px); opacity: 0; }
+          to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
       `}</style>
 
       {bubblesToRender.map(renderBubble)}
+
+      {selectedIds.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "90px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "rgba(45,24,16,0.92)",
+            backdropFilter: "blur(16px)",
+            borderRadius: "999px",
+            padding: "12px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+            zIndex: 30,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+            border: "1px solid rgba(232,116,42,0.3)",
+            animation: "fadeUp 0.25s ease",
+          }}
+        >
+          <span
+            style={{
+              color: "#E8742A",
+              fontSize: "13px",
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+            }}
+          >
+            ✦ {selectedIds.length} souvenir{selectedIds.length > 1 ? "s" : ""}
+          </span>
+          <button
+            type="button"
+            onClick={playSelected}
+            style={{
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              border: "none",
+              borderRadius: "999px",
+              padding: "8px 18px",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              boxShadow: "0 2px 10px rgba(232,116,42,0.4)",
+            }}
+          >
+            ▶ Jouer
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedIds([])}
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "none",
+              borderRadius: "50%",
+              width: "28px",
+              height: "28px",
+              color: "rgba(255,255,255,0.6)",
+              fontSize: "16px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {bloomingBubble && (
         <>
