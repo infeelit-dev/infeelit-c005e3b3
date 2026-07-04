@@ -586,19 +586,8 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     const imageSrc = bubble.image || bubble.thumbnail_url || imgRelax;
 
     return (
-      <div
-        key={bubble.id}
-        style={{
-          position: "absolute",
-          left: `${bubble.x}%`,
-          top: `${bubble.y}%`,
-          zIndex: showActive ? 15 : bubble.isEntering ? 20 : 10,
-          pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
-        }}
-        onMouseEnter={() => setHoveredId(bubble.id)}
-        onMouseLeave={() => setHoveredId(null)}
-      >
         <div
+          key={bubble.id}
           role="button"
           tabIndex={0}
           data-bubble-id={bubble.id}
@@ -624,13 +613,17 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             e.preventDefault();
             endSelection();
           }}
+          onMouseEnter={() => setHoveredId(bubble.id)}
+          onMouseLeave={() => setHoveredId(null)}
           style={
             {
               position: "absolute",
-              left: 0,
-              top: 0,
+              left: `${bubble.x}%`,
+              top: `${bubble.y}%`,
               width: `${bubble.size}px`,
               height: `${bubble.size}px`,
+              zIndex: showActive ? 15 : bubble.isEntering ? 20 : 10,
+              pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
               borderRadius: "50%",
               overflow: "hidden",
               cursor: "pointer",
@@ -791,41 +784,40 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
               </p>
             </div>
           )}
-        </div>
 
-        {(isHovered || isSelected) && (
-          <button
-            type="button"
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => toggleSelect(bubble.id, e)}
-            style={{
-              position: "absolute",
-              top: "4px",
-              left: "4px",
-              width: "22px",
-              height: "22px",
-              borderRadius: "50%",
-              background: isSelected ? "#E8742A" : "rgba(255,255,255,0.92)",
-              border: isSelected ? "2px solid #D4AF37" : "2px solid rgba(61,43,31,0.2)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 20,
-              boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
-              pointerEvents: "auto",
-              animation: "none",
-              transform: "none",
-            }}
-          >
-            {isSelected && (
-              <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900, pointerEvents: "none" }}>
-                ✦
-              </span>
-            )}
-          </button>
-        )}
-      </div>
+          {(isHovered || isSelected) && (
+            <button
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => toggleSelect(bubble.id, e)}
+              style={{
+                position: "absolute",
+                top: "4px",
+                left: "4px",
+                width: "22px",
+                height: "22px",
+                borderRadius: "50%",
+                background: isSelected ? "#E8742A" : "rgba(255,255,255,0.92)",
+                border: isSelected ? "2px solid #D4AF37" : "2px solid rgba(61,43,31,0.2)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 20,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                pointerEvents: "auto",
+                animation: "none",
+                transform: "none",
+              }}
+            >
+              {isSelected && (
+                <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900, pointerEvents: "none" }}>
+                  ✦
+                </span>
+              )}
+            </button>
+          )}
+        </div>
     );
   };
 
@@ -911,21 +903,10 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           from { opacity: 1; transform: scale(1); }
           to   { opacity: 0; transform: scale(0.3); }
         }
-        .bubble-float-1 {
-          animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay),
-                     bubble-born 0.6s ease-out;
-        }
-        .bubble-float-2 {
-          animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay),
-                     bubble-born 0.6s ease-out;
-        }
-        .bubble-float-3 {
-          animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay),
-                     bubble-born 0.6s ease-out;
-        }
-        .bubble-dying {
-          animation: bubble-die 0.8s ease-in forwards;
-        }
+        .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
+        .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
+        .bubble-float-3 { animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
+        .bubble-dying { animation: bubble-die 0.8s ease-in forwards; }
       `}</style>
 
       {bubblesToRender.map((bubble) => renderBubble(bubble))}
