@@ -181,8 +181,8 @@ function getNewPosition(
 function getBubbleAnimProps(index: number): Pick<BubbleData, "animClass" | "animDuration" | "animDelay"> {
   return {
     animClass: `bubble-float-${(index % 3) + 1}`,
-    animDuration: `${4 + Math.random() * 4}s`,
-    animDelay: `-${Math.random() * 8}s`,
+    animDuration: `${22 + Math.random() * 12}s`,
+    animDelay: `-${Math.random() * 20}s`,
   };
 }
 
