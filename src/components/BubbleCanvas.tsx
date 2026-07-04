@@ -111,10 +111,9 @@ interface BubbleData {
   size: number;
   x: number;
   y: number;
-  animX: number;
-  animY: number;
-  animDelay: number;
-  animDuration: number;
+  animClass: string;
+  animDuration: string;
+  animDelay: string;
   isExiting?: boolean;
   isEntering?: boolean;
 }
@@ -179,12 +178,11 @@ function getNewPosition(
   return { x: 20 + Math.random() * 60, y: 20 + Math.random() * 60 };
 }
 
-function getBubbleAnimProps(): Pick<BubbleData, "animX" | "animY" | "animDuration" | "animDelay"> {
+function getBubbleAnimProps(index: number): Pick<BubbleData, "animClass" | "animDuration" | "animDelay"> {
   return {
-    animX: Math.round((Math.random() - 0.5) * 40),
-    animY: Math.round((Math.random() - 0.5) * 40),
-    animDuration: 4 + Math.random() * 4,
-    animDelay: Math.random() * 4,
+    animClass: `bubble-float-${(index % 3) + 1}`,
+    animDuration: `${4 + Math.random() * 4}s`,
+    animDelay: `${Math.random() * 8}s`,
   };
 }
 
@@ -273,7 +271,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       size: getBubbleSize((m.sparks_count as number) || 0),
       x: 0,
       y: 0,
-      ...getBubbleAnimProps(),
+      ...getBubbleAnimProps(index),
     }),
     [],
   );
@@ -294,7 +292,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         size: q.size,
         x: q.x,
         y: q.y,
-        ...getBubbleAnimProps(),
+        ...getBubbleAnimProps(i),
       }));
   }, [activeTimeline, lang]);
 
@@ -380,7 +378,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             ...nextBubble,
             x: newPosition.x,
             y: newPosition.y,
-            ...getBubbleAnimProps(),
+            ...getBubbleAnimProps(Math.floor(Math.random() * 3)),
             isEntering: true,
           };
 
@@ -585,12 +583,6 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         ? "0 0 20px rgba(232,116,42,0.2)"
         : "0 0 24px rgba(212,175,55,0.35)";
 
-    const bubbleAnimation = bubble.isExiting
-      ? "bubbleExit 0.5s ease-in forwards"
-      : bubble.isEntering
-        ? "bubbleEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
-        : `float-${bubble.id} ${bubble.animDuration}s ease-in-out ${bubble.animDelay}s infinite`;
-
     const imageSrc = bubble.image || bubble.thumbnail_url || imgRelax;
 
     return (
@@ -610,6 +602,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           role="button"
           tabIndex={0}
           data-bubble-id={bubble.id}
+          className={bubble.isExiting ? "bubble-dying" : bubble.animClass}
           onClick={(e) => {
             if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
             if (skipNextClickRef.current) {
@@ -631,33 +624,37 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             e.preventDefault();
             endSelection();
           }}
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            width: `${bubble.size}px`,
-            height: `${bubble.size}px`,
-            borderRadius: "50%",
-            overflow: "hidden",
-            cursor: "pointer",
-            animation: bubbleAnimation,
-            animationPlayState: isPressing && !bubble.isExiting && !bubble.isEntering ? "paused" : "running",
-            outline: showActive ? "3px solid #E8742A" : "none",
-            outlineOffset: "3px",
-            border:
-              bubble.type === "demo"
-                ? "2px solid rgba(232,116,42,0.55)"
-                : "2.5px solid rgba(212,175,55,0.75)",
-            boxShadow: showActive ? "none" : defaultBoxShadow,
-            filter: showActive
-              ? "drop-shadow(0 0 14px rgba(232,116,42,0.7)) brightness(1.1)"
-              : "none",
-            transition: "filter 0.2s ease, outline 0.15s ease",
-            clipPath: "circle(50%)",
-            WebkitClipPath: "circle(50%)",
-            WebkitTapHighlightColor: "transparent",
-            userSelect: "none",
-          }}
+          style={
+            {
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: `${bubble.size}px`,
+              height: `${bubble.size}px`,
+              borderRadius: "50%",
+              overflow: "hidden",
+              cursor: "pointer",
+              "--dur": bubble.animDuration,
+              "--delay": bubble.animDelay,
+              willChange: "transform",
+              animationPlayState: isPressing && !bubble.isExiting ? "paused" : "running",
+              outline: showActive ? "3px solid #E8742A" : "none",
+              outlineOffset: "3px",
+              border:
+                bubble.type === "demo"
+                  ? "2px solid rgba(232,116,42,0.55)"
+                  : "2.5px solid rgba(212,175,55,0.75)",
+              boxShadow: showActive ? "none" : defaultBoxShadow,
+              filter: showActive
+                ? "drop-shadow(0 0 14px rgba(232,116,42,0.7)) brightness(1.1)"
+                : "none",
+              transition: "filter 0.2s ease, outline 0.15s ease",
+              clipPath: "circle(50%)",
+              WebkitClipPath: "circle(50%)",
+              WebkitTapHighlightColor: "transparent",
+              userSelect: "none",
+            } as React.CSSProperties
+          }
         >
           <img
             src={imageSrc}
@@ -881,30 +878,53 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           70% { opacity: 0.8; transform: scale(0.15); border-radius: 50%; }
           100% { opacity: 0; transform: scale(0); border-radius: 50%; }
         }
-        @keyframes bubbleExit {
-          0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1); opacity: 1; }
-          100% { transform: translate(-50%, -50%) translate(0px, 0px) scale(0.3); opacity: 0; }
-        }
-        @keyframes bubbleEnter {
-          0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(0); opacity: 0; }
-          60% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1.1); opacity: 1; }
-          100% { transform: translate(-50%, -50%) translate(0px, 0px) scale(1); opacity: 1; }
-        }
-        ${bubblesToRender
-          .map(
-            (b) => `
-        @keyframes float-${b.id} {
-          0%   { transform: translate(-50%, -50%) translate(0px, 0px); }
-          25%  { transform: translate(-50%, -50%) translate(${b.animX}px, ${b.animY}px); }
-          50%  { transform: translate(-50%, -50%) translate(${-b.animX * 0.5}px, ${b.animY * 1.2}px); }
-          75%  { transform: translate(-50%, -50%) translate(${b.animX * 0.8}px, ${-b.animY * 0.7}px); }
-          100% { transform: translate(-50%, -50%) translate(0px, 0px); }
-        }`,
-          )
-          .join("\n")}
         @keyframes fadeUp {
           from { transform: translateX(-50%) translateY(10px); opacity: 0; }
           to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        @keyframes bubble-float-1 {
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          20%  { transform: translate3d(12px, -18px, 0) scale(1.02); }
+          40%  { transform: translate3d(-8px, -12px, 0) scale(0.98); }
+          60%  { transform: translate3d(15px, 8px, 0) scale(1.01); }
+          80%  { transform: translate3d(-10px, 15px, 0) scale(0.99); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+        }
+        @keyframes bubble-float-2 {
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          25%  { transform: translate3d(-15px, -20px, 0) scale(1.03); }
+          50%  { transform: translate3d(10px, -8px, 0) scale(0.97); }
+          75%  { transform: translate3d(-12px, 12px, 0) scale(1.02); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+        }
+        @keyframes bubble-float-3 {
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          33%  { transform: translate3d(18px, -15px, 0) scale(0.98); }
+          66%  { transform: translate3d(-14px, 10px, 0) scale(1.03); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+        }
+        @keyframes bubble-born {
+          from { opacity: 0; transform: scale(0.3); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes bubble-die {
+          from { opacity: 1; transform: scale(1); }
+          to   { opacity: 0; transform: scale(0.3); }
+        }
+        .bubble-float-1 {
+          animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay),
+                     bubble-born 0.6s ease-out;
+        }
+        .bubble-float-2 {
+          animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay),
+                     bubble-born 0.6s ease-out;
+        }
+        .bubble-float-3 {
+          animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay),
+                     bubble-born 0.6s ease-out;
+        }
+        .bubble-dying {
+          animation: bubble-die 0.8s ease-in forwards;
         }
       `}</style>
 
