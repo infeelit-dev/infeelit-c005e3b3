@@ -204,6 +204,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   } | null>(null);
   const [openMemory, setOpenMemory] = useState<BubbleData | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+  const isTouchDevice =
+    typeof window !== "undefined" &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
   const touchStartBubble = useRef<string | null>(null);
   const touchedBubbles = useRef<string[]>([]);
@@ -433,6 +439,22 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     // setConstellationQueue(orderedBubbles);
   };
 
+  const toggleSelect = (bubbleId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(bubbleId)
+        ? prev.filter((id) => id !== bubbleId)
+        : [...prev, bubbleId],
+    );
+  };
+
+  const playSelected = () => {
+    if (selectedIds.length === 0) return;
+    const bubbles = useRealFeed ? visibleBubbles : demoBubbles;
+    const orderedIds = selectedIds.filter((id) => bubbles.some((b) => b.id === id));
+    setSelectedIds([]);
+    handleConstellationGesture(orderedIds);
+  };
+
   const getShortTitle = (title: string): string => {
     const words = title.split(" ").slice(0, 4);
     return words.join(" ") + (words.length < title.split(" ").length ? "..." : "");
@@ -472,10 +494,20 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             touchHandledRef.current = false;
             return;
           }
+          if (!isTouchDevice) {
+            if (selectedIds.length > 0) {
+              toggleSelect(bubble.id);
+            } else {
+              handleBubbleTap(bubble);
+            }
+            return;
+          }
           if (!isGesturing.current) {
             handleBubbleTap(bubble);
           }
         }}
+        onMouseEnter={() => setHoveredId(bubble.id)}
+        onMouseLeave={() => setHoveredId(null)}
         onTouchStart={(e) => {
           e.preventDefault();
           isGesturing.current = false;
@@ -566,6 +598,25 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
           }}
         />
+
+        {!isTouchDevice &&
+          (hoveredId === bubble.id || selectedIds.includes(bubble.id)) && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                border: selectedIds.includes(bubble.id)
+                  ? "3px solid #E8742A"
+                  : "2px solid rgba(255,255,255,0.5)",
+                boxShadow: selectedIds.includes(bubble.id)
+                  ? "inset 0 0 20px rgba(232,116,42,0.4), 0 0 20px rgba(232,116,42,0.6)"
+                  : "none",
+                pointerEvents: "none",
+                transition: "all 0.2s ease",
+              }}
+            />
+          )}
 
         {bubble.type === "real" && bubble.file_type === "audio" && (
           <div
@@ -733,6 +784,61 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       `}</style>
 
       {bubblesToRender.map(renderBubble)}
+
+      {selectedIds.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "90px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "rgba(45,24,16,0.92)",
+            backdropFilter: "blur(16px)",
+            borderRadius: "999px",
+            padding: "12px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+            zIndex: 30,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+            border: "1px solid rgba(232,116,42,0.3)",
+          }}
+        >
+          <span style={{ color: "#E8742A", fontSize: "13px", fontWeight: 700 }}>
+            ✦ {selectedIds.length} souvenir{selectedIds.length > 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={playSelected}
+            style={{
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              border: "none",
+              borderRadius: "999px",
+              padding: "8px 18px",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            ▶ Jouer
+          </button>
+          <button
+            onClick={() => setSelectedIds([])}
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "none",
+              borderRadius: "50%",
+              width: "28px",
+              height: "28px",
+              color: "rgba(255,255,255,0.6)",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {bloomingBubble && (
         <>
