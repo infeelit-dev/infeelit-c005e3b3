@@ -785,6 +785,61 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
       {bubblesToRender.map(renderBubble)}
 
+      {selectedIds.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "90px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "rgba(45,24,16,0.92)",
+            backdropFilter: "blur(16px)",
+            borderRadius: "999px",
+            padding: "12px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+            zIndex: 30,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+            border: "1px solid rgba(232,116,42,0.3)",
+          }}
+        >
+          <span style={{ color: "#E8742A", fontSize: "13px", fontWeight: 700 }}>
+            ✦ {selectedIds.length} souvenir{selectedIds.length > 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={playSelected}
+            style={{
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              border: "none",
+              borderRadius: "999px",
+              padding: "8px 18px",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            ▶ Jouer
+          </button>
+          <button
+            onClick={() => setSelectedIds([])}
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "none",
+              borderRadius: "50%",
+              width: "28px",
+              height: "28px",
+              color: "rgba(255,255,255,0.6)",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {bloomingBubble && (
         <>
           <div
