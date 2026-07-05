@@ -27,6 +27,7 @@ import Whispers from "./pages/Whispers";
 import Search from "./pages/Search";
 import Contact from "./pages/Contact";
 import AdminUpload from "./pages/AdminUpload";
+import MemoryDetail from "./pages/MemoryDetail";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
               </HeaderProvider>
             } />
             <Route path="/admin" element={<AdminUpload />} />
+            <Route path="/memory/:id" element={<MemoryDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
