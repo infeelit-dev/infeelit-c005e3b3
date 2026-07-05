@@ -168,7 +168,7 @@ const Index = () => {
               type="button"
               onClick={() => {
                 setShowPlusSheet(false);
-                navigate("/record");
+                setSparkForced(true);
               }}
               style={{
                 width: "100%",
