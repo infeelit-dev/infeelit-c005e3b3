@@ -843,15 +843,31 @@ const Record = () => {
         userIdRef.current = uid;
         const finalUrl = urls[urls.length - 1];
 
-        let finalThumbnailUrl: string | null = null;
+        let finalThumbnailBlob: Blob | null = null;
+
         if (selectedThumbnail) {
           try {
             const response = await fetch(selectedThumbnail);
-            const blob = await response.blob();
+            finalThumbnailBlob = await response.blob();
+          } catch (err) {
+            console.error("Failed to fetch selected thumbnail blob:", err);
+          }
+        }
+
+        if (!finalThumbnailBlob && posterRef.current) {
+          finalThumbnailBlob = posterRef.current;
+        }
+
+        let finalThumbnailUrl: string | null = null;
+        if (finalThumbnailBlob) {
+          try {
             const thumbPath = `thumbnails/${uid}/${Date.now()}.jpg`;
             const { data } = await supabase.storage
               .from("memories")
-              .upload(thumbPath, blob, { contentType: "image/jpeg", upsert: true });
+              .upload(thumbPath, finalThumbnailBlob, {
+                contentType: "image/jpeg",
+                upsert: true,
+              });
             if (data) finalThumbnailUrl = thumbPath;
           } catch (err) {
             console.error("Thumbnail upload failed:", err);
@@ -865,7 +881,7 @@ const Record = () => {
             description: null,
             file_url: finalUrl,
             file_type: typeRef.current,
-            thumbnail_url: finalThumbnailUrl || thumbUrlRef.current || null,
+            thumbnail_url: finalThumbnailUrl,
             timeline: isImportModeRef.current
               ? importTimelineRef.current
               : recordMode === "forever"
