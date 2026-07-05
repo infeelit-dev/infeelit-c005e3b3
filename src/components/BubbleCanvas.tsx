@@ -599,6 +599,25 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           }}
         />
 
+        {!isTouchDevice &&
+          (hoveredId === bubble.id || selectedIds.includes(bubble.id)) && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                border: selectedIds.includes(bubble.id)
+                  ? "3px solid #E8742A"
+                  : "2px solid rgba(255,255,255,0.5)",
+                boxShadow: selectedIds.includes(bubble.id)
+                  ? "inset 0 0 20px rgba(232,116,42,0.4), 0 0 20px rgba(232,116,42,0.6)"
+                  : "none",
+                pointerEvents: "none",
+                transition: "all 0.2s ease",
+              }}
+            />
+          )}
+
         {bubble.type === "real" && bubble.file_type === "audio" && (
           <div
             style={{
