@@ -451,7 +451,7 @@ const Profile = () => {
                   : "Your first memory is waiting."}
             </p>
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/questions")}
               style={{
                 padding: "12px 24px",
                 borderRadius: "999px",
