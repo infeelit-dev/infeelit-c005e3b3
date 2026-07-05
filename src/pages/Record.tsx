@@ -1659,6 +1659,20 @@ const Record = () => {
             padding: "60px 24px 40px",
           }}
         >
+          <button
+            onClick={() => setStage("freeTitle")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(61,43,31,0.5)",
+              fontSize: "13px",
+              cursor: "pointer",
+              marginBottom: "16px",
+              alignSelf: "flex-start",
+            }}
+          >
+            ← Retour
+          </button>
           <p
             style={{
               fontSize: "11px",
@@ -2171,6 +2185,20 @@ const Record = () => {
             overflowY: "auto",
           }}
         >
+          <button
+            onClick={() => setStage("preview")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(61,43,31,0.5)",
+              fontSize: "13px",
+              cursor: "pointer",
+              marginBottom: "16px",
+              alignSelf: "flex-start",
+            }}
+          >
+            ← Retour
+          </button>
           <p
             style={{
               fontSize: "11px",
@@ -2352,6 +2380,20 @@ const Record = () => {
 
       {stage === "title" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-8">
+          <button
+            onClick={() => setStage("thumbnail")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(61,43,31,0.5)",
+              fontSize: "13px",
+              cursor: "pointer",
+              marginBottom: "16px",
+              alignSelf: "flex-start",
+            }}
+          >
+            ← Retour
+          </button>
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.memoryReady}</p>
           <h2 className="text-white text-2xl font-bold leading-tight italic">"{memoryTitle}"</h2>
           <input
@@ -2373,6 +2415,20 @@ const Record = () => {
 
       {stage === "visibility" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+          <button
+            onClick={() => setStage(isFreeMode ? "thumbnail" : "title")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(61,43,31,0.5)",
+              fontSize: "13px",
+              cursor: "pointer",
+              marginBottom: "16px",
+              alignSelf: "flex-start",
+            }}
+          >
+            ← Retour
+          </button>
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
             {lang === "ar"
               ? userName
