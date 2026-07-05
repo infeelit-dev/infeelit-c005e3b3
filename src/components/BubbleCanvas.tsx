@@ -439,6 +439,22 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     // setConstellationQueue(orderedBubbles);
   };
 
+  const toggleSelect = (bubbleId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(bubbleId)
+        ? prev.filter((id) => id !== bubbleId)
+        : [...prev, bubbleId],
+    );
+  };
+
+  const playSelected = () => {
+    if (selectedIds.length === 0) return;
+    const bubbles = useRealFeed ? visibleBubbles : demoBubbles;
+    const orderedIds = selectedIds.filter((id) => bubbles.some((b) => b.id === id));
+    setSelectedIds([]);
+    handleConstellationGesture(orderedIds);
+  };
+
   const getShortTitle = (title: string): string => {
     const words = title.split(" ").slice(0, 4);
     return words.join(" ") + (words.length < title.split(" ").length ? "..." : "");
