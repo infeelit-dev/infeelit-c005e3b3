@@ -68,16 +68,37 @@ const Profile = () => {
         .order("created_at", { ascending: false })
         .limit(12);
 
-      const loadedMemories = data || [];
-      setMemories(loadedMemories);
+      const memoriesData = data || [];
 
-      if (loadedMemories.length > 0) {
+      const signUrl = async (path: string | null): Promise<string | null> => {
+        if (!path) return null;
+        if (path.startsWith("http")) return path;
+        try {
+          const { data } = await supabase.storage
+            .from("memories")
+            .createSignedUrl(path, 3600);
+          return data?.signedUrl || null;
+        } catch {
+          return null;
+        }
+      };
+
+      const signed = await Promise.all(
+        memoriesData.map(async (m: any) => ({
+          ...m,
+          thumbnail_url: await signUrl(m.thumbnail_url),
+        })),
+      );
+
+      setMemories(signed);
+
+      if (memoriesData.length > 0) {
         const { count } = await supabase
           .from("memory_sparks")
           .select("id", { count: "exact", head: true })
           .in(
             "memory_id",
-            loadedMemories.map((m) => m.id),
+            memoriesData.map((m) => m.id),
           );
         setSparksCount(count || 0);
       } else {
