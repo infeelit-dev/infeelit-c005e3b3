@@ -8,6 +8,21 @@ const MemoryDetail = () => {
   const navigate = useNavigate();
   const [memory, setMemory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [signedFileUrl, setSignedFileUrl] = useState<string | null>(null);
+  const [signedThumbUrl, setSignedThumbUrl] = useState<string | null>(null);
+
+  const signUrl = async (path: string | null): Promise<string | null> => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    try {
+      const { data } = await supabase.storage
+        .from("memories")
+        .createSignedUrl(path, 3600);
+      return data?.signedUrl || null;
+    } catch {
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -17,7 +32,13 @@ const MemoryDetail = () => {
         .select("*, profiles(display_name, avatar_url)")
         .eq("id", id)
         .single();
-      if (data) setMemory(data);
+      if (data) {
+        setMemory(data);
+        const fileUrl = await signUrl(data.file_url);
+        const thumbUrl = await signUrl(data.thumbnail_url);
+        setSignedFileUrl(fileUrl);
+        setSignedThumbUrl(thumbUrl);
+      }
       setLoading(false);
     };
     fetchMemory();
@@ -66,9 +87,34 @@ const MemoryDetail = () => {
     </div>
   );
 
+  const bubble = {
+    id: memory.id,
+    type: "real" as const,
+    title: memory.title || "Un souvenir",
+    file_url: signedFileUrl || "",
+    file_type: memory.file_type || "video",
+    thumbnail_url: signedThumbUrl,
+    user_name:
+      memory.profiles?.display_name?.split(" ")[0] || "Quelqu'un",
+    user_id: memory.user_id,
+    sparks_count: memory.sparks_count || 0,
+    transcript_fr: memory.transcript_fr || null,
+    transcript_en: memory.transcript_en || null,
+    transcript_ar: memory.transcript_ar || null,
+    translation_status: memory.translation_status || null,
+    detected_lang: memory.detected_lang || null,
+    image: signedThumbUrl || "",
+    size: 140,
+    x: 50,
+    y: 50,
+    animClass: "",
+    animDuration: "8s",
+    animDelay: "0s",
+  };
+
   return (
     <MemoryFullscreen
-      memory={memory}
+      bubble={bubble}
       onClose={() => navigate(-1)}
     />
   );
