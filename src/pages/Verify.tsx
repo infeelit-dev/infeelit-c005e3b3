@@ -52,7 +52,7 @@ const Verify = () => {
             .eq("user_id", user.id)
             .single();
           if (profile?.onboarding_completed) navigate("/", { replace: true });
-          else if (profile?.display_name) navigate("/portrait", { replace: true });
+          else if (profile?.display_name) navigate("/", { replace: true });
           else navigate("/identity", { replace: true });
         }
       }

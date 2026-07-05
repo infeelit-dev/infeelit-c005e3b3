@@ -46,7 +46,7 @@ const App = () => (
 
             {/* Redirects pour les routes obsolètes */}
             <Route path="/feed" element={<Navigate to="/" replace />} />
-            <Route path="/portrait" element={<Navigate to="/" replace />} />
+            <Route path="/portrait" element={<Portrait />} />
             <Route path="/login" element={<Navigate to="/welcome" replace />} />
             <Route path="/chats" element={<Navigate to="/whispers" replace />} />
             <Route path="/circles" element={
