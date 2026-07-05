@@ -982,11 +982,7 @@ const Record = () => {
         setStage("share");
         return;
       }
-      if (type === "private") {
-        navigate("/treasure", { replace: true });
-      } else {
-        navigate("/", { replace: true });
-      }
+      navigate("/", { replace: true });
     } catch (err) {
       console.error(err);
       toast.error("An unexpected error occurred.");
