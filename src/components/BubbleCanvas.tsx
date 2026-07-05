@@ -494,10 +494,20 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             touchHandledRef.current = false;
             return;
           }
+          if (!isTouchDevice) {
+            if (selectedIds.length > 0) {
+              toggleSelect(bubble.id);
+            } else {
+              handleBubbleTap(bubble);
+            }
+            return;
+          }
           if (!isGesturing.current) {
             handleBubbleTap(bubble);
           }
         }}
+        onMouseEnter={() => setHoveredId(bubble.id)}
+        onMouseLeave={() => setHoveredId(null)}
         onTouchStart={(e) => {
           e.preventDefault();
           isGesturing.current = false;
