@@ -48,7 +48,7 @@ const AuthCallback = () => {
 
         if (hasName) {
           setStatus("Welcome back");
-          navigate("/treasure", { replace: true });
+          navigate("/", { replace: true });
         } else {
           setStatus("Let's set up your profile...");
           navigate("/identity", { replace: true });
