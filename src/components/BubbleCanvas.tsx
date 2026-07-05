@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Play, Volume2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -93,9 +92,6 @@ interface BubbleData {
   id: string;
   type: "real" | "demo";
   title: string;
-  question_fr?: string;
-  question_en?: string;
-  question_ar?: string;
   file_url?: string;
   file_type?: string | null;
   thumbnail_url?: string | null;
@@ -111,9 +107,9 @@ interface BubbleData {
   size: number;
   x: number;
   y: number;
-  animClass: string;
-  animDuration: string;
-  animDelay: string;
+  animDelay: number;
+  animDuration: number;
+  floatClass: string;
   isExiting?: boolean;
   isEntering?: boolean;
 }
@@ -178,14 +174,6 @@ function getNewPosition(
   return { x: 20 + Math.random() * 60, y: 20 + Math.random() * 60 };
 }
 
-function getBubbleAnimProps(index: number): Pick<BubbleData, "animClass" | "animDuration" | "animDelay"> {
-  return {
-    animClass: `bubble-float-${(index % 3) + 1}`,
-    animDuration: `${22 + Math.random() * 12}s`,
-    animDelay: `-${Math.random() * 20}s`,
-  };
-}
-
 function getThemedImage(title: string): string {
   const lower = title.toLowerCase();
   for (const [keyword, img] of Object.entries(THEME_IMAGES)) {
@@ -194,8 +182,9 @@ function getThemedImage(title: string): string {
   return imgRelax;
 }
 
+const FLOAT_CLASSES = ["bubble-float-1", "bubble-float-2", "bubble-float-3"];
+
 const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
-  const navigate = useNavigate();
   const { lang } = useLanguage();
   const userName = useUserName();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
@@ -215,38 +204,20 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   } | null>(null);
   const [openMemory, setOpenMemory] = useState<BubbleData | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
-  const [isPressing, setIsPressing] = useState(false);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [constellationQueue, setConstellationQueue] = useState<BubbleData[]>([]);
-  const constellationQueueRef = useRef<BubbleData[]>([]);
 
-  const isPressingRef = useRef(false);
-  const selectedPathRef = useRef<string[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const skipNextClickRef = useRef(false);
-  const isTouchDevice = typeof window !== "undefined" && "ontouchstart" in window;
+  const touchStartBubble = useRef<string | null>(null);
+  const touchedBubbles = useRef<string[]>([]);
+  const isGesturing = useRef(false);
+  const touchHandledRef = useRef(false);
 
   useEffect(() => {
     seenIdsRef.current = seenIds;
   }, [seenIds]);
 
   useEffect(() => {
-    constellationQueueRef.current = constellationQueue;
-  }, [constellationQueue]);
-
-  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setCurrentUserId(session?.user?.id);
     });
-  }, []);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedIds([]);
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
   const mapMemoryToBubble = useCallback(
@@ -271,7 +242,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       size: getBubbleSize((m.sparks_count as number) || 0),
       x: 0,
       y: 0,
-      ...getBubbleAnimProps(index),
+      animDelay: Math.random() * 3,
+      animDuration: 3 + Math.random() * 4,
+      floatClass: FLOAT_CLASSES[index % 3],
     }),
     [],
   );
@@ -285,14 +258,13 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         id: `demo-${i}-${langKey}`,
         type: "demo" as const,
         title: q[langKey] || q.en || "",
-        question_fr: q.fr,
-        question_en: q.en,
-        question_ar: q.ar,
         image: q.image,
         size: q.size,
         x: q.x,
         y: q.y,
-        ...getBubbleAnimProps(i),
+        animDelay: Math.random() * 3,
+        animDuration: 3 + Math.random() * 4,
+        floatClass: FLOAT_CLASSES[i % 3],
       }));
   }, [activeTimeline, lang]);
 
@@ -361,208 +333,104 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     }
   };
 
-  const replaceBubble = useCallback((viewedBubble: BubbleData) => {
-    if (!useRealFeed) return;
-
-    setMemoryQueue((currentQueue) => {
-      if (currentQueue.length > 0) {
-        const [nextBubble, ...remainingQueue] = currentQueue;
-
-        setVisibleBubbles((prev) => {
-          const newPosition = getNewPosition(
-            prev.filter((b) => b.id !== viewedBubble.id),
-            nextBubble.size,
-          );
-
-          const newBubble: BubbleData = {
-            ...nextBubble,
-            x: newPosition.x,
-            y: newPosition.y,
-            ...getBubbleAnimProps(Math.floor(Math.random() * 3)),
-            isEntering: true,
-          };
-
-          const withExiting = prev.map((b) =>
-            b.id === viewedBubble.id ? { ...b, isExiting: true } : b,
-          );
-
-          setTimeout(() => {
-            setVisibleBubbles((current) => [
-              ...current.filter((b) => b.id !== viewedBubble.id),
-              newBubble,
-            ]);
-
-            setTimeout(() => {
-              setVisibleBubbles((current) =>
-                current.map((b) => (b.id === newBubble.id ? { ...b, isEntering: false } : b)),
-              );
-            }, 600);
-          }, 500);
-
-          return withExiting;
-        });
-
-        return remainingQueue;
-      }
-
-      setVisibleBubbles((prev) => prev.filter((b) => b.id !== viewedBubble.id));
-      reloadMoreMemories();
-      return currentQueue;
-    });
-  }, [useRealFeed]);
-
   const handleCloseMemory = (viewedBubble: BubbleData) => {
     setOpenMemory(null);
     setSeenIds((prev) => new Set([...prev, viewedBubble.id]));
 
-    const queue = constellationQueueRef.current;
-    if (queue.length > 0) {
-      const [next, ...rest] = queue;
-      setConstellationQueue(rest);
+    if (memoryQueue.length > 0) {
+      const [nextBubble, ...remainingQueue] = memoryQueue;
+      setMemoryQueue(remainingQueue);
+
+      const newPosition = getNewPosition(
+        visibleBubbles.filter((b) => b.id !== viewedBubble.id),
+        nextBubble.size,
+      );
+
+      const newBubble: BubbleData = {
+        ...nextBubble,
+        x: newPosition.x,
+        y: newPosition.y,
+        animDelay: Math.random() * 2,
+        animDuration: 3 + Math.random() * 4,
+        isEntering: true,
+      };
+
+      setVisibleBubbles((prev) =>
+        prev.map((b) => (b.id === viewedBubble.id ? { ...b, isExiting: true } : b)),
+      );
+
       setTimeout(() => {
-        handleBubbleTap(next);
-      }, 300);
+        setVisibleBubbles((prev) => [
+          ...prev.filter((b) => b.id !== viewedBubble.id),
+          newBubble,
+        ]);
+
+        setTimeout(() => {
+          setVisibleBubbles((prev) =>
+            prev.map((b) => (b.id === newBubble.id ? { ...b, isEntering: false } : b)),
+          );
+        }, 600);
+      }, 500);
     } else {
-      replaceBubble(viewedBubble);
+      setVisibleBubbles((prev) => prev.filter((b) => b.id !== viewedBubble.id));
+      reloadMoreMemories();
     }
   };
 
-  const handleBubbleTap = useCallback(
-    (bubble: BubbleData) => {
-      if (bubble.type === "demo") {
-        navigate("/record", {
-          state: {
-            preSelectedQuestion: {
-              fr: bubble.question_fr || bubble.title,
-              en: bubble.question_en || bubble.title,
-              ar: bubble.question_ar || bubble.title,
-            },
-          },
-        });
-        return;
+  const handleBubbleTap = (
+    bubble: BubbleData,
+    event?: React.MouseEvent | React.TouchEvent,
+  ) => {
+    if (bubble.type === "demo") {
+      if (onBubbleClick && bubble.title) {
+        onBubbleClick(bubble.title, "past");
       }
+      return;
+    }
 
+    let centerX: number;
+    let centerY: number;
+
+    if (event?.currentTarget) {
+      const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+      centerX = rect.left + rect.width / 2;
+      centerY = rect.top + rect.height / 2;
+    } else {
       const el = document.querySelector(`[data-bubble-id="${bubble.id}"]`);
-      let bloomX = (bubble.x / 100) * window.innerWidth;
-      let bloomY = (bubble.y / 100) * window.innerHeight;
       if (el) {
         const rect = el.getBoundingClientRect();
-        bloomX = rect.left + rect.width / 2;
-        bloomY = rect.top + rect.height / 2;
-      }
-
-      setBloomingBubble({
-        id: bubble.id,
-        x: bloomX,
-        y: bloomY,
-        size: bubble.size,
-      });
-
-      setTimeout(() => {
-        setBloomingBubble(null);
-        setOpenMemory(bubble);
-      }, 500);
-    },
-    [navigate],
-  );
-
-  const handleConstellationGesture = useCallback(
-    (bubbles: BubbleData[]) => {
-      if (bubbles.length === 0) return;
-      setConstellationQueue(bubbles.slice(1));
-      handleBubbleTap(bubbles[0]);
-    },
-    [handleBubbleTap],
-  );
-
-  const getActiveBubbles = useCallback((): BubbleData[] => {
-    return useRealFeed ? visibleBubbles : demoBubbles;
-  }, [useRealFeed, visibleBubbles, demoBubbles]);
-
-  const startSelection = useCallback((bubbleId: string) => {
-    isPressingRef.current = true;
-    setIsPressing(true);
-    selectedPathRef.current = [bubbleId];
-    setHighlightedIds([bubbleId]);
-  }, []);
-
-  const addToPath = useCallback((clientX: number, clientY: number) => {
-    if (!isPressingRef.current) return;
-
-    const el = document.elementFromPoint(clientX, clientY);
-    const bubbleEl = el?.closest("[data-bubble-id]");
-    if (!bubbleEl) return;
-
-    const id = bubbleEl.getAttribute("data-bubble-id");
-    if (!id) return;
-    if (selectedPathRef.current.includes(id)) return;
-
-    selectedPathRef.current = [...selectedPathRef.current, id];
-    setHighlightedIds([...selectedPathRef.current]);
-  }, []);
-
-  const endSelection = useCallback(() => {
-    if (!isPressingRef.current) return;
-
-    isPressingRef.current = false;
-    setIsPressing(false);
-
-    const path = [...selectedPathRef.current];
-    selectedPathRef.current = [];
-    setHighlightedIds([]);
-
-    if (path.length === 0) return;
-
-    const bubbles = getActiveBubbles();
-    const orderedBubbles = path
-      .map((id) => bubbles.find((b) => b.id === id))
-      .filter((b): b is BubbleData => Boolean(b));
-
-    if (orderedBubbles.length === 1) {
-      if (isTouchDevice) {
-        handleBubbleTap(orderedBubbles[0]);
-      }
-    } else if (orderedBubbles.length > 1) {
-      skipNextClickRef.current = true;
-      handleConstellationGesture(orderedBubbles);
-    }
-  }, [getActiveBubbles, handleBubbleTap, handleConstellationGesture, isTouchDevice]);
-
-  const toggleSelect = (bubbleId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedIds((prev) =>
-      prev.includes(bubbleId) ? prev.filter((id) => id !== bubbleId) : [...prev, bubbleId],
-    );
-  };
-
-  const handleBubbleBodyClick = (bubble: BubbleData) => {
-    const bubbles = getActiveBubbles();
-
-    if (selectedIds.length > 0) {
-      const finalPath = selectedIds.includes(bubble.id) ? selectedIds : [...selectedIds, bubble.id];
-      setSelectedIds([]);
-      const orderedBubbles = finalPath
-        .map((id) => bubbles.find((b) => b.id === id))
-        .filter((b): b is BubbleData => Boolean(b));
-
-      if (orderedBubbles.length === 1) {
-        handleBubbleTap(orderedBubbles[0]);
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
       } else {
-        handleConstellationGesture(orderedBubbles);
+        centerX = (bubble.x / 100) * window.innerWidth;
+        centerY = (bubble.y / 100) * window.innerHeight;
       }
-    } else {
-      handleBubbleTap(bubble);
     }
+
+    setBloomingBubble({
+      id: bubble.id,
+      x: centerX,
+      y: centerY,
+      size: bubble.size,
+    });
+
+    setTimeout(() => {
+      setBloomingBubble(null);
+      setOpenMemory(bubble);
+    }, 500);
   };
 
-  const playSelected = () => {
-    if (selectedIds.length === 0) return;
-    const bubbles = getActiveBubbles();
-    const orderedBubbles = selectedIds
-      .map((id) => bubbles.find((b) => b.id === id))
+  const handleConstellationGesture = (ids: string[]) => {
+    const allBubbles = useRealFeed ? visibleBubbles : demoBubbles;
+    const orderedBubbles = ids
+      .map((id) => allBubbles.find((b) => b.id === id))
       .filter((b): b is BubbleData => Boolean(b));
-    setSelectedIds([]);
-    handleConstellationGesture(orderedBubbles);
+
+    if (orderedBubbles.length === 0) return;
+
+    handleBubbleTap(orderedBubbles[0]!);
+    // TODO V2 : jouer toutes les bulles en séquence
+    // setConstellationQueue(orderedBubbles);
   };
 
   const getShortTitle = (title: string): string => {
@@ -571,261 +439,226 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   };
 
   const renderBubble = (bubble: BubbleData) => {
-    const isHighlighted = highlightedIds.includes(bubble.id);
-    const isHovered = hoveredId === bubble.id;
-    const isSelected = selectedIds.includes(bubble.id);
-    const showDragHighlight = isHighlighted;
-    const showSelected = isSelected && !isPressing;
-    const showActive = showDragHighlight || showSelected;
+    let animation: string | undefined;
+    if (bubble.isExiting) {
+      animation = "bubbleExit 0.5s ease-in forwards";
+    } else if (bubble.isEntering) {
+      animation = "bubbleEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards";
+    }
 
+    const isHighlighted = highlightedIds.includes(bubble.id);
     const defaultBoxShadow =
       bubble.type === "demo"
         ? "0 0 20px rgba(232,116,42,0.2)"
         : "0 0 24px rgba(212,175,55,0.35)";
 
-    const imageSrc = bubble.image || bubble.thumbnail_url || imgRelax;
+    const floatStyle = animation
+      ? { animation }
+      : isHighlighted
+        ? {}
+        : ({
+            "--dur": `${bubble.animDuration}s`,
+            "--delay": `${bubble.animDelay}s`,
+          } as React.CSSProperties);
 
     return (
-        <div
-          key={bubble.id}
-          role="button"
-          tabIndex={0}
-          data-bubble-id={bubble.id}
-          className={bubble.isExiting ? "bubble-dying" : bubble.animClass}
-          onClick={(e) => {
-            if ((e.nativeEvent as PointerEvent).pointerType === "touch") return;
-            if (skipNextClickRef.current) {
-              skipNextClickRef.current = false;
-              return;
-            }
-            handleBubbleBodyClick(bubble);
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            startSelection(bubble.id);
-          }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            startSelection(bubble.id);
-          }}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            endSelection();
-          }}
-          onMouseEnter={() => setHoveredId(bubble.id)}
-          onMouseLeave={() => setHoveredId(null)}
-          style={
-            {
-              position: "absolute",
-              left: `${bubble.x}%`,
-              top: `${bubble.y}%`,
-              width: `${bubble.size}px`,
-              height: `${bubble.size}px`,
-              zIndex: showActive ? 15 : bubble.isEntering ? 20 : 10,
-              pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
-              borderRadius: "50%",
-              overflow: "hidden",
-              cursor: "pointer",
-              "--dur": bubble.animDuration,
-              "--delay": bubble.animDelay,
-              "--to-left": `calc(${6 - bubble.x}vw)`,
-              "--to-right": `calc(${92 - bubble.x}vw - ${bubble.size}px)`,
-              "--to-top": `calc(${8 - bubble.y}vh)`,
-              "--to-bottom": `calc(${86 - bubble.y}vh - ${bubble.size}px)`,
-              "--to-center-x": `calc(${50 - bubble.x}vw - ${bubble.size / 2}px)`,
-              "--to-center-y": `calc(${47 - bubble.y}vh - ${bubble.size / 2}px)`,
-              willChange: "transform",
-              backfaceVisibility: "hidden",
-              WebkitBackfaceVisibility: "hidden",
-              animationPlayState: isPressing && !bubble.isExiting ? "paused" : "running",
-              outline: showActive ? "3px solid #E8742A" : "none",
-              outlineOffset: "3px",
-              border:
-                bubble.type === "demo"
-                  ? "2px solid rgba(232,116,42,0.55)"
-                  : "2.5px solid rgba(212,175,55,0.75)",
-              boxShadow: showActive ? "none" : defaultBoxShadow,
-              filter: showActive
-                ? "drop-shadow(0 0 14px rgba(232,116,42,0.7)) brightness(1.1)"
-                : "none",
-              transition: "filter 0.2s ease, outline 0.15s ease",
-              clipPath: "circle(50%)",
-              WebkitClipPath: "circle(50%)",
-              WebkitTapHighlightColor: "transparent",
-              userSelect: "none",
-            } as React.CSSProperties
+      <div
+        key={bubble.id}
+        role="button"
+        tabIndex={0}
+        data-bubble-id={bubble.id}
+        onClick={() => {
+          if (touchHandledRef.current) {
+            touchHandledRef.current = false;
+            return;
           }
-        >
-          <img
-            src={imageSrc}
-            alt={bubble.title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center top",
-              pointerEvents: "none",
-              display: "block",
-              filter:
-                bubble.type === "demo"
-                  ? "grayscale(60%) sepia(40%) brightness(0.85)"
-                  : "sepia(20%) brightness(0.92)",
-            }}
-          />
+          if (!isGesturing.current) {
+            handleBubbleTap(bubble);
+          }
+        }}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          isGesturing.current = false;
+          touchStartBubble.current = bubble.id;
+          touchedBubbles.current = [bubble.id];
+          setHighlightedIds([bubble.id]);
+        }}
+        onTouchMove={(e) => {
+          e.preventDefault();
+          isGesturing.current = true;
+          const touch = e.touches[0];
+          const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+          const bubbleEl = elementUnder?.closest("[data-bubble-id]");
+          if (bubbleEl) {
+            const id = bubbleEl.getAttribute("data-bubble-id");
+            if (id && !touchedBubbles.current.includes(id)) {
+              touchedBubbles.current = [...touchedBubbles.current, id];
+              setHighlightedIds([...touchedBubbles.current]);
+            }
+          }
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          if (!isGesturing.current) {
+            touchHandledRef.current = true;
+            handleBubbleTap(bubble, e);
+          } else if (touchedBubbles.current.length > 1) {
+            handleConstellationGesture(touchedBubbles.current);
+          }
+          isGesturing.current = false;
+          touchStartBubble.current = null;
+          touchedBubbles.current = [];
+          setHighlightedIds([]);
+        }}
+        className={`absolute rounded-full overflow-hidden cursor-pointer ${animation || isHighlighted ? "" : bubble.floatClass}`}
+        style={{
+          width: `${bubble.size}px`,
+          height: `${bubble.size}px`,
+          left: `${bubble.x}%`,
+          top: `${bubble.y}%`,
+          transform: isHighlighted
+            ? "translate(-50%, -50%) scale(1.1)"
+            : "translate(-50%, -50%) scale(1)",
+          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          zIndex: isHighlighted || bubble.isEntering ? 20 : 10,
+          border:
+            bubble.type === "demo"
+              ? "2px solid rgba(232,116,42,0.55)"
+              : "2.5px solid rgba(212,175,55,0.75)",
+          boxShadow: isHighlighted
+            ? "0 0 0 3px #E8742A, 0 0 20px rgba(232,116,42,0.6)"
+            : defaultBoxShadow,
+          pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
+          WebkitTapHighlightColor: "transparent",
+          ...floatStyle,
+        }}
+      >
+        <img
+          src={bubble.image || imgRelax}
+          alt=""
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center top",
+            filter:
+              bubble.type === "demo"
+                ? "grayscale(60%) sepia(40%) brightness(0.85)"
+                : "sepia(20%) brightness(0.92)",
+          }}
+        />
 
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)",
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
+          }}
+        />
+
+        {bubble.type === "real" && bubble.file_type === "audio" && (
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background:
-                "linear-gradient(to top, rgba(45,24,16,0.7) 0%, transparent 50%)",
-              pointerEvents: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "3px",
+              paddingBottom: "20px",
             }}
-          />
-
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
-              pointerEvents: "none",
-            }}
-          />
-
-          {bubble.type === "real" && bubble.file_type === "audio" && (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "3px",
-                paddingBottom: "20px",
-                pointerEvents: "none",
-              }}
-            >
-              {[14, 22, 10, 18, 26].map((h, k) => (
-                <div
-                  key={k}
-                  style={{
-                    width: "3px",
-                    height: `${h}px`,
-                    backgroundColor: "#D4AF37",
-                    borderRadius: "2px",
-                    opacity: 0.8,
-                    pointerEvents: "none",
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-          <div style={{ position: "absolute", top: "6px", right: "6px", pointerEvents: "none" }}>
-            <div
-              style={{
-                width: "20px",
-                height: "20px",
-                borderRadius: "50%",
-                backgroundColor: "rgba(0,0,0,0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                pointerEvents: "none",
-              }}
-            >
-              {bubble.type === "demo" ? (
-                <span style={{ fontSize: "10px", color: "#E8742A", fontWeight: 900, pointerEvents: "none" }}>
-                  ?
-                </span>
-              ) : bubble.file_type === "video" ? (
-                <Play size={10} color="#fff" fill="#fff" style={{ pointerEvents: "none" }} />
-              ) : (
-                <Volume2 size={10} color="#D4AF37" style={{ pointerEvents: "none" }} />
-              )}
-            </div>
+          >
+            {[14, 22, 10, 18, 26].map((h, k) => (
+              <div
+                key={k}
+                style={{
+                  width: "3px",
+                  height: `${h}px`,
+                  backgroundColor: "#D4AF37",
+                  borderRadius: "2px",
+                  opacity: 0.8,
+                }}
+              />
+            ))}
           </div>
+        )}
 
-          {bubble.size >= 90 && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: "8px",
-                left: "8px",
-                right: "8px",
-                pointerEvents: "none",
-              }}
-            >
-              {bubble.type === "real" && bubble.user_name && (
-                <p
-                  style={{
-                    fontSize: "8px",
-                    fontWeight: 700,
-                    color: "#fff",
-                    textTransform: "uppercase",
-                    marginBottom: "1px",
-                    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-                    pointerEvents: "none",
-                  }}
-                >
-                  {bubble.user_name}
-                </p>
-              )}
+        <div style={{ position: "absolute", top: "6px", right: "6px" }}>
+          <div
+            style={{
+              width: "20px",
+              height: "20px",
+              borderRadius: "50%",
+              backgroundColor: "rgba(0,0,0,0.4)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {bubble.type === "demo" ? (
+              <span style={{ fontSize: "10px", color: "#E8742A", fontWeight: 900 }}>?</span>
+            ) : bubble.file_type === "video" ? (
+              <Play size={10} color="#fff" fill="#fff" />
+            ) : (
+              <Volume2 size={10} color="#D4AF37" />
+            )}
+          </div>
+        </div>
+
+        {bubble.size >= 90 && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "8px",
+              left: 0,
+              right: 0,
+              padding: "0 8px",
+              textAlign: "center",
+            }}
+          >
+            {bubble.type === "real" && bubble.user_name && (
               <p
                 style={{
-                  fontSize: bubble.size >= 140 ? "11px" : bubble.size >= 110 ? "9px" : "7px",
-                  fontStyle: "italic",
+                  fontSize: "8px",
+                  fontWeight: 700,
                   color: "#fff",
-                  lineHeight: 1.3,
-                  fontFamily: "Georgia, serif",
-                  margin: 0,
+                  textTransform: "uppercase",
+                  marginBottom: "1px",
                   textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  pointerEvents: "none",
                 }}
               >
-                {getShortTitle(bubble.title)}
+                {bubble.user_name}
               </p>
-            </div>
-          )}
-
-          {(isHovered || isSelected) && (
-            <button
-              type="button"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => toggleSelect(bubble.id, e)}
+            )}
+            <p
               style={{
-                position: "absolute",
-                top: "4px",
-                left: "4px",
-                width: "22px",
-                height: "22px",
-                borderRadius: "50%",
-                background: isSelected ? "#E8742A" : "rgba(255,255,255,0.92)",
-                border: isSelected ? "2px solid #D4AF37" : "2px solid rgba(61,43,31,0.2)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 20,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
-                pointerEvents: "auto",
-                animation: "none",
-                transform: "none",
+                fontSize: "7px",
+                fontStyle: "italic",
+                color: "rgba(255,255,255,0.7)",
+                lineHeight: 1.2,
+                textShadow: "0 1px 3px rgba(0,0,0,0.7)",
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
               }}
             >
-              {isSelected && (
-                <span style={{ color: "#fff", fontSize: "11px", fontWeight: 900, pointerEvents: "none" }}>
-                  ✦
-                </span>
-              )}
-            </button>
-          )}
-        </div>
+              {getShortTitle(bubble.title)}
+            </p>
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -833,26 +666,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   return (
     <div
-      ref={containerRef}
       className="absolute inset-0 z-[1] overflow-hidden"
-      style={{
-        touchAction: "none",
-        userSelect: "none",
-        cursor: isPressing ? "crosshair" : "default",
-      }}
-      onTouchStart={(e) => e.preventDefault()}
+      style={{ touchAction: "none" }}
       onTouchMove={(e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        addToPath(touch.clientX, touch.clientY);
-      }}
-      onTouchEnd={() => endSelection()}
-      onMouseMove={(e) => {
-        addToPath(e.clientX, e.clientY);
-      }}
-      onMouseUp={() => endSelection()}
-      onMouseLeave={() => {
-        if (isPressingRef.current) endSelection();
+        if (isGesturing.current) {
+          e.preventDefault();
+        }
       }}
     >
       <style>{`
@@ -878,120 +697,42 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           70% { opacity: 0.8; transform: scale(0.15); border-radius: 50%; }
           100% { opacity: 0; transform: scale(0); border-radius: 50%; }
         }
-        @keyframes fadeUp {
-          from { transform: translateX(-50%) translateY(10px); opacity: 0; }
-          to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        @keyframes bubbleExit {
+          0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+        }
+        @keyframes bubbleEnter {
+          0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+          60% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         @keyframes bubble-float-1 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          20%  { transform: translate3d(var(--to-right), var(--to-top), 0) scale(1.02); }
-          40%  { transform: translate3d(var(--to-left), var(--to-bottom), 0) scale(0.98); }
-          60%  { transform: translate3d(var(--to-right), var(--to-bottom), 0) scale(1.01); }
-          80%  { transform: translate3d(var(--to-left), var(--to-top), 0) scale(0.99); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          20%  { transform: translate(-50%, -50%) translate3d(12px, -18px, 0) scale(1.02); }
+          40%  { transform: translate(-50%, -50%) translate3d(-8px, -12px, 0) scale(0.98); }
+          60%  { transform: translate(-50%, -50%) translate3d(15px, 8px, 0) scale(1.01); }
+          80%  { transform: translate(-50%, -50%) translate3d(-10px, 15px, 0) scale(0.99); }
+          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-float-2 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          25%  { transform: translate3d(var(--to-left), var(--to-bottom), 0) scale(1.03); }
-          50%  { transform: translate3d(var(--to-right), var(--to-top), 0) scale(0.97); }
-          75%  { transform: translate3d(var(--to-left), var(--to-top), 0) scale(1.02); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          25%  { transform: translate(-50%, -50%) translate3d(-15px, -20px, 0) scale(1.03); }
+          50%  { transform: translate(-50%, -50%) translate3d(10px, -8px, 0) scale(0.97); }
+          75%  { transform: translate(-50%, -50%) translate3d(-12px, 12px, 0) scale(1.02); }
+          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-float-3 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          22%  { transform: translate3d(var(--to-center-x), var(--to-top), 0) scale(0.98); }
-          44%  { transform: translate3d(var(--to-right), var(--to-center-y), 0) scale(1.03); }
-          66%  { transform: translate3d(var(--to-center-x), var(--to-bottom), 0) scale(0.99); }
-          88%  { transform: translate3d(var(--to-left), var(--to-center-y), 0) scale(1.02); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          33%  { transform: translate(-50%, -50%) translate3d(18px, -15px, 0) scale(0.98); }
+          66%  { transform: translate(-50%, -50%) translate3d(-14px, 10px, 0) scale(1.03); }
+          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
         }
-        @keyframes bubble-born {
-          from { opacity: 0; transform: scale(0.3); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-        @keyframes bubble-die {
-          from { opacity: 1; transform: scale(1); }
-          to   { opacity: 0; transform: scale(0.3); }
-        }
-        .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
-        .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
-        .bubble-float-3 { animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay), bubble-born 0.6s ease-out; }
-        .bubble-dying { animation: bubble-die 0.8s ease-in forwards; }
+        .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay); }
+        .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay); }
+        .bubble-float-3 { animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay); }
       `}</style>
 
-      {bubblesToRender.map((bubble) => renderBubble(bubble))}
-
-      {selectedIds.length > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "90px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "rgba(45,24,16,0.92)",
-            backdropFilter: "blur(16px)",
-            borderRadius: "999px",
-            padding: "12px 20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "14px",
-            zIndex: 30,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
-            border: "1px solid rgba(232,116,42,0.3)",
-            animation: "fadeUp 0.25s ease",
-          }}
-        >
-          <span
-            style={{
-              color: "#E8742A",
-              fontSize: "13px",
-              fontWeight: 700,
-              whiteSpace: "nowrap",
-            }}
-          >
-            ✦ {selectedIds.length} souvenir{selectedIds.length > 1 ? "s" : ""}
-          </span>
-          <button
-            type="button"
-            onClick={playSelected}
-            style={{
-              background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              border: "none",
-              borderRadius: "999px",
-              padding: "8px 18px",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: "13px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              boxShadow: "0 2px 10px rgba(232,116,42,0.4)",
-            }}
-          >
-            ▶ Jouer
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedIds([])}
-            style={{
-              background: "rgba(255,255,255,0.1)",
-              border: "none",
-              borderRadius: "50%",
-              width: "28px",
-              height: "28px",
-              color: "rgba(255,255,255,0.6)",
-              fontSize: "16px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            ×
-          </button>
-        </div>
-      )}
+      {bubblesToRender.map(renderBubble)}
 
       {bloomingBubble && (
         <>
