@@ -27,6 +27,35 @@ const AuthCallback = () => {
 
         if (cancelled) return;
 
+        const pendingMemory = localStorage.getItem("pending_memory");
+        if (pendingMemory) {
+          try {
+            const pending = JSON.parse(pendingMemory);
+            const age = Date.now() - (pending.timestamp || 0);
+            // Only restore if less than 30 minutes old
+            if (age < 30 * 60 * 1000) {
+              localStorage.removeItem("pending_memory");
+              navigate("/record", {
+                state: {
+                  pendingRestore: true,
+                  question: pending.question_fr
+                    ? {
+                        fr: pending.question_fr,
+                        en: pending.question_en,
+                        ar: pending.question_ar,
+                      }
+                    : null,
+                  recordMode: pending.recordMode || null,
+                },
+                replace: true,
+              });
+              return;
+            }
+          } catch {
+            localStorage.removeItem("pending_memory");
+          }
+        }
+
         const pendingCode = localStorage.getItem("pending_circle_code");
         if (pendingCode) {
           localStorage.removeItem("pending_circle_code");
