@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.trigger_pulse() FROM PUBLIC, anon, authenticated;

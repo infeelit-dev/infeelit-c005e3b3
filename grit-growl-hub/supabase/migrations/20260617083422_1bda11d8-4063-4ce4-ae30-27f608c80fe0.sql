@@ -1,0 +1,1 @@
+ALTER TABLE public.attendees ADD CONSTRAINT attendees_email_key UNIQUE (email);
