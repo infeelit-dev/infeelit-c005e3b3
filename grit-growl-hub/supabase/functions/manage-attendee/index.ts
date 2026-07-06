@@ -218,6 +218,16 @@ Deno.serve(async (req) => {
         if (data) {
           profile = data;
           profile_id = data.id as string;
+        } else {
+          const { data: attendee } = await supabase.from("attendees").select("first_name").eq("email", normalizedEmail).maybeSingle();
+          const { data: created, error: createErr } = await supabase
+            .from("profiles")
+            .insert({ email: normalizedEmail, first_name: attendee?.first_name || null })
+            .select()
+            .maybeSingle();
+          if (createErr) return json({ error: createErr.message }, 500);
+          profile = created;
+          profile_id = created?.id as string | undefined;
         }
       }
 
