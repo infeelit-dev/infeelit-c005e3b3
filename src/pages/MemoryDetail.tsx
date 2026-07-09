@@ -115,6 +115,7 @@ const MemoryDetail = () => {
   return (
     <MemoryFullscreen
       bubble={bubble}
+      userName={bubble.user_name}
       onClose={() => navigate(-1)}
     />
   );

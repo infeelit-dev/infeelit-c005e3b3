@@ -508,6 +508,16 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         }}
         onMouseEnter={() => setHoveredId(bubble.id)}
         onMouseLeave={() => setHoveredId(null)}
+        onKeyDown={(e) => {
+          if (isTouchDevice) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleSelect(bubble.id);
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            setSelectedIds([]);
+          }
+        }}
         onTouchStart={(e) => {
           e.preventDefault();
           isGesturing.current = false;
