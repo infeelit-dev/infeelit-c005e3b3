@@ -631,7 +631,7 @@ const Record = () => {
   const handleUpload = () => {
     if (!localBlob) return;
     setPreviewReady(false);
-    clipsRef.current.push({ blob: localBlob, question: questionRef.current, posterBlob: posterRef.current });
+    clipsRef.current.push({ blob: localBlob, question: questionRef.current, posterBlob: null });
     setStage("uploading");
     setTimeout(() => goToThumbnail(), 300);
   };
