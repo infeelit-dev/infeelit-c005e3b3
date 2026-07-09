@@ -1760,7 +1760,13 @@ const Record = () => {
 
           <button
             type="button"
-            onClick={() => setStage("visibility")}
+            onClick={() => {
+              if (localBlob && !audioMode) {
+                goToThumbnail();
+              } else {
+                setStage("visibility");
+              }
+            }}
             style={{
               width: "100%",
               maxWidth: "360px",
