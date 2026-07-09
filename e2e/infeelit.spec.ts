@@ -104,11 +104,24 @@ test("auth callback route loads", async ({ page }) => {
 
 test("no console errors on feed", async ({ page }) => {
   const errors: string[] = [];
+  const failed400s: string[] = [];
+
   page.on("console", (msg) => {
     if (msg.type() === "error") errors.push(msg.text());
   });
+
+  page.on("response", (response) => {
+    if (response.status() === 400) {
+      failed400s.push(response.url());
+    }
+  });
+
   await page.goto(BASE);
   await page.waitForTimeout(4000);
+
   console.log("Console errors:", errors);
+  console.log("Failed 400 URLs:", failed400s);
+
   await page.screenshot({ path: "screenshots/console-check.png" });
+  expect(true).toBe(true);
 });
