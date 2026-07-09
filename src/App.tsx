@@ -41,6 +41,7 @@ const App = () => (
           <Routes>
             {/* Routes principales */}
             <Route path="/" element={<Index />} />
+            <Route path="/questions" element={<Navigate to="/" replace state={{ openSpark: true }} />} />
             <Route path="/treasure" element={<Treasure />} />
             <Route path="/whispers" element={<Whispers />} />
 

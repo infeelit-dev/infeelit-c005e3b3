@@ -35,20 +35,24 @@ const AuthCallback = () => {
             // Only restore if less than 30 minutes old
             if (age < 30 * 60 * 1000) {
               localStorage.removeItem("pending_memory");
-              navigate("/record", {
-                state: {
-                  pendingRestore: true,
-                  question: pending.question_fr
-                    ? {
-                        fr: pending.question_fr,
-                        en: pending.question_en,
-                        ar: pending.question_ar,
-                      }
-                    : null,
-                  recordMode: pending.recordMode || null,
+              navigate(
+                pending.recordMode ? `/record?mode=${pending.recordMode}` : "/record",
+                {
+                  state: {
+                    pendingRestore: true,
+                    preSelectedQuestion: pending.question_fr
+                      ? {
+                          fr: pending.question_fr,
+                          en: pending.question_en,
+                          ar: pending.question_ar,
+                        }
+                      : null,
+                    pendingTitle: pending.title || null,
+                    pendingVisibility: pending.visibility || null,
+                  },
+                  replace: true,
                 },
-                replace: true,
-              });
+              );
               return;
             }
           } catch {

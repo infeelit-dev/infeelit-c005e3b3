@@ -325,6 +325,26 @@ const Record = () => {
   }, [location.state]);
 
   useEffect(() => {
+    if (!location.state?.pendingRestore) return;
+
+    if (location.state.pendingTitle) {
+      setTitle(location.state.pendingTitle);
+    }
+    if (location.state.pendingVisibility) {
+      setVisibilityChoice(location.state.pendingVisibility);
+    }
+
+    toast.info(
+      lang === "fr"
+        ? "Tu es connecté ! Reprends ton enregistrement pour publier ton souvenir."
+        : lang === "ar"
+          ? "أنت متصل! أكمل التسجيل لنشر ذكراك."
+          : "You're signed in! Continue recording to publish your memory.",
+      { duration: 6000 },
+    );
+  }, [location.state?.pendingRestore, location.state?.pendingTitle, location.state?.pendingVisibility, lang]);
+
+  useEffect(() => {
     if (isFreeMode) return;
     const displayName = userName || (lang === "fr" ? "ami(e)" : lang === "ar" ? "صديقي" : "friend");
     const followups = getFollowupsFromQuestion(question, lang, displayName);

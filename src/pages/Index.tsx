@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
@@ -10,12 +10,19 @@ import type { Timeline } from "@/types/timeline";
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   useUserName();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
   const [showPlusSheet, setShowPlusSheet] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
   const importInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (location.state?.openSpark) {
+      setSparkForced(true);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const entryTime = Date.now();
