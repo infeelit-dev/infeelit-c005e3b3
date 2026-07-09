@@ -919,6 +919,9 @@ const Record = () => {
             background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
             aura_intensity: auraRef.current ? 35 : null,
             created_at: new Date().toISOString(),
+            deliver_at: deliverAtRef.current
+              ? new Date(deliverAtRef.current).toISOString()
+              : null,
           })
           .select("id")
           .single();
