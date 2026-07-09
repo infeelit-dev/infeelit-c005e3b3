@@ -758,10 +758,13 @@ const Record = () => {
     }
   };
 
-  const handleVisibilityConfirm = () => {
+  const handleVisibilityConfirm = async () => {
     if (!visibilityChoice) return;
 
-    const isLoggedIn = !!userName && userName !== "";
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const isLoggedIn = !!session?.user;
 
     if (!isLoggedIn) {
       const pendingData = {
