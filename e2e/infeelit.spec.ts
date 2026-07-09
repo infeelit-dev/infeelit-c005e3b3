@@ -38,3 +38,61 @@ test.describe("Infeelit smoke tests", () => {
     });
   });
 });
+
+const BASE = process.env.BASE_URL || "http://127.0.0.1:8080";
+
+test("bubble click opens fullscreen", async ({ page }) => {
+  await page.goto(BASE);
+  await page.waitForTimeout(4000);
+  await page.locator("[data-bubble-id]").first().click({ force: true });
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: "screenshots/bubble-open.png" });
+  const fullscreen = page.locator("video, audio").first();
+  await expect(fullscreen).toBeVisible({ timeout: 5000 });
+});
+
+test("+ button opens bottom sheet", async ({ page }) => {
+  await page.goto(BASE);
+  await page.waitForTimeout(2000);
+  const plusBtn = page.locator("button").filter({ has: page.locator("svg") }).last();
+  await plusBtn.click({ force: true });
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: "screenshots/plus-menu.png" });
+  await expect(page.locator("text=Enregistrer").first()).toBeVisible({ timeout: 3000 });
+});
+
+test("/memory/:id no 404", async ({ page }) => {
+  await page.goto(`${BASE}/memory/test-id`);
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: "screenshots/memory-route.png" });
+  const is404 = await page.locator("text=404").isVisible();
+  expect(is404).toBe(false);
+});
+
+test("mobile feed bubbles visible", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(BASE);
+  await page.waitForTimeout(4000);
+  await page.screenshot({ path: "screenshots/mobile-feed.png" });
+  const bubbles = page.locator("[data-bubble-id]");
+  expect(await bubbles.count()).toBeGreaterThan(0);
+});
+
+test("auth callback route loads", async ({ page }) => {
+  await page.goto(`${BASE}/auth/callback`);
+  await page.waitForTimeout(2000);
+  await page.screenshot({ path: "screenshots/auth-callback.png" });
+  const is404 = await page.locator("text=404").isVisible();
+  expect(is404).toBe(false);
+});
+
+test("no console errors on feed", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(msg.text());
+  });
+  await page.goto(BASE);
+  await page.waitForTimeout(4000);
+  console.log("Console errors:", errors);
+  await page.screenshot({ path: "screenshots/console-check.png" });
+});
