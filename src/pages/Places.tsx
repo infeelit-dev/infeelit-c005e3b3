@@ -1,19 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import Map, { Marker, Popup, NavigationControl, GeolocateControl, Source, Layer } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin, X } from "lucide-react";
 import Header from "@/components/Header";
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
 
 interface MemoryPin {
   id: string;
@@ -91,36 +83,6 @@ const DEMO_PINS: MemoryPin[] = [
   },
 ];
 
-const AutoLocate = () => {
-  const map = useMap();
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          map.flyTo([latitude, longitude], 15, {
-            animate: true,
-            duration: 1.5,
-          });
-        },
-        () => {
-          map.flyTo([30, 20], 2);
-        },
-        { timeout: 8000, enableHighAccuracy: true },
-      );
-    }
-  }, [map]);
-  return null;
-};
-
-const MapController = ({ position }: { position: [number, number] | null }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (position) map.flyTo(position, 16, { animate: true, duration: 1.5 });
-  }, [position, map]);
-  return null;
-};
-
 const Places = () => {
   const navigate = useNavigate();
   const { lang, rtl } = useLanguage();
@@ -128,11 +90,17 @@ const Places = () => {
   const [pins, setPins] = useState<MemoryPin[]>(DEMO_PINS);
   const [selectedPin, setSelectedPin] = useState<MemoryPin | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchPosition, setSearchPosition] = useState<[number, number] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(true);
+  const [viewState, setViewState] = useState({
+    longitude: 20,
+    latitude: 30,
+    zoom: 2,
+    pitch: 45,
+    bearing: 0,
+  });
+  const [selectedMemory, setSelectedMemory] = useState<MemoryPin | null>(null);
 
   const searchAddress = async () => {
     if (!searchQuery.trim()) return;
@@ -144,7 +112,13 @@ const Places = () => {
       const data = await response.json();
       if (data.features && data.features.length > 0) {
         const [lng, lat] = data.features[0].geometry.coordinates;
-        setSearchPosition([lat, lng]);
+        setViewState((prev) => ({
+          ...prev,
+          longitude: lng,
+          latitude: lat,
+          zoom: 16,
+          pitch: 45,
+        }));
       }
     } catch (err) {
       console.error("Geocoding failed:", err);
@@ -222,17 +196,6 @@ const Places = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        (pos) => setUserPosition([pos.coords.latitude, pos.coords.longitude]),
-        () => {},
-        { enableHighAccuracy: true },
-      );
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, []);
-
   const handlePinHere = () => {
     if (userLocation) {
       navigate("/record", {
@@ -272,6 +235,8 @@ const Places = () => {
     const deltaY = e.changedTouches[0].clientY - sheetTouchStartY.current;
     if (deltaY > 60) setSelectedPin(null);
   };
+
+  const stadiaApiKey = import.meta.env.VITE_STADIA_API_KEY;
 
   return (
     <div className="relative w-full h-screen overflow-hidden" dir={rtl ? "rtl" : "ltr"}>
@@ -374,89 +339,162 @@ const Places = () => {
               🔍 Trouver
             </button>
           </div>
-          <MapContainer
-            center={[30, 20]}
-            zoom={2}
-            style={{
-              width: "100%",
-              height: "320px",
-              borderRadius: "16px",
-              zIndex: 1,
-            }}
-            scrollWheelZoom={false}
+          <Map
+            {...viewState}
+            onMove={(evt) => setViewState(evt.viewState)}
+            style={{ width: "100%", height: "380px", borderRadius: "16px" }}
+            mapStyle={`https://tiles.stadiamaps.com/styles/alidade_smooth.json?api_key=${stadiaApiKey}`}
+            pitchWithRotate={true}
+            maxPitch={60}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
-              url={`https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=${import.meta.env.VITE_STADIA_API_KEY}`}
+            <NavigationControl position="top-right" />
+
+            <GeolocateControl
+              position="top-right"
+              trackUserLocation={true}
+              showUserHeading={true}
+              onGeolocate={(e) => {
+                setUserLocation({ lat: e.coords.latitude, lng: e.coords.longitude });
+                setViewState((prev) => ({
+                  ...prev,
+                  longitude: e.coords.longitude,
+                  latitude: e.coords.latitude,
+                  zoom: 15,
+                  pitch: 45,
+                }));
+              }}
             />
-            <AutoLocate />
-            <MapController position={searchPosition} />
-            {userPosition && (
-              <>
-                <CircleMarker
-                  center={userPosition}
-                  radius={18}
-                  pathOptions={{
-                    color: "#4A90E2",
-                    fillColor: "#4A90E2",
-                    fillOpacity: 0.2,
-                    weight: 1,
-                  }}
-                />
-                <CircleMarker
-                  center={userPosition}
-                  radius={10}
-                  pathOptions={{
-                    color: "#4A90E2",
-                    fillColor: "#4A90E2",
-                    fillOpacity: 0.8,
-                    weight: 3,
-                  }}
-                />
-              </>
-            )}
+
+            <Source
+              id="openmaptiles"
+              type="vector"
+              url={`https://tiles.stadiamaps.com/data/openmaptiles.json?api_key=${stadiaApiKey}`}
+            >
+              <Layer
+                id="3d-buildings"
+                source="openmaptiles"
+                source-layer="building"
+                type="fill-extrusion"
+                minzoom={14}
+                paint={{
+                  "fill-extrusion-color": "#E8742A",
+                  "fill-extrusion-height": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    14,
+                    0,
+                    16,
+                    ["get", "render_height"],
+                  ],
+                  "fill-extrusion-base": ["get", "render_min_height"],
+                  "fill-extrusion-opacity": 0.3,
+                }}
+              />
+            </Source>
+
             {pins.map((memory) =>
               memory.lat && memory.lng ? (
-                <Marker key={memory.id} position={[memory.lat, memory.lng]}>
-                  <Popup>
-                    <div
-                      style={{
-                        fontFamily: "Georgia, serif",
-                        fontSize: "14px",
-                        maxWidth: "200px",
-                      }}
-                    >
-                      <strong>{memory.title}</strong>
-                      {memory.thumbnail_url && (
-                        <img
-                          src={memory.thumbnail_url}
-                          alt=""
-                          style={{ width: "100%", borderRadius: "8px", marginTop: "8px" }}
-                        />
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/memory/${memory.id}`)}
+                <Marker
+                  key={memory.id}
+                  longitude={memory.lng}
+                  latitude={memory.lat}
+                  anchor="bottom"
+                  onClick={(e) => {
+                    e.originalEvent.stopPropagation();
+                    setSelectedMemory(memory);
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "50%",
+                      border: "3px solid #E8742A",
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      boxShadow: "0 0 12px rgba(232,116,42,0.6)",
+                      background: "#1a0a05",
+                    }}
+                  >
+                    {memory.thumbnail_url ? (
+                      <img
+                        src={memory.thumbnail_url}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div
                         style={{
-                          marginTop: "8px",
-                          padding: "6px 12px",
-                          background: "#E8742A",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "999px",
-                          cursor: "pointer",
-                          fontSize: "12px",
                           width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "18px",
                         }}
                       >
-                        Écouter ✦
-                      </button>
-                    </div>
-                  </Popup>
+                        ✦
+                      </div>
+                    )}
+                  </div>
                 </Marker>
               ) : null,
             )}
-          </MapContainer>
+
+            {selectedMemory && (
+              <Popup
+                longitude={selectedMemory.lng}
+                latitude={selectedMemory.lat}
+                anchor="top"
+                onClose={() => setSelectedMemory(null)}
+                closeButton={true}
+              >
+                <div
+                  style={{
+                    fontFamily: "Georgia, serif",
+                    fontSize: "14px",
+                    maxWidth: "200px",
+                    padding: "8px",
+                    background: "#1a0a05",
+                    color: "#fff",
+                    borderRadius: "12px",
+                  }}
+                >
+                  <strong style={{ color: "#E8742A" }}>{selectedMemory.title}</strong>
+                  {selectedMemory.thumbnail_url && (
+                    <img
+                      src={selectedMemory.thumbnail_url}
+                      alt=""
+                      style={{
+                        width: "100%",
+                        borderRadius: "8px",
+                        marginTop: "8px",
+                      }}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/memory/${selectedMemory.id}`)}
+                    style={{
+                      marginTop: "8px",
+                      padding: "6px 12px",
+                      background: "#E8742A",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "999px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      width: "100%",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Écouter ✦
+                  </button>
+                </div>
+              </Popup>
+            )}
+          </Map>
         </div>
       )}
 
