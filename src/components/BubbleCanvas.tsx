@@ -227,7 +227,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   }, []);
 
   const mapMemoryToBubble = useCallback(
-    (m: Record<string, unknown>, index: number): BubbleData => ({
+    (m: Record<string, unknown>, index: number, profilesMap: Record<string, string> = {}): BubbleData => ({
       id: m.id as string,
       type: "real",
       title: (m.title as string) || "Un souvenir",
@@ -235,7 +235,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       file_type: (m.file_type as string) || "video",
       thumbnail_url: (m.thumbnail_url as string) || null,
       user_name:
-        (m.profiles as { display_name?: string } | null)?.display_name?.split(" ")[0] ||
+        profilesMap[m.user_id as string]?.split(" ")[0] ||
         (m.is_anonymous ? "Un Gardien" : "Quelqu'un"),
       user_id: m.user_id as string,
       sparks_count: (m.sparks_count as number) || 0,
@@ -278,7 +278,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     const loadMemories = async () => {
       const { data } = await supabase
         .from("memories")
-        .select("*, profiles (display_name)")
+        .select("*")
         .eq("is_public", true)
         .order("created_at", { ascending: false })
         .limit(40);
@@ -291,8 +291,17 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         return;
       }
 
+      const userIds = data.map((m: any) => m.user_id).filter(Boolean);
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, display_name")
+        .in("user_id", userIds);
+      const profilesMap = Object.fromEntries(
+        (profilesData || []).map((p: any) => [p.user_id, p.display_name]),
+      );
+
       const resolved = await resolveMemoryFields(data);
-      const bubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i));
+      const bubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i, profilesMap));
       const shuffled = [...bubbles].sort(() => Math.random() - 0.5);
       const initial = shuffled.slice(0, VISIBLE_COUNT);
       const queue = shuffled.slice(VISIBLE_COUNT);
@@ -317,7 +326,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     const ids = [...seenIdsRef.current];
     let query = supabase
       .from("memories")
-      .select("*, profiles (display_name)")
+      .select("*")
       .eq("is_public", true)
       .order("created_at", { ascending: false })
       .limit(20);
@@ -329,8 +338,17 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     const { data } = await query;
 
     if (data && data.length > 0) {
+      const userIds = data.map((m: any) => m.user_id).filter(Boolean);
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, display_name")
+        .in("user_id", userIds);
+      const profilesMap = Object.fromEntries(
+        (profilesData || []).map((p: any) => [p.user_id, p.display_name]),
+      );
+
       const resolved = await resolveMemoryFields(data);
-      const newBubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i));
+      const newBubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i, profilesMap));
       setMemoryQueue(newBubbles);
     } else {
       setSeenIds(new Set());
