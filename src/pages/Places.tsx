@@ -300,8 +300,8 @@ const Places = () => {
   useEffect(() => {
     if (!MAPBOX_TOKEN || map.current || !mapContainer.current || loading) return;
 
-    const DUBAI_CENTER: [number, number] = [55.2708, 25.2048];
-    const DUBAI_ZOOM = 11;
+    const DUBAI_CENTER: [number, number] = [20, 30];
+    const DUBAI_ZOOM = 2;
 
     const onMapLoad = (
       currentPins: MemoryPin[],
@@ -408,7 +408,7 @@ const Places = () => {
           (position) => {
             const { latitude, longitude } = position.coords;
             setUserLocation({ lat: latitude, lng: longitude });
-            startMap([longitude, latitude], 12, currentPins, longitude, latitude);
+            startMap([20, 30], 2, currentPins, longitude, latitude);
           },
           () => {
             startMap(DUBAI_CENTER, DUBAI_ZOOM, currentPins);
@@ -588,7 +588,7 @@ const Places = () => {
       </div>
 
       {/* Conteneur de la carte */}
-      <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
+      <div ref={mapContainer} style={{ width: "100%", height: "100%", minHeight: "320px" }} />
 
       {/* Bottom sheet du souvenir sélectionné */}
       {selectedPin && (
