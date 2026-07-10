@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin, X } from "lucide-react";
 import Header from "@/components/Header";
-import PlacesFallback from "./PlacesFallback";
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
-if (MAPBOX_TOKEN) mapboxgl.accessToken = MAPBOX_TOKEN;
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
 
 interface MemoryPin {
   id: string;
@@ -90,10 +94,6 @@ const DEMO_PINS: MemoryPin[] = [
 const Places = () => {
   const navigate = useNavigate();
   const { lang, rtl } = useLanguage();
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const markerElementsRef = useRef<Map<string, HTMLDivElement>>(new Map());
   const sheetTouchStartY = useRef(0);
   const [pins, setPins] = useState<MemoryPin[]>(DEMO_PINS);
   const [selectedPin, setSelectedPin] = useState<MemoryPin | null>(null);
@@ -159,301 +159,18 @@ const Places = () => {
     loadGeoMemories();
   }, []);
 
-  const setupHeatmap = (m: mapboxgl.Map, currentPins: MemoryPin[]) => {
-    if (!m.getSource("memories-heat")) {
-      m.addSource("memories-heat", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: currentPins.map((pin) => ({
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [pin.lng, pin.lat] },
-            properties: { intensity: 1 },
-          })),
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
         },
-      });
-
-      m.addLayer({
-        id: "memories-heatmap",
-        type: "heatmap",
-        source: "memories-heat",
-        paint: {
-          "heatmap-weight": 1,
-          "heatmap-intensity": 0.35,
-          "heatmap-radius": 40,
-          "heatmap-color": [
-            "interpolate",
-            ["linear"],
-            ["heatmap-density"],
-            0,
-            "rgba(253,248,240,0)",
-            0.2,
-            "rgba(232,116,42,0.1)",
-            0.4,
-            "rgba(232,116,42,0.2)",
-            0.6,
-            "rgba(232,116,42,0.35)",
-            0.8,
-            "rgba(255,180,40,0.5)",
-            1,
-            "rgba(255,200,60,0.7)",
-          ],
-          "heatmap-opacity": 0.5,
-        },
-      });
-    } else {
-      const source = m.getSource("memories-heat") as mapboxgl.GeoJSONSource;
-      source.setData({
-        type: "FeatureCollection",
-        features: currentPins.map((pin) => ({
-          type: "Feature",
-          geometry: { type: "Point", coordinates: [pin.lng, pin.lat] },
-          properties: { intensity: 1 },
-        })),
-      });
+        () => {},
+        { timeout: 3000, maximumAge: 300000 },
+      );
     }
-  };
-
-  const createPinElement = (pin: MemoryPin) => {
-    const el = document.createElement("div");
-    el.className = "infeelit-pin";
-    el.dataset.pinId = pin.id;
-    el.innerHTML = `<div class="infeelit-pin__body"><span>✦</span></div>`;
-
-    el.addEventListener("click", (e) => {
-      e.stopPropagation();
-      setSelectedPin(pin);
-      map.current?.flyTo({
-        center: [pin.lng, pin.lat],
-        zoom: 14,
-        duration: 1200,
-      });
-    });
-
-    return el;
-  };
-
-  const syncMarkers = (currentPins: MemoryPin[]) => {
-    if (!map.current) return;
-
-    const pinIds = new Set(currentPins.map((p) => p.id));
-
-    markersRef.current = markersRef.current.filter((marker) => {
-      const el = marker.getElement() as HTMLDivElement;
-      const id = el.dataset.pinId;
-      if (!id || !pinIds.has(id)) {
-        marker.remove();
-        markerElementsRef.current.delete(id!);
-        return false;
-      }
-      return true;
-    });
-
-    const existingIds = new Set(markerElementsRef.current.keys());
-    currentPins.forEach((pin) => {
-      if (existingIds.has(pin.id)) return;
-      const el = createPinElement(pin);
-      markerElementsRef.current.set(pin.id, el);
-      const marker = new mapboxgl.Marker({ element: el }).setLngLat([pin.lng, pin.lat]).addTo(map.current!);
-      markersRef.current.push(marker);
-    });
-  };
-
-  const addUserRadar = (longitude: number, latitude: number) => {
-    if (!map.current) return;
-
-    const radarEl = document.createElement("div");
-    radarEl.style.cssText = `
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: radial-gradient(circle,
-        rgba(232,116,42,0.3) 0%,
-        rgba(232,116,42,0.05) 50%,
-        transparent 70%);
-      border: 1px solid rgba(232,116,42,0.2);
-      animation: radar 2.5s ease-out infinite;
-    `;
-
-    const centerEl = document.createElement("div");
-    centerEl.style.cssText = `
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #E8742A;
-      border: 2px solid rgba(255,255,255,0.9);
-      box-shadow: 0 0 10px rgba(232,116,42,0.8);
-    `;
-
-    new mapboxgl.Marker({ element: radarEl }).setLngLat([longitude, latitude]).addTo(map.current);
-    new mapboxgl.Marker({ element: centerEl }).setLngLat([longitude, latitude]).addTo(map.current);
-  };
-
-  const fitBoundsToPins = (currentPins: MemoryPin[]) => {
-    if (!map.current || currentPins.length === 0) return;
-    const bounds = new mapboxgl.LngLatBounds();
-    currentPins.forEach((pin) => bounds.extend([pin.lng, pin.lat]));
-    map.current.fitBounds(bounds, { padding: 80, maxZoom: 12 });
-  };
-
-  // Initialiser la carte (après chargement des pins)
-  useEffect(() => {
-    if (!MAPBOX_TOKEN || map.current || !mapContainer.current || loading) return;
-
-    const DUBAI_CENTER: [number, number] = [20, 30];
-    const DUBAI_ZOOM = 2;
-
-    const onMapLoad = (
-      currentPins: MemoryPin[],
-      userLng?: number,
-      userLat?: number,
-    ) => {
-      const m = map.current!;
-      console.log("Mapbox layers:", m.getStyle().layers.map((l) => l.id));
-
-      try {
-        m.setPaintProperty("background", "background-color", "#FDF8F0");
-      } catch {
-        /* layer may not exist */
-      }
-
-      ["landuse", "landcover", "national-park"].forEach((id) => {
-        try {
-          m.setPaintProperty(id, "fill-color", "#F5EDD8");
-        } catch {
-          /* layer may not exist */
-        }
-      });
-
-      try {
-        m.setPaintProperty("water", "fill-color", "#E8DCC8");
-      } catch {
-        /* layer may not exist */
-      }
-
-      ["road-primary", "road-secondary-tertiary", "road-street", "road-minor"].forEach((id) => {
-        try {
-          m.setPaintProperty(id, "line-color", "#D4AF37");
-          m.setPaintProperty(id, "line-opacity", 0.12);
-        } catch {
-          /* layer may not exist */
-        }
-      });
-
-      try {
-        m.setPaintProperty("hillshade", "hillshade-exaggeration", 0.3);
-      } catch {
-        /* layer may not exist */
-      }
-
-      try {
-        m.setPaintProperty("building", "fill-color", "#F0E8D8");
-        m.setPaintProperty("building", "fill-opacity", 0.4);
-      } catch {
-        /* layer may not exist */
-      }
-
-      const labelLayers = [
-        "poi-label",
-        "road-label",
-        "waterway-label",
-        "natural-line-label",
-        "water-label",
-        "landuse-label",
-        "state-label",
-        "country-label",
-        "settlement-label",
-      ];
-      labelLayers.forEach((layer) => {
-        try {
-          m.setLayoutProperty(layer, "visibility", "none");
-        } catch {
-          /* layer may not exist */
-        }
-      });
-
-      setupHeatmap(m, currentPins);
-      syncMarkers(currentPins);
-
-      if (userLng !== undefined && userLat !== undefined) {
-        addUserRadar(userLng, userLat);
-      }
-    };
-
-    const startMap = (
-      center: [number, number],
-      zoom: number,
-      currentPins: MemoryPin[],
-      userLng?: number,
-      userLat?: number,
-    ) => {
-      if (!mapContainer.current || map.current) return;
-
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: "mapbox://styles/mapbox/outdoors-v12",
-        center,
-        zoom,
-        pitch: 15,
-        bearing: 0,
-        attributionControl: false,
-      });
-
-      map.current.on("load", () => onMapLoad(currentPins, userLng, userLat));
-    };
-
-    const initializeMap = (currentPins: MemoryPin[]) => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation({ lat: latitude, lng: longitude });
-            startMap([20, 30], 2, currentPins, longitude, latitude);
-          },
-          () => {
-            startMap(DUBAI_CENTER, DUBAI_ZOOM, currentPins);
-          },
-          { timeout: 3000, maximumAge: 300000 },
-        );
-      } else {
-        startMap(DUBAI_CENTER, DUBAI_ZOOM, currentPins);
-      }
-    };
-
-    initializeMap(pins);
-
-    return () => {
-      map.current?.remove();
-      map.current = null;
-      markersRef.current = [];
-      markerElementsRef.current.clear();
-    };
-  }, [loading]);
-
-  // Sync markers + heatmap when pins change (without recreating on selection)
-  useEffect(() => {
-    if (!map.current || loading) return;
-
-    const update = () => {
-      setupHeatmap(map.current!, pins);
-      syncMarkers(pins);
-    };
-
-    if (map.current.loaded()) {
-      update();
-    } else {
-      map.current.once("load", update);
-    }
-  }, [pins, loading]);
-
-  // État sélectionné via classList — pas de recréation des markers
-  useEffect(() => {
-    markerElementsRef.current.forEach((el, id) => {
-      const isSelected = selectedPin?.id === id;
-      el.classList.toggle("infeelit-pin--selected", isSelected);
-      el.classList.toggle("infeelit-pin--dimmed", !!selectedPin && !isSelected);
-    });
-  }, [selectedPin]);
+  }, []);
 
   const handlePinHere = () => {
     if (userLocation) {
@@ -495,8 +212,6 @@ const Places = () => {
     if (deltaY > 60) setSelectedPin(null);
   };
 
-  if (!MAPBOX_TOKEN) return <PlacesFallback />;
-
   return (
     <div className="relative w-full h-screen overflow-hidden" dir={rtl ? "rtl" : "ltr"}>
       <Header activeTimeline="memories" onTimelineChange={() => {}} />
@@ -505,41 +220,6 @@ const Places = () => {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
         }
-        @keyframes radar {
-          0% { transform: scale(0.5); opacity: 1; }
-          100% { transform: scale(2.5); opacity: 0; }
-        }
-        .infeelit-pin {
-          cursor: pointer;
-          transition: opacity 0.25s ease;
-        }
-        .infeelit-pin__body {
-          width: 36px;
-          height: 44px;
-          background: linear-gradient(160deg, #E8742A, #D4621A);
-          border: 2px solid #D4AF37;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 16px rgba(232,116,42,0.4);
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        .infeelit-pin__body span {
-          transform: rotate(45deg);
-          font-size: 14px;
-          color: #FFF9F2;
-          filter: drop-shadow(0 0 3px rgba(212,175,55,0.8));
-        }
-        .infeelit-pin--selected .infeelit-pin__body {
-          transform: rotate(-45deg) scale(1.15);
-          box-shadow: 0 0 0 4px rgba(212,175,55,0.35), 0 8px 24px rgba(232,116,42,0.55);
-        }
-        .infeelit-pin--dimmed {
-          opacity: 0.45;
-        }
-        .mapboxgl-ctrl-attrib, .mapboxgl-ctrl-logo { display: none !important; }
       `}</style>
 
       {/* Header flottant */}
@@ -588,7 +268,65 @@ const Places = () => {
       </div>
 
       {/* Conteneur de la carte */}
-      <div ref={mapContainer} style={{ width: "100%", height: "100%", minHeight: "320px" }} />
+      {!loading && (
+        <MapContainer
+          center={[30, 20]}
+          zoom={2}
+          style={{
+            width: "100%",
+            height: "320px",
+            borderRadius: "16px",
+            zIndex: 1,
+          }}
+          scrollWheelZoom={false}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {pins.map((memory) =>
+            memory.lat && memory.lng ? (
+              <Marker key={memory.id} position={[memory.lat, memory.lng]}>
+                <Popup>
+                  <div
+                    style={{
+                      fontFamily: "Georgia, serif",
+                      fontSize: "14px",
+                      maxWidth: "200px",
+                    }}
+                  >
+                    <strong>{memory.title}</strong>
+                    {memory.thumbnail_url && (
+                      <img
+                        src={memory.thumbnail_url}
+                        alt=""
+                        style={{ width: "100%", borderRadius: "8px", marginTop: "8px" }}
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/memory/${memory.id}`)}
+                      style={{
+                        marginTop: "8px",
+                        padding: "6px 12px",
+                        background: "#E8742A",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "999px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        width: "100%",
+                      }}
+                    >
+                      Écouter ✦
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
+            ) : null,
+          )}
+        </MapContainer>
+      )}
 
       {/* Bottom sheet du souvenir sélectionné */}
       {selectedPin && (
