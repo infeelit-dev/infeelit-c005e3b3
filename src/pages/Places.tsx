@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -91,6 +91,36 @@ const DEMO_PINS: MemoryPin[] = [
   },
 ];
 
+const AutoLocate = () => {
+  const map = useMap();
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          map.flyTo([latitude, longitude], 15, {
+            animate: true,
+            duration: 1.5,
+          });
+        },
+        () => {
+          map.flyTo([30, 20], 2);
+        },
+        { timeout: 8000, enableHighAccuracy: true },
+      );
+    }
+  }, [map]);
+  return null;
+};
+
+const MapController = ({ position }: { position: [number, number] | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (position) map.flyTo(position, 16, { animate: true, duration: 1.5 });
+  }, [position, map]);
+  return null;
+};
+
 const Places = () => {
   const navigate = useNavigate();
   const { lang, rtl } = useLanguage();
@@ -98,8 +128,28 @@ const Places = () => {
   const [pins, setPins] = useState<MemoryPin[]>(DEMO_PINS);
   const [selectedPin, setSelectedPin] = useState<MemoryPin | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchPosition, setSearchPosition] = useState<[number, number] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(true);
+
+  const searchAddress = async () => {
+    if (!searchQuery.trim()) return;
+    const apiKey = import.meta.env.VITE_STADIA_API_KEY;
+    try {
+      const response = await fetch(
+        `https://api.stadiamaps.com/geocoding/v1/search?text=${encodeURIComponent(searchQuery)}&api_key=${apiKey}`,
+      );
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].geometry.coordinates;
+        setSearchPosition([lat, lng]);
+      }
+    } catch (err) {
+      console.error("Geocoding failed:", err);
+    }
+  };
 
   // Charger les souvenirs géolocalisés depuis Supabase
   useEffect(() => {
@@ -169,6 +219,17 @@ const Places = () => {
         () => {},
         { timeout: 3000, maximumAge: 300000 },
       );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (pos) => setUserPosition([pos.coords.latitude, pos.coords.longitude]),
+        () => {},
+        { enableHighAccuracy: true },
+      );
+      return () => navigator.geolocation.clearWatch(watchId);
     }
   }, []);
 
@@ -269,63 +330,134 @@ const Places = () => {
 
       {/* Conteneur de la carte */}
       {!loading && (
-        <MapContainer
-          center={[30, 20]}
-          zoom={2}
-          style={{
-            width: "100%",
-            height: "320px",
-            borderRadius: "16px",
-            zIndex: 1,
-          }}
-          scrollWheelZoom={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {pins.map((memory) =>
-            memory.lat && memory.lng ? (
-              <Marker key={memory.id} position={[memory.lat, memory.lng]}>
-                <Popup>
-                  <div
-                    style={{
-                      fontFamily: "Georgia, serif",
-                      fontSize: "14px",
-                      maxWidth: "200px",
-                    }}
-                  >
-                    <strong>{memory.title}</strong>
-                    {memory.thumbnail_url && (
-                      <img
-                        src={memory.thumbnail_url}
-                        alt=""
-                        style={{ width: "100%", borderRadius: "8px", marginTop: "8px" }}
-                      />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/memory/${memory.id}`)}
+        <div style={{ padding: "120px 16px 0", position: "relative", zIndex: 5 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              marginBottom: "12px",
+              width: "100%",
+            }}
+          >
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && searchAddress()}
+              placeholder="Hôpital où je suis né, mon école, ma rue..."
+              style={{
+                flex: 1,
+                padding: "12px 20px",
+                borderRadius: "999px",
+                border: "1.5px solid rgba(232,116,42,0.3)",
+                background: "rgba(255,255,255,0.06)",
+                color: "#fff",
+                fontSize: "14px",
+                outline: "none",
+              }}
+            />
+            <button
+              type="button"
+              onClick={searchAddress}
+              style={{
+                padding: "12px 20px",
+                borderRadius: "999px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                fontWeight: 700,
+                fontSize: "14px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              🔍 Trouver
+            </button>
+          </div>
+          <MapContainer
+            center={[30, 20]}
+            zoom={2}
+            style={{
+              width: "100%",
+              height: "320px",
+              borderRadius: "16px",
+              zIndex: 1,
+            }}
+            scrollWheelZoom={false}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+              url={`https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=${import.meta.env.VITE_STADIA_API_KEY}`}
+            />
+            <AutoLocate />
+            <MapController position={searchPosition} />
+            {userPosition && (
+              <>
+                <CircleMarker
+                  center={userPosition}
+                  radius={18}
+                  pathOptions={{
+                    color: "#4A90E2",
+                    fillColor: "#4A90E2",
+                    fillOpacity: 0.2,
+                    weight: 1,
+                  }}
+                />
+                <CircleMarker
+                  center={userPosition}
+                  radius={10}
+                  pathOptions={{
+                    color: "#4A90E2",
+                    fillColor: "#4A90E2",
+                    fillOpacity: 0.8,
+                    weight: 3,
+                  }}
+                />
+              </>
+            )}
+            {pins.map((memory) =>
+              memory.lat && memory.lng ? (
+                <Marker key={memory.id} position={[memory.lat, memory.lng]}>
+                  <Popup>
+                    <div
                       style={{
-                        marginTop: "8px",
-                        padding: "6px 12px",
-                        background: "#E8742A",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "999px",
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        width: "100%",
+                        fontFamily: "Georgia, serif",
+                        fontSize: "14px",
+                        maxWidth: "200px",
                       }}
                     >
-                      Écouter ✦
-                    </button>
-                  </div>
-                </Popup>
-              </Marker>
-            ) : null,
-          )}
-        </MapContainer>
+                      <strong>{memory.title}</strong>
+                      {memory.thumbnail_url && (
+                        <img
+                          src={memory.thumbnail_url}
+                          alt=""
+                          style={{ width: "100%", borderRadius: "8px", marginTop: "8px" }}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/memory/${memory.id}`)}
+                        style={{
+                          marginTop: "8px",
+                          padding: "6px 12px",
+                          background: "#E8742A",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "999px",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                          width: "100%",
+                        }}
+                      >
+                        Écouter ✦
+                      </button>
+                    </div>
+                  </Popup>
+                </Marker>
+              ) : null,
+            )}
+          </MapContainer>
+        </div>
       )}
 
       {/* Bottom sheet du souvenir sélectionné */}
