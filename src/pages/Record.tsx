@@ -264,6 +264,7 @@ const Record = () => {
   const [importTimeline, setImportTimeline] = useState<"memories" | "instant" | "forever">("memories");
 
   const location = useLocation();
+  const locationVisibility = location.state?.locationVisibility || "family";
   const preSelected = location.state?.preSelectedQuestion;
   const inspiredBy = location.state?.inspiredBy;
   const replyTo = location.state?.replyTo;
@@ -922,6 +923,7 @@ const Record = () => {
             deliver_at: deliverAtRef.current
               ? new Date(deliverAtRef.current).toISOString()
               : null,
+            location_visibility: locationVisibility,
           })
           .select("id")
           .single();

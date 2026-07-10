@@ -18,6 +18,7 @@ interface MemoryPin {
   file_type: string | null;
   thumbnail_url: string | null;
   is_anonymous: boolean;
+  location_visibility?: string | null;
 }
 
 const DEMO_PINS: MemoryPin[] = [
@@ -32,6 +33,7 @@ const DEMO_PINS: MemoryPin[] = [
     file_type: null,
     thumbnail_url: null,
     is_anonymous: false,
+    location_visibility: "family",
   },
   {
     id: "demo2",
@@ -44,6 +46,7 @@ const DEMO_PINS: MemoryPin[] = [
     file_type: null,
     thumbnail_url: null,
     is_anonymous: false,
+    location_visibility: "public",
   },
   {
     id: "demo3",
@@ -56,6 +59,7 @@ const DEMO_PINS: MemoryPin[] = [
     file_type: null,
     thumbnail_url: null,
     is_anonymous: false,
+    location_visibility: "following",
   },
   {
     id: "demo4",
@@ -68,6 +72,7 @@ const DEMO_PINS: MemoryPin[] = [
     file_type: null,
     thumbnail_url: null,
     is_anonymous: false,
+    location_visibility: "family",
   },
   {
     id: "demo5",
@@ -80,6 +85,7 @@ const DEMO_PINS: MemoryPin[] = [
     file_type: null,
     thumbnail_url: null,
     is_anonymous: false,
+    location_visibility: "public",
   },
 ];
 
@@ -101,6 +107,35 @@ const Places = () => {
     bearing: 0,
   });
   const [selectedMemory, setSelectedMemory] = useState<MemoryPin | null>(null);
+  const [filters, setFilters] = useState({
+    family: true,
+    following: true,
+    public: true,
+  });
+  const [locationVisibility, setLocationVisibility] = useState<"family" | "following" | "public">("family");
+
+  const toggleFilter = (key: "family" | "following" | "public") => {
+    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const getMarkerColor = (memory: MemoryPin) => {
+    const vis = memory.location_visibility || "private";
+    if (vis === "family") return "#D4AF37";
+    if (vis === "following") return "#E8742A";
+    if (vis === "public") return "#ffffff";
+    return "#666666";
+  };
+
+  const userPosition = userLocation ? ([userLocation.lat, userLocation.lng] as [number, number]) : null;
+
+  const filteredMemories = pins.filter((m) => {
+    if (!m.lat || !m.lng) return false;
+    const vis = m.location_visibility || "private";
+    if (vis === "family") return filters.family;
+    if (vis === "following") return filters.following;
+    if (vis === "public") return filters.public;
+    return false;
+  });
 
   const searchAddress = async () => {
     if (!searchQuery.trim()) return;
@@ -143,6 +178,7 @@ const Places = () => {
             is_community,
             latitude,
             longitude,
+            location_visibility,
             created_at,
             user_id,
             profiles!left (display_name)
@@ -168,6 +204,7 @@ const Places = () => {
             file_type: mem.file_type,
             thumbnail_url: mem.thumbnail_url,
             is_anonymous: mem.is_anonymous,
+            location_visibility: mem.location_visibility,
           }));
           setPins(formattedPins);
         } else {
@@ -201,8 +238,9 @@ const Places = () => {
       navigate("/record", {
         state: {
           fromPlaces: true,
-          latitude: userLocation.lat,
-          longitude: userLocation.lng,
+          latitude: userPosition?.[0],
+          longitude: userPosition?.[1],
+          locationVisibility,
         },
       });
     } else {
@@ -213,11 +251,12 @@ const Places = () => {
               fromPlaces: true,
               latitude: pos.coords.latitude,
               longitude: pos.coords.longitude,
+              locationVisibility,
             },
           });
         },
         () => {
-          navigate("/record", { state: { fromPlaces: true } });
+          navigate("/record", { state: { fromPlaces: true, locationVisibility } });
         },
       );
     }
@@ -296,6 +335,39 @@ const Places = () => {
       {/* Conteneur de la carte */}
       {!loading && (
         <div style={{ padding: "120px 16px 0", position: "relative", zIndex: 5 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              marginBottom: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            {[
+              { key: "family", label: "👨‍👩‍👧 Famille", color: "#D4AF37" },
+              { key: "following", label: "👥 Following", color: "#E8742A" },
+              { key: "public", label: "🌍 Public", color: "#ffffff" },
+            ].map(({ key, label, color }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggleFilter(key as "family" | "following" | "public")}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "999px",
+                  border: `2px solid ${color}`,
+                  background: filters[key as keyof typeof filters] ? color : "transparent",
+                  color: filters[key as keyof typeof filters] ? "#000" : color,
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <div
             style={{
               display: "flex",
@@ -393,7 +465,7 @@ const Places = () => {
               />
             </Source>
 
-            {pins.map((memory) =>
+            {filteredMemories.map((memory) =>
               memory.lat && memory.lng ? (
                 <Marker
                   key={memory.id}
@@ -410,10 +482,10 @@ const Places = () => {
                       width: "40px",
                       height: "40px",
                       borderRadius: "50%",
-                      border: "3px solid #E8742A",
+                      border: `3px solid ${getMarkerColor(memory)}`,
                       overflow: "hidden",
                       cursor: "pointer",
-                      boxShadow: "0 0 12px rgba(232,116,42,0.6)",
+                      boxShadow: `0 0 12px ${getMarkerColor(memory)}60`,
                       background: "#1a0a05",
                     }}
                   >
@@ -650,32 +722,87 @@ const Places = () => {
 
       {/* Bouton épingler */}
       {!selectedPin && (
-        <button
-          onClick={handlePinHere}
+        <div
           style={{
             position: "absolute",
             bottom: "100px",
             left: "50%",
             transform: "translateX(-50%)",
-            padding: "14px 24px",
-            borderRadius: "999px",
-            background: "linear-gradient(135deg, #E8742A, #D4621A)",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: "14px",
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
             zIndex: 10,
-            whiteSpace: "nowrap",
+            width: "100%",
+            maxWidth: "400px",
+            padding: "0 16px",
           }}
         >
-          <MapPin size={18} />
-          {lang === "fr" ? "Épingler un souvenir ici" : lang === "ar" ? "ثبّت ذكرى هنا" : "Pin a memory here"}
-        </button>
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              marginBottom: "12px",
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <p
+              style={{
+                color: "rgba(255,255,255,0.6)",
+                fontSize: "12px",
+                width: "100%",
+                textAlign: "center",
+                marginBottom: "4px",
+              }}
+            >
+              Qui peut voir cet endroit ?
+            </p>
+            {[
+              { value: "family", label: "👨‍👩‍👧 Famille", color: "#D4AF37" },
+              { value: "following", label: "👥 Following", color: "#E8742A" },
+              { value: "public", label: "🌍 Tous", color: "#ffffff" },
+            ].map(({ value, label, color }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setLocationVisibility(value as "family" | "following" | "public")}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "999px",
+                  border: `2px solid ${color}`,
+                  background: locationVisibility === value ? color : "transparent",
+                  color: locationVisibility === value ? "#000" : color,
+                  fontWeight: 700,
+                  fontSize: "11px",
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={handlePinHere}
+            style={{
+              width: "100%",
+              padding: "14px 24px",
+              borderRadius: "999px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "14px",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <MapPin size={18} />
+            {lang === "fr" ? "Épingler un souvenir ici" : lang === "ar" ? "ثبّت ذكرى هنا" : "Pin a memory here"}
+          </button>
+        </div>
       )}
 
       {/* Message de chargement */}
