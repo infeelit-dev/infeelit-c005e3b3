@@ -14,6 +14,7 @@ const SELECT_FIELDS = `
   id,
   email,
   first_name,
+  last_name,
   full_name,
   mode,
   onboarding_complete,
@@ -31,6 +32,25 @@ const SELECT_FIELDS = `
   match_count,
   checked_in_at
 `;
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+/** Active attendees for tonight — feeds the top-5 oracle (client prefilters to 25). */
+async function getActiveForMatching(eventDate: string) {
+  const { data: attendees, error } = await supabase
+    .from("attendees")
+    .select(SELECT_FIELDS)
+    .eq("event_date", eventDate)
+    .eq("onboarding_complete", true);
+
+  if (error) throw new Error(error.message);
+  return attendees || [];
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -146,32 +166,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ============ ACTION: get-active ============
-    if (action === "get-active") {
+    // ============ ACTION: get-active / get-active-participants ============
+    if (action === "get-active" || action === "get-active-participants") {
       if (!event_date) {
-        return new Response(JSON.stringify({ error: "Missing event_date" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return json({ error: "Missing event_date" }, 400);
       }
-
-      const { data, error } = await supabase
-        .from("attendees")
-        .select(SELECT_FIELDS)
-        .eq("event_date", event_date)
-        .eq("onboarding_complete", true);
-
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      try {
+        const data = await getActiveForMatching(event_date);
+        return json({ data });
+      } catch (e) {
+        return json({ error: (e as Error).message }, 500);
       }
-
-      return new Response(JSON.stringify({ data }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
     // ============ ACTION: update (with whitelist) ============
@@ -257,10 +262,9 @@ Deno.serve(async (req) => {
     }
 
     // ============ ACTION non reconnue ============
-    return new Response(JSON.stringify({ error: "Invalid action. Allowed: upsert, get, get-active, update, count" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({
+      error: "Invalid action. Allowed: upsert, get, get-active, get-active-participants, update, count",
+    }, 400);
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {

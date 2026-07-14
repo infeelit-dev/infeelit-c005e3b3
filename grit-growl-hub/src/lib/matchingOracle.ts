@@ -13,6 +13,16 @@ export interface Profile {
 }
 
 export interface MatchResult {
+  match_id: string;
+  confidence: number;
+  bond_type: "complement" | "resonance" | null;
+  resonance: string | null;
+  ice_breaker: string | null;
+  for_match: string | null;
+}
+
+/** @deprecated Prefer findTopMatches — kept for compatibility. */
+export interface SingleMatchResult {
   match_id: string | null;
   confidence: number;
   bond_type: "complement" | "resonance" | null;
@@ -67,38 +77,42 @@ First-timer (visits=1): pick the warmer clearer match.
 Regular (visits >= 4): earn the introduction by being non-generic. Extend their world.
 
 STEP 7 — KNOW WHEN TO WAIT
-If no active profile clears a real exchange return match_id null. A missed connection tonight beats a bad one that wastes a scarce slot.
+If no active profile clears a real exchange, return an empty array []. A missed connection tonight beats a bad one that wastes a scarce slot.
 
 OUTPUT FORMAT
+Return TOP 5 matches as a JSON array, ordered by confidence descending.
+Each match must have a unique match_id.
+If fewer than 5 strong matches exist, return as many as you can above 0.70 confidence.
+Never return the same person twice.
+
 Return ONLY valid JSON, nothing else:
-{
-  "match_id": string or null,
-  "confidence": number between 0 and 1,
-  "bond_type": "complement" or "resonance" or null,
-  "resonance": string max 300 chars or null,
-  "ice_breaker": string max 200 chars or null,
-  "for_match": string max 150 chars or null,
-  "reasoning": string
-}
+[
+  {
+    "match_id": "uuid",
+    "confidence": 0.95,
+    "bond_type": "complement",
+    "resonance": "max 150 chars",
+    "ice_breaker": "max 100 chars",
+    "for_match": "max 100 chars"
+  }
+]
 
 FIELD RULES
-match_id: must exist in candidates array or null
-confidence: if below 0.85 set match_id to null
+match_id: must exist in candidates array
+confidence: only include matches with confidence >= 0.70
 resonance: spoken TO the arrival about the match, warm specific vivid, reference real details from their answers, NEVER use words: synergy align connect networking complementary shared interest
 ice_breaker: one opening line the arrival can say out loud, specific to these two people, not small talk
-for_match: one sentence the host would whisper to the match before the arrival walks over
-reasoning: internal only, never shown to guests`;
+for_match: one sentence the host would whisper to the match before the arrival walks over`;
 
-export async function findBestMatch(arrival: Profile, activeProfiles: Profile[]): Promise<MatchResult | null> {
+const MIN_CONFIDENCE = 0.7;
+const MAX_MATCHES = 5;
+const MAX_CANDIDATES = 25;
 
-  // Step 1: Pre-filter activeProfiles
-  let filtered = activeProfiles.filter((profile) => {
-    if (profile.id === arrival.id) return false;
-    return true;
-  });
+function prefilterCandidates(arrival: Profile, activeProfiles: Profile[]): Profile[] {
+  let filtered = activeProfiles.filter((profile) => profile.id !== arrival.id);
 
-  if (filtered.length > 25) {
-    filtered = filtered.slice(0, 25);
+  if (filtered.length > MAX_CANDIDATES) {
+    filtered = filtered.slice(0, MAX_CANDIDATES);
   }
 
   filtered.sort((a, b) => {
@@ -107,10 +121,53 @@ export async function findBestMatch(arrival: Profile, activeProfiles: Profile[])
     return aCompatible - bCompatible;
   });
 
+  return filtered;
+}
 
-  if (filtered.length === 0) {
-    return null;
+function stripJsonFence(response: string): string {
+  return response
+    .replace(/```json\n?/g, "")
+    .replace(/```\n?/g, "")
+    .trim();
+}
+
+function validateMatches(parsed: unknown, filtered: Profile[]): MatchResult[] {
+  const list = Array.isArray(parsed) ? parsed : parsed && typeof parsed === "object" && Array.isArray((parsed as { matches?: unknown }).matches)
+    ? (parsed as { matches: unknown[] }).matches
+    : parsed && typeof parsed === "object" && "match_id" in (parsed as object)
+      ? [parsed]
+      : [];
+
+  const seen = new Set<string>();
+  const valid: MatchResult[] = [];
+
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Partial<MatchResult>;
+    if (!row.match_id || typeof row.match_id !== "string") continue;
+    if (seen.has(row.match_id)) continue;
+    if (!filtered.some((p) => p.id === row.match_id)) continue;
+
+    const confidence = typeof row.confidence === "number" ? row.confidence : 0;
+    if (confidence < MIN_CONFIDENCE) continue;
+
+    seen.add(row.match_id);
+    valid.push({
+      match_id: row.match_id,
+      confidence,
+      bond_type: row.bond_type === "complement" || row.bond_type === "resonance" ? row.bond_type : null,
+      resonance: typeof row.resonance === "string" ? row.resonance : null,
+      ice_breaker: typeof row.ice_breaker === "string" ? row.ice_breaker : null,
+      for_match: typeof row.for_match === "string" ? row.for_match : null,
+    });
   }
+
+  return valid.sort((a, b) => b.confidence - a.confidence).slice(0, MAX_MATCHES);
+}
+
+export async function findTopMatches(arrival: Profile, activeProfiles: Profile[]): Promise<MatchResult[]> {
+  const filtered = prefilterCandidates(arrival, activeProfiles);
+  if (filtered.length === 0) return [];
 
   const userMessage = JSON.stringify({
     arrival: {
@@ -145,7 +202,7 @@ export async function findBestMatch(arrival: Profile, activeProfiles: Profile[])
         { role: "user", content: userMessage },
       ],
       temperature: 0.5,
-      maxTokens: 400,
+      maxTokens: 1200,
     });
 
     if (typeof result === "string") {
@@ -157,35 +214,32 @@ export async function findBestMatch(arrival: Profile, activeProfiles: Profile[])
     }
   } catch (error) {
     console.error("[MatchingOracle] DeepSeek call failed:", error);
-    return null;
+    return [];
   }
 
-
-
-  let parsed: MatchResult;
   try {
-    const raw = response
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
-      .trim();
-    parsed = JSON.parse(raw) as MatchResult;
+    const raw = stripJsonFence(response);
+    const parsed = JSON.parse(raw) as unknown;
+    return validateMatches(parsed, filtered);
   } catch (error) {
     console.error("[MatchingOracle] JSON parse failed:", error);
     console.error("Raw response:", response);
-    return null;
+    return [];
   }
+}
 
-  if (parsed.confidence < 0.85) {
-    return null;
-  }
-
-  if (parsed.match_id !== null) {
-    const matchExists = filtered.some((p) => p.id === parsed.match_id);
-    if (!matchExists) {
-      console.error("[MatchingOracle] match_id not found in candidates:", parsed.match_id);
-      return null;
-    }
-  }
-
-  return parsed;
+/** @deprecated Use findTopMatches. Returns the single best match or null. */
+export async function findBestMatch(arrival: Profile, activeProfiles: Profile[]): Promise<SingleMatchResult | null> {
+  const top = await findTopMatches(arrival, activeProfiles);
+  if (top.length === 0) return null;
+  const best = top[0];
+  return {
+    match_id: best.match_id,
+    confidence: best.confidence,
+    bond_type: best.bond_type,
+    resonance: best.resonance,
+    ice_breaker: best.ice_breaker,
+    for_match: best.for_match,
+    reasoning: "",
+  };
 }
