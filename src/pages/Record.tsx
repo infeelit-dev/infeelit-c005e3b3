@@ -89,6 +89,7 @@ type Stage =
   | "freeTitle"
   | "importPeriod"
   | "question"
+  | "effectMediaPick"
   | "background"
   | "countdown"
   | "recording"
@@ -356,7 +357,7 @@ const Record = () => {
     if (preSelected && stage === "question") {
       setAudioMode(true);
       startMedia(true);
-      setTimeout(() => goToBackground(false), 500);
+      setTimeout(() => startCountdown(), 500);
     }
   }, [preSelected, stage]);
 
@@ -518,6 +519,21 @@ const Record = () => {
         return p - 1;
       });
     }, 1000);
+  };
+
+  const handleModeSelect = async (mode: "voice" | "film" | "memory") => {
+    if (mode === "voice") {
+      setAudioMode(true);
+      await startMedia(true);
+      startCountdown();
+    } else if (mode === "film") {
+      setAudioMode(false);
+      await startMedia(false);
+      startCountdown();
+    } else if (mode === "memory") {
+      setAudioMode(false);
+      setStage("effectMediaPick");
+    }
   };
 
   const goToBackground = (ff = false) => {
@@ -1828,40 +1844,302 @@ const Record = () => {
               </p>
             )}
             <p className="text-white/50 text-sm">{t.breathe}</p>
-            {!stream ? (
-              <div className="flex flex-col gap-4 w-full max-w-xs mt-4">
-                <p className="text-white/70 text-xs uppercase tracking-widest text-center">{t.howShare}</p>
-                <button
-                  onClick={() => {
-                    setAudioMode(false);
-                    startMedia(false);
-                  }}
-                  className="w-full py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-3"
-                  style={{ color: "#fff" }}
-                >
-                  <Video size={20} /> {t.videoShowFace}
-                </button>
-                <button
-                  onClick={() => {
-                    setAudioMode(true);
-                    startMedia(true);
-                  }}
-                  className="w-full py-4 rounded-full bg-white/15 border border-white/40 text-white font-bold text-base flex items-center justify-center gap-3"
-                >
-                  <Mic size={20} /> {t.voiceOnly}
-                </button>
-              </div>
-            ) : (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+                width: "100%",
+                maxWidth: "320px",
+                marginTop: "24px",
+              }}
+            >
               <button
-                onClick={() => goToBackground(false)}
-                className="mt-2 px-10 py-4 rounded-full gradient-orange font-bold text-lg"
-                style={{ color: "#fff" }}
+                type="button"
+                onClick={() => handleModeSelect("voice")}
+                style={{
+                  width: "100%",
+                  padding: "20px",
+                  borderRadius: "20px",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1.5px solid rgba(255,255,255,0.2)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
               >
-                {t.imReady}
+                <span style={{ fontSize: "32px" }}>🎙️</span>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: "16px" }}>
+                    {lang === "fr" ? "Voix seulement" : lang === "ar" ? "صوت فقط" : "Voice only"}
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.5)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {lang === "fr"
+                      ? "Juste ta voix, sans caméra"
+                      : lang === "ar"
+                        ? "صوتك فقط، بدون كاميرا"
+                        : "Just your voice, no camera"}
+                  </p>
+                </div>
               </button>
-            )}
+              <button
+                type="button"
+                onClick={() => handleModeSelect("film")}
+                style={{
+                  width: "100%",
+                  padding: "20px",
+                  borderRadius: "20px",
+                  background: "linear-gradient(135deg, rgba(232,116,42,0.15), rgba(232,116,42,0.05))",
+                  border: "1.5px solid rgba(232,116,42,0.5)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{ fontSize: "32px" }}>📹</span>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: "16px" }}>
+                    {lang === "fr" ? "Me filmer" : lang === "ar" ? "تصوير نفسي" : "Film myself"}
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.5)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {lang === "fr"
+                      ? "Ton visage, ton histoire"
+                      : lang === "ar"
+                        ? "وجهك، قصتك"
+                        : "Your face, your story"}
+                  </p>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeSelect("memory")}
+                style={{
+                  width: "100%",
+                  padding: "20px",
+                  borderRadius: "20px",
+                  background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))",
+                  border: "1.5px solid rgba(212,175,55,0.5)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{ fontSize: "32px" }}>✨</span>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: "16px" }}>
+                    {lang === "fr" ? "Effet Souvenir" : lang === "ar" ? "تأثير الذكرى" : "Memory Effect"}
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.5)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {lang === "fr"
+                      ? "Une photo ou vidéo derrière toi pendant que tu parles"
+                      : lang === "ar"
+                        ? "صورة أو فيديو خلفك أثناء حديثك"
+                        : "A photo or video behind you while you speak"}
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
         </>
+      )}
+
+      {stage === "effectMediaPick" && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 20,
+            background: "linear-gradient(160deg, #1a0a05 0%, #2D1810 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "60px 24px 40px",
+          }}
+        >
+          <span style={{ fontSize: "48px", marginBottom: "16px" }}>✨</span>
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 900,
+              letterSpacing: "0.3em",
+              color: "#E8742A",
+              textTransform: "uppercase",
+              marginBottom: "8px",
+            }}
+          >
+            {lang === "fr" ? "Effet Souvenir" : lang === "ar" ? "تأثير الذكرى" : "Memory Effect"}
+          </p>
+          <p
+            style={{
+              fontSize: "16px",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              color: "rgba(255,255,255,0.7)",
+              marginBottom: "32px",
+              textAlign: "center",
+              lineHeight: 1.5,
+              whiteSpace: "pre-line",
+            }}
+          >
+            {lang === "fr"
+              ? "Choisis ce que tu veux commenter.\nTon visage apparaîtra devant."
+              : lang === "ar"
+                ? "اختر ما تريد التعليق عليه.\nسيظهر وجهك في المقدمة."
+                : "Choose what you want to comment on.\nYour face will appear in front."}
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              width: "100%",
+              maxWidth: "320px",
+            }}
+          >
+            <label
+              style={{
+                width: "100%",
+                padding: "20px",
+                borderRadius: "20px",
+                background: "rgba(255,255,255,0.08)",
+                border: "1.5px solid rgba(255,255,255,0.2)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                gap: "16px",
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ fontSize: "32px" }}>📷</span>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: "16px" }}>
+                  {lang === "fr" ? "Une photo" : lang === "ar" ? "صورة" : "A photo"}
+                </p>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "12px",
+                    color: "rgba(255,255,255,0.5)",
+                    marginTop: "2px",
+                  }}
+                >
+                  {lang === "fr"
+                    ? "Maison, école, jouet, visage..."
+                    : lang === "ar"
+                      ? "منزل، مدرسة، لعبة، وجه..."
+                      : "House, school, toy, face..."}
+                </p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = URL.createObjectURL(file);
+                  setBgImage(url);
+                  setUseAsAura(true);
+                  auraRef.current = true;
+                  setCustomThumb(url);
+                  startMedia(false).then(() => startCountdown());
+                }}
+              />
+            </label>
+            <label
+              style={{
+                width: "100%",
+                padding: "20px",
+                borderRadius: "20px",
+                background: "rgba(255,255,255,0.08)",
+                border: "1.5px solid rgba(255,255,255,0.2)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                gap: "16px",
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ fontSize: "32px" }}>🎬</span>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: "16px" }}>
+                  {lang === "fr" ? "Une vidéo" : lang === "ar" ? "فيديو" : "A video"}
+                </p>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "12px",
+                    color: "rgba(255,255,255,0.5)",
+                    marginTop: "2px",
+                  }}
+                >
+                  {lang === "fr"
+                    ? "Elle jouera en boucle derrière toi"
+                    : lang === "ar"
+                      ? "ستُشغَّل في حلقة خلفك"
+                      : "It will loop behind you"}
+                </p>
+              </div>
+              <input
+                type="file"
+                accept="video/*"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
+                  setBgVideoUrl(URL.createObjectURL(file));
+                  startMedia(false).then(() => startCountdown());
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setStage("question")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "13px",
+                cursor: "pointer",
+                marginTop: "8px",
+              }}
+            >
+              {lang === "fr" ? "← Retour" : lang === "ar" ? "→ رجوع" : "← Back"}
+            </button>
+          </div>
+        </div>
       )}
 
       {stage === "background" && (
