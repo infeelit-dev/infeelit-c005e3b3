@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RecapRouteImport } from './routes/recap'
+import { Route as QuickQuestionRouteImport } from './routes/quick-question'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ModeRouteImport } from './routes/mode'
 import { Route as MatchRouteImport } from './routes/match'
@@ -23,6 +24,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const RecapRoute = RecapRouteImport.update({
   id: '/recap',
   path: '/recap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuickQuestionRoute = QuickQuestionRouteImport.update({
+  id: '/quick-question',
+  path: '/quick-question',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
+  '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
+  '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
+  '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
+    | '/quick-question'
     | '/recap'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
+    | '/quick-question'
     | '/recap'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
+    | '/quick-question'
     | '/recap'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   MatchRoute: typeof MatchRoute
   ModeRoute: typeof ModeRoute
   OnboardingRoute: typeof OnboardingRoute
+  QuickQuestionRoute: typeof QuickQuestionRoute
   RecapRoute: typeof RecapRoute
 }
 
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/recap'
       fullPath: '/recap'
       preLoaderRoute: typeof RecapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quick-question': {
+      id: '/quick-question'
+      path: '/quick-question'
+      fullPath: '/quick-question'
+      preLoaderRoute: typeof QuickQuestionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -245,8 +265,19 @@ const rootRouteChildren: RootRouteChildren = {
   MatchRoute: MatchRoute,
   ModeRoute: ModeRoute,
   OnboardingRoute: OnboardingRoute,
+  QuickQuestionRoute: QuickQuestionRoute,
   RecapRoute: RecapRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

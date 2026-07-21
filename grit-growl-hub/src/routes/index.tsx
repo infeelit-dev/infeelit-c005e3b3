@@ -12,7 +12,7 @@ function Index() {
       subtitle="An evening of intention. One conversation at a time."
       cta={
         <Link to="/checkin">
-          <PrimaryButton>Begin</PrimaryButton>
+          <PrimaryButton>Join the community</PrimaryButton>
         </Link>
       }
     />
