@@ -7,3 +7,8 @@ export function getDubaiEventDate(date = new Date()): string {
     day: "2-digit",
   }).format(date);
 }
+
+/** Stable event identifier for the current Dubai evening (YYYY-MM-DD). */
+export function getEventId(eventDate = getDubaiEventDate()): string {
+  return eventDate;
+}
