@@ -58,7 +58,7 @@ function LoungePage() {
   useEffect(() => {
     const email = localStorage.getItem("gg_email");
     if (!email) {
-      window.location.assign("/checkin");
+      window.location.href = "/checkin";
     }
   }, []);
 

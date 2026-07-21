@@ -1,82 +1,92 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { PageShell, PrimaryButton } from "@/components/PageShell";
+import { useTheme, type AppMode } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
-import { getDubaiEventDate, getEventId } from "@/lib/eventDate";
 
 export const Route = createFileRoute("/mode")({
   component: ModePage,
-  ssr: false,
 });
 
 function ModePage() {
-  const [loading, setLoading] = useState(false);
+  const { mode, setMode } = useTheme();
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSelect = async (choice: "builder" | "lounge") => {
-    setLoading(true);
-    setError("");
+  const options: { value: AppMode; title: string; desc: string }[] = [
+    { value: "lounge", title: "Chill", desc: "I'm here to relax, recharge, no agenda." },
+    { value: "builder", title: "Connect", desc: "I'm here to connect and build something meaningful tonight." },
+  ];
+
+  const handleLockIn = async () => {
     const email = localStorage.getItem("gg_email");
+
     if (!email) {
-      window.location.assign("/checkin");
+      setError("Missing email. Please check in again.");
+      navigate({ to: "/checkin" });
       return;
     }
 
-    try {
-      const { error: fnError } = await supabase.functions.invoke("manage-attendee", {
-        body: {
-          action: "upsert-participant",
-          email,
-          event_id: getEventId(),
-          event_date: getDubaiEventDate(),
-          mode: choice,
-        },
-      });
-      if (fnError) throw fnError;
+    setSaving(true);
+    setError("");
 
-      await supabase.functions.invoke("manage-attendee", {
-        body: { action: "update", email, mode: choice, event_date: getDubaiEventDate() },
-      });
+    const payload = { mode, checked_in_at: new Date().toISOString() };
 
-      if (choice === "lounge") {
-        window.location.assign("/lounge");
-      } else {
-        window.location.assign("/onboarding");
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setLoading(false);
+    const { data, error: fnError } = await supabase.functions.invoke("manage-attendee", {
+      body: { action: "update", email, ...payload },
+    });
+
+
+    if (fnError || !data?.success) {
+      const msg = fnError?.message || data?.error || "Failed to save mode";
+      console.error("❌ Mode save error:", msg);
+      setError(msg);
+      setSaving(false);
+      return;
     }
+
+
+    const next = mode === "builder" ? "/manifesto" : "/lounge";
+    navigate({ to: next });
   };
 
   return (
-  <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
-    <div className="w-full max-w-[420px] text-center">
-      <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-2">Grit & Growl</p>
-      <h1 className="text-2xl font-bold text-foreground mb-2">Choose your mode</h1>
-      <p className="text-sm text-muted-foreground mb-8">How do you want to show up tonight?</p>
-
-      <div className="space-y-4">
-        <button
-          onClick={() => handleSelect("builder")}
-          disabled={loading}
-          className="w-full py-5 rounded-xl bg-primary text-primary-foreground font-bold text-lg tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50 min-h-[44px]"
-        >
-          🎯 HUNT
-        </button>
-        <p className="text-xs text-muted-foreground -mt-2">Get matched. Make connections.</p>
-
-        <button
-          onClick={() => handleSelect("lounge")}
-          disabled={loading}
-          className="w-full py-5 rounded-xl border border-border text-foreground font-bold text-lg tracking-wide hover:bg-muted transition-colors disabled:opacity-50 min-h-[44px]"
-        >
-          ☕ CHILL
-        </button>
-        <p className="text-xs text-muted-foreground -mt-2">No pressure. Just vibes.</p>
+    <PageShell
+      title="Choose your mode"
+      subtitle="Locked for the evening. Choose carefully."
+      step={{ current: 2, total: 5 }}
+      backTo="/checkin"
+      cta={
+        <PrimaryButton onClick={handleLockIn} disabled={saving}>
+          {saving ? "Locking..." : "Lock it in"}
+        </PrimaryButton>
+      }
+    >
+      <div className="grid gap-3">
+        {options.map((o) => {
+          const active = mode === o.value;
+          return (
+            <button
+              key={o.value}
+              onClick={() => setMode(o.value)}
+              className="text-left p-6 rounded-[16px] border bg-[var(--bg-card)] transition-colors"
+              style={{
+                borderColor: active ? "var(--accent-color)" : "var(--border)",
+              }}
+            >
+              <div
+                className="text-[18px] font-medium"
+                style={{ color: active ? "var(--accent-color)" : "var(--text-primary)" }}
+              >
+                {o.title}
+              </div>
+              <div className="text-[13px] font-light text-[var(--text-secondary)] mt-1">{o.desc}</div>
+            </button>
+          );
+        })}
+        {error && <p style={{ color: "#D85A30", fontSize: "12px" }}>{error}</p>}
       </div>
-
-      {error && <p className="text-sm text-destructive mt-4">{error}</p>}
-    </div>
-  </div>
+    </PageShell>
   );
 }

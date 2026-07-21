@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RecapRouteImport } from './routes/recap'
-import { Route as ProfileSetupRouteImport } from './routes/profile-setup'
+import { Route as QuickQuestionRouteImport } from './routes/quick-question'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ModeRouteImport } from './routes/mode'
 import { Route as MatchRouteImport } from './routes/match'
@@ -20,16 +20,15 @@ import { Route as GratitudeRouteImport } from './routes/gratitude'
 import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 
 const RecapRoute = RecapRouteImport.update({
   id: '/recap',
   path: '/recap',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileSetupRoute = ProfileSetupRouteImport.update({
-  id: '/profile-setup',
-  path: '/profile-setup',
+const QuickQuestionRoute = QuickQuestionRouteImport.update({
+  id: '/quick-question',
+  path: '/quick-question',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -77,11 +76,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -93,9 +87,8 @@ export interface FileRoutesByFullPath {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
-  '/profile-setup': typeof ProfileSetupRoute
+  '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
-  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -107,9 +100,8 @@ export interface FileRoutesByTo {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
-  '/profile-setup': typeof ProfileSetupRoute
+  '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
-  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,9 +114,8 @@ export interface FileRoutesById {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
-  '/profile-setup': typeof ProfileSetupRoute
+  '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
-  '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,9 +129,8 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
-    | '/profile-setup'
+    | '/quick-question'
     | '/recap'
-    | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,9 +142,8 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
-    | '/profile-setup'
+    | '/quick-question'
     | '/recap'
-    | '/auth/callback'
   id:
     | '__root__'
     | '/'
@@ -166,9 +155,8 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
-    | '/profile-setup'
+    | '/quick-question'
     | '/recap'
-    | '/auth/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -181,9 +169,8 @@ export interface RootRouteChildren {
   MatchRoute: typeof MatchRoute
   ModeRoute: typeof ModeRoute
   OnboardingRoute: typeof OnboardingRoute
-  ProfileSetupRoute: typeof ProfileSetupRoute
+  QuickQuestionRoute: typeof QuickQuestionRoute
   RecapRoute: typeof RecapRoute
-  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -195,11 +182,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecapRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile-setup': {
-      id: '/profile-setup'
-      path: '/profile-setup'
-      fullPath: '/profile-setup'
-      preLoaderRoute: typeof ProfileSetupRouteImport
+    '/quick-question': {
+      id: '/quick-question'
+      path: '/quick-question'
+      fullPath: '/quick-question'
+      preLoaderRoute: typeof QuickQuestionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -265,13 +252,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -285,9 +265,8 @@ const rootRouteChildren: RootRouteChildren = {
   MatchRoute: MatchRoute,
   ModeRoute: ModeRoute,
   OnboardingRoute: OnboardingRoute,
-  ProfileSetupRoute: ProfileSetupRoute,
+  QuickQuestionRoute: QuickQuestionRoute,
   RecapRoute: RecapRoute,
-  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

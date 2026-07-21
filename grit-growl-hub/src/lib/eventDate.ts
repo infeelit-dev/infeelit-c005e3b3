@@ -7,7 +7,3 @@ export function getDubaiEventDate(date = new Date()): string {
     day: "2-digit",
   }).format(date);
 }
-
-export function getEventId(eventDate = getDubaiEventDate()): string {
-  return `gg-${eventDate}`;
-}
