@@ -111,6 +111,36 @@ function roleLine(person: MatchPerson): string {
   return person.mode === "builder" ? "Connect mode" : "Chill mode";
 }
 
+function BondTypeTag({ bondType }: { bondType: string | null | undefined }) {
+  if (!bondType || !bondType.trim()) return null;
+
+  const styles: Record<string, { color: string; label: string }> = {
+    receive: { color: "#4CAF50", label: "They can help you" },
+    give: { color: "#D85A30", label: "You can help them" },
+    mutual: { color: "#0A66C2", label: "Mutual opportunity" },
+    ecosystem: { color: "#9C27B0", label: "Your worlds connect" },
+  };
+
+  const tag = styles[bondType];
+  if (!tag) return null;
+
+  return (
+    <span
+      style={{
+        fontSize: "10px",
+        color: tag.color,
+        letterSpacing: "1px",
+        textTransform: "uppercase",
+        fontWeight: 600,
+        display: "block",
+        marginTop: "4px",
+      }}
+    >
+      {tag.label}
+    </span>
+  );
+}
+
 function MatchAvatar({ person }: { person: MatchPerson }) {
   if (person.avatar_url) {
     return (
@@ -182,6 +212,7 @@ function MatchCard({
         <MatchAvatar person={person} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ fontSize: "18px", fontWeight: 600, color: "#fff", margin: 0 }}>{fullName}</h2>
+          <BondTypeTag bondType={match.bond_type} />
           <p style={{ fontSize: "13px", color: "#666", margin: "4px 0 0" }}>{roleLine(person)}</p>
         </div>
       </div>
