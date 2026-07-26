@@ -1151,6 +1151,10 @@ const Record = () => {
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
+        @keyframes stopPulse {
+          0%, 100% { box-shadow: 0 0 0 4px rgba(220,38,38,0.35), 0 0 24px rgba(220,38,38,0.55); }
+          50% { box-shadow: 0 0 0 14px rgba(220,38,38,0.12), 0 0 36px rgba(220,38,38,0.4); }
+        }
       `}</style>
 
       {/* Fond pendant l'enregistrement — image, vidéo ou gradient */}
@@ -1309,6 +1313,11 @@ const Record = () => {
             padding: "56px 24px 20px",
             background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)",
             zIndex: 5,
+            pointerEvents: "none",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "stretch",
+            gap: "12px",
           }}
         >
           <p
@@ -1320,10 +1329,48 @@ const Record = () => {
               textAlign: "center",
               lineHeight: 1.5,
               textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+              margin: 0,
             }}
           >
             "{questionRef.current}"
           </p>
+
+          {followupIdx > 0 && followupIdx <= followupQuestions.length && (
+            <div
+              style={{
+                padding: "14px 18px",
+                background: "rgba(0,0,0,0.75)",
+                borderRadius: "16px",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                animation: "slideUp 0.5s ease",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: "rgba(232,116,42,0.8)",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  marginBottom: "8px",
+                }}
+              >
+                ✦ {lang === "fr" ? "Question suivante" : lang === "ar" ? "السؤال التالي" : "Next question"}
+              </p>
+              <p
+                style={{
+                  fontSize: "16px",
+                  color: "#fff",
+                  fontFamily: "Georgia, serif",
+                  fontStyle: "italic",
+                  lineHeight: 1.5,
+                  margin: 0,
+                }}
+              >
+                {followupQuestions[followupIdx - 1]}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -1337,6 +1384,7 @@ const Record = () => {
             alignItems: "center",
             gap: "8px",
             zIndex: 10,
+            pointerEvents: "none",
           }}
         >
           <div
@@ -1370,80 +1418,77 @@ const Record = () => {
         </div>
       )}
 
-      {stage === "recording" && followupIdx > 0 && followupIdx <= followupQuestions.length && (
-        <div
-          style={{
-            position: "absolute",
-            top: "120px",
-            left: "16px",
-            right: "16px",
-            padding: "16px 20px",
-            background: "rgba(0,0,0,0.75)",
-            borderRadius: "16px",
-            backdropFilter: "blur(10px)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            zIndex: 5,
-            pointerEvents: "none",
-            animation: "slideUp 0.5s ease",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "11px",
-              color: "rgba(232,116,42,0.8)",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              marginBottom: "8px",
-            }}
-          >
-            ✦ {lang === "fr" ? "Question suivante" : lang === "ar" ? "السؤال التالي" : "Next question"}
-          </p>
-          <p
-            style={{
-              fontSize: "16px",
-              color: "#fff",
-              fontFamily: "Georgia, serif",
-              fontStyle: "italic",
-              lineHeight: 1.5,
-            }}
-          >
-            {followupQuestions[followupIdx - 1]}
-          </p>
-        </div>
-      )}
-
       {stage === "recording" && (
         <div
-          onClick={handleStop}
           style={{
             position: "fixed",
             bottom: "50px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "90px",
-            height: "90px",
-            borderRadius: "50%",
-            background: "#DC2626",
-            border: "5px solid white",
-            zIndex: 99999,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            touchAction: "manipulation",
-            WebkitTapHighlightColor: "transparent",
-            boxShadow: "0 0 30px rgba(220,38,38,0.8)",
+            zIndex: 99999,
+            pointerEvents: "auto",
           }}
         >
           <div
             style={{
-              width: "30px",
-              height: "30px",
-              borderRadius: "4px",
-              background: "white",
+              width: "72px",
+              height: "72px",
+              borderRadius: "16px",
+              background: "rgba(220,38,38,0.95)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 0 4px rgba(220,38,38,0.3)",
+              touchAction: "manipulation",
+              WebkitTapHighlightColor: "transparent",
+              cursor: "pointer",
+              animation: "stopPulse 1.6s ease-in-out infinite",
             }}
-          />
+            onPointerUp={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleStop();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleStop();
+            }}
+          >
+            <div style={{ display: "flex", gap: "6px" }}>
+              <div
+                style={{
+                  width: "8px",
+                  height: "28px",
+                  background: "#fff",
+                  borderRadius: "3px",
+                }}
+              />
+              <div
+                style={{
+                  width: "8px",
+                  height: "28px",
+                  background: "#fff",
+                  borderRadius: "3px",
+                }}
+              />
+            </div>
+          </div>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.9)",
+              fontSize: "11px",
+              marginTop: "8px",
+              fontWeight: 700,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+            }}
+          >
+            ⏹ Arrêter
+          </p>
         </div>
       )}
 
