@@ -236,7 +236,7 @@ const Record = () => {
 
   const [stage, setStage] = useState<Stage>("question");
   const [deliverAt, setDeliverAt] = useState("");
-  const [mr, setMR] = useState<MediaRecorder | null>(null);
+  const mrRef = useRef<MediaRecorder | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [countdown, setCountdown] = useState(3);
   const [followupIdx, setFollowIdx] = useState(0);
@@ -443,16 +443,17 @@ const Record = () => {
   const getMimeType = (a: boolean) => {
     if (a) {
       if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) return "audio/webm;codecs=opus";
-      if (MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4";
-      return "audio/webm";
+      if (MediaRecorder.isTypeSupported("audio/webm")) return "audio/webm";
+      if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) return "audio/ogg;codecs=opus";
+      return "";
     }
     if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) return "video/webm;codecs=vp9";
     if (MediaRecorder.isTypeSupported("video/webm")) return "video/webm";
     if (MediaRecorder.isTypeSupported("video/mp4")) return "video/mp4";
-    return "video/webm";
+    return "";
   };
 
-  const startMedia = async (a: boolean) => {
+  const startMedia = async (a: boolean): Promise<MediaRecorder | null> => {
     try {
       const c = a
         ? { audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } }
@@ -472,17 +473,20 @@ const Record = () => {
         analyserRef.current = an;
       }
       const m = getMimeType(a);
-      const r = new MediaRecorder(s, {
-        mimeType: m,
+      const options: MediaRecorderOptions = {
         videoBitsPerSecond: VIDEO_BITRATE,
         audioBitsPerSecond: AUDIO_BITRATE,
-      });
+      };
+      if (m) options.mimeType = m;
+      const r = new MediaRecorder(s, options);
       r.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
-      setMR(r);
+      mrRef.current = r; // set ref immediately (avoids stale React state)
+      return r;
     } catch {
       toast.error("Microphone not accessible.");
+      return null;
     }
   };
 
@@ -494,7 +498,8 @@ const Record = () => {
         if (p === 1) {
           clearInterval(tmr);
           chunksRef.current = [];
-          mr?.start(1000); // collect chunks every 1 second
+          mrRef.current?.start(1000); // collect chunks every 1 second
+          console.log("MR started, state:", mrRef.current?.state);
           setStage("recording");
           setElapsed(0);
           setEstSize("0 KB");
@@ -586,6 +591,7 @@ const Record = () => {
     if (hardCapRef.current) clearTimeout(hardCapRef.current);
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     cancelAnimationFrame(animRef.current);
+    const mr = mrRef.current;
     const finalize = () => {
       try {
         console.log(
