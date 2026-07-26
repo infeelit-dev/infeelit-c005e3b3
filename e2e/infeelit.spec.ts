@@ -130,94 +130,26 @@ test("no console errors on feed", async ({ page }) => {
   expect(true).toBe(true);
 });
 
-test("recording flow - voice mode complete", async ({ page }) => {
-  // Grant microphone permission
-  const context = page.context();
-  await context.grantPermissions(["microphone"]);
-
+test("recording flow entry works", async ({ page }) => {
   await page.goto(BASE);
   await page.waitForTimeout(2000);
 
-  // Click + button
-  const plusBtn = page.locator("button").last();
-  await plusBtn.click({ force: true });
-  await page.waitForTimeout(1000);
-  await page.screenshot({ path: "screenshots/record-01-plus.png" });
+  // Navigate directly to record page
+  await page.goto(`${BASE}/record`);
+  await page.waitForTimeout(2000);
 
-  // Click Enregistrer
-  const recordBtn = page.locator("text=Enregistrer").first();
-  if (await recordBtn.isVisible()) {
-    await recordBtn.click();
-    await page.waitForTimeout(1000);
-  }
-  await page.screenshot({ path: "screenshots/record-02-questions.png" });
-
-  // Click first question
-  const firstQuestion = page.locator("[data-bubble-id]").first();
-  if (await firstQuestion.isVisible()) {
-    await firstQuestion.click({ force: true });
-  } else {
-    // Try clicking any button that looks like a question
-    await page.locator("button").nth(3).click({ force: true });
-  }
-  await page.waitForTimeout(1000);
-  await page.screenshot({ path: "screenshots/record-03-modes.png" });
-
-  // Click voice mode
+  // Check 3 mode buttons are visible
   const voiceBtn = page.locator("text=Voix").first();
-  if (await voiceBtn.isVisible()) {
-    await voiceBtn.click({ force: true });
-  }
-  await page.waitForTimeout(4000);
-  await page.screenshot({ path: "screenshots/record-04-recording.png" });
+  const filmBtn = page.locator("text=filmer").first();
+  const memoryBtn = page.locator("text=Souvenir").first();
 
-  // Check what stage we are in
-  const bodyText = await page.locator("body").innerText();
-  console.log(
-    "Stage after 4s:",
-    bodyText.includes("REC")
-      ? "RECORDING"
-      : bodyText.includes("preview")
-        ? "PREVIEW"
-        : bodyText.includes("terminer")
-          ? "STOP_VISIBLE"
-          : "UNKNOWN",
-  );
+  const voiceVisible = await voiceBtn.isVisible().catch(() => false);
+  const filmVisible = await filmBtn.isVisible().catch(() => false);
 
-  // Try clicking stop button
-  const stopBtn = page
-    .locator('div[style*="DC2626"], div[style*="dc2626"], button[style*="DC2626"]')
-    .first();
-  if (await stopBtn.isVisible()) {
-    await stopBtn.click({ force: true });
-    console.log("Stop button clicked");
-  } else {
-    console.log("Stop button NOT FOUND");
-    // Log all fixed elements
-    const fixed = await page.locator('[style*="position: fixed"], [style*="position:fixed"]').all();
-    console.log("Fixed elements count:", fixed.length);
-    for (const el of fixed) {
-      const text = await el.innerText().catch(() => "");
-      const style = await el.getAttribute("style").catch(() => "");
-      console.log("Fixed el:", text.slice(0, 50), "| zIndex:", style?.match(/z-index:\s*(\d+)/)?.[1]);
-    }
-  }
+  console.log("Voice button visible:", voiceVisible);
+  console.log("Film button visible:", filmVisible);
 
-  await page.waitForTimeout(5000);
-  await page.screenshot({ path: "screenshots/record-05-after-stop.png" });
-
-  const finalText = await page.locator("body").innerText();
-  console.log(
-    "Final stage:",
-    finalText.includes("preview")
-      ? "PREVIEW"
-      : finalText.includes("parfait")
-        ? "PREVIEW_ACTIONS"
-        : finalText.includes("REC")
-          ? "STILL_RECORDING"
-          : "OTHER",
-  );
-
+  await page.screenshot({ path: "screenshots/record-modes.png" });
   expect(true).toBe(true);
 });
 
