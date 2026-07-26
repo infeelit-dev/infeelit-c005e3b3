@@ -41,7 +41,9 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(`${text} ${deepLink}`);
     setCopied(true);
-    toast.success("Link copied!");
+    toast.success(
+      lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!",
+    );
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -49,7 +51,9 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
     if (navigator.share) {
       try {
         await navigator.share({ title, text, url: deepLink });
-        toast.success("Shared successfully!");
+        toast.success(
+          lang === "ar" ? "تمت المشاركة!" : lang === "fr" ? "Partagé avec succès !" : "Shared successfully!",
+        );
       } catch (err: any) {
         if (err?.name !== "AbortError") handleCopyLink();
       }

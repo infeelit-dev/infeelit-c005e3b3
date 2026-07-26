@@ -276,7 +276,12 @@ const Record = () => {
       : lang === "ar"
         ? preSelected.ar
         : preSelected.en
-    : loc.state?.question || "What smell instantly brings you back to your childhood home?";
+    : loc.state?.question ||
+      (lang === "fr"
+        ? "Quelle odeur te ramène instantanément à la maison de ton enfance ?"
+        : lang === "ar"
+          ? "ما الرائحة التي تعيدك فوراً إلى بيت طفولتك؟"
+          : "What smell instantly brings you back to your childhood home?");
 
   const question = initialQuestion;
   const thumbCards = getThematicCards(isFreeMode ? memoryTitle || question : question);
@@ -485,7 +490,13 @@ const Record = () => {
       mrRef.current = r; // set ref immediately (avoids stale React state)
       return r;
     } catch {
-      toast.error("Microphone not accessible.");
+      toast.error(
+        lang === "fr"
+          ? "Micro inaccessible."
+          : lang === "ar"
+            ? "الميكروفون غير متاح."
+            : "Microphone not accessible.",
+      );
       return null;
     }
   };
@@ -903,7 +914,9 @@ const Record = () => {
     try {
       const urls = await uploadAllClips();
       if (urls.length === 0) {
-        toast.error("Upload failed.");
+        toast.error(
+          lang === "fr" ? "Échec de l'envoi." : lang === "ar" ? "فشل الرفع." : "Upload failed.",
+        );
         setStage("share");
         return;
       }
@@ -951,7 +964,9 @@ const Record = () => {
         const { data: inserted, error: insertError } = await (supabase.from("memories") as any)
           .insert({
             user_id: uid,
-            title: memoryTitle || "A memory",
+            title:
+              memoryTitle ||
+              (lang === "fr" ? "Un souvenir" : lang === "ar" ? "ذكرى" : "A memory"),
             description: null,
             file_url: finalUrl,
             file_type: typeRef.current,
@@ -980,7 +995,9 @@ const Record = () => {
 
         if (insertError) {
           console.error("Insert error:", insertError);
-          toast.error("Error saving.");
+          toast.error(
+            lang === "fr" ? "Erreur lors de l'enregistrement." : lang === "ar" ? "خطأ في الحفظ." : "Error saving.",
+          );
           setStage("share");
           return;
         }
@@ -988,7 +1005,12 @@ const Record = () => {
         const newMemoryId = inserted?.id ?? null;
 
         if (newMemoryId && finalUrl) {
-          triggerTranscription(newMemoryId, finalUrl, memoryTitle || "A memory");
+          triggerTranscription(
+            newMemoryId,
+            finalUrl,
+            memoryTitle ||
+              (lang === "fr" ? "Un souvenir" : lang === "ar" ? "ذكرى" : "A memory"),
+          );
         }
 
         try {
@@ -1063,7 +1085,13 @@ const Record = () => {
       navigate("/", { replace: true });
     } catch (err) {
       console.error(err);
-      toast.error("An unexpected error occurred.");
+      toast.error(
+        lang === "fr"
+          ? "Une erreur inattendue est survenue."
+          : lang === "ar"
+            ? "حدث خطأ غير متوقع."
+            : "An unexpected error occurred.",
+      );
       setStage("share");
     }
   };
@@ -1071,7 +1099,9 @@ const Record = () => {
   const handleNativeShare = async () => {
     const all = clipsRef.current.map((c) => c.blob);
     const cb = new Blob(all, { type: getMimeType(audioMode) });
-    const topic = memoryTitle || "un souvenir précieux";
+    const topic =
+      memoryTitle ||
+      (lang === "fr" ? "un souvenir précieux" : lang === "ar" ? "ذكرى ثمينة" : "a precious memory");
     const txt =
       lang === "fr"
         ? `${userName || "Quelqu'un"} a raconté ${topic}. Certains souvenirs méritent de durer. Découvre son histoire sur Infeelit.`
@@ -1079,11 +1109,14 @@ const Record = () => {
           ? `${userName || "شخص ما"} حكى ${topic}. بعض الذكريات تستحق أن تدوم. اكتشف قصته على Infeelit.`
           : `${userName || "Someone"} shared ${topic}. Some memories deserve to last forever. Discover their story on Infeelit.`;
     const url = "https://infeelit.com";
+    const shareTitle =
+      memoryTitle ||
+      (lang === "fr" ? "Un souvenir sur Infeelit" : lang === "ar" ? "ذكرى على Infeelit" : "A memory on Infeelit");
     if (navigator.canShare && cb.size > 0) {
       const f = new File([cb], "memory." + (audioMode ? "webm" : "mp4"), { type: cb.type });
       if (navigator.canShare({ files: [f] })) {
         try {
-          await navigator.share({ title: memoryTitle || "A memory on Infeelit", text: txt, files: [f] });
+          await navigator.share({ title: shareTitle, text: txt, files: [f] });
           return;
         } catch (er: any) {
           if (er?.name === "AbortError") return;
@@ -1092,7 +1125,7 @@ const Record = () => {
     }
     if (navigator.share) {
       try {
-        await navigator.share({ title: memoryTitle || "A memory on Infeelit", text: txt, url });
+        await navigator.share({ title: shareTitle, text: txt, url });
       } catch (er: any) {
         if (er?.name === "AbortError") return;
         navigator.clipboard.writeText(txt + " " + url);
@@ -1404,7 +1437,7 @@ const Record = () => {
               letterSpacing: "0.1em",
             }}
           >
-            REC
+            {lang === "fr" ? "REC" : lang === "ar" ? "تسجيل" : "REC"}
           </span>
           <span
             style={{
@@ -1487,7 +1520,7 @@ const Record = () => {
               textTransform: "uppercase",
             }}
           >
-            ⏹ Arrêter
+            {lang === "fr" ? "⏹ Arrêter" : lang === "ar" ? "⏹ إيقاف" : "⏹ Stop"}
           </p>
         </div>
       )}
@@ -1801,7 +1834,7 @@ const Record = () => {
               alignSelf: "flex-start",
             }}
           >
-            ← Retour
+            {lang === "fr" ? "← Retour" : lang === "ar" ? "→ رجوع" : "← Back"}
           </button>
           <p
             style={{
@@ -1834,9 +1867,21 @@ const Record = () => {
 
           {(
             [
-              { id: "memories" as const, label: "Memories", icon: "🌅" },
-              { id: "instant" as const, label: "Instant", icon: "⚡" },
-              { id: "forever" as const, label: "Forever", icon: "✉️" },
+              {
+                id: "memories" as const,
+                label: lang === "fr" ? "Souvenirs" : lang === "ar" ? "ذكريات" : "Memories",
+                icon: "🌅",
+              },
+              {
+                id: "instant" as const,
+                label: lang === "fr" ? "Instant" : lang === "ar" ? "لحظي" : "Instant",
+                icon: "⚡",
+              },
+              {
+                id: "forever" as const,
+                label: lang === "fr" ? "Pour toujours" : lang === "ar" ? "للأبد" : "Forever",
+                icon: "✉️",
+              },
             ] as const
           ).map((option) => (
             <button
@@ -2617,7 +2662,7 @@ const Record = () => {
               alignSelf: "flex-start",
             }}
           >
-            ← Retour
+            {lang === "fr" ? "← Retour" : lang === "ar" ? "→ رجوع" : "← Back"}
           </button>
           <p
             style={{
@@ -2706,7 +2751,13 @@ const Record = () => {
                 >
                   <img
                     src={frame}
-                    alt={`Frame ${idx + 1}`}
+                    alt={
+                      lang === "fr"
+                        ? `Aperçu ${idx + 1}`
+                        : lang === "ar"
+                          ? `معاينة ${idx + 1}`
+                          : `Frame ${idx + 1}`
+                    }
                     style={{
                       width: "100%",
                       height: "100%",
@@ -2812,7 +2863,7 @@ const Record = () => {
               alignSelf: "flex-start",
             }}
           >
-            ← Retour
+            {lang === "fr" ? "← Retour" : lang === "ar" ? "→ رجوع" : "← Back"}
           </button>
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">{t.memoryReady}</p>
           <h2 className="text-white text-2xl font-bold leading-tight italic">"{memoryTitle}"</h2>
@@ -2847,7 +2898,7 @@ const Record = () => {
               alignSelf: "flex-start",
             }}
           >
-            ← Retour
+            {lang === "fr" ? "← Retour" : lang === "ar" ? "→ رجوع" : "← Back"}
           </button>
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
             {lang === "ar"
@@ -2945,8 +2996,11 @@ const Record = () => {
 
           <MemoryCard
             ref={cardRef}
-            title={memoryTitle || "Mon souvenir"}
-            authorName={userName || "Moi"}
+            title={
+              memoryTitle ||
+              (lang === "fr" ? "Mon souvenir" : lang === "ar" ? "ذكرى" : "My memory")
+            }
+            authorName={userName || (lang === "fr" ? "Moi" : lang === "ar" ? "أنا" : "Me")}
             memoryNumber={sparkBalance + 1}
             lang={lang as "fr" | "en" | "ar"}
           />
@@ -3127,9 +3181,18 @@ const Record = () => {
       <ShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        title={memoryTitle || "A memory"}
+        title={
+          memoryTitle ||
+          (lang === "fr" ? "Un souvenir" : lang === "ar" ? "ذكرى" : "A memory")
+        }
         url={fileUrlRef.current || "https://infeelit.com"}
-        text={`I preserved a memory on Infeelit: "${memoryTitle}"`}
+        text={
+          lang === "fr"
+            ? `J'ai préservé un souvenir sur Infeelit : "${memoryTitle}"`
+            : lang === "ar"
+              ? `حفظت ذكرى على Infeelit: "${memoryTitle}"`
+              : `I preserved a memory on Infeelit: "${memoryTitle}"`
+        }
       />
     </div>
   );

@@ -12,7 +12,9 @@ const MemoryCard = forwardRef<HTMLDivElement, MemoryCardProps>(
   ({ title, authorName, memoryNumber, backgroundGradient, lang }, ref) => {
     // Couper le titre pour créer l'open loop
     const getTruncatedTitle = (text: string) => {
-      if (!text) return "Un souvenir…";
+      if (!text) {
+        return lang === "fr" ? "Un souvenir…" : lang === "ar" ? "ذكرى…" : "A memory…";
+      }
       if (text.length <= 40) return text + "…";
       const cutPoint = Math.floor(text.length * 0.6);
       const lastSpace = text.lastIndexOf(" ", cutPoint);
