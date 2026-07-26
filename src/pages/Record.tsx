@@ -1325,7 +1325,7 @@ const Record = () => {
         <div
           style={{
             position: "absolute",
-            bottom: "120px",
+            top: "120px",
             left: "16px",
             right: "16px",
             padding: "16px 20px",
@@ -1378,7 +1378,16 @@ const Record = () => {
         >
           <button
             type="button"
-            onClick={handleStop}
+            onPointerUp={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleStop();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleStop();
+            }}
             style={{
               position: "relative",
               width: "80px",
@@ -1395,6 +1404,7 @@ const Record = () => {
               boxShadow: "0 0 30px rgba(220,38,38,0.5)",
               zIndex: 50,
               pointerEvents: "auto",
+              touchAction: "manipulation",
               transition: "all 0.2s",
             }}
             onMouseEnter={(e) => {
