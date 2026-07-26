@@ -1121,7 +1121,15 @@ const Record = () => {
 
       {/* Fond pendant l'enregistrement — image, vidéo ou gradient */}
       {stage === "recording" && (
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            overflow: "hidden",
+            zIndex: 0,
+            pointerEvents: "none",
+          }}
+        >
           {bgVideoUrl && (
             <video
               src={bgVideoUrl}
@@ -1138,6 +1146,7 @@ const Record = () => {
                 filter: "blur(6px) brightness(0.55)",
                 transform: "scale(1.05)",
                 zIndex: 0,
+                pointerEvents: "none",
               }}
             />
           )}
@@ -1153,6 +1162,7 @@ const Record = () => {
                 filter: "blur(10px) brightness(0.5)",
                 transform: "scale(1.1)",
                 zIndex: 0,
+                pointerEvents: "none",
               }}
             />
           )}
@@ -1164,6 +1174,7 @@ const Record = () => {
                 inset: 0,
                 background: "linear-gradient(135deg, #1a0a05 0%, #3D1810 40%, #8B3A1A 100%)",
                 zIndex: 0,
+                pointerEvents: "none",
               }}
             />
           )}
@@ -1175,6 +1186,7 @@ const Record = () => {
               background:
                 "radial-gradient(ellipse at center bottom, rgba(232,116,42,0.15) 0%, transparent 60%)",
               zIndex: 1,
+              pointerEvents: "none",
             }}
           />
         </div>
@@ -1187,7 +1199,10 @@ const Record = () => {
           autoPlay
           muted
           playsInline
-          style={{ zIndex: stage === "recording" ? 2 : 10 }}
+          style={{
+            zIndex: stage === "recording" ? 2 : 10,
+            pointerEvents: stage === "recording" ? "none" : undefined,
+          }}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
             stage === "recording" ? "opacity-[0.88]" : "opacity-20"
           }`}
@@ -1334,6 +1349,7 @@ const Record = () => {
             backdropFilter: "blur(10px)",
             border: "1px solid rgba(255,255,255,0.1)",
             zIndex: 5,
+            pointerEvents: "none",
             animation: "slideUp 0.5s ease",
           }}
         >
@@ -1367,13 +1383,13 @@ const Record = () => {
           style={{
             position: "fixed",
             bottom: "60px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 50,
-            pointerEvents: "auto",
+            left: 0,
+            right: 0,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            zIndex: 9999,
+            pointerEvents: "none",
           }}
         >
           <button
@@ -1383,44 +1399,28 @@ const Record = () => {
               e.stopPropagation();
               handleStop();
             }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleStop();
-            }}
             style={{
-              position: "relative",
-              width: "80px",
-              height: "80px",
-              minWidth: "80px",
-              minHeight: "80px",
+              width: "88px",
+              height: "88px",
               borderRadius: "50%",
-              background: "rgba(220,38,38,0.9)",
-              border: "4px solid rgba(255,255,255,0.4)",
+              background: "rgba(220,38,38,0.95)",
+              border: "4px solid rgba(255,255,255,0.5)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 30px rgba(220,38,38,0.5)",
-              zIndex: 50,
+              boxShadow: "0 0 40px rgba(220,38,38,0.7)",
+              zIndex: 9999,
               pointerEvents: "auto",
+              WebkitTapHighlightColor: "transparent",
               touchAction: "manipulation",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "scale(1.05)";
-              e.currentTarget.style.background = "rgba(220,38,38,1)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.background = "rgba(220,38,38,0.9)";
             }}
           >
             <div
               style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "4px",
+                width: "32px",
+                height: "32px",
+                borderRadius: "6px",
                 backgroundColor: "#fff",
               }}
             />
@@ -1430,9 +1430,9 @@ const Record = () => {
               color: "#fff",
               fontSize: "12px",
               marginTop: "8px",
-              textAlign: "center",
               fontWeight: 700,
               letterSpacing: "0.1em",
+              pointerEvents: "none",
             }}
           >
             {lang === "fr"
@@ -1454,6 +1454,7 @@ const Record = () => {
             width: "200px",
             height: "60px",
             zIndex: 5,
+            pointerEvents: "none",
           }}
         >
           <canvas ref={canvasRef} width={200} height={60} style={{ width: "100%", opacity: 0.8 }} />
