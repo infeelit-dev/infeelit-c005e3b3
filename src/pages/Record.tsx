@@ -1363,44 +1363,75 @@ const Record = () => {
       )}
 
       {stage === "recording" && (
-        <button
-          onClick={handleStop}
+        <div
           style={{
-            position: "absolute",
-            bottom: "40px",
+            position: "fixed",
+            bottom: "60px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "80px",
-            height: "80px",
-            borderRadius: "50%",
-            background: "rgba(220,38,38,0.9)",
-            border: "4px solid rgba(255,255,255,0.4)",
-            cursor: "pointer",
+            zIndex: 50,
+            pointerEvents: "auto",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 0 30px rgba(220,38,38,0.5)",
-            zIndex: 10,
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateX(-50%) scale(1.05)";
-            e.currentTarget.style.background = "rgba(220,38,38,1)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateX(-50%) scale(1)";
-            e.currentTarget.style.background = "rgba(220,38,38,0.9)";
           }}
         >
-          <div
+          <button
+            type="button"
+            onClick={handleStop}
             style={{
-              width: "28px",
-              height: "28px",
-              borderRadius: "4px",
-              backgroundColor: "#fff",
+              position: "relative",
+              width: "80px",
+              height: "80px",
+              minWidth: "80px",
+              minHeight: "80px",
+              borderRadius: "50%",
+              background: "rgba(220,38,38,0.9)",
+              border: "4px solid rgba(255,255,255,0.4)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 30px rgba(220,38,38,0.5)",
+              zIndex: 50,
+              pointerEvents: "auto",
+              transition: "all 0.2s",
             }}
-          />
-        </button>
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.05)";
+              e.currentTarget.style.background = "rgba(220,38,38,1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.background = "rgba(220,38,38,0.9)";
+            }}
+          >
+            <div
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "4px",
+                backgroundColor: "#fff",
+              }}
+            />
+          </button>
+          <p
+            style={{
+              color: "#fff",
+              fontSize: "12px",
+              marginTop: "8px",
+              textAlign: "center",
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+            }}
+          >
+            {lang === "fr"
+              ? "Appuie pour terminer"
+              : lang === "ar"
+                ? "اضغط للإنهاء"
+                : "Tap to stop"}
+          </p>
+        </div>
       )}
 
       {stage === "recording" && audioMode && (
