@@ -2443,7 +2443,29 @@ const Record = () => {
           <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{questionRef.current}"</h2>
           <div className="relative w-full">
             {audioMode ? (
-              <audio src={localUrl || undefined} controls style={{ width: "100%" }} autoPlay />
+              localUrl && localBlob && localBlob.size > 0 ? (
+                <audio
+                  key={localUrl}
+                  controls
+                  playsInline
+                  preload="auto"
+                  autoPlay
+                  style={{ width: "100%" }}
+                >
+                  <source
+                    src={localUrl}
+                    type={localBlob.type || getMimeType(true)}
+                  />
+                </audio>
+              ) : (
+                <p style={{ color: "#ff6b6b", fontSize: 13, padding: 12 }}>
+                  {lang === "fr"
+                    ? "Enregistrement vide. Réessayez."
+                    : lang === "ar"
+                      ? "التسجيل فارغ. حاول مرة أخرى."
+                      : "Recording is empty. Please try again."}
+                </p>
+              )
             ) : (
               <video
                 src={localUrl || undefined}
