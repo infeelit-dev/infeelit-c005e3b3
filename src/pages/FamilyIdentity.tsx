@@ -149,12 +149,28 @@ const FamilyIdentity = () => {
           />
         </div>
 
-        <div className="flex justify-center mt-10 mb-4 w-full">
+        <div
+          className="flex justify-center mt-10 mb-4 w-full"
+          style={{ position: "relative", zIndex: 20 }}
+        >
           <button
+            type="button"
             onClick={handleContinue}
+            onPointerUp={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleContinue();
+            }}
             disabled={!canContinue || loading}
             className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-lg text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50"
-            style={{ color: "#FFFFFF" }}
+            style={{
+              color: "#FFFFFF",
+              touchAction: "manipulation",
+              cursor: "pointer",
+              position: "relative",
+              zIndex: 20,
+              WebkitTapHighlightColor: "transparent",
+            }}
           >
             {loading ? "Saving..." : "Enter Infeelit"}
           </button>

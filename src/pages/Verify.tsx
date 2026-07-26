@@ -200,12 +200,28 @@ const Verify = () => {
         </button>
 
         {/* Verify button — texte blanc */}
-        <div className="flex justify-center mt-8 w-full">
+        <div
+          className="flex justify-center mt-8 w-full"
+          style={{ position: "relative", zIndex: 20 }}
+        >
           <button
+            type="button"
             onClick={handleVerify}
+            onPointerUp={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleVerify();
+            }}
             disabled={loading}
             className="w-[85%] px-5 py-4 rounded-full gradient-orange font-bold text-lg text-center transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 shadow-[0_0_28px_-2px_hsl(var(--brand-orange)/0.5)]"
-            style={{ color: "#FFFFFF" }}
+            style={{
+              color: "#FFFFFF",
+              touchAction: "manipulation",
+              cursor: "pointer",
+              position: "relative",
+              zIndex: 20,
+              WebkitTapHighlightColor: "transparent",
+            }}
           >
             {loading ? "Verifying..." : "Access my memories"}
           </button>
