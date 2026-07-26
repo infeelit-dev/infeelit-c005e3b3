@@ -90,6 +90,7 @@ const FamilyIdentity = () => {
 
   return (
     <div
+      dir="ltr"
       className="min-h-screen relative flex flex-col items-center justify-center px-6 overflow-hidden"
       style={{ backgroundColor: "#FAF8F6" }}
     >
@@ -104,13 +105,18 @@ const FamilyIdentity = () => {
           style={{ imageRendering: "-webkit-optimize-contrast" as any, mixBlendMode: "multiply" }}
         />
 
-        <h1 className="text-3xl font-semibold text-center mb-2" style={{ color: "#1A3B47" }}>
+        <h1
+          dir="ltr"
+          className="text-3xl font-semibold text-center mb-2"
+          style={{ color: "#1A3B47", textAlign: "center" }}
+        >
           What's your name?
         </h1>
 
         <p
+          dir="ltr"
           className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed"
-          style={{ color: "#1A1A1A" }}
+          style={{ color: "#1A1A1A", textAlign: "center" }}
         >
           Your circle will know you by this name.
           <br />
