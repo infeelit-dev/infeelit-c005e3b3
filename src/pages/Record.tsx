@@ -494,7 +494,7 @@ const Record = () => {
         if (p === 1) {
           clearInterval(tmr);
           chunksRef.current = [];
-          mr?.start(100);
+          mr?.start(1000); // collect chunks every 1 second
           setStage("recording");
           setElapsed(0);
           setEstSize("0 KB");
@@ -582,12 +582,18 @@ const Record = () => {
     e.target.value = "";
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
     if (hardCapRef.current) clearTimeout(hardCapRef.current);
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     cancelAnimationFrame(animRef.current);
     const finalize = () => {
       try {
+        console.log(
+          "chunks:",
+          chunksRef.current.length,
+          "total size:",
+          chunksRef.current.reduce((a, b) => a + b.size, 0),
+        );
         const m = getMimeType(audioMode);
         const bl = new Blob(chunksRef.current, { type: m });
         setLocalBlob(bl.size > 0 ? bl : new Blob([], { type: m }));
@@ -605,10 +611,10 @@ const Record = () => {
       finalize();
       return;
     }
-    // Safety timeout - always go to preview after 2s max
+    // Safety timeout - always go to preview after 4s max
     const safetyTimer = setTimeout(() => {
       finalize();
-    }, 2000);
+    }, 4000);
     mr.onstop = () => {
       clearTimeout(safetyTimer);
       finalize();
@@ -619,6 +625,7 @@ const Record = () => {
     };
     try {
       if (mr.state === "recording" || mr.state === "paused") {
+        await new Promise((resolve) => setTimeout(resolve, 500));
         mr.requestData();
         mr.stop();
       } else {
