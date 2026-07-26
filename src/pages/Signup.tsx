@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import infeelit from "@/assets/infeelit-logo.png";
 
@@ -222,8 +222,15 @@ const Signup = () => {
 
         {/* Terms — obligatoire légalement */}
         <p className="text-center text-[10px] text-muted-foreground/60 px-4 mb-6">
-          By continuing, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and{" "}
-          <span className="underline cursor-pointer">Privacy Policy</span>.
+          By continuing, you agree to our{" "}
+          <Link to="/terms" className="underline cursor-pointer">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link to="/privacy" className="underline cursor-pointer">
+            Privacy Policy
+          </Link>
+          .
         </p>
 
         {/* Sign in link */}

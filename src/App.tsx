@@ -28,6 +28,8 @@ import Search from "./pages/Search";
 import Contact from "./pages/Contact";
 import AdminUpload from "./pages/AdminUpload";
 import MemoryDetail from "./pages/MemoryDetail";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +76,8 @@ const App = () => (
               </HeaderProvider>
             } />
             <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/places" element={
               <HeaderProvider showBack pageTitle="Places">
                 <Places />
