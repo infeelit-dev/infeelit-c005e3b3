@@ -424,7 +424,6 @@ const Places = () => {
             <GeolocateControl
               position="top-right"
               trackUserLocation={true}
-              showUserHeading={true}
               onGeolocate={(e) => {
                 setUserLocation({ lat: e.coords.latitude, lng: e.coords.longitude });
                 setViewState((prev) => ({
