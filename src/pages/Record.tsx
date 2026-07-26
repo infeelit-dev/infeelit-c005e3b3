@@ -582,33 +582,54 @@ const Record = () => {
     e.target.value = "";
   };
 
-  const handleStop = async () => {
-    if (!mr) return;
+  const handleStop = () => {
     if (hardCapRef.current) clearTimeout(hardCapRef.current);
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     cancelAnimationFrame(animRef.current);
-    mr.requestData();
-    mr.onstop = () => {
+    const finalize = () => {
       try {
         const m = getMimeType(audioMode);
         const bl = new Blob(chunksRef.current, { type: m });
-        if (bl.size === 0) {
-          toast.error("Nothing recorded.");
-          setStage("recording");
-          return;
-        }
-        setLocalBlob(bl);
-        const u = URL.createObjectURL(bl);
+        setLocalBlob(bl.size > 0 ? bl : new Blob([], { type: m }));
+        const u = bl.size > 0 ? URL.createObjectURL(bl) : "";
         setLocalUrl(u);
         setPreviewReady(true);
         setStage("preview");
       } catch (err) {
-        console.error(err);
-        toast.error("Error preparing preview.");
-        setStage("recording");
+        console.error("finalize error:", err);
+        setPreviewReady(true);
+        setStage("preview");
       }
     };
-    mr.stop();
+    if (!mr || mr.state === "inactive") {
+      finalize();
+      return;
+    }
+    // Safety timeout - always go to preview after 2s max
+    const safetyTimer = setTimeout(() => {
+      finalize();
+    }, 2000);
+    mr.onstop = () => {
+      clearTimeout(safetyTimer);
+      finalize();
+    };
+    mr.onerror = () => {
+      clearTimeout(safetyTimer);
+      finalize();
+    };
+    try {
+      if (mr.state === "recording" || mr.state === "paused") {
+        mr.requestData();
+        mr.stop();
+      } else {
+        clearTimeout(safetyTimer);
+        finalize();
+      }
+    } catch (err) {
+      console.error("mr.stop error:", err);
+      clearTimeout(safetyTimer);
+      finalize();
+    }
   };
 
   const handleRetake = () => {
