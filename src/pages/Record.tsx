@@ -1380,67 +1380,36 @@ const Record = () => {
 
       {stage === "recording" && (
         <div
+          onClick={handleStop}
           style={{
             position: "fixed",
-            bottom: "60px",
-            left: 0,
-            right: 0,
+            bottom: "50px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "90px",
+            height: "90px",
+            borderRadius: "50%",
+            background: "#DC2626",
+            border: "5px solid white",
+            zIndex: 99999,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            zIndex: 9999,
-            pointerEvents: "none",
+            justifyContent: "center",
+            cursor: "pointer",
+            touchAction: "manipulation",
+            WebkitTapHighlightColor: "transparent",
+            boxShadow: "0 0 30px rgba(220,38,38,0.8)",
           }}
         >
-          <button
-            type="button"
-            onPointerUp={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleStop();
-            }}
+          <div
             style={{
-              width: "88px",
-              height: "88px",
-              borderRadius: "50%",
-              background: "rgba(220,38,38,0.95)",
-              border: "4px solid rgba(255,255,255,0.5)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 0 40px rgba(220,38,38,0.7)",
-              zIndex: 9999,
-              pointerEvents: "auto",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
+              width: "30px",
+              height: "30px",
+              borderRadius: "4px",
+              background: "white",
             }}
-          >
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "6px",
-                backgroundColor: "#fff",
-              }}
-            />
-          </button>
-          <p
-            style={{
-              color: "#fff",
-              fontSize: "12px",
-              marginTop: "8px",
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              pointerEvents: "none",
-            }}
-          >
-            {lang === "fr"
-              ? "Appuie pour terminer"
-              : lang === "ar"
-                ? "اضغط للإنهاء"
-                : "Tap to stop"}
-          </p>
+          />
         </div>
       )}
 
