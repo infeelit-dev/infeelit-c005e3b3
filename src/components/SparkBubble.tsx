@@ -138,50 +138,48 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     }
   }, [expanded]);
 
-  const getRandomQuestions = (categoryId: string, language: string, name: string) => {
+  const getCategoryQuestions = (categoryId: string, language: string, name: string) => {
     const chapter = CHAPTERS.find((ch) => ch.categories.some((cat) => cat.id === categoryId));
     const category = chapter?.categories.find((cat) => cat.id === categoryId);
     if (!category) return [];
 
     const langKey = language as "fr" | "en" | "ar";
-    const seenKey = `infeelit_seen_${categoryId}`;
-    const seen = JSON.parse(localStorage.getItem(seenKey) || "[]");
 
-    let available = category.questions.filter((_, i) => !seen.includes(i));
-
-    if (available.length < 3) {
-      localStorage.removeItem(seenKey);
-      available = category.questions;
-    }
-
-    const shuffled = [...available].sort(() => Math.random() - 0.5).slice(0, 3);
-    const indices = shuffled.map((q) => category.questions.indexOf(q));
-    localStorage.setItem(seenKey, JSON.stringify([...seen, ...indices]));
-
-    return shuffled.map((q) => ({
+    return category.questions.map((q) => ({
       text: q[langKey].replace("{name}", name || "toi"),
       bubble: q[`bubble_${langKey}` as keyof typeof q] as string,
     }));
   };
 
-  const handleChapterSelect = (chapterId: string) => {
-    setSelectedChapter(chapterId);
-    setCurrentStep("categories");
-  };
-
-  const handleCategorySelect = (categoryId: string) => {
+  const loadCategoryQuestions = (categoryId: string) => {
     setSelectedCategory(categoryId);
-    const questions = getRandomQuestions(categoryId, lang, userName);
-    setCards(questions.map((q, i) => ({ category: categoryId, text: q.text })));
+    const questions = getCategoryQuestions(categoryId, lang, userName);
+    setCards(questions.map((q) => ({ category: categoryId, text: q.text })));
+    setSelectedCard(0);
     setCurrentStep("questions");
   };
 
-  const handleRecord = () => {
-    const card = cards[selectedCard];
-    if (!card) return;
+  const handleChapterSelect = (chapterId: string) => {
+    setSelectedChapter(chapterId);
+    const chapter = CHAPTERS.find((ch) => ch.id === chapterId);
+    const firstCategory = chapter?.categories[0];
+    if (firstCategory) {
+      loadCategoryQuestions(firstCategory.id);
+    } else {
+      setCurrentStep("categories");
+    }
+  };
+
+  const handleCategorySelect = (categoryId: string) => {
+    loadCategoryQuestions(categoryId);
+  };
+
+  const handleRecord = (questionText?: string) => {
+    const text = questionText ?? cards[selectedCard]?.text;
+    if (!text) return;
     setExpanded(false);
     if (onSparkClose) onSparkClose();
-    navigate("/record", { state: { question: card.text, category: "past", fromSpark: true } });
+    navigate("/record", { state: { question: text, category: "past", fromSpark: true } });
   };
 
   const handleFreeModeNavigate = (mode: "instant" | "forever") => {
@@ -193,11 +191,6 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
   const handleBackToChapters = () => {
     setCurrentStep("chapters");
     setSelectedChapter(null);
-    setSelectedCategory(null);
-  };
-
-  const handleBackToCategories = () => {
-    setCurrentStep("categories");
     setSelectedCategory(null);
   };
 
@@ -651,11 +644,11 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                   </>
                 )}
 
-                {/* ÉTAPE 3 — Questions */}
-                {currentStep === "questions" && selectedCategory && (
+                {/* ÉTAPE 3 — Questions (chips catégories + liste verticale) */}
+                {currentStep === "questions" && selectedChapter && selectedCategory && (
                   <>
                     <button
-                      onClick={handleBackToCategories}
+                      onClick={handleBackToChapters}
                       style={{
                         background: "none",
                         border: "none",
@@ -670,16 +663,60 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                     >
                       ← {lang === "ar" ? "رجوع" : lang === "fr" ? "Retour" : "Back"}
                     </button>
-                    <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+                    <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
                       {lang === "ar" ? "اختر قصتك" : lang === "fr" ? "Choisis ton histoire" : "Choose your story"}
                     </p>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        overflowX: "auto",
+                        paddingBottom: "12px",
+                        marginBottom: "8px",
+                        WebkitOverflowScrolling: "touch",
+                      }}
+                      className="hide-scroll"
+                    >
+                      {CHAPTERS.find((ch) => ch.id === selectedChapter)?.categories.map((cat) => {
+                        const isActive = selectedCategory === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => handleCategorySelect(cat.id)}
+                            style={{
+                              padding: "8px 14px",
+                              borderRadius: "999px",
+                              background: isActive ? "#E8742A" : "rgba(61,43,31,0.06)",
+                              border: isActive
+                                ? "1.5px solid #E8742A"
+                                : "1px solid rgba(61,43,31,0.12)",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              fontSize: "12px",
+                              fontWeight: 700,
+                              color: isActive ? "#fff" : "#3D2B1F",
+                              whiteSpace: "nowrap",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <span>{cat.icon}</span>
+                            <span>{cat[lang as "fr" | "en" | "ar"]}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
                     <p
                       style={{
                         color: "#E8742A",
                         fontSize: "13px",
                         fontStyle: "italic",
                         fontFamily: "Georgia, serif",
-                        marginBottom: "16px",
+                        marginBottom: "12px",
                       }}
                     >
                       {lang === "ar"
@@ -695,78 +732,62 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                             : "Tell them."}
                     </p>
 
-                    <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-scroll pb-4 pt-2 hide-scroll">
-                      {cards.map((card, idx) => {
-                        const isSelected = selectedCard === idx;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => setSelectedCard(idx)}
-                            className={`snap-card shrink-0 flex flex-col justify-center items-start text-left p-5 rounded-[20px] transition-all duration-300 cursor-pointer border-none ${isSelected ? "scale-[1.02]" : ""}`}
+                    <div
+                      ref={scrollRef}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                        maxHeight: "280px",
+                        overflowY: "auto",
+                        paddingBottom: "8px",
+                        WebkitOverflowScrolling: "touch",
+                      }}
+                    >
+                      {cards.map((card, idx) => (
+                        <button
+                          key={`${card.category}-${idx}`}
+                          type="button"
+                          onClick={() => handleRecord(card.text)}
+                          style={{
+                            width: "100%",
+                            textAlign: "left",
+                            padding: "16px 18px",
+                            borderRadius: "16px",
+                            background: "#FFFFFF",
+                            border: "1px solid rgba(232,116,42,0.25)",
+                            cursor: "pointer",
+                            boxShadow: "0 2px 8px rgba(61,43,31,0.04)",
+                          }}
+                        >
+                          <span
                             style={{
-                              width: "85%",
-                              maxWidth: "300px",
-                              background: isSelected ? "rgba(232,116,42,0.06)" : "#FFFFFF",
-                              border: isSelected ? "1px solid rgba(232,116,42,0.6)" : "1px solid rgba(232,116,42,0.25)",
-                              boxShadow: isSelected ? "0 4px 16px rgba(232,116,42,0.1)" : "none",
+                              display: "block",
+                              fontSize: "9px",
+                              fontWeight: 900,
+                              letterSpacing: "0.12em",
+                              textTransform: "uppercase",
+                              color: "#E8742A",
+                              marginBottom: "6px",
                             }}
                           >
-                            <span
-                              className="text-[8px] font-black uppercase tracking-widest mb-2"
-                              style={{ color: isSelected ? "#E8742A" : "rgba(61,43,31,0.4)" }}
-                            >
-                              {lang === "ar" ? "✦ مستوى النور" : lang === "fr" ? "✦ Niveau Essence" : "✦ Level"}
-                            </span>
-                            <p className="text-sm font-serif leading-relaxed italic" style={{ color: "#3D2B1F" }}>
-                              "{card.text}"
-                            </p>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <div className="flex justify-center gap-2 mt-2 mb-4">
-                      {[0, 1, 2].map((i) => (
-                        <div
-                          key={i}
-                          className="w-2 h-2 rounded-full transition-all duration-300"
-                          style={{
-                            background: selectedCard === i ? "#E8742A" : "rgba(61,43,31,0.15)",
-                            transform: selectedCard === i ? "scale(1.3)" : "scale(1)",
-                          }}
-                        />
+                            ✦ {idx + 1} / {cards.length}
+                          </span>
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: "14px",
+                              fontFamily: "Georgia, serif",
+                              fontStyle: "italic",
+                              lineHeight: 1.45,
+                              color: "#3D2B1F",
+                            }}
+                          >
+                            "{card.text}"
+                          </p>
+                        </button>
                       ))}
                     </div>
-
-                    {showButton && (
-                      <button
-                        onClick={handleRecord}
-                        className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] border-none cursor-pointer"
-                        style={{
-                          background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                          color: "#fff",
-                          boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
-                        }}
-                      >
-                        {lang === "ar"
-                          ? userName
-                            ? `${userName}، احكِ لهم`
-                            : "احكِ لهم"
-                          : lang === "fr"
-                            ? userName
-                              ? `${userName}, raconte-leur`
-                              : "Raconte-leur"
-                            : userName
-                              ? `${userName}, tell them`
-                              : "Tell them"}
-                      </button>
-                    )}
-
-                    {!showButton && (
-                      <div className="flex justify-center">
-                        <div className="w-8 h-8 border-2 border-[#E8742A]/20 border-t-[#E8742A] rounded-full animate-spin" />
-                      </div>
-                    )}
 
                     <div
                       style={{
@@ -778,6 +799,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                     />
 
                     <button
+                      type="button"
                       onClick={() => handleFreeModeNavigate("instant")}
                       style={{
                         width: "100%",
@@ -808,6 +830,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => handleFreeModeNavigate("forever")}
                       style={{
                         width: "100%",
