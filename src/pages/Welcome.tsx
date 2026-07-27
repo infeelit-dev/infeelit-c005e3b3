@@ -20,7 +20,7 @@ const Welcome = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: window.location.origin + "/auth/callback",
+          emailRedirectTo: "https://infeelit.com/auth/callback",
         },
       });
       if (error) throw error;
