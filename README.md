@@ -1,29 +1,18 @@
-# Welcome to your Lovable project
+# Minimal React + Vite + TypeScript
 
-This project was built with [Lovable](https://lovable.dev).
+A minimal React app bootstrapped with Vite, using React Router DOM v6.
 
-## Build with Lovable
+## Getting started
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+```bash
+bun install
+bun run dev
 ```
 
-## Built with
+Open http://localhost:8080 to view it in the browser.
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+## Available scripts
+
+- `bun run dev` — start the development server
+- `bun run build` — build for production
+- `bun run preview` — preview the production build
