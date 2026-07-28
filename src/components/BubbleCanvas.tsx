@@ -204,6 +204,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   } | null>(null);
   const [openMemory, setOpenMemory] = useState<BubbleData | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+  const isTouchDevice =
+    typeof window !== "undefined" &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
   const touchStartBubble = useRef<string | null>(null);
   const touchedBubbles = useRef<string[]>([]);
@@ -221,7 +227,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   }, []);
 
   const mapMemoryToBubble = useCallback(
-    (m: Record<string, unknown>, index: number): BubbleData => ({
+    (m: Record<string, unknown>, index: number, profilesMap: Record<string, string> = {}): BubbleData => ({
       id: m.id as string,
       type: "real",
       title: (m.title as string) || "Un souvenir",
@@ -229,7 +235,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       file_type: (m.file_type as string) || "video",
       thumbnail_url: (m.thumbnail_url as string) || null,
       user_name:
-        (m.profiles as { display_name?: string } | null)?.display_name?.split(" ")[0] ||
+        profilesMap[m.user_id as string]?.split(" ")[0] ||
         (m.is_anonymous ? "Un Gardien" : "Quelqu'un"),
       user_id: m.user_id as string,
       sparks_count: (m.sparks_count as number) || 0,
@@ -272,9 +278,8 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     const loadMemories = async () => {
       const { data } = await supabase
         .from("memories")
-        .select("*, profiles (display_name)")
+        .select("*")
         .eq("is_public", true)
-        .not("moderation_status", "eq", "rejected")
         .order("created_at", { ascending: false })
         .limit(40);
 
@@ -286,8 +291,17 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         return;
       }
 
+      const userIds = data.map((m: any) => m.user_id).filter(Boolean);
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, display_name")
+        .in("user_id", userIds);
+      const profilesMap = Object.fromEntries(
+        (profilesData || []).map((p: any) => [p.user_id, p.display_name]),
+      );
+
       const resolved = await resolveMemoryFields(data);
-      const bubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i));
+      const bubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i, profilesMap));
       const shuffled = [...bubbles].sort(() => Math.random() - 0.5);
       const initial = shuffled.slice(0, VISIBLE_COUNT);
       const queue = shuffled.slice(VISIBLE_COUNT);
@@ -312,9 +326,8 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     const ids = [...seenIdsRef.current];
     let query = supabase
       .from("memories")
-      .select("*, profiles (display_name)")
+      .select("*")
       .eq("is_public", true)
-      .not("moderation_status", "eq", "rejected")
       .order("created_at", { ascending: false })
       .limit(20);
 
@@ -325,8 +338,17 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     const { data } = await query;
 
     if (data && data.length > 0) {
+      const userIds = data.map((m: any) => m.user_id).filter(Boolean);
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, display_name")
+        .in("user_id", userIds);
+      const profilesMap = Object.fromEntries(
+        (profilesData || []).map((p: any) => [p.user_id, p.display_name]),
+      );
+
       const resolved = await resolveMemoryFields(data);
-      const newBubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i));
+      const newBubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i, profilesMap));
       setMemoryQueue(newBubbles);
     } else {
       setSeenIds(new Set());
@@ -433,6 +455,22 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     // setConstellationQueue(orderedBubbles);
   };
 
+  const toggleSelect = (bubbleId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(bubbleId)
+        ? prev.filter((id) => id !== bubbleId)
+        : [...prev, bubbleId],
+    );
+  };
+
+  const playSelected = () => {
+    if (selectedIds.length === 0) return;
+    const bubbles = useRealFeed ? visibleBubbles : demoBubbles;
+    const orderedIds = selectedIds.filter((id) => bubbles.some((b) => b.id === id));
+    setSelectedIds([]);
+    handleConstellationGesture(orderedIds);
+  };
+
   const getShortTitle = (title: string): string => {
     const words = title.split(" ").slice(0, 4);
     return words.join(" ") + (words.length < title.split(" ").length ? "..." : "");
@@ -472,8 +510,28 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             touchHandledRef.current = false;
             return;
           }
+          if (!isTouchDevice) {
+            if (selectedIds.length > 0) {
+              toggleSelect(bubble.id);
+            } else {
+              handleBubbleTap(bubble);
+            }
+            return;
+          }
           if (!isGesturing.current) {
             handleBubbleTap(bubble);
+          }
+        }}
+        onMouseEnter={() => setHoveredId(bubble.id)}
+        onMouseLeave={() => setHoveredId(null)}
+        onKeyDown={(e) => {
+          if (isTouchDevice) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleSelect(bubble.id);
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            setSelectedIds([]);
           }
         }}
         onTouchStart={(e) => {
@@ -516,7 +574,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           height: `${bubble.size}px`,
           left: `${bubble.x}%`,
           top: `${bubble.y}%`,
-          transform: isHighlighted ? "scale(1.1)" : undefined,
+          transform: isHighlighted
+            ? "translate(-50%, -50%) scale(1.1)"
+            : "translate(-50%, -50%) scale(1)",
           transition: "transform 0.2s ease, box-shadow 0.2s ease",
           zIndex: isHighlighted || bubble.isEntering ? 20 : 10,
           border:
@@ -564,6 +624,25 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%)",
           }}
         />
+
+        {!isTouchDevice &&
+          (hoveredId === bubble.id || selectedIds.includes(bubble.id)) && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                border: selectedIds.includes(bubble.id)
+                  ? "3px solid #E8742A"
+                  : "2px solid rgba(255,255,255,0.5)",
+                boxShadow: selectedIds.includes(bubble.id)
+                  ? "inset 0 0 20px rgba(232,116,42,0.4), 0 0 20px rgba(232,116,42,0.6)"
+                  : "none",
+                pointerEvents: "none",
+                transition: "all 0.2s ease",
+              }}
+            />
+          )}
 
         {bubble.type === "real" && bubble.file_type === "audio" && (
           <div
@@ -705,25 +784,25 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         @keyframes bubble-float-1 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          20%  { transform: translate3d(12px, -18px, 0) scale(1.02); }
-          40%  { transform: translate3d(-8px, -12px, 0) scale(0.98); }
-          60%  { transform: translate3d(15px, 8px, 0) scale(1.01); }
-          80%  { transform: translate3d(-10px, 15px, 0) scale(0.99); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          20%  { transform: translate(-50%, -50%) translate3d(12px, -18px, 0) scale(1.02); }
+          40%  { transform: translate(-50%, -50%) translate3d(-8px, -12px, 0) scale(0.98); }
+          60%  { transform: translate(-50%, -50%) translate3d(15px, 8px, 0) scale(1.01); }
+          80%  { transform: translate(-50%, -50%) translate3d(-10px, 15px, 0) scale(0.99); }
+          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-float-2 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          25%  { transform: translate3d(-15px, -20px, 0) scale(1.03); }
-          50%  { transform: translate3d(10px, -8px, 0) scale(0.97); }
-          75%  { transform: translate3d(-12px, 12px, 0) scale(1.02); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          25%  { transform: translate(-50%, -50%) translate3d(-15px, -20px, 0) scale(1.03); }
+          50%  { transform: translate(-50%, -50%) translate3d(10px, -8px, 0) scale(0.97); }
+          75%  { transform: translate(-50%, -50%) translate3d(-12px, 12px, 0) scale(1.02); }
+          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-float-3 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          33%  { transform: translate3d(18px, -15px, 0) scale(0.98); }
-          66%  { transform: translate3d(-14px, 10px, 0) scale(1.03); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          33%  { transform: translate(-50%, -50%) translate3d(18px, -15px, 0) scale(0.98); }
+          66%  { transform: translate(-50%, -50%) translate3d(-14px, 10px, 0) scale(1.03); }
+          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
         }
         .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay); }
         .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay); }
@@ -731,6 +810,61 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       `}</style>
 
       {bubblesToRender.map(renderBubble)}
+
+      {selectedIds.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "90px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "rgba(45,24,16,0.92)",
+            backdropFilter: "blur(16px)",
+            borderRadius: "999px",
+            padding: "12px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+            zIndex: 30,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+            border: "1px solid rgba(232,116,42,0.3)",
+          }}
+        >
+          <span style={{ color: "#E8742A", fontSize: "13px", fontWeight: 700 }}>
+            ✦ {selectedIds.length} souvenir{selectedIds.length > 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={playSelected}
+            style={{
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              border: "none",
+              borderRadius: "999px",
+              padding: "8px 18px",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            ▶ Jouer
+          </button>
+          <button
+            onClick={() => setSelectedIds([])}
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "none",
+              borderRadius: "50%",
+              width: "28px",
+              height: "28px",
+              color: "rgba(255,255,255,0.6)",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {bloomingBubble && (
         <>
