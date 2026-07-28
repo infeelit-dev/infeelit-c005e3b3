@@ -243,7 +243,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       x: 0,
       y: 0,
       animDelay: Math.random() * 3,
-      animDuration: 3 + Math.random() * 4,
+      animDuration: 18 + (index % 5) * 2,
       floatClass: FLOAT_CLASSES[index % 3],
     }),
     [],
@@ -263,7 +263,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         x: q.x,
         y: q.y,
         animDelay: Math.random() * 3,
-        animDuration: 3 + Math.random() * 4,
+        animDuration: 18 + (i % 5) * 2,
         floatClass: FLOAT_CLASSES[i % 3],
       }));
   }, [activeTimeline, lang]);
@@ -351,7 +351,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         x: newPosition.x,
         y: newPosition.y,
         animDelay: Math.random() * 2,
-        animDuration: 3 + Math.random() * 4,
+        animDuration: 18 + Math.floor(Math.random() * 6) * 2,
         isEntering: true,
       };
 
@@ -706,23 +706,23 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         }
         @keyframes bubble-float-1 {
           0%   { transform: translate(0px, 0px) scale(1); }
-          20%  { transform: translate(45px, -60px) scale(1.02); }
-          40%  { transform: translate(80px, -20px) scale(0.98); }
-          60%  { transform: translate(55px, 50px) scale(1.01); }
-          80%  { transform: translate(-25px, 35px) scale(0.99); }
+          20%  { transform: translate(120px, -150px) scale(1.02); }
+          40%  { transform: translate(-80px, -100px) scale(0.98); }
+          60%  { transform: translate(150px, 80px) scale(1.01); }
+          80%  { transform: translate(-100px, 130px) scale(0.99); }
           100% { transform: translate(0px, 0px) scale(1); }
         }
         @keyframes bubble-float-2 {
           0%   { transform: translate(0px, 0px) scale(1); }
-          25%  { transform: translate(-55px, -45px) scale(1.03); }
-          50%  { transform: translate(-80px, 25px) scale(0.97); }
-          75%  { transform: translate(-40px, 70px) scale(1.02); }
+          25%  { transform: translate(-150px, -120px) scale(1.03); }
+          50%  { transform: translate(100px, -80px) scale(0.97); }
+          75%  { transform: translate(-120px, 120px) scale(1.02); }
           100% { transform: translate(0px, 0px) scale(1); }
         }
         @keyframes bubble-float-3 {
           0%   { transform: translate(0px, 0px) scale(1); }
-          33%  { transform: translate(65px, -55px) scale(0.98); }
-          66%  { transform: translate(-50px, 40px) scale(1.03); }
+          33%  { transform: translate(180px, -150px) scale(0.98); }
+          66%  { transform: translate(-140px, 100px) scale(1.03); }
           100% { transform: translate(0px, 0px) scale(1); }
         }
         .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay); }
