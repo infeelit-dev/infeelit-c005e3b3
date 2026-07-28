@@ -1,10 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 serve(async (req) => {
-  const { user, email_data } = await req.json();
+  const payload = await req.json();
+  console.log('Full payload:', JSON.stringify(payload));
 
-  const confirmationUrl = email_data.confirmation_url;
-  const toEmail = user.email;
+  // Supabase Auth Hook sends this structure:
+  const confirmationUrl =
+    payload?.email_data?.token_hash
+      ? `https://rynnnhxfrcebdandsbjn.supabase.co/auth/v1/verify?token=${payload.email_data.token_hash}&type=${payload.email_data.email_action_type}&redirect_to=${encodeURIComponent('https://infeelit.com/auth/callback')}`
+      : payload?.email_data?.confirmation_url
+      || payload?.confirmation_url
+      || payload?.token_hash
+      || '#';
+
+  const toEmail = payload?.user?.email || payload?.email || '';
+
+  console.log('confirmationUrl:', confirmationUrl);
+  console.log('toEmail:', toEmail);
 
   const html = `<!DOCTYPE html>
 <html>
