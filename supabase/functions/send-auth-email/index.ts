@@ -8,70 +8,67 @@ serve(async (req) => {
 
   const html = `<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body style="margin:0;padding:0;background:#0f0501;font-family:Georgia,serif;">
-  <table width="100%" cellpadding="0" cellspacing="0">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:Georgia,serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
     <tr>
       <td align="center" style="padding:40px 20px;">
-        <table width="100%" style="max-width:480px;">
+        <table width="100%" style="max-width:480px;background-color:#0f0501;border-radius:20px;">
+          
           <tr>
-            <td align="center" style="padding-bottom:32px;">
+            <td align="center" style="padding:40px 32px 24px;">
               <img src="https://infeelit.com/infeelit-logo.png"
                    width="80" height="80"
                    alt="Infeelit"
                    style="display:block;margin:0 auto 16px;border-radius:50%;">
-              <p style="margin:0;font-size:28px;color:#E8742A;letter-spacing:0.1em;">
+              <p style="margin:0;font-size:26px;color:#E8742A;letter-spacing:0.1em;font-family:Georgia,serif;">
                 ✦ infeelit
               </p>
-              <p style="margin:8px 0 0;font-size:13px;color:rgba(255,255,255,0.4);
-                font-style:italic;letter-spacing:0.05em;">
+              <p style="margin:8px 0 0;font-size:13px;color:#999999;font-style:italic;">
                 Préserve les voix qui comptent
               </p>
             </td>
           </tr>
           <tr>
-            <td style="background:rgba(255,255,255,0.04);border-radius:20px;
-              padding:36px 32px;border:1px solid rgba(232,116,42,0.15);">
-              <p style="margin:0 0 16px;font-size:22px;color:#fff;
-                font-style:italic;line-height:1.5;text-align:center;">
+            <td style="padding:0 32px 32px;">
+              <p style="margin:0 0 16px;font-size:20px;color:#ffffff;
+                font-style:italic;line-height:1.5;text-align:center;font-family:Georgia,serif;">
                 "What you have felt deeply<br>never truly disappears."
               </p>
-              <p style="margin:0 0 8px;font-size:15px;
-                color:rgba(255,255,255,0.6);text-align:center;line-height:1.6;">
-                It lives here.
-              </p>
-              <p style="margin:0 0 32px;font-size:14px;
-                color:rgba(255,255,255,0.5);text-align:center;line-height:1.6;">
+              
+              <p style="margin:0 0 24px;font-size:14px;color:#aaaaaa;
+                text-align:center;line-height:1.6;">
                 Click below to enter your private space<br>
                 and start preserving what matters most.
               </p>
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="center">
+                  <td align="center" style="padding:8px 0 24px;">
                     <a href="${confirmationUrl}"
                       style="display:inline-block;padding:16px 40px;
-                        background:linear-gradient(135deg,#E8742A,#D4621A);
-                        color:#fff;text-decoration:none;border-radius:999px;
-                        font-size:16px;font-weight:700;letter-spacing:0.05em;
-                        box-shadow:0 4px 20px rgba(232,116,42,0.4);">
+                        background-color:#E8742A;
+                        color:#ffffff;
+                        text-decoration:none;
+                        border-radius:50px;
+                        font-size:16px;
+                        font-weight:bold;
+                        font-family:Arial,sans-serif;
+                        letter-spacing:0.05em;">
                       Enter Infeelit ✦
                     </a>
                   </td>
                 </tr>
               </table>
-              <p style="margin:24px 0 0;font-size:12px;
-                color:rgba(255,255,255,0.25);text-align:center;font-style:italic;">
+              <p style="margin:0;font-size:11px;color:#666666;
+                text-align:center;font-style:italic;">
                 This link will expire in 24 hours.
               </p>
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding-top:24px;">
-              <p style="margin:0;font-size:12px;
-                color:rgba(255,255,255,0.2);letter-spacing:0.1em;">
+            <td align="center" style="padding:16px 32px 32px;
+              border-top:1px solid #1a0a05;">
+              <p style="margin:0;font-size:11px;color:#555555;">
                 infeelit.com — With care, The Infeelit team
               </p>
             </td>
