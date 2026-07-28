@@ -10,31 +10,31 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
       circle_members: {
         Row: {
-          circle_id: string
-          created_at: string
+          circle_id: string | null
           id: string
-          role: string
-          user_id: string
+          joined_at: string | null
+          role: string | null
+          user_id: string | null
         }
         Insert: {
-          circle_id: string
-          created_at?: string
+          circle_id?: string | null
           id?: string
-          role?: string
-          user_id: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string | null
         }
         Update: {
-          circle_id?: string
-          created_at?: string
+          circle_id?: string | null
           id?: string
-          role?: string
-          user_id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -44,119 +44,57 @@ export type Database = {
             referencedRelation: "circles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "circle_members_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       circles: {
         Row: {
-          created_at: string
-          created_by: string
+          created_at: string | null
+          created_by: string | null
           id: string
           invite_code: string
           name: string
-          updated_at: string
         }
         Insert: {
-          created_at?: string
-          created_by: string
+          created_at?: string | null
+          created_by?: string | null
           id?: string
           invite_code: string
           name: string
-          updated_at?: string
         }
         Update: {
-          created_at?: string
-          created_by?: string
+          created_at?: string | null
+          created_by?: string | null
           id?: string
           invite_code?: string
           name?: string
-          updated_at?: string
         }
         Relationships: []
       }
-      email_send_log: {
+      follows: {
         Row: {
           created_at: string
-          error_message: string | null
+          follower_id: string
+          following_id: string
           id: string
-          message_id: string | null
-          metadata: Json | null
-          recipient_email: string
-          status: string
-          template_name: string
         }
         Insert: {
           created_at?: string
-          error_message?: string | null
+          follower_id: string
+          following_id: string
           id?: string
-          message_id?: string | null
-          metadata?: Json | null
-          recipient_email: string
-          status: string
-          template_name: string
         }
         Update: {
           created_at?: string
-          error_message?: string | null
+          follower_id?: string
+          following_id?: string
           id?: string
-          message_id?: string | null
-          metadata?: Json | null
-          recipient_email?: string
-          status?: string
-          template_name?: string
-        }
-        Relationships: []
-      }
-      email_send_state: {
-        Row: {
-          auth_email_ttl_minutes: number
-          batch_size: number
-          id: number
-          retry_after_until: string | null
-          send_delay_ms: number
-          transactional_email_ttl_minutes: number
-          updated_at: string
-        }
-        Insert: {
-          auth_email_ttl_minutes?: number
-          batch_size?: number
-          id?: number
-          retry_after_until?: string | null
-          send_delay_ms?: number
-          transactional_email_ttl_minutes?: number
-          updated_at?: string
-        }
-        Update: {
-          auth_email_ttl_minutes?: number
-          batch_size?: number
-          id?: number
-          retry_after_until?: string | null
-          send_delay_ms?: number
-          transactional_email_ttl_minutes?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      email_unsubscribe_tokens: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          token: string
-          used_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          token: string
-          used_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          token?: string
-          used_at?: string | null
         }
         Relationships: []
       }
@@ -164,94 +102,139 @@ export type Database = {
         Row: {
           aura_intensity: number | null
           background_image_url: string | null
-          comments_count: number
-          created_at: string
+          created_at: string | null
+          deliver_at: string | null
           description: string | null
           file_type: string | null
-          file_url: string | null
+          file_url: string
+          followups_ar: string[] | null
+          followups_en: string[] | null
+          followups_fr: string[] | null
           id: string
-          is_anonymous: boolean
-          is_community: boolean
-          is_public: boolean
-          moderation_status: string
+          is_anonymous: boolean | null
+          is_community: boolean | null
+          is_public: boolean | null
+          latitude: number | null
+          like_count: number | null
+          location_name: string | null
+          location_visibility: string | null
+          longitude: number | null
+          moderation_status: string | null
+          question_ar: string | null
+          question_bubble_ar: string | null
+          question_bubble_en: string | null
+          question_bubble_fr: string | null
+          question_en: string | null
+          question_fr: string | null
+          save_count: number | null
+          share_count: number | null
           spark_reward: number | null
-          sparks_count: number
+          sparks_count: number | null
           thumbnail_url: string | null
-          timeline: string
+          timeline: string | null
           title: string | null
-          translation_status: string | null
-          updated_at: string
+          upload_type: string | null
           user_id: string
-          views_count: number
+          user_name: string | null
+          view_count: number | null
         }
         Insert: {
           aura_intensity?: number | null
           background_image_url?: string | null
-          comments_count?: number
-          created_at?: string
+          created_at?: string | null
+          deliver_at?: string | null
           description?: string | null
           file_type?: string | null
-          file_url?: string | null
+          file_url: string
+          followups_ar?: string[] | null
+          followups_en?: string[] | null
+          followups_fr?: string[] | null
           id?: string
-          is_anonymous?: boolean
-          is_community?: boolean
-          is_public?: boolean
-          moderation_status?: string
+          is_anonymous?: boolean | null
+          is_community?: boolean | null
+          is_public?: boolean | null
+          latitude?: number | null
+          like_count?: number | null
+          location_name?: string | null
+          location_visibility?: string | null
+          longitude?: number | null
+          moderation_status?: string | null
+          question_ar?: string | null
+          question_bubble_ar?: string | null
+          question_bubble_en?: string | null
+          question_bubble_fr?: string | null
+          question_en?: string | null
+          question_fr?: string | null
+          save_count?: number | null
+          share_count?: number | null
           spark_reward?: number | null
-          sparks_count?: number
+          sparks_count?: number | null
           thumbnail_url?: string | null
-          timeline?: string
+          timeline?: string | null
           title?: string | null
-          translation_status?: string | null
-          updated_at?: string
+          upload_type?: string | null
           user_id: string
-          views_count?: number
+          user_name?: string | null
+          view_count?: number | null
         }
         Update: {
           aura_intensity?: number | null
           background_image_url?: string | null
-          comments_count?: number
-          created_at?: string
+          created_at?: string | null
+          deliver_at?: string | null
           description?: string | null
           file_type?: string | null
-          file_url?: string | null
+          file_url?: string
+          followups_ar?: string[] | null
+          followups_en?: string[] | null
+          followups_fr?: string[] | null
           id?: string
-          is_anonymous?: boolean
-          is_community?: boolean
-          is_public?: boolean
-          moderation_status?: string
+          is_anonymous?: boolean | null
+          is_community?: boolean | null
+          is_public?: boolean | null
+          latitude?: number | null
+          like_count?: number | null
+          location_name?: string | null
+          location_visibility?: string | null
+          longitude?: number | null
+          moderation_status?: string | null
+          question_ar?: string | null
+          question_bubble_ar?: string | null
+          question_bubble_en?: string | null
+          question_bubble_fr?: string | null
+          question_en?: string | null
+          question_fr?: string | null
+          save_count?: number | null
+          share_count?: number | null
           spark_reward?: number | null
-          sparks_count?: number
+          sparks_count?: number | null
           thumbnail_url?: string | null
-          timeline?: string
+          timeline?: string | null
           title?: string | null
-          translation_status?: string | null
-          updated_at?: string
+          upload_type?: string | null
           user_id?: string
-          views_count?: number
+          user_name?: string | null
+          view_count?: number | null
         }
         Relationships: []
       }
       memory_bookmarks: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          memory_id: string
-          user_id: string
+          memory_id: string | null
           user_name: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          memory_id: string
-          user_id?: string
+          memory_id?: string | null
           user_name: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          memory_id?: string
-          user_id?: string
+          memory_id?: string | null
           user_name?: string
         }
         Relationships: [
@@ -264,62 +247,27 @@ export type Database = {
           },
         ]
       }
-      memory_comments: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          memory_id: string
-          user_id: string
-          user_name: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          memory_id: string
-          user_id?: string
-          user_name: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          memory_id?: string
-          user_id?: string
-          user_name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "memory_comments_memory_id_fkey"
-            columns: ["memory_id"]
-            isOneToOne: false
-            referencedRelation: "memories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       memory_reports: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          memory_id: string
+          memory_id: string | null
           reason: string
-          user_id: string
+          reporter_name: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          memory_id: string
+          memory_id?: string | null
           reason: string
-          user_id?: string
+          reporter_name?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          memory_id?: string
+          memory_id?: string | null
           reason?: string
-          user_id?: string
+          reporter_name?: string | null
         }
         Relationships: [
           {
@@ -333,24 +281,21 @@ export type Database = {
       }
       memory_sparks: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          memory_id: string
-          user_id: string
+          memory_id: string | null
           user_name: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          memory_id: string
-          user_id?: string
+          memory_id?: string | null
           user_name: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          memory_id?: string
-          user_id?: string
+          memory_id?: string | null
           user_name?: string
         }
         Relationships: [
@@ -363,203 +308,98 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          circle_id: string
-          created_at: string
-          from_user_id: string
-          id: string
-          memory_id: string | null
-          message: string
-          read: boolean
-        }
-        Insert: {
-          circle_id: string
-          created_at?: string
-          from_user_id: string
-          id?: string
-          memory_id?: string | null
-          message: string
-          read?: boolean
-        }
-        Update: {
-          circle_id?: string
-          created_at?: string
-          from_user_id?: string
-          id?: string
-          memory_id?: string | null
-          message?: string
-          read?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_circle_id_fkey"
-            columns: ["circle_id"]
-            isOneToOne: false
-            referencedRelation: "circles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_memory_id_fkey"
-            columns: ["memory_id"]
-            isOneToOne: false
-            referencedRelation: "memories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           audience: string | null
-          created_at: string
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
           display_name: string | null
+          full_name: string | null
           generation: string | null
-          has_children: boolean | null
           id: string
-          onboarding_completed: boolean
-          phone: string | null
+          onboarding_completed: boolean | null
           spark: string | null
-          updated_at: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           audience?: string | null
-          created_at?: string
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
           display_name?: string | null
+          full_name?: string | null
           generation?: string | null
-          has_children?: boolean | null
           id?: string
-          onboarding_completed?: boolean
-          phone?: string | null
+          onboarding_completed?: boolean | null
           spark?: string | null
-          updated_at?: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           audience?: string | null
-          created_at?: string
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
           display_name?: string | null
+          full_name?: string | null
           generation?: string | null
-          has_children?: boolean | null
           id?: string
-          onboarding_completed?: boolean
-          phone?: string | null
+          onboarding_completed?: boolean | null
           spark?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      suppressed_emails: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          metadata: Json | null
-          reason: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          metadata?: Json | null
-          reason: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          metadata?: Json | null
-          reason?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      circles_safe: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string | null
+          name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string | null
+          name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
+      get_circle_invite_code: { Args: { circle_id: string }; Returns: string }
+      increment_likes: {
+        Args: { increment: number; memory_id: string }
+        Returns: undefined
       }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
+      increment_saves: {
+        Args: { increment: number; memory_id: string }
+        Returns: undefined
       }
-      get_circle_invite_code: { Args: { _circle_id: string }; Returns: string }
-      get_circle_member_profiles: {
-        Args: { _circle_id: string }
-        Returns: {
-          display_name: string
-          user_id: string
-        }[]
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_circle_admin: {
-        Args: { _circle_id: string; _user_id: string }
-        Returns: boolean
-      }
-      is_circle_member: {
-        Args: { _circle_id: string; _user_id: string }
-        Returns: boolean
-      }
+      increment_shares: { Args: { memory_id: string }; Returns: undefined }
       lookup_circle_by_invite_code: {
-        Args: { _code: string }
+        Args: { code: string }
         Returns: {
           id: string
           member_count: number
           name: string
         }[]
       }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
-      }
+      set_app_user_name: { Args: { name: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -686,8 +526,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "moderator", "user"],
-    },
+    Enums: {},
   },
 } as const
