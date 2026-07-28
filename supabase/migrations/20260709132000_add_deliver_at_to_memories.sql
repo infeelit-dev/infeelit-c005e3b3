@@ -1,2 +1,0 @@
-ALTER TABLE public.memories
-ADD COLUMN IF NOT EXISTS deliver_at TIMESTAMPTZ;

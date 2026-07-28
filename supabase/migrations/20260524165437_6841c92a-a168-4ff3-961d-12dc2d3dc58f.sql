@@ -1,1 +1,0 @@
-REVOKE SELECT (invite_code) ON public.circles FROM authenticated, anon;
