@@ -512,13 +512,11 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         }}
         className={`absolute rounded-full overflow-hidden cursor-pointer ${animation || isHighlighted ? "" : bubble.floatClass}`}
         style={{
-          width: `${bubble.size}px`,
-          height: `${bubble.size}px`,
+          position: "absolute",
           left: `${bubble.x}%`,
           top: `${bubble.y}%`,
-          transform: isHighlighted
-            ? "translate(-50%, -50%) scale(1.1)"
-            : "translate(-50%, -50%) scale(1)",
+          width: `${bubble.size}px`,
+          height: `${bubble.size}px`,
           transition: "transform 0.2s ease, box-shadow 0.2s ease",
           zIndex: isHighlighted || bubble.isEntering ? 20 : 10,
           border:
@@ -707,25 +705,25 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         @keyframes bubble-float-1 {
-          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
-          20%  { transform: translate(-50%, -50%) translate3d(12px, -18px, 0) scale(1.02); }
-          40%  { transform: translate(-50%, -50%) translate3d(-8px, -12px, 0) scale(0.98); }
-          60%  { transform: translate(-50%, -50%) translate3d(15px, 8px, 0) scale(1.01); }
-          80%  { transform: translate(-50%, -50%) translate3d(-10px, 15px, 0) scale(0.99); }
-          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          20%  { transform: translate3d(12px, -18px, 0) scale(1.02); }
+          40%  { transform: translate3d(-8px, -12px, 0) scale(0.98); }
+          60%  { transform: translate3d(15px, 8px, 0) scale(1.01); }
+          80%  { transform: translate3d(-10px, 15px, 0) scale(0.99); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-float-2 {
-          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
-          25%  { transform: translate(-50%, -50%) translate3d(-15px, -20px, 0) scale(1.03); }
-          50%  { transform: translate(-50%, -50%) translate3d(10px, -8px, 0) scale(0.97); }
-          75%  { transform: translate(-50%, -50%) translate3d(-12px, 12px, 0) scale(1.02); }
-          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          25%  { transform: translate3d(-15px, -20px, 0) scale(1.03); }
+          50%  { transform: translate3d(10px, -8px, 0) scale(0.97); }
+          75%  { transform: translate3d(-12px, 12px, 0) scale(1.02); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
         @keyframes bubble-float-3 {
-          0%   { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
-          33%  { transform: translate(-50%, -50%) translate3d(18px, -15px, 0) scale(0.98); }
-          66%  { transform: translate(-50%, -50%) translate3d(-14px, 10px, 0) scale(1.03); }
-          100% { transform: translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
+          33%  { transform: translate3d(18px, -15px, 0) scale(0.98); }
+          66%  { transform: translate3d(-14px, 10px, 0) scale(1.03); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1); }
         }
         .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay); }
         .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay); }
