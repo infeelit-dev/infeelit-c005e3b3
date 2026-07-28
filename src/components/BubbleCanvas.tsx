@@ -705,25 +705,25 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
         @keyframes bubble-float-1 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          20%  { transform: translate3d(12px, -18px, 0) scale(1.02); }
-          40%  { transform: translate3d(-8px, -12px, 0) scale(0.98); }
-          60%  { transform: translate3d(15px, 8px, 0) scale(1.01); }
-          80%  { transform: translate3d(-10px, 15px, 0) scale(0.99); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(0px, 0px) scale(1); }
+          20%  { transform: translate(45px, -60px) scale(1.02); }
+          40%  { transform: translate(80px, -20px) scale(0.98); }
+          60%  { transform: translate(55px, 50px) scale(1.01); }
+          80%  { transform: translate(-25px, 35px) scale(0.99); }
+          100% { transform: translate(0px, 0px) scale(1); }
         }
         @keyframes bubble-float-2 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          25%  { transform: translate3d(-15px, -20px, 0) scale(1.03); }
-          50%  { transform: translate3d(10px, -8px, 0) scale(0.97); }
-          75%  { transform: translate3d(-12px, 12px, 0) scale(1.02); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(0px, 0px) scale(1); }
+          25%  { transform: translate(-55px, -45px) scale(1.03); }
+          50%  { transform: translate(-80px, 25px) scale(0.97); }
+          75%  { transform: translate(-40px, 70px) scale(1.02); }
+          100% { transform: translate(0px, 0px) scale(1); }
         }
         @keyframes bubble-float-3 {
-          0%   { transform: translate3d(0px, 0px, 0) scale(1); }
-          33%  { transform: translate3d(18px, -15px, 0) scale(0.98); }
-          66%  { transform: translate3d(-14px, 10px, 0) scale(1.03); }
-          100% { transform: translate3d(0px, 0px, 0) scale(1); }
+          0%   { transform: translate(0px, 0px) scale(1); }
+          33%  { transform: translate(65px, -55px) scale(0.98); }
+          66%  { transform: translate(-50px, 40px) scale(1.03); }
+          100% { transform: translate(0px, 0px) scale(1); }
         }
         .bubble-float-1 { animation: bubble-float-1 var(--dur) ease-in-out infinite var(--delay); }
         .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay); }
