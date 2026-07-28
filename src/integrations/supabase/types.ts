@@ -223,18 +223,21 @@ export type Database = {
           created_at: string | null
           id: string
           memory_id: string | null
+          user_id: string | null
           user_name: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           memory_id?: string | null
+          user_id?: string | null
           user_name: string
         }
         Update: {
           created_at?: string | null
           id?: string
           memory_id?: string | null
+          user_id?: string | null
           user_name?: string
         }
         Relationships: [
@@ -284,18 +287,21 @@ export type Database = {
           created_at: string | null
           id: string
           memory_id: string | null
+          user_id: string | null
           user_name: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           memory_id?: string | null
+          user_id?: string | null
           user_name: string
         }
         Update: {
           created_at?: string | null
           id?: string
           memory_id?: string | null
+          user_id?: string | null
           user_name?: string
         }
         Relationships: [
@@ -396,7 +402,6 @@ export type Database = {
           name: string
         }[]
       }
-      set_app_user_name: { Args: { name: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
