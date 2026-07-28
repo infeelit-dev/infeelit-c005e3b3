@@ -1,0 +1,11 @@
+# INFEELIT — CURSOR RULES
+
+## Branch Strategy
+ALWAYS work directly on the main branch.
+NEVER create new branches like cursor/xxx.
+Before any change: git checkout main && git pull origin main
+After each fix: git add . && git commit -m "fix: description" && git push origin main
+
+## Scope
+Only modify files explicitly mentioned in the prompt.
+Never modify other files without asking.
