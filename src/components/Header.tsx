@@ -524,6 +524,34 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
               <span>💬</span>
               {lang === "fr" ? "Nous contacter" : lang === "ar" ? "اتصل بنا" : "Contact us"}
             </button>
+
+            {isLoggedIn && (
+              <button
+                onClick={async () => {
+                  closeBurgerMenu();
+                  await supabase.auth.signOut();
+                  navigate("/");
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "14px 16px",
+                  color: "rgba(61,43,31,0.55)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "15px",
+                  width: "100%",
+                  textAlign: "left",
+                  borderTop: "1px solid rgba(61,43,31,0.1)",
+                  marginTop: "8px",
+                }}
+              >
+                <span>🚪</span>
+                {lang === "fr" ? "Se déconnecter" : lang === "ar" ? "تسجيل الخروج" : "Log out"}
+              </button>
+            )}
           </div>
         </div>
       )}
