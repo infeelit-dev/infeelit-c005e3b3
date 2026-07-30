@@ -550,46 +550,67 @@ const Profile = () => {
           <div
             style={{
               textAlign: "center",
-              padding: "32px 20px",
+              padding: "60px 24px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "16px",
               background: "rgba(232,116,42,0.05)",
               borderRadius: "20px",
               border: "1.5px dashed rgba(232,116,42,0.2)",
             }}
           >
-            <p style={{ fontSize: "32px", marginBottom: "8px" }}>🎙️</p>
-            <p
+            <p style={{ fontSize: "48px", margin: 0 }}>✦</p>
+            <h3
               style={{
-                fontSize: "15px",
+                color: "#3D2B1F",
+                fontSize: "20px",
                 fontFamily: "Georgia, serif",
                 fontStyle: "italic",
-                color: "rgba(61,43,31,0.6)",
-                marginBottom: "16px",
+                lineHeight: 1.4,
+                margin: 0,
               }}
             >
               {lang === "fr"
-                ? "Ton premier souvenir t'attend."
+                ? "Ta première voix attend d'être enregistrée."
                 : lang === "ar"
-                  ? "ذكراك الأولى بانتظارك."
-                  : "Your first memory is waiting."}
+                  ? "صوتك الأول ينتظر أن يُسجَّل."
+                  : "Your first voice is waiting to be recorded."}
+            </h3>
+            <p
+              style={{
+                color: "rgba(61,43,31,0.5)",
+                fontSize: "14px",
+                lineHeight: 1.6,
+                margin: 0,
+                whiteSpace: "pre-line",
+              }}
+            >
+              {lang === "fr"
+                ? "Chaque souvenir que tu préserves aujourd'hui\ndeviendra un trésor pour demain."
+                : lang === "ar"
+                  ? "كل ذكرى تحفظها اليوم ستصبح كنزاً للغد."
+                  : "Every memory you preserve today\nbecomes a treasure for tomorrow."}
             </p>
             <button
               onClick={() => navigate("/questions")}
               style={{
-                padding: "12px 24px",
+                padding: "16px 32px",
                 borderRadius: "999px",
                 background: "linear-gradient(135deg, #E8742A, #D4621A)",
                 color: "#fff",
                 fontWeight: 700,
-                fontSize: "14px",
+                fontSize: "16px",
                 border: "none",
                 cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
               }}
             >
               {lang === "fr"
-                ? "Enregistrer maintenant ✦"
+                ? "🎙️ Enregistrer mon premier souvenir"
                 : lang === "ar"
-                  ? "سجّل الآن ✦"
-                  : "Record now ✦"}
+                  ? "🎙️ سجّل ذكراي الأولى"
+                  : "🎙️ Record my first memory"}
             </button>
           </div>
         ) : (
