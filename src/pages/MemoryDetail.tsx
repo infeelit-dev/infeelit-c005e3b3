@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveMemoryUrl } from "@/lib/memoryUrl";
 import MemoryFullscreen from "@/components/MemoryFullscreen";
 
 const MemoryDetail = () => {
@@ -10,19 +11,6 @@ const MemoryDetail = () => {
   const [loading, setLoading] = useState(true);
   const [signedFileUrl, setSignedFileUrl] = useState<string | null>(null);
   const [signedThumbUrl, setSignedThumbUrl] = useState<string | null>(null);
-
-  const signUrl = async (path: string | null): Promise<string | null> => {
-    if (!path) return null;
-    if (path.startsWith("http")) return path;
-    try {
-      const { data } = await supabase.storage
-        .from("memories")
-        .createSignedUrl(path, 3600);
-      return data?.signedUrl || null;
-    } catch {
-      return null;
-    }
-  };
 
   useEffect(() => {
     if (!id) return;
@@ -34,8 +22,10 @@ const MemoryDetail = () => {
         .single();
       if (data) {
         setMemory(data);
-        const fileUrl = await signUrl(data.file_url);
-        const thumbUrl = await signUrl(data.thumbnail_url);
+        const [fileUrl, thumbUrl] = await Promise.all([
+          resolveMemoryUrl(data.file_url),
+          resolveMemoryUrl(data.thumbnail_url),
+        ]);
         setSignedFileUrl(fileUrl);
         setSignedThumbUrl(thumbUrl);
       }

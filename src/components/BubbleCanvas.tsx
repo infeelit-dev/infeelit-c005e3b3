@@ -300,7 +300,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         .order("created_at", { ascending: false })
         .limit(40);
 
-      if (!data || data.length < REAL_CONTENT_THRESHOLD) {
+      if (!data || data.length === 0) {
         setUseRealFeed(false);
         setDemoBubbles(getDemoBubbles());
         setVisibleBubbles([]);
@@ -310,7 +310,19 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
       const profilesMap = await fetchProfilesMap(data);
       const resolved = await resolveMemoryFields(data);
-      const bubbles = resolved.map((m, i) =>
+      const validMemories = resolved.filter(
+        (m) => m.file_url !== null && m.file_url !== "",
+      );
+
+      if (validMemories.length < REAL_CONTENT_THRESHOLD) {
+        setUseRealFeed(false);
+        setDemoBubbles(getDemoBubbles());
+        setVisibleBubbles([]);
+        setMemoryQueue([]);
+        return;
+      }
+
+      const bubbles = validMemories.map((m, i) =>
         mapMemoryToBubble(m as Record<string, unknown>, i, profilesMap),
       );
       const shuffled = [...bubbles].sort(() => Math.random() - 0.5);
@@ -351,7 +363,10 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     if (data && data.length > 0) {
       const profilesMap = await fetchProfilesMap(data);
       const resolved = await resolveMemoryFields(data);
-      const newBubbles = resolved.map((m, i) =>
+      const validMemories = resolved.filter(
+        (m) => m.file_url !== null && m.file_url !== "",
+      );
+      const newBubbles = validMemories.map((m, i) =>
         mapMemoryToBubble(m as Record<string, unknown>, i, profilesMap),
       );
       setMemoryQueue(newBubbles);

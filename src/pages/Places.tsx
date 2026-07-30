@@ -4,6 +4,7 @@ import Map, { Marker, Popup, NavigationControl, GeolocateControl, Source, Layer 
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveMemoryFields } from "@/lib/memoryUrl";
 import { MapPin, X } from "lucide-react";
 import Header from "@/components/Header";
 
@@ -192,21 +193,30 @@ const Places = () => {
         if (error) throw error;
 
         if (memories && memories.length > 0) {
-          setIsDemo(false);
-          const formattedPins: MemoryPin[] = memories.map((mem: any) => ({
-            id: mem.id,
-            title: mem.title || "Un souvenir",
-            lat: mem.latitude,
-            lng: mem.longitude,
-            name: mem.is_anonymous ? "Un Gardien" : mem.profiles?.display_name?.split(" ")[0] || "Quelqu'un",
-            city: null,
-            file_url: mem.file_url,
-            file_type: mem.file_type,
-            thumbnail_url: mem.thumbnail_url,
-            is_anonymous: mem.is_anonymous,
-            location_visibility: mem.location_visibility,
-          }));
-          setPins(formattedPins);
+          const resolved = await resolveMemoryFields(memories);
+          const validMemories = resolved.filter(
+            (m) => m.file_url !== null && m.file_url !== "",
+          );
+
+          if (validMemories.length === 0) {
+            setPins(DEMO_PINS);
+          } else {
+            setIsDemo(false);
+            const formattedPins: MemoryPin[] = validMemories.map((mem: any) => ({
+              id: mem.id,
+              title: mem.title || "Un souvenir",
+              lat: mem.latitude,
+              lng: mem.longitude,
+              name: mem.is_anonymous ? "Un Gardien" : mem.profiles?.display_name?.split(" ")[0] || "Quelqu'un",
+              city: null,
+              file_url: mem.file_url,
+              file_type: mem.file_type,
+              thumbnail_url: mem.thumbnail_url,
+              is_anonymous: mem.is_anonymous,
+              location_visibility: mem.location_visibility,
+            }));
+            setPins(formattedPins);
+          }
         } else {
           setPins(DEMO_PINS);
         }

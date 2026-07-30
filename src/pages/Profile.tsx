@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveMemoryUrl } from "@/lib/memoryUrl";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileMemory {
@@ -110,23 +111,10 @@ const Profile = () => {
 
       const memoriesData = data || [];
 
-      const signUrl = async (path: string | null): Promise<string | null> => {
-        if (!path) return null;
-        if (path.startsWith("http")) return path;
-        try {
-          const { data } = await supabase.storage
-            .from("memories")
-            .createSignedUrl(path, 3600);
-          return data?.signedUrl || null;
-        } catch {
-          return null;
-        }
-      };
-
       const signed = await Promise.all(
         memoriesData.map(async (m: any) => ({
           ...m,
-          thumbnail_url: await signUrl(m.thumbnail_url),
+          thumbnail_url: await resolveMemoryUrl(m.thumbnail_url),
         })),
       );
 

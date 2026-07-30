@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Copy, Check, Mic, Play, Volume2, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveMemoryFields } from "@/lib/memoryUrl";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
@@ -169,7 +170,11 @@ const Circle = () => {
         .order("created_at", { ascending: false })
         .limit(20);
 
-      setMemories((mems as CircleMemory[]) || []);
+      const resolved = await resolveMemoryFields((mems as CircleMemory[]) || []);
+      const validMemories = resolved.filter(
+        (m) => m.file_url !== null && m.file_url !== "",
+      );
+      setMemories(validMemories);
     } catch (err) {
       console.error("loadCircleData failed:", err);
       setCircle(null);
