@@ -49,6 +49,10 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
       setIsLoggedIn(!!session);
     };
     checkAuth();
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   const tabs = [
@@ -173,6 +177,24 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
               justifyContent: "flex-end",
             }}
           >
+            {!isLoggedIn && (
+              <button
+                onClick={() => navigate("/welcome")}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "999px",
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  border: "none",
+                  cursor: "pointer",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                ✦ Join
+              </button>
+            )}
             {/* Bouton langue */}
             <div style={{ position: "relative" }}>
               <button

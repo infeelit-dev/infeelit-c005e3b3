@@ -15,6 +15,8 @@ const Index = () => {
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
   const [showPlusSheet, setShowPlusSheet] = useState(false);
+  const [showJoinSheet, setShowJoinSheet] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,6 +33,16 @@ const Index = () => {
       const prev = Number(localStorage.getItem("infeelit_feed_time") || 0);
       localStorage.setItem("infeelit_feed_time", String(prev + timeSpent));
     };
+  }, []);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -128,7 +140,16 @@ const Index = () => {
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
-      <CurvedBottomNav onPlusClick={() => setShowPlusSheet(true)} circleBadge={circleBadge} />
+      <CurvedBottomNav
+        onPlusClick={() => {
+          if (!isLoggedIn) {
+            setShowJoinSheet(true);
+            return;
+          }
+          setShowPlusSheet(true);
+        }}
+        circleBadge={circleBadge}
+      />
 
       <input
         ref={importInputRef}
@@ -137,6 +158,95 @@ const Index = () => {
         style={{ display: "none" }}
         onChange={handleImportFile}
       />
+
+      {showJoinSheet && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            zIndex: 100,
+            display: "flex",
+            alignItems: "flex-end",
+          }}
+          onClick={() => setShowJoinSheet(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "#0f0501",
+              borderRadius: "24px 24px 0 0",
+              padding: "32px 24px 48px",
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p
+              style={{
+                fontSize: "28px",
+                marginBottom: "8px",
+              }}
+            >
+              ✦
+            </p>
+            <h2
+              style={{
+                color: "#fff",
+                fontSize: "20px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                marginBottom: "8px",
+                lineHeight: 1.4,
+              }}
+            >
+              Preserve your family's voice.
+            </h2>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.5)",
+                fontSize: "14px",
+                marginBottom: "32px",
+                lineHeight: 1.6,
+              }}
+            >
+              Join Infeelit — it's free.
+              <br />
+              Your family's stories deserve to last forever.
+            </p>
+            <button
+              onClick={() => navigate("/welcome")}
+              style={{
+                width: "100%",
+                padding: "18px",
+                borderRadius: "18px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "12px",
+                boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+              }}
+            >
+              Join Infeelit — free ✦
+            </button>
+            <button
+              onClick={() => setShowJoinSheet(false)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "14px",
+                cursor: "pointer",
+                padding: "8px",
+              }}
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      )}
 
       {showPlusSheet && (
         <>
