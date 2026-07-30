@@ -106,8 +106,10 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
             <button
               onClick={() => navigate(-1)}
               style={{
-                width: "34px",
-                height: "34px",
+                width: "44px",
+                height: "44px",
+                minWidth: "44px",
+                minHeight: "44px",
                 borderRadius: "50%",
                 backgroundColor: "rgba(255,255,255,0.15)",
                 border: "1px solid rgba(255,255,255,0.2)",
@@ -133,8 +135,10 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
             <button
               onClick={() => setMenuOpen(true)}
               style={{
-                width: "34px",
-                height: "34px",
+                width: "44px",
+                height: "44px",
+                minWidth: "44px",
+                minHeight: "44px",
                 borderRadius: "50%",
                 backgroundColor: "rgba(255,255,255,0.15)",
                 border: "1px solid rgba(255,255,255,0.2)",
@@ -182,8 +186,10 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
               <button
                 onClick={() => setLangOpen(!langOpen)}
                 style={{
-                  width: "34px",
-                  height: "34px",
+                  width: "44px",
+                  height: "44px",
+                  minWidth: "44px",
+                  minHeight: "44px",
                   borderRadius: "50%",
                   backgroundColor: "rgba(255,255,255,0.15)",
                   border: "1px solid rgba(255,255,255,0.2)",
@@ -292,8 +298,10 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
             <button
               onClick={() => navigate("/search")}
               style={{
-                width: "34px",
-                height: "34px",
+                width: "44px",
+                height: "44px",
+                minWidth: "44px",
+                minHeight: "44px",
                 borderRadius: "50%",
                 backgroundColor: "rgba(255,255,255,0.15)",
                 border: "1px solid rgba(255,255,255,0.2)",
