@@ -136,14 +136,15 @@ const Index = () => {
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
         @keyframes sparkPulse {
           0%, 100% {
-            opacity: 0.5;
+            opacity: 0.7;
             transform: scale(1);
-            box-shadow: 0 0 0 0 rgba(212,175,55,0);
+            box-shadow: 0 0 8px rgba(212,175,55,0.3);
           }
           50% {
             opacity: 1;
-            transform: scale(1.08);
-            box-shadow: 0 0 16px rgba(212,175,55,0.3);
+            transform: scale(1.15);
+            box-shadow: 0 0 24px rgba(212,175,55,0.7),
+                        0 0 48px rgba(212,175,55,0.3);
           }
         }
       `}</style>
@@ -207,11 +208,12 @@ const Index = () => {
               style={{
                 padding: "8px 16px",
                 borderRadius: "999px",
-                background: "rgba(212,175,55,0.15)",
-                border: "1px solid rgba(212,175,55,0.4)",
-                color: "#D4AF37",
-                fontSize: "13px",
+                background: "rgba(212,175,55,0.25)",
+                border: "1.5px solid rgba(212,175,55,0.9)",
+                color: "#FFD700",
+                fontSize: "14px",
                 fontWeight: 700,
+                textShadow: "0 0 8px rgba(212,175,55,0.6)",
                 backdropFilter: "blur(8px)",
                 cursor: "pointer",
               }}
@@ -226,10 +228,11 @@ const Index = () => {
               width: "44px",
               height: "44px",
               borderRadius: "50%",
-              background: "rgba(212,175,55,0.12)",
-              border: "1.5px solid rgba(212,175,55,0.35)",
-              color: "#D4AF37",
-              fontSize: "18px",
+              background: "rgba(212,175,55,0.25)",
+              border: "2px solid rgba(212,175,55,0.8)",
+              color: "#FFD700",
+              fontSize: "20px",
+              textShadow: "0 0 10px rgba(212,175,55,0.8)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
