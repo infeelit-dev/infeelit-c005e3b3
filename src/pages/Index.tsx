@@ -136,15 +136,15 @@ const Index = () => {
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
         @keyframes sparkPulse {
           0%, 100% {
-            opacity: 0.7;
+            opacity: 0.85;
             transform: scale(1);
-            box-shadow: 0 0 8px rgba(212,175,55,0.3);
+            box-shadow: 0 4px 15px rgba(232,116,42,0.4);
           }
           50% {
             opacity: 1;
-            transform: scale(1.15);
-            box-shadow: 0 0 24px rgba(212,175,55,0.7),
-                        0 0 48px rgba(212,175,55,0.3);
+            transform: scale(1.12);
+            box-shadow: 0 4px 30px rgba(232,116,42,0.8),
+                        0 0 50px rgba(232,116,42,0.3);
           }
         }
       `}</style>
@@ -208,12 +208,13 @@ const Index = () => {
               style={{
                 padding: "8px 16px",
                 borderRadius: "999px",
-                background: "rgba(212,175,55,0.25)",
-                border: "1.5px solid rgba(212,175,55,0.9)",
-                color: "#FFD700",
+                background: "rgba(232,116,42,0.95)",
+                border: "2px solid #E8742A",
+                color: "#ffffff",
                 fontSize: "14px",
-                fontWeight: 700,
-                textShadow: "0 0 8px rgba(212,175,55,0.6)",
+                fontWeight: 800,
+                textShadow: "none",
+                boxShadow: "0 4px 16px rgba(232,116,42,0.5)",
                 backdropFilter: "blur(8px)",
                 cursor: "pointer",
               }}
@@ -228,11 +229,12 @@ const Index = () => {
               width: "44px",
               height: "44px",
               borderRadius: "50%",
-              background: "rgba(212,175,55,0.25)",
-              border: "2px solid rgba(212,175,55,0.8)",
-              color: "#FFD700",
+              background: "rgba(232,116,42,0.9)",
+              border: "2px solid #E8742A",
+              color: "#ffffff",
               fontSize: "20px",
-              textShadow: "0 0 10px rgba(212,175,55,0.8)",
+              textShadow: "0 0 10px rgba(232,116,42,0.8)",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.5)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
