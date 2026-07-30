@@ -387,7 +387,6 @@ export type Database = {
       }
     }
     Functions: {
-      get_circle_invite_code: { Args: { circle_id: string }; Returns: string }
       increment_likes: {
         Args: { increment: number; memory_id: string }
         Returns: undefined
@@ -397,14 +396,7 @@ export type Database = {
         Returns: undefined
       }
       increment_shares: { Args: { memory_id: string }; Returns: undefined }
-      lookup_circle_by_invite_code: {
-        Args: { code: string }
-        Returns: {
-          id: string
-          member_count: number
-          name: string
-        }[]
-      }
+      lookup_circle_by_invite_code: { Args: { _code: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
