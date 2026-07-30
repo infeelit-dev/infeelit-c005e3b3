@@ -14,8 +14,8 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
   const location = useLocation();
   const { t, lang } = useLanguage();
 
-  // ✅ CORRECTION 1 — Utilisation de Supabase session au lieu de localStorage
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -24,6 +24,43 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
     const { data: listener } = supabase.auth.onAuthStateChange((_, session) => setIsLoggedIn(!!session));
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setNotifCount(0);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchNotifs = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user || cancelled) return;
+
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("read", false)
+        .neq("from_user_id", session.user.id);
+
+      if (!cancelled) {
+        if (error) {
+          console.error("Notification count failed:", error);
+          setNotifCount(0);
+        } else {
+          setNotifCount(count || 0);
+        }
+      }
+    };
+
+    fetchNotifs();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn]);
+
+  const badgeCount = notifCount > 0 ? notifCount : circleBadge;
 
   // ✅ CORRECTION 2 — handleFlameClick redirige vers /me si connecté
   const handleFlameClick = () => {
@@ -114,25 +151,25 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
                   >
                     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
                   </svg>
-                  {circleBadge > 0 && isActive(item.path) && (
+                  {badgeCount > 0 && (
                     <div
                       style={{
                         position: "absolute",
                         top: "-4px",
-                        right: "-8px",
-                        minWidth: "14px",
-                        height: "14px",
-                        borderRadius: "7px",
-                        backgroundColor: "#E8742A",
+                        right: "-4px",
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        background: "#E8742A",
+                        color: "#fff",
+                        fontSize: "10px",
+                        fontWeight: 700,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        padding: "0 3px",
                       }}
                     >
-                      <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>
-                        {circleBadge}
-                      </span>
+                      {badgeCount > 9 ? "9+" : badgeCount}
                     </div>
                   )}
                 </div>
@@ -171,25 +208,25 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
                     }}
                   />
                 )}
-                {index === 0 && circleBadge > 0 && (
+                {index === 0 && badgeCount > 0 && (
                   <div
                     style={{
                       position: "absolute",
                       top: "-4px",
-                      right: "-8px",
-                      minWidth: "14px",
-                      height: "14px",
-                      borderRadius: "7px",
-                      backgroundColor: "#E8742A",
+                      right: "-4px",
+                      width: "16px",
+                      height: "16px",
+                      borderRadius: "50%",
+                      background: "#E8742A",
+                      color: "#fff",
+                      fontSize: "10px",
+                      fontWeight: 700,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: "0 3px",
                     }}
                   >
-                    <span style={{ fontSize: "8px", color: "#fff", fontWeight: 700, lineHeight: 1 }}>
-                      {circleBadge}
-                    </span>
+                    {badgeCount > 9 ? "9+" : badgeCount}
                   </div>
                 )}
               </div>
