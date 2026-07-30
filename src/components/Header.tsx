@@ -192,7 +192,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                   letterSpacing: "0.05em",
                 }}
               >
-                ✦ Join
+                ✦ Join free
               </button>
             )}
             {/* Bouton langue */}

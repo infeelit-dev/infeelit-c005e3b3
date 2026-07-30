@@ -67,6 +67,101 @@ const imageUrlToBlob = async (src: string): Promise<Blob> => {
   return res.blob();
 };
 
+const blobToDataUrl = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+
+const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
+  const res = await fetch(dataUrl);
+  return res.blob();
+};
+
+const PENDING_BLOB_IDB = "infeelit-pending-recording";
+
+const savePendingBlobToIdb = async (blob: Blob): Promise<void> => {
+  await new Promise<void>((resolve, reject) => {
+    const req = indexedDB.open(PENDING_BLOB_IDB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs");
+    };
+    req.onsuccess = () => {
+      const db = req.result;
+      const tx = db.transaction("blobs", "readwrite");
+      tx.objectStore("blobs").put(blob, "recording");
+      tx.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      tx.onerror = () => {
+        db.close();
+        reject(tx.error);
+      };
+    };
+    req.onerror = () => reject(req.error);
+  });
+};
+
+const loadPendingBlobFromIdb = async (): Promise<Blob | null> => {
+  try {
+    return await new Promise<Blob | null>((resolve, reject) => {
+      const req = indexedDB.open(PENDING_BLOB_IDB, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs");
+      };
+      req.onsuccess = () => {
+        const db = req.result;
+        const tx = db.transaction("blobs", "readonly");
+        const getReq = tx.objectStore("blobs").get("recording");
+        getReq.onsuccess = () => {
+          db.close();
+          resolve((getReq.result as Blob) || null);
+        };
+        getReq.onerror = () => {
+          db.close();
+          reject(getReq.error);
+        };
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch {
+    return null;
+  }
+};
+
+const clearPendingBlobIdb = async (): Promise<void> => {
+  try {
+    await new Promise<void>((resolve) => {
+      const req = indexedDB.open(PENDING_BLOB_IDB, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs");
+      };
+      req.onsuccess = () => {
+        const db = req.result;
+        const tx = db.transaction("blobs", "readwrite");
+        tx.objectStore("blobs").delete("recording");
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+        };
+        tx.onerror = () => {
+          db.close();
+          resolve();
+        };
+      };
+      req.onerror = () => resolve();
+    });
+  } catch {
+    // ignore
+  }
+};
+
 const capturePosterFrame = (el: HTMLVideoElement): Promise<Blob | null> =>
   new Promise((r) => {
     try {
@@ -254,8 +349,9 @@ const Record = () => {
   const [bgImage, setBgImage] = useState<string | null>(null);
   const [bgVideoUrl, setBgVideoUrl] = useState<string | null>(null);
   const [useAsAura, setUseAsAura] = useState(false);
-  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [showGuestSaveSheet, setShowGuestSaveSheet] = useState(false);
   const [pendingMemory, setPendingMemory] = useState<any>(null);
+  const autoPublishAfterRestoreRef = useRef(false);
 
   const [followupQuestions, setFollowupQuestions] = useState<string[]>([]);
   const [autoThumbnails, setAutoThumbnails] = useState<string[]>([]);
@@ -334,21 +430,89 @@ const Record = () => {
   useEffect(() => {
     if (!location.state?.pendingRestore) return;
 
-    if (location.state.pendingTitle) {
-      setTitle(location.state.pendingTitle);
-    }
-    if (location.state.pendingVisibility) {
-      setVisibilityChoice(location.state.pendingVisibility);
-    }
+    let cancelled = false;
 
-    toast.info(
-      lang === "fr"
-        ? "Tu es connecté ! Reprends ton enregistrement pour publier ton souvenir."
-        : lang === "ar"
-          ? "أنت متصل! أكمل التسجيل لنشر ذكراك."
-          : "You're signed in! Continue recording to publish your memory.",
-      { duration: 6000 },
-    );
+    const restorePending = async () => {
+      let pending: any = null;
+      try {
+        const raw = localStorage.getItem("pending_memory");
+        if (raw) pending = JSON.parse(raw);
+      } catch {
+        pending = null;
+      }
+
+      const restoredTitle = location.state.pendingTitle || pending?.title || "";
+      const restoredVisibility =
+        location.state.pendingVisibility || pending?.visibility || null;
+
+      if (restoredTitle) {
+        setTitle(restoredTitle);
+      }
+      if (restoredVisibility) {
+        setVisibilityChoice(restoredVisibility);
+        if (restoredVisibility === "family") {
+          isCommunityRef.current = false;
+          isAnonymousRef.current = false;
+          sparkRewardRef.current = 0;
+        } else if (restoredVisibility === "community") {
+          isCommunityRef.current = true;
+          isAnonymousRef.current = false;
+          sparkRewardRef.current = 2;
+        } else {
+          isCommunityRef.current = false;
+          isAnonymousRef.current = false;
+          sparkRewardRef.current = 0;
+        }
+      }
+
+      let blob: Blob | null = null;
+      if (pending?.blobDataUrl) {
+        try {
+          blob = await dataUrlToBlob(pending.blobDataUrl);
+        } catch {
+          blob = null;
+        }
+      }
+      if (!blob) {
+        blob = await loadPendingBlobFromIdb();
+      }
+
+      if (cancelled) return;
+
+      if (blob && blob.size > 0) {
+        const isAudio = (pending?.fileType || typeRef.current) === "audio";
+        setAudioMode(isAudio);
+        typeRef.current = isAudio ? "audio" : "video";
+        setLocalBlob(blob);
+        clipsRef.current = [{ blob, question: "", posterBlob: null }];
+        setHasSession(true);
+        autoPublishAfterRestoreRef.current = true;
+        setStage("uploading");
+        toast.success(
+          lang === "fr"
+            ? "Tu es connecté — on préserve ton souvenir…"
+            : lang === "ar"
+              ? "أنت متصل — جارٍ حفظ ذكراك…"
+              : "You're signed in — keeping your memory…",
+          { duration: 4000 },
+        );
+        return;
+      }
+
+      toast.info(
+        lang === "fr"
+          ? "Tu es connecté ! Reprends ton enregistrement pour publier ton souvenir."
+          : lang === "ar"
+            ? "أنت متصل! أكمل التسجيل لنشر ذكراك."
+            : "You're signed in! Continue recording to publish your memory.",
+        { duration: 6000 },
+      );
+    };
+
+    restorePending();
+    return () => {
+      cancelled = true;
+    };
   }, [location.state?.pendingRestore, location.state?.pendingTitle, location.state?.pendingVisibility, lang]);
 
   useEffect(() => {
@@ -829,22 +993,74 @@ const Record = () => {
     const isLoggedIn = !!session?.user;
 
     if (!isLoggedIn) {
-      const pendingData = {
-        title: memoryTitle,
-        question_fr: preSelected?.fr || null,
-        question_en: preSelected?.en || null,
-        question_ar: preSelected?.ar || null,
-        fileType: typeRef.current,
-        visibility: visibilityChoice,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem("pending_memory", JSON.stringify(pendingData));
-      setPendingMemory(pendingData);
-      setShowAuthGate(true);
+      setShowGuestSaveSheet(true);
       return;
     }
 
     handlePublish();
+  };
+
+  const handleGuestKeepMemory = async () => {
+    const blob =
+      clipsRef.current[clipsRef.current.length - 1]?.blob || localBlob;
+    const pendingData: Record<string, unknown> = {
+      title: memoryTitle,
+      question_fr: preSelected?.fr || null,
+      question_en: preSelected?.en || null,
+      question_ar: preSelected?.ar || null,
+      fileType: typeRef.current || (audioMode ? "audio" : "video"),
+      mimeType: blob?.type || "",
+      visibility: visibilityChoice,
+      timestamp: Date.now(),
+      autoPublish: true,
+      pendingRecording: true,
+    };
+
+    if (blob && blob.size > 0) {
+      try {
+        await savePendingBlobToIdb(blob);
+        pendingData.hasIndexedBlob = true;
+      } catch (err) {
+        console.error("IndexedDB pending blob save failed:", err);
+      }
+
+      try {
+        pendingData.blobDataUrl = await blobToDataUrl(blob);
+        localStorage.setItem("pending_memory", JSON.stringify(pendingData));
+      } catch {
+        delete pendingData.blobDataUrl;
+        try {
+          localStorage.setItem("pending_memory", JSON.stringify(pendingData));
+        } catch (err) {
+          console.error("Failed to persist guest recording metadata:", err);
+        }
+        if (!pendingData.hasIndexedBlob) {
+          toast.error(
+            lang === "fr"
+              ? "Enregistrement trop volumineux pour une sauvegarde locale."
+              : lang === "ar"
+                ? "التسجيل كبير جداً للحفظ المحلي."
+                : "Recording too large to keep locally.",
+          );
+        }
+      }
+    } else {
+      localStorage.setItem("pending_memory", JSON.stringify(pendingData));
+    }
+
+    setPendingMemory(pendingData);
+    setShowGuestSaveSheet(false);
+    navigate("/welcome", { state: { pendingRecording: true, returnTo: "/record" } });
+  };
+
+  const handleGuestDiscardMemory = () => {
+    clipsRef.current = [];
+    setLocalBlob(null);
+    setShowGuestSaveSheet(false);
+    setPendingMemory(null);
+    localStorage.removeItem("pending_memory");
+    void clearPendingBlobIdb();
+    navigate("/");
   };
 
   const handlePublish = async () => {
@@ -858,6 +1074,22 @@ const Record = () => {
       isPublishingRef.current = false;
     }
   };
+
+  useEffect(() => {
+    if (!autoPublishAfterRestoreRef.current) return;
+    if (!location.state?.pendingRestore) return;
+    if (!localBlob || clipsRef.current.length === 0) return;
+
+    autoPublishAfterRestoreRef.current = false;
+    const t = setTimeout(() => {
+      handlePublish().finally(() => {
+        localStorage.removeItem("pending_memory");
+        void clearPendingBlobIdb();
+      });
+    }, 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.pendingRestore, localBlob]);
 
   const visibilityButtonStyle = (choice: "family" | "community" | "private") => ({
     backgroundColor: visibilityChoice === choice ? "#E8742A" : "rgba(255,255,255,0.1)",
@@ -3058,69 +3290,76 @@ const Record = () => {
         </div>
       )}
 
-      {showAuthGate && (
+      {showGuestSaveSheet && (
         <div
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(45,24,16,0.85)",
-            backdropFilter: "blur(8px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            background: "rgba(0,0,0,0.85)",
             zIndex: 200,
-            padding: "24px",
+            display: "flex",
+            alignItems: "flex-end",
           }}
-          onClick={() => setShowAuthGate(false)}
         >
           <div
             style={{
-              background: "#FDF8F0",
-              borderRadius: "28px",
-              padding: "36px 28px",
-              maxWidth: "340px",
               width: "100%",
+              background: "#0f0501",
+              borderRadius: "24px 24px 0 0",
+              padding: "40px 24px 56px",
               textAlign: "center",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
             }}
-            onClick={(e) => e.stopPropagation()}
           >
-            <span style={{ fontSize: "40px" }}>✦</span>
+            <p style={{ fontSize: "40px", marginBottom: "16px" }}>✦</p>
 
-            <p
+            <h2
               style={{
-                fontSize: "20px",
+                color: "#fff",
+                fontSize: "22px",
                 fontFamily: "Georgia, serif",
                 fontStyle: "italic",
-                color: "#3D2B1F",
-                margin: "16px 0 8px",
+                marginBottom: "12px",
                 lineHeight: 1.4,
               }}
             >
-              {lang === "fr" ? "Ton souvenir est prêt." : lang === "ar" ? "ذكراك جاهزة." : "Your memory is ready."}
-            </p>
+              {lang === "fr"
+                ? "Cette voix mérite de rester."
+                : lang === "ar"
+                  ? "هذا الصوت يستحق أن يبقى."
+                  : "This voice deserves to stay."}
+            </h2>
 
             <p
               style={{
-                fontSize: "14px",
-                color: "rgba(61,43,31,0.6)",
-                marginBottom: "28px",
-                lineHeight: 1.5,
+                color: "rgba(255,255,255,0.6)",
+                fontSize: "15px",
+                marginBottom: "32px",
+                lineHeight: 1.6,
               }}
             >
-              {lang === "fr"
-                ? "Crée un compte gratuit pour le préserver pour toujours."
-                : lang === "ar"
-                  ? "أنشئ حساباً مجانياً لحفظها إلى الأبد."
-                  : "Create a free account to preserve it forever."}
+              {lang === "fr" ? (
+                <>
+                  Crée ton espace gratuit pour que ce souvenir
+                  <br />
+                  ait un endroit où vivre pour toujours.
+                </>
+              ) : lang === "ar" ? (
+                "أنشئ مساحتك المجانية لتعيش هذه الذكرى إلى الأبد."
+              ) : (
+                <>
+                  Create your free space so this memory
+                  <br />
+                  has somewhere to live forever.
+                </>
+              )}
             </p>
 
             <button
-              onClick={() => navigate("/welcome")}
+              onClick={handleGuestKeepMemory}
               style={{
                 width: "100%",
-                padding: "16px",
-                borderRadius: "16px",
+                padding: "18px",
+                borderRadius: "18px",
                 background: "linear-gradient(135deg, #E8742A, #D4621A)",
                 color: "#fff",
                 fontWeight: 700,
@@ -3132,47 +3371,28 @@ const Record = () => {
               }}
             >
               {lang === "fr"
-                ? "Rejoindre Infeelit — c'est gratuit"
+                ? "Garder ce souvenir ✦"
                 : lang === "ar"
-                  ? "انضم إلى Infeelit — مجاناً"
-                  : "Join Infeelit — it's free"}
+                  ? "احتفظ بهذه الذكرى ✦"
+                  : "Keep this memory ✦"}
             </button>
 
             <button
-              onClick={() => {
-                setShowAuthGate(false);
-                const pendingData = {
-                  title: memoryTitle,
-                  question_fr: preSelected?.fr || null,
-                  question_en: preSelected?.en || null,
-                  question_ar: preSelected?.ar || null,
-                  fileType: typeRef.current,
-                  timestamp: Date.now(),
-                };
-                localStorage.setItem("pending_memory", JSON.stringify(pendingData));
-                toast.info(
-                  lang === "fr"
-                    ? "Ton souvenir a été sauvegardé localement. Reviens quand tu veux !"
-                    : lang === "ar"
-                      ? "تم حفظ ذكراك محلياً. عد متى شئت!"
-                      : "Your memory has been saved locally. Come back anytime!",
-                );
-                navigate("/");
-              }}
+              onClick={handleGuestDiscardMemory}
               style={{
                 background: "none",
                 border: "none",
-                color: "rgba(61,43,31,0.4)",
+                color: "rgba(255,255,255,0.35)",
                 fontSize: "13px",
                 cursor: "pointer",
                 padding: "8px",
               }}
             >
               {lang === "fr"
-                ? "Continuer sans compte"
+                ? "Supprimer l'enregistrement"
                 : lang === "ar"
-                  ? "المتابعة بدون حساب"
-                  : "Continue without account"}
+                  ? "حذف التسجيل"
+                  : "Discard recording"}
             </button>
           </div>
         </div>

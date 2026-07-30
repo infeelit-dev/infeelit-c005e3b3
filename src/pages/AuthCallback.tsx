@@ -33,13 +33,14 @@ const AuthCallback = () => {
             const pending = JSON.parse(pendingMemory);
             const age = Date.now() - (pending.timestamp || 0);
             // Only restore if less than 30 minutes old
+            // Keep pending_memory in storage so Record can restore the blob and auto-publish
             if (age < 30 * 60 * 1000) {
-              localStorage.removeItem("pending_memory");
               navigate(
                 pending.recordMode ? `/record?mode=${pending.recordMode}` : "/record",
                 {
                   state: {
                     pendingRestore: true,
+                    pendingAutoPublish: !!(pending.blobDataUrl || pending.hasIndexedBlob),
                     preSelectedQuestion: pending.question_fr
                       ? {
                           fr: pending.question_fr,
@@ -55,6 +56,7 @@ const AuthCallback = () => {
               );
               return;
             }
+            localStorage.removeItem("pending_memory");
           } catch {
             localStorage.removeItem("pending_memory");
           }
