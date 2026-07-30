@@ -1,13 +1,37 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
   const [status, setStatus] = useState("Opening your space...");
+  const [linkExpired, setLinkExpired] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const searchParams = new URLSearchParams(window.location.search);
+    const errorDescription =
+      hashParams.get("error_description") ||
+      searchParams.get("error_description") ||
+      hashParams.get("error") ||
+      searchParams.get("error") ||
+      "";
+    const errorCode = hashParams.get("error_code") || searchParams.get("error_code") || "";
+
+    const isExpiredLink =
+      hashParams.get("error") === "access_denied" ||
+      searchParams.get("error") === "access_denied" ||
+      errorCode === "otp_expired" ||
+      /expired|invalid|otp/i.test(errorDescription);
+
+    if (isExpiredLink) {
+      setLinkExpired(true);
+      return;
+    }
 
     const checkProfileAndRedirect = async (userId: string) => {
       if (cancelled) return;
@@ -102,10 +126,7 @@ const AuthCallback = () => {
         checkProfileAndRedirect(session.user.id);
       }
       if (event === "SIGNED_OUT") {
-        setStatus("Link expired. Redirecting...");
-        setTimeout(() => {
-          if (!cancelled) navigate("/welcome", { replace: true });
-        }, 1500);
+        setLinkExpired(true);
       }
     });
 
@@ -113,7 +134,17 @@ const AuthCallback = () => {
       if (cancelled) return;
       const {
         data: { session },
+        error,
       } = await supabase.auth.getSession();
+
+      if (
+        error?.message?.includes("expired") ||
+        error?.message?.includes("invalid")
+      ) {
+        if (!cancelled) setLinkExpired(true);
+        return;
+      }
+
       if (session && !cancelled) {
         checkProfileAndRedirect(session.user.id);
       }
@@ -133,6 +164,75 @@ const AuthCallback = () => {
       clearTimeout(fallback);
     };
   }, [navigate]);
+
+  if (linkExpired) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#0f0501",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "24px",
+          textAlign: "center",
+        }}
+      >
+        <p style={{ fontSize: "48px", marginBottom: "16px" }}>✦</p>
+        <h2
+          style={{
+            color: "#fff",
+            fontSize: "20px",
+            fontFamily: "Georgia, serif",
+            fontStyle: "italic",
+            marginBottom: "12px",
+          }}
+        >
+          {lang === "fr"
+            ? "Ce lien a expiré."
+            : lang === "ar"
+              ? "انتهت صلاحية هذا الرابط."
+              : "This link has expired."}
+        </h2>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.5)",
+            fontSize: "14px",
+            marginBottom: "32px",
+            lineHeight: 1.6,
+            whiteSpace: "pre-line",
+          }}
+        >
+          {lang === "fr"
+            ? "Les liens magiques expirent après 24 heures.\nDemandes-en un nouveau."
+            : lang === "ar"
+              ? "تنتهي صلاحية الروابط السحرية بعد 24 ساعة.\nاطلب رابطاً جديداً."
+              : "Magic links expire after 24 hours.\nRequest a new one."}
+        </p>
+        <button
+          onClick={() => navigate("/welcome")}
+          style={{
+            padding: "16px 32px",
+            borderRadius: "999px",
+            background: "linear-gradient(135deg, #E8742A, #D4621A)",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "16px",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+          }}
+        >
+          {lang === "fr"
+            ? "Demander un nouveau lien ✦"
+            : lang === "ar"
+              ? "طلب رابط جديد ✦"
+              : "Get a new link ✦"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
