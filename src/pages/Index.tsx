@@ -6,15 +6,21 @@ import CurvedBottomNav from "@/components/CurvedBottomNav";
 import SparkBubble from "@/components/SparkBubble";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import useUserName from "@/hooks/useUserName";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Timeline } from "@/types/timeline";
 
 const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { lang } = useLanguage();
   useUserName();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
   const [showPlusSheet, setShowPlusSheet] = useState(false);
+  const [showSparkLabel, setShowSparkLabel] = useState(false);
+  const [sparkLabelDismissed, setSparkLabelDismissed] = useState(false);
+  const [showJoinSheet, setShowJoinSheet] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,6 +38,40 @@ const Index = () => {
       localStorage.setItem("infeelit_feed_time", String(prev + timeSpent));
     };
   }, []);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => setIsLoggedIn(!!session));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) return;
+    if (sparkLabelDismissed) return;
+
+    const hasSeenSpark = localStorage.getItem("infeelit_spark_seen");
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const showTimer = setTimeout(() => {
+      setShowSparkLabel(true);
+
+      hideTimer = setTimeout(() => {
+        setShowSparkLabel(false);
+        if (!hasSeenSpark) {
+          localStorage.setItem("infeelit_spark_seen", "true");
+        }
+      }, hasSeenSpark ? 3000 : 4000);
+    }, 1500);
+
+    return () => {
+      clearTimeout(showTimer);
+      if (hideTimer) clearTimeout(hideTimer);
+    };
+  }, [isLoggedIn, sparkLabelDismissed]);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +134,18 @@ const Index = () => {
     >
       <style>{`
         @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
+        @keyframes sparkPulse {
+          0%, 100% {
+            opacity: 0.5;
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(212,175,55,0);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.08);
+            box-shadow: 0 0 16px rgba(212,175,55,0.3);
+          }
+        }
       `}</style>
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -128,6 +180,70 @@ const Index = () => {
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
       <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
 
+      {!isLoggedIn && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "90px",
+            right: "24px",
+            zIndex: 25,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: "0",
+          }}
+        >
+          <div
+            style={{
+              overflow: "hidden",
+              maxWidth: showSparkLabel ? "140px" : "0px",
+              opacity: showSparkLabel ? 1 : 0,
+              transition: "max-width 0.5s ease, opacity 0.5s ease",
+              marginBottom: "6px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <div
+              style={{
+                padding: "8px 16px",
+                borderRadius: "999px",
+                background: "rgba(212,175,55,0.15)",
+                border: "1px solid rgba(212,175,55,0.4)",
+                color: "#D4AF37",
+                fontSize: "13px",
+                fontWeight: 700,
+                backdropFilter: "blur(8px)",
+                cursor: "pointer",
+              }}
+              onClick={() => setShowJoinSheet(true)}
+            >
+              ✦ Join free
+            </div>
+          </div>
+          <button
+            onClick={() => setShowJoinSheet(true)}
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "rgba(212,175,55,0.12)",
+              border: "1.5px solid rgba(212,175,55,0.35)",
+              color: "#D4AF37",
+              fontSize: "18px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              animation: "sparkPulse 3s ease-in-out infinite",
+              backdropFilter: "blur(8px)",
+              alignSelf: "flex-end",
+            }}
+          >
+            ✦
+          </button>
+        </div>
+      )}
+
       <CurvedBottomNav onPlusClick={() => setShowPlusSheet(true)} circleBadge={circleBadge} />
 
       <input
@@ -137,6 +253,109 @@ const Index = () => {
         style={{ display: "none" }}
         onChange={handleImportFile}
       />
+
+      {showJoinSheet && !isLoggedIn && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            zIndex: 200,
+            display: "flex",
+            alignItems: "flex-end",
+          }}
+          onClick={() => setShowJoinSheet(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "#0f0501",
+              borderRadius: "24px 24px 0 0",
+              padding: "40px 24px 56px",
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p style={{ fontSize: "40px", marginBottom: "16px" }}>✦</p>
+
+            <h2
+              style={{
+                color: "#fff",
+                fontSize: "22px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                marginBottom: "12px",
+                lineHeight: 1.4,
+              }}
+            >
+              {lang === "fr"
+                ? "Cette voix mérite de rester."
+                : lang === "ar"
+                  ? "هذا الصوت يستحق أن يبقى."
+                  : "This voice deserves to stay."}
+            </h2>
+
+            <p
+              style={{
+                color: "rgba(255,255,255,0.6)",
+                fontSize: "15px",
+                marginBottom: "32px",
+                lineHeight: 1.6,
+                whiteSpace: "pre-line",
+              }}
+            >
+              {lang === "fr"
+                ? "Rejoins gratuitement et préserve\nce qui compte le plus."
+                : lang === "ar"
+                  ? "انضم مجاناً واحفظ ما يهمّك أكثر."
+                  : "Join free and preserve\nwhat matters most."}
+            </p>
+            <button
+              onClick={() => navigate("/welcome")}
+              style={{
+                width: "100%",
+                padding: "18px",
+                borderRadius: "18px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "12px",
+                boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+              }}
+            >
+              {lang === "fr"
+                ? "Rejoindre Infeelit ✦"
+                : lang === "ar"
+                  ? "انضم إلى Infeelit ✦"
+                  : "Join Infeelit ✦"}
+            </button>
+            <button
+              onClick={() => {
+                setShowJoinSheet(false);
+                setSparkLabelDismissed(true);
+                setShowSparkLabel(false);
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.35)",
+                fontSize: "13px",
+                cursor: "pointer",
+                padding: "8px",
+              }}
+            >
+              {lang === "fr"
+                ? "Continuer d'explorer"
+                : lang === "ar"
+                  ? "متابعة الاستكشاف"
+                  : "Keep exploring"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {showPlusSheet && (
         <>
