@@ -274,7 +274,6 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         .from("memories")
         .select("*, profiles (display_name)")
         .eq("is_public", true)
-        .not("moderation_status", "eq", "rejected")
         .order("created_at", { ascending: false })
         .limit(40);
 
@@ -314,7 +313,6 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       .from("memories")
       .select("*, profiles (display_name)")
       .eq("is_public", true)
-      .not("moderation_status", "eq", "rejected")
       .order("created_at", { ascending: false })
       .limit(20);
 
