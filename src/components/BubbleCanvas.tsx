@@ -656,6 +656,26 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             </p>
           </div>
         )}
+
+        {bubble.type === "demo" && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "4px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              fontSize: "7px",
+              color: "rgba(255,255,255,0.4)",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+            }}
+          >
+            demo
+          </div>
+        )}
       </div>
     );
   };
