@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { HeaderProvider } from "@/components/Header";
+import CookieBanner from "@/components/CookieBanner";
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -95,6 +96,7 @@ const App = () => (
             <Route path="/memory/:id" element={<MemoryDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieBanner />
         </BrowserRouter>
       </LanguageProvider>
     </TooltipProvider>
