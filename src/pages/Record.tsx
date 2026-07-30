@@ -855,7 +855,16 @@ const Record = () => {
   };
 
   const handleUpload = () => {
-    if (!localBlob) return;
+    if (!localBlob || localBlob.size <= 0) {
+      toast.error(
+        lang === "fr"
+          ? "Aucun audio capturé. Réessaie."
+          : lang === "ar"
+            ? "لم يتم التقاط صوت. حاول مجدداً."
+            : "No audio captured. Please try again.",
+      );
+      return;
+    }
     setPreviewReady(false);
     clipsRef.current.push({ blob: localBlob, question: questionRef.current, posterBlob: null });
     setStage("uploading");
@@ -2851,13 +2860,27 @@ const Record = () => {
             </button>
             <button
               onClick={handleUpload}
+              disabled={!(localBlob && localBlob.size > 0)}
               className="flex-1 py-4 rounded-full gradient-orange text-white font-bold text-base flex items-center justify-center gap-2"
-              style={{ color: "#fff" }}
+              style={{
+                color: "#fff",
+                opacity: localBlob && localBlob.size > 0 ? 1 : 0.4,
+                cursor: localBlob && localBlob.size > 0 ? "pointer" : "not-allowed",
+              }}
             >
               <Check size={18} />
               {lang === "ar" ? "هذا رائع ✦" : lang === "fr" ? "C'est parfait ✦" : "This is perfect ✦"}
             </button>
           </div>
+          {!(localBlob && localBlob.size > 0) && (
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", textAlign: "center" }}>
+              {lang === "fr"
+                ? "Aucun audio capturé. Réessaie."
+                : lang === "ar"
+                  ? "لم يتم التقاط صوت. حاول مجدداً."
+                  : "No audio captured. Please try again."}
+            </p>
+          )}
         </div>
       )}
 
