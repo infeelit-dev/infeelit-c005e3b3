@@ -728,6 +728,39 @@ const Profile = () => {
           {lang === "fr" ? "Se déconnecter" : lang === "ar" ? "تسجيل الخروج" : "Sign out"}
         </button>
       </div>
+
+      <div
+        style={{
+          textAlign: "center",
+          padding: "32px 24px 16px",
+          borderTop: "1px solid rgba(61,43,31,0.08)",
+          marginTop: "32px",
+        }}
+      >
+        <p
+          style={{
+            color: "rgba(61,43,31,0.35)",
+            fontSize: "12px",
+            marginBottom: "8px",
+          }}
+        >
+          {lang === "fr"
+            ? "Vous souhaitez supprimer votre compte ?"
+            : lang === "ar"
+              ? "هل تريد حذف حسابك؟"
+              : "Want to delete your account?"}
+        </p>
+        <a
+          href="mailto:malik@infeelit.com?subject=Account deletion request"
+          style={{
+            color: "rgba(61,43,31,0.4)",
+            fontSize: "12px",
+            textDecoration: "underline",
+          }}
+        >
+          {lang === "fr" ? "Contactez-nous" : lang === "ar" ? "تواصل معنا" : "Contact us"}
+        </a>
+      </div>
     </div>
   );
 };
