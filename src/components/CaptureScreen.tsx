@@ -100,7 +100,7 @@ const POETIC_TITLES = {
     default: [
       "Une histoire qui méritait d'être racontée...",
       "Le moment dont je ne savais pas que je m'en souviendrais...",
-      "Un fil dans la tapisserie de qui je suis...",
+      "Un souvenir préservé pour toujours",
     ],
   },
   ar: {
