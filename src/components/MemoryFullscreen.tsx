@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import { supabase } from "@/integrations/supabase/client";
+import generateEchoCard from "@/components/EchoCard";
 
 interface MemoryFullscreenProps {
   bubble: {
@@ -31,6 +32,12 @@ export default function MemoryFullscreen({
   const { lang, rtl } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
   const [reportSent, setReportSent] = useState(false);
+  const [showShareOptions, setShowShareOptions] = useState(false);
+  const [anonymous, setAnonymous] = useState(false);
+  const [sharingBusy, setSharingBusy] = useState(false);
+
+  const isOwner = !!(currentUserId && bubble.user_id && currentUserId === bubble.user_id);
+  const memoryUrl = `https://infeelit.com/memory/${bubble.id}`;
 
   const handleReport = async () => {
     if (!currentUserId || !bubble.id || reportSent) return;
@@ -82,6 +89,75 @@ export default function MemoryFullscreen({
     setTimeout(() => {
       onClose();
     }, 400);
+  };
+
+  const handleDownloadEchoCard = async () => {
+    if (sharingBusy) return;
+    setSharingBusy(true);
+    try {
+      const blob = await generateEchoCard(bubble, anonymous);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "infeelit-memory.png";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Echo Card generation failed:", err);
+      alert(
+        lang === "fr"
+          ? "Impossible de générer la carte."
+          : lang === "ar"
+            ? "تعذر إنشاء البطاقة."
+            : "Could not generate Echo Card.",
+      );
+    } finally {
+      setSharingBusy(false);
+    }
+  };
+
+  const shareText = anonymous
+    ? `A memory preserved on Infeelit ✦\n${memoryUrl}`
+    : `"${bubble.title || "A memory"}" — a voice preserved on Infeelit ✦\n${memoryUrl}`;
+
+  const handleShareLink = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ text: shareText, url: memoryUrl });
+      } else {
+        await navigator.clipboard.writeText(memoryUrl);
+        alert(
+          lang === "fr"
+            ? "Lien copié !"
+            : lang === "ar"
+              ? "تم نسخ الرابط!"
+              : "Link copied!",
+        );
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(memoryUrl);
+        alert(
+          lang === "fr"
+            ? "Lien copié !"
+            : lang === "ar"
+              ? "تم نسخ الرابط!"
+              : "Link copied!",
+        );
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+
+  const handleWhatsApp = () => {
+    const text = encodeURIComponent(
+      anonymous
+        ? `A memory preserved on Infeelit ✦\n${memoryUrl}`
+        : `"${bubble.title || "A memory"}" — listen to this memory ✦\n${memoryUrl}`,
+    );
+    window.open(`https://wa.me/?text=${text}`, "_blank");
   };
 
   const isAudio = bubble.file_type === "audio";
@@ -362,6 +438,235 @@ export default function MemoryFullscreen({
           </button>
         )}
       </div>
+
+      {isOwner && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "100px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+            width: "100%",
+            maxWidth: "320px",
+            padding: "0 24px",
+            zIndex: 20,
+            boxSizing: "border-box",
+          }}
+        >
+          <button
+            onClick={() => setShowShareOptions(true)}
+            style={{
+              width: "100%",
+              padding: "16px",
+              borderRadius: "999px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "15px",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
+            ✦ Share this memory
+          </button>
+        </div>
+      )}
+
+      {showShareOptions && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.9)",
+            zIndex: 300,
+            display: "flex",
+            alignItems: "flex-end",
+          }}
+          onClick={() => setShowShareOptions(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "#0f0501",
+              borderRadius: "24px 24px 0 0",
+              padding: "32px 24px 48px",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                color: "#fff",
+                fontSize: "18px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                textAlign: "center",
+                marginBottom: "8px",
+              }}
+            >
+              Share this memory
+            </h3>
+
+            <p
+              style={{
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "13px",
+                textAlign: "center",
+                marginBottom: "24px",
+              }}
+            >
+              Only the question and a teaser will be shared. Your full voice stays private.
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 16px",
+                background: "rgba(255,255,255,0.05)",
+                borderRadius: "12px",
+                marginBottom: "20px",
+              }}
+            >
+              <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>
+                Share anonymously
+              </span>
+              <input
+                type="checkbox"
+                checked={anonymous}
+                onChange={(e) => setAnonymous(e.target.checked)}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <button
+                onClick={handleDownloadEchoCard}
+                disabled={sharingBusy}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: sharingBusy ? "wait" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  opacity: sharingBusy ? 0.7 : 1,
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>🖼</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>
+                    {sharingBusy ? "Generating…" : "Download Echo Card"}
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    For Instagram Stories & LinkedIn
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleShareLink}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>🔗</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Share link</p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    For WhatsApp & iMessage preview
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleWhatsApp}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(37,211,102,0.15)",
+                  border: "1px solid rgba(37,211,102,0.3)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>📱</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Send on WhatsApp</p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    Direct share to contacts
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowShareOptions(false)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.3)",
+                fontSize: "14px",
+                cursor: "pointer",
+                width: "100%",
+                textAlign: "center",
+                marginTop: "16px",
+                padding: "8px",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

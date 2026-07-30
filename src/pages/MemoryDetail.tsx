@@ -11,6 +11,13 @@ const MemoryDetail = () => {
   const [loading, setLoading] = useState(true);
   const [signedFileUrl, setSignedFileUrl] = useState<string | null>(null);
   const [signedThumbUrl, setSignedThumbUrl] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUserId(session?.user?.id);
+    });
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -34,48 +41,100 @@ const MemoryDetail = () => {
     fetchMemory();
   }, [id]);
 
-  if (loading) return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#000",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#E8742A",
-      fontSize: "24px",
-    }}>
-      ✦
-    </div>
-  );
+  useEffect(() => {
+    if (!memory) return;
 
-  if (!memory) return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#000",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      flexDirection: "column",
-      gap: "16px",
-    }}>
-      <p>Ce souvenir n'existe pas ou n'est plus accessible.</p>
-      <button
-        onClick={() => navigate("/")}
+    const transcript =
+      memory.transcript_fr || memory.transcript_en || memory.transcript_ar || "";
+    const teaser = transcript
+      ? `"${transcript.slice(0, 100)}..."`
+      : "A voice preserved forever on Infeelit";
+
+    document.title = `${memory.title || "A memory"} — Infeelit`;
+
+    const setMeta = (property: string, content: string) => {
+      let el = document.querySelector(
+        `meta[property="${property}"]`,
+      ) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("property", property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("og:title", memory.title || "A memory on Infeelit");
+    setMeta("og:description", teaser);
+    setMeta("og:image", "https://infeelit.com/infeelit-logo.png");
+    setMeta("og:url", `https://infeelit.com/memory/${memory.id}`);
+    setMeta("og:type", "article");
+
+    const setMetaName = (name: string, content: string) => {
+      let el = document.querySelector(
+        `meta[name="${name}"]`,
+      ) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute("name", name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    setMetaName("twitter:card", "summary_large_image");
+    setMetaName("twitter:title", memory.title || "A memory on Infeelit");
+    setMetaName("twitter:description", teaser);
+  }, [memory]);
+
+  if (loading)
+    return (
+      <div
         style={{
-          padding: "12px 24px",
-          borderRadius: "999px",
-          background: "#E8742A",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
-          fontWeight: 700,
+          minHeight: "100vh",
+          background: "#000",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#E8742A",
+          fontSize: "24px",
         }}
       >
-        Retour
-      </button>
-    </div>
-  );
+        ✦
+      </div>
+    );
+
+  if (!memory)
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#000",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#fff",
+          flexDirection: "column",
+          gap: "16px",
+        }}
+      >
+        <p>Ce souvenir n'existe pas ou n'est plus accessible.</p>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            padding: "12px 24px",
+            borderRadius: "999px",
+            background: "#E8742A",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: 700,
+          }}
+        >
+          Retour
+        </button>
+      </div>
+    );
 
   const bubble = {
     id: memory.id,
@@ -84,8 +143,7 @@ const MemoryDetail = () => {
     file_url: signedFileUrl || "",
     file_type: memory.file_type || "video",
     thumbnail_url: signedThumbUrl,
-    user_name:
-      memory.profiles?.display_name?.split(" ")[0] || "Quelqu'un",
+    user_name: memory.profiles?.display_name?.split(" ")[0] || "Quelqu'un",
     user_id: memory.user_id,
     sparks_count: memory.sparks_count || 0,
     transcript_fr: memory.transcript_fr || null,
@@ -107,6 +165,7 @@ const MemoryDetail = () => {
       bubble={bubble}
       userName={bubble.user_name}
       onClose={() => navigate(-1)}
+      currentUserId={currentUserId}
     />
   );
 };
