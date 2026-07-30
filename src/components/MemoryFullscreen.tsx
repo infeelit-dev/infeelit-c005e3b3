@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MemoryFullscreenProps {
   bubble: {
@@ -8,6 +9,7 @@ interface MemoryFullscreenProps {
     title?: string | null;
     file_url?: string | null;
     file_type?: string | null;
+    user_id?: string;
     user_name?: string;
     sparks_count?: number;
     transcript_fr?: string | null;
@@ -24,9 +26,56 @@ interface MemoryFullscreenProps {
 export default function MemoryFullscreen({
   bubble,
   onClose,
+  currentUserId,
 }: MemoryFullscreenProps) {
   const { lang, rtl } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
+  const [reportSent, setReportSent] = useState(false);
+
+  const handleReport = async () => {
+    if (!currentUserId || !bubble.id || reportSent) return;
+    const reason = prompt(
+      lang === "fr"
+        ? "Raison du signalement :"
+        : lang === "ar"
+          ? "سبب البلاغ:"
+          : "Reason for report:",
+    );
+    if (!reason) return;
+
+    const { error } = await supabase.from("memory_reports").insert({
+      memory_id: bubble.id,
+      reporter_name: currentUserId,
+      reason: reason,
+      user_id: currentUserId,
+    });
+
+    if (error) {
+      console.error("Report failed:", error);
+      alert(
+        lang === "fr"
+          ? "Impossible d'envoyer le signalement."
+          : lang === "ar"
+            ? "تعذر إرسال البلاغ."
+            : "Could not send report.",
+      );
+      return;
+    }
+
+    await supabase
+      .from("memories")
+      .update({ moderation_status: "reported" })
+      .eq("id", bubble.id);
+
+    setReportSent(true);
+    alert(
+      lang === "fr"
+        ? "Signalement envoyé. Merci."
+        : lang === "ar"
+          ? "تم إرسال البلاغ. شكراً."
+          : "Report sent. Thank you.",
+    );
+  };
 
   const handleClose = () => {
     setIsClosing(true);
@@ -284,6 +333,34 @@ export default function MemoryFullscreen({
             )}
           </div>
         ))}
+
+        {currentUserId && bubble.user_id && bubble.user_id !== currentUserId && (
+          <button
+            onClick={handleReport}
+            disabled={reportSent}
+            style={{
+              background: "none",
+              border: "none",
+              color: reportSent ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.3)",
+              fontSize: "11px",
+              cursor: reportSent ? "default" : "pointer",
+              padding: "8px",
+            }}
+          >
+            ⚑{" "}
+            {reportSent
+              ? lang === "fr"
+                ? "Signalé"
+                : lang === "ar"
+                  ? "تم الإبلاغ"
+                  : "Reported"
+              : lang === "fr"
+                ? "Signaler"
+                : lang === "ar"
+                  ? "إبلاغ"
+                  : "Report"}
+          </button>
+        )}
       </div>
     </div>
   );
