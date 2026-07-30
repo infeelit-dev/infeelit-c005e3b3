@@ -43,6 +43,25 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [memories, setMemories] = useState<ProfileMemory[]>([]);
   const [sparksCount, setSparksCount] = useState(0);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState("");
+
+  const handleSaveName = async () => {
+    if (!newName.trim() || !session?.user?.id) return;
+    const trimmed = newName.trim();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: trimmed })
+      .eq("user_id", session.user.id);
+    if (error) {
+      console.error("Save name failed:", error);
+      return;
+    }
+    localStorage.setItem("infeelit_user_name", trimmed);
+    await supabase.auth.updateUser({ data: { display_name: trimmed } });
+    setEditingName(false);
+    window.location.reload();
+  };
 
   const handleDeleteMemory = async (memoryId: string) => {
     if (
@@ -365,17 +384,99 @@ const Profile = () => {
           {userName[0]?.toUpperCase() || "✦"}
         </div>
 
-        <p
-          style={{
-            fontSize: "22px",
-            fontWeight: 700,
-            color: "#fff",
-            margin: "0 0 4px",
-            fontFamily: "Georgia, serif",
-          }}
-        >
-          {userName}
-        </p>
+        {editingName ? (
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              alignItems: "center",
+              justifyContent: "center",
+              flexWrap: "wrap",
+              marginBottom: "4px",
+            }}
+          >
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder={userName}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "999px",
+                border: "1.5px solid #E8742A",
+                background: "rgba(255,255,255,0.08)",
+                color: "#fff",
+                fontSize: "16px",
+                outline: "none",
+              }}
+              autoFocus
+            />
+            <button
+              onClick={handleSaveName}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "999px",
+                background: "#E8742A",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                fontWeight: 700,
+              }}
+            >
+              ✓
+            </button>
+            <button
+              onClick={() => setEditingName(false)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "999px",
+                background: "rgba(255,255,255,0.1)",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              justifyContent: "center",
+              marginBottom: "4px",
+            }}
+          >
+            <h2
+              style={{
+                color: "#fff",
+                margin: 0,
+                fontSize: "22px",
+                fontWeight: 700,
+                fontFamily: "Georgia, serif",
+              }}
+            >
+              {userName}
+            </h2>
+            <button
+              onClick={() => {
+                setNewName(userName);
+                setEditingName(true);
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.4)",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+              aria-label={lang === "fr" ? "Modifier le nom" : lang === "ar" ? "تعديل الاسم" : "Edit name"}
+            >
+              ✎
+            </button>
+          </div>
+        )}
         <p
           style={{
             fontSize: "13px",
