@@ -44,6 +44,27 @@ const Profile = () => {
   const [memories, setMemories] = useState<ProfileMemory[]>([]);
   const [sparksCount, setSparksCount] = useState(0);
 
+  const handleDeleteMemory = async (memoryId: string) => {
+    if (
+      !confirm(
+        lang === "fr"
+          ? "Supprimer ce souvenir définitivement ?"
+          : lang === "ar"
+            ? "هل تريد حذف هذه الذكرى نهائياً؟"
+            : "Delete this memory permanently?",
+      )
+    ) {
+      return;
+    }
+
+    const { error } = await supabase.from("memories").delete().eq("id", memoryId);
+    if (error) {
+      console.error("Delete memory failed:", error);
+      return;
+    }
+    setMemories((prev) => prev.filter((m) => m.id !== memoryId));
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
@@ -491,6 +512,31 @@ const Profile = () => {
                   position: "relative",
                 }}
               >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteMemory(memory.id);
+                  }}
+                  style={{
+                    position: "absolute",
+                    top: "8px",
+                    right: "8px",
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "50%",
+                    background: "rgba(220,38,38,0.8)",
+                    border: "none",
+                    color: "#fff",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 5,
+                  }}
+                >
+                  ×
+                </button>
                 {memory.thumbnail_url ? (
                   <img
                     src={memory.thumbnail_url}
