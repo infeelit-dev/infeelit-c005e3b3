@@ -84,6 +84,53 @@ const Welcome = () => {
           >
             {loading ? t.welcomeSending : t.welcomeCta}
           </button>
+          <p
+            style={{
+              fontSize: "12px",
+              color: "rgba(61,43,31,0.45)",
+              textAlign: "center",
+              marginTop: "16px",
+              lineHeight: 1.6,
+              width: "85%",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {lang === "fr" ? (
+              <>
+                En rejoignant vous acceptez nos{" "}
+                <a href="/terms" style={{ color: "#E8742A", textDecoration: "underline" }}>
+                  Conditions d&apos;utilisation
+                </a>{" "}
+                et{" "}
+                <a href="/privacy" style={{ color: "#E8742A", textDecoration: "underline" }}>
+                  Politique de confidentialité
+                </a>
+              </>
+            ) : lang === "ar" ? (
+              <>
+                بالانضمام توافق على{" "}
+                <a href="/terms" style={{ color: "#E8742A", textDecoration: "underline" }}>
+                  شروط الاستخدام
+                </a>{" "}
+                و
+                <a href="/privacy" style={{ color: "#E8742A", textDecoration: "underline" }}>
+                  سياسة الخصوصية
+                </a>
+              </>
+            ) : (
+              <>
+                By joining you agree to our{" "}
+                <a href="/terms" style={{ color: "#E8742A", textDecoration: "underline" }}>
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a href="/privacy" style={{ color: "#E8742A", textDecoration: "underline" }}>
+                  Privacy Policy
+                </a>
+              </>
+            )}
+          </p>
         </form>
         <p className="text-center text-[10px] text-muted-foreground/60 px-4 italic">{t.welcomeFooter}</p>
       </div>
