@@ -693,6 +693,7 @@ const Profile = () => {
             </button>
           </div>
         ) : (
+          <>
           <div
             style={{
               display: "grid",
