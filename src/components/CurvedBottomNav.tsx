@@ -83,13 +83,16 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
     {
       icon: "flame",
       label: lang === "ar" ? "أنا" : lang === "fr" ? "Moi" : "Me",
-      path: isLoggedIn ? "/me" : "/welcome",
+      path: isLoggedIn ? "/profile" : "/welcome",
     },
   ];
 
   const isActive = (path: string) => {
     if (path === "/record") return false;
     if (path === "/circles" && (location.pathname === "/circles" || location.pathname === "/circle")) return true;
+    if (path === "/profile" || path === "/me") {
+      return location.pathname === "/profile" || location.pathname === "/me";
+    }
     return location.pathname === path;
   };
 
