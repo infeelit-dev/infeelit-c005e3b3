@@ -100,6 +100,7 @@ export type Database = {
       }
       memories: {
         Row: {
+          allow_anonymous_share: boolean | null
           aura_intensity: number | null
           background_image_url: string | null
           created_at: string | null
@@ -139,6 +140,7 @@ export type Database = {
           view_count: number | null
         }
         Insert: {
+          allow_anonymous_share?: boolean | null
           aura_intensity?: number | null
           background_image_url?: string | null
           created_at?: string | null
@@ -178,6 +180,7 @@ export type Database = {
           view_count?: number | null
         }
         Update: {
+          allow_anonymous_share?: boolean | null
           aura_intensity?: number | null
           background_image_url?: string | null
           created_at?: string | null
