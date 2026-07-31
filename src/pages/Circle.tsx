@@ -838,6 +838,7 @@ const Circle = () => {
               key={m.user_id}
               type="button"
               onClick={() => navigate(`/profile/${m.user_id}`)}
+              aria-label={name}
               className={`absolute ${layout.float}`}
               style={{
                 left: `${layout.leftPct}%`,
