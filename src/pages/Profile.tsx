@@ -48,6 +48,8 @@ const Profile = () => {
   const [sparksCount, setSparksCount] = useState(0);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState("");
+  const [editMode, setEditMode] = useState(false);
+  const [memoryToDelete, setMemoryToDelete] = useState<string | null>(null);
 
   const handleSaveName = async () => {
     if (!newName.trim() || !session?.user?.id) return;
@@ -66,25 +68,23 @@ const Profile = () => {
     window.location.reload();
   };
 
-  const handleDeleteMemory = async (memoryId: string) => {
-    if (
-      !confirm(
-        lang === "fr"
-          ? "Supprimer ce souvenir définitivement ?"
-          : lang === "ar"
-            ? "هل تريد حذف هذه الذكرى نهائياً؟"
-            : "Delete this memory permanently?",
-      )
-    ) {
-      return;
-    }
+  const handleDeleteMemory = (memoryId: string) => {
+    setMemoryToDelete(memoryId);
+  };
 
-    const { error } = await supabase.from("memories").delete().eq("id", memoryId);
+  const confirmDeleteMemory = async () => {
+    if (!memoryToDelete) return;
+    const { error } = await supabase.from("memories").delete().eq("id", memoryToDelete);
     if (error) {
       console.error("Delete memory failed:", error);
+      toast.error(lang === "fr" ? "Erreur de suppression" : lang === "ar" ? "خطأ في الحذف" : "Delete failed");
       return;
     }
-    setMemories((prev) => prev.filter((m) => m.id !== memoryId));
+    setMemories((prev) => prev.filter((m) => m.id !== memoryToDelete));
+    setMemoryToDelete(null);
+    toast.success(
+      lang === "fr" ? "Souvenir supprimé." : lang === "ar" ? "تم حذف الذكرى." : "Memory deleted.",
+    );
   };
 
   useEffect(() => {
@@ -525,18 +525,56 @@ const Profile = () => {
       </div>
 
       <div style={{ padding: "24px 20px 0" }}>
-        <p
+        <div
           style={{
-            fontSize: "11px",
-            fontWeight: 900,
-            color: "#E8742A",
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginBottom: "16px",
+            gap: "12px",
           }}
         >
-          {lang === "fr" ? "Mes souvenirs" : lang === "ar" ? "ذكرياتي" : "My memories"}
-        </p>
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 900,
+              color: "#E8742A",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              margin: 0,
+            }}
+          >
+            {lang === "fr" ? "Mes souvenirs" : lang === "ar" ? "ذكرياتي" : "My memories"}
+          </p>
+          {memories.length > 0 && (
+            <button
+              onClick={() => setEditMode(!editMode)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "999px",
+                background: editMode ? "#E8742A" : "rgba(255,255,255,0.1)",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: 700,
+                minHeight: "36px",
+              }}
+            >
+              {editMode
+                ? lang === "fr"
+                  ? "Terminer"
+                  : lang === "ar"
+                    ? "إنهاء"
+                    : "Done"
+                : lang === "fr"
+                  ? "Modifier"
+                  : lang === "ar"
+                    ? "تعديل"
+                    : "Edit"}
+            </button>
+          )}
+        </div>
 
         {memories.length === 0 ? (
           <div
@@ -626,31 +664,33 @@ const Profile = () => {
                   position: "relative",
                 }}
               >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteMemory(memory.id);
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: "8px",
-                    right: "8px",
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "50%",
-                    background: "rgba(220,38,38,0.8)",
-                    border: "none",
-                    color: "#fff",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 5,
-                  }}
-                >
-                  ×
-                </button>
+                {editMode && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteMemory(memory.id);
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: "6px",
+                      right: "6px",
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      background: "rgba(220,38,38,0.9)",
+                      border: "2px solid #fff",
+                      color: "#fff",
+                      fontSize: "16px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 5,
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
                 {memory.thumbnail_url ? (
                   <img
                     src={memory.thumbnail_url}
@@ -753,6 +793,93 @@ const Profile = () => {
           {lang === "fr" ? "Contactez-nous" : lang === "ar" ? "تواصل معنا" : "Contact us"}
         </a>
       </div>
+
+      {memoryToDelete && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.85)",
+            zIndex: 200,
+            display: "flex",
+            alignItems: "flex-end",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "#0f0501",
+              borderRadius: "24px 24px 0 0",
+              padding: "32px 24px 48px",
+              textAlign: "center",
+            }}
+          >
+            <p style={{ fontSize: "32px", marginBottom: "8px" }}>🗑️</p>
+            <h3
+              style={{
+                color: "#fff",
+                fontSize: "18px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                marginBottom: "8px",
+              }}
+            >
+              {lang === "fr"
+                ? "Supprimer ce souvenir ?"
+                : lang === "ar"
+                  ? "هل تريد حذف هذه الذكرى؟"
+                  : "Delete this memory?"}
+            </h3>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.5)",
+                fontSize: "14px",
+                marginBottom: "32px",
+              }}
+            >
+              {lang === "fr"
+                ? "Cette action est irréversible."
+                : lang === "ar"
+                  ? "هذا الإجراء لا يمكن التراجع عنه."
+                  : "This action cannot be undone."}
+            </p>
+            <button
+              onClick={confirmDeleteMemory}
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: "16px",
+                background: "rgba(220,38,38,0.9)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "12px",
+              }}
+            >
+              {lang === "fr"
+                ? "Supprimer définitivement"
+                : lang === "ar"
+                  ? "حذف نهائياً"
+                  : "Delete permanently"}
+            </button>
+            <button
+              onClick={() => setMemoryToDelete(null)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.5)",
+                fontSize: "14px",
+                cursor: "pointer",
+              }}
+            >
+              {lang === "fr" ? "Annuler" : lang === "ar" ? "إلغاء" : "Cancel"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <CurvedBottomNav onPlusClick={() => navigate("/record")} />
     </div>
   );
