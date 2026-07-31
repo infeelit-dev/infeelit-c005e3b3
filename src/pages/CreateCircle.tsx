@@ -152,7 +152,7 @@ const CreateCircle = () => {
           {texts.copy}
         </button>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/circles")}
           className="text-sm underline underline-offset-2"
           style={{ color: "rgba(61,43,31,0.4)", background: "none", border: "none", cursor: "pointer" }}
         >
