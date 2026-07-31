@@ -194,6 +194,7 @@ type Stage =
   | "followup"
   | "thumbnail"
   | "title"
+  | "location"
   | "visibility"
   | "share";
 
@@ -361,12 +362,72 @@ const Record = () => {
   const [thumbnailsLoading, setThumbnailsLoading] = useState(false);
   const [isImportMode, setIsImportMode] = useState(false);
   const [importTimeline, setImportTimeline] = useState<"memories" | "instant" | "forever">("memories");
+  const [memoryLat, setMemoryLat] = useState<number | null>(null);
+  const [memoryLng, setMemoryLng] = useState<number | null>(null);
+  const [memoryLocationName, setMemoryLocationName] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [locationSearching, setLocationSearching] = useState(false);
 
   const location = useLocation();
   const locationVisibility = location.state?.locationVisibility || "family";
   const preSelected = location.state?.preSelectedQuestion;
   const inspiredBy = location.state?.inspiredBy;
   const replyTo = location.state?.replyTo;
+
+  useEffect(() => {
+    if (location.state?.latitude && location.state?.longitude) {
+      setMemoryLat(location.state.latitude);
+      setMemoryLng(location.state.longitude);
+      setMemoryLocationName(
+        lang === "fr" ? "Enregistré depuis la carte" : "Recorded from the map",
+      );
+    }
+  }, [location.state?.latitude, location.state?.longitude, lang]);
+
+  const searchLocation = async () => {
+    if (!locationSearch.trim()) return;
+    setLocationSearching(true);
+    try {
+      const apiKey = import.meta.env.VITE_STADIA_API_KEY;
+      const response = await fetch(
+        `https://api.stadiamaps.com/geocoding/v1/search?text=${encodeURIComponent(locationSearch)}&api_key=${apiKey}`,
+      );
+      const data = await response.json();
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].geometry.coordinates;
+        const name = data.features[0].properties.label || locationSearch;
+        setMemoryLat(lat);
+        setMemoryLng(lng);
+        setMemoryLocationName(name);
+      }
+    } catch (err) {
+      console.error("Location search failed:", err);
+    } finally {
+      setLocationSearching(false);
+    }
+  };
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setMemoryLat(pos.coords.latitude);
+        setMemoryLng(pos.coords.longitude);
+        setMemoryLocationName(
+          lang === "fr"
+            ? "Ma position actuelle"
+            : lang === "ar"
+              ? "موقعي الحالي"
+              : "My current location",
+        );
+      },
+      () => {
+        toast.error(
+          lang === "fr" ? "Position non disponible" : "Location unavailable",
+        );
+      },
+    );
+  };
 
   const initialQuestion = preSelected
     ? (preSelected[lang as keyof typeof preSelected] as string) ||
@@ -1212,6 +1273,9 @@ const Record = () => {
               ? new Date(deliverAtRef.current).toISOString()
               : null,
             location_visibility: locationVisibility,
+            latitude: memoryLat || null,
+            longitude: memoryLng || null,
+            location_name: memoryLocationName || null,
           })
           .select("id")
           .single();
@@ -2989,7 +3053,7 @@ const Record = () => {
             dir={rtl ? "rtl" : "ltr"}
           />
           <button
-            onClick={() => setStage("visibility")}
+            onClick={() => setStage("location")}
             className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-2"
             style={{ color: "#fff" }}
           >
@@ -2998,10 +3062,258 @@ const Record = () => {
         </div>
       )}
 
+      {stage === "location" && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 20,
+            background: "#0f0501",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            padding: "60px 24px 40px",
+            overflowY: "auto",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 900,
+              letterSpacing: "0.3em",
+              color: "#E8742A",
+              textTransform: "uppercase",
+              marginBottom: "8px",
+            }}
+          >
+            📍{" "}
+            {lang === "fr"
+              ? "Localiser ce souvenir"
+              : lang === "ar"
+                ? "تحديد موقع هذه الذكرى"
+                : "Locate this memory"}
+          </p>
+          <p
+            style={{
+              fontSize: "15px",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              color: "rgba(255,255,255,0.6)",
+              marginBottom: "32px",
+              textAlign: "center",
+              lineHeight: 1.5,
+            }}
+          >
+            {lang === "fr"
+              ? "Où s'est passé ce souvenir ?"
+              : lang === "ar"
+                ? "أين حدثت هذه الذكرى؟"
+                : "Where did this memory take place?"}
+          </p>
+
+          <button
+            onClick={useCurrentLocation}
+            style={{
+              width: "100%",
+              maxWidth: "360px",
+              padding: "18px",
+              borderRadius: "18px",
+              background: "rgba(232,116,42,0.15)",
+              border: "1.5px solid rgba(232,116,42,0.4)",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              cursor: "pointer",
+              marginBottom: "12px",
+              textAlign: "left",
+            }}
+          >
+            <span style={{ fontSize: "28px" }}>📍</span>
+            <div>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: "15px" }}>
+                {lang === "fr"
+                  ? "Utiliser ma position actuelle"
+                  : lang === "ar"
+                    ? "استخدام موقعي الحالي"
+                    : "Use my current location"}
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "12px",
+                  color: "rgba(255,255,255,0.4)",
+                  marginTop: "2px",
+                }}
+              >
+                {lang === "fr"
+                  ? "GPS de ton téléphone"
+                  : lang === "ar"
+                    ? "GPS هاتفك"
+                    : "Your phone GPS"}
+              </p>
+            </div>
+          </button>
+
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "360px",
+              marginBottom: "12px",
+            }}
+          >
+            <div style={{ display: "flex", gap: "8px" }}>
+              <input
+                type="text"
+                value={locationSearch}
+                onChange={(e) => setLocationSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && searchLocation()}
+                placeholder={
+                  lang === "fr"
+                    ? "Maison de grand-mère, école, ville..."
+                    : lang === "ar"
+                      ? "بيت الجدة، مدرسة، مدينة..."
+                      : "Grandmother's house, school, city..."
+                }
+                style={{
+                  flex: 1,
+                  padding: "14px 16px",
+                  borderRadius: "14px",
+                  border: "1.5px solid rgba(255,255,255,0.15)",
+                  background: "rgba(255,255,255,0.06)",
+                  color: "#fff",
+                  fontSize: "14px",
+                  outline: "none",
+                }}
+              />
+              <button
+                onClick={searchLocation}
+                disabled={locationSearching}
+                style={{
+                  padding: "14px 18px",
+                  borderRadius: "14px",
+                  background: "#E8742A",
+                  border: "none",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                }}
+              >
+                {locationSearching ? "⏳" : "🔍"}
+              </button>
+            </div>
+          </div>
+
+          {memoryLat && memoryLng && (
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "360px",
+                padding: "14px 16px",
+                borderRadius: "14px",
+                background: "rgba(212,175,55,0.1)",
+                border: "1px solid rgba(212,175,55,0.3)",
+                marginBottom: "24px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <span style={{ fontSize: "20px" }}>✓</span>
+              <div>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "#D4AF37",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {lang === "fr"
+                    ? "Lieu confirmé"
+                    : lang === "ar"
+                      ? "تم تأكيد الموقع"
+                      : "Location confirmed"}
+                </p>
+                <p
+                  style={{
+                    margin: "2px 0 0",
+                    color: "rgba(255,255,255,0.6)",
+                    fontSize: "12px",
+                  }}
+                >
+                  {memoryLocationName}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setMemoryLat(null);
+                  setMemoryLng(null);
+                  setMemoryLocationName("");
+                }}
+                style={{
+                  marginLeft: "auto",
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.4)",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={() => setStage("visibility")}
+            style={{
+              width: "100%",
+              maxWidth: "360px",
+              padding: "18px",
+              borderRadius: "18px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "16px",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+              marginBottom: "12px",
+            }}
+          >
+            {memoryLat
+              ? lang === "fr"
+                ? "Continuer avec ce lieu →"
+                : lang === "ar"
+                  ? "← متابعة مع هذا الموقع"
+                  : "Continue with this location →"
+              : lang === "fr"
+                ? "Continuer sans lieu →"
+                : lang === "ar"
+                  ? "← متابعة بدون موقع"
+                  : "Continue without location →"}
+          </button>
+          <button
+            onClick={() => setStage("title")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,0.4)",
+              fontSize: "13px",
+              cursor: "pointer",
+              padding: "8px",
+            }}
+          >
+            {lang === "fr" ? "← Retour" : lang === "ar" ? "رجوع →" : "← Back"}
+          </button>
+        </div>
+      )}
+
       {stage === "visibility" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
           <button
-            onClick={() => setStage(isFreeMode ? "thumbnail" : "title")}
+            onClick={() => setStage(isFreeMode ? "thumbnail" : "location")}
             style={{
               background: "none",
               border: "none",
