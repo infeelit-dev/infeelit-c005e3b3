@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
@@ -34,16 +35,118 @@ export default function MemoryFullscreen({
   onClose,
   currentUserId,
 }: MemoryFullscreenProps) {
+  const navigate = useNavigate();
   const { lang, rtl, t } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
   const [reportSent, setReportSent] = useState(false);
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const [sharingBusy, setSharingBusy] = useState(false);
+  const [showSparkQuestion, setShowSparkQuestion] = useState(false);
+  const [sparkQuestion, setSparkQuestion] = useState("");
+  const [hasShownSpark, setHasShownSpark] = useState(false);
 
   const isOwner = !!(currentUserId && bubble.user_id && currentUserId === bubble.user_id);
   const memoryUrl = `https://infeelit.com/memory/${bubble.id}`;
   const ogShareUrl = `https://rynnnhxfrcebdandsbjn.supabase.co/functions/v1/og-meta?id=${bubble.id}`;
+
+  const generateSparkQuestion = () => {
+    const title = bubble.title?.toLowerCase() || "";
+
+    const questions: Record<string, Record<string, string>> = {
+      cinema: {
+        fr: "Et toi — quel est le premier film qui t'a bouleversé ?",
+        en: "And you — what was the first film that moved you deeply?",
+        ar: "وأنت — ما هو أول فيلم أثّر فيك بعمق؟",
+      },
+      film: {
+        fr: "Et toi — quel film ne peux-tu jamais oublier ?",
+        en: "And you — which film can you never forget?",
+        ar: "وأنت — أي فيلم لا تستطيع نسيانه أبداً؟",
+      },
+      manger: {
+        fr: "Et toi — quel plat te ramène instantanément à ton enfance ?",
+        en: "And you — which dish instantly takes you back to childhood?",
+        ar: "وأنت — أي طبق يعيدك فوراً إلى طفولتك؟",
+      },
+      cuisine: {
+        fr: "Et toi — quelle odeur de cuisine ne peux-tu jamais oublier ?",
+        en: "And you — what cooking smell can you never forget?",
+        ar: "وأنت — أي رائحة طعام لا تستطيع نسيانها؟",
+      },
+      école: {
+        fr: "Et toi — quel souvenir d'école t'a le plus marqué ?",
+        en: "And you — what school memory marked you the most?",
+        ar: "وأنت — أي ذكرى مدرسية أثّرت فيك أكثر؟",
+      },
+      school: {
+        fr: "Et toi — quel professeur a changé quelque chose en toi ?",
+        en: "And you — which teacher changed something in you?",
+        ar: "وأنت — أي معلم غيّر شيئاً فيك؟",
+      },
+      maman: {
+        fr: "Et toi — quelle est la dernière chose que ta maman t'a apprise ?",
+        en: "And you — what is the last thing your mother taught you?",
+        ar: "وأنت — ما آخر شيء علّمتك إياه أمّك؟",
+      },
+      papa: {
+        fr: "Et toi — quelle phrase de ton père entends-tu encore ?",
+        en: "And you — which words from your father do you still hear?",
+        ar: "وأنت — أي كلمات والدك لا تزال تسمعها؟",
+      },
+      père: {
+        fr: "Et toi — quelle leçon de vie t'a transmise ton père ?",
+        en: "And you — what life lesson did your father pass on to you?",
+        ar: "وأنت — أي درس حياة نقله إليك والدك؟",
+      },
+      mère: {
+        fr: "Et toi — quel geste de ta mère te manque le plus ?",
+        en: "And you — which gesture of your mother do you miss the most?",
+        ar: "وأنت — أي إيماءة من أمّك تفتقدها أكثر؟",
+      },
+      enfance: {
+        fr: "Et toi — quel est ton souvenir d'enfance le plus lumineux ?",
+        en: "And you — what is your brightest childhood memory?",
+        ar: "وأنت — ما هي أضوأ ذكريات طفولتك؟",
+      },
+      jouet: {
+        fr: "Et toi — quel jouet as-tu le plus aimé dans ta vie ?",
+        en: "And you — what toy did you love the most in your life?",
+        ar: "وأنت — أي لعبة أحببتها أكثر في حياتك؟",
+      },
+      voyage: {
+        fr: "Et toi — quel voyage a changé ta façon de voir le monde ?",
+        en: "And you — which journey changed the way you see the world?",
+        ar: "وأنت — أي رحلة غيّرت طريقة نظرتك للعالم؟",
+      },
+      maison: {
+        fr: "Et toi — quelle maison de ton passé revois-tu en fermant les yeux ?",
+        en: "And you — which house from your past do you see when you close your eyes?",
+        ar: "وأنت — أي بيت من ماضيك تراه حين تغمض عينيك؟",
+      },
+      amour: {
+        fr: "Et toi — quel moment d'amour n'as-tu jamais oublié ?",
+        en: "And you — what moment of love have you never forgotten?",
+        ar: "وأنت — أي لحظة حب لم تنسَها قط؟",
+      },
+      default: {
+        fr: "Et toi — quel souvenir voudrais-tu préserver pour toujours ?",
+        en: "And you — which memory would you like to preserve forever?",
+        ar: "وأنت — أي ذكرى تريد الحفاظ عليها إلى الأبد؟",
+      },
+    };
+
+    let matched = "default";
+    for (const keyword of Object.keys(questions)) {
+      if (keyword !== "default" && title.includes(keyword)) {
+        matched = keyword;
+        break;
+      }
+    }
+
+    const langKey = lang === "fr" ? "fr" : lang === "ar" ? "ar" : "en";
+    setSparkQuestion(questions[matched]?.[langKey] || questions.default[langKey]);
+  };
 
   const handleReport = async () => {
     if (!currentUserId || !bubble.id || reportSent) return;
@@ -216,7 +319,25 @@ export default function MemoryFullscreen({
           src={bubble.file_url}
           autoPlay
           playsInline
-          loop
+          onEnded={() => {
+            if (!hasShownSpark) {
+              setHasShownSpark(true);
+              generateSparkQuestion();
+              setShowSparkQuestion(true);
+            }
+          }}
+          onTimeUpdate={(e) => {
+            const el = e.currentTarget;
+            if (
+              !hasShownSpark &&
+              el.duration > 0 &&
+              el.currentTime / el.duration > 0.8
+            ) {
+              setHasShownSpark(true);
+              generateSparkQuestion();
+              setTimeout(() => setShowSparkQuestion(true), 2000);
+            }
+          }}
           style={{
             width: "100%",
             height: "100%",
@@ -278,7 +399,29 @@ export default function MemoryFullscreen({
           </div>
 
           {bubble.file_url && (
-            <audio autoPlay loop style={{ display: "none" }}>
+            <audio
+              autoPlay
+              style={{ display: "none" }}
+              onEnded={() => {
+                if (!hasShownSpark) {
+                  setHasShownSpark(true);
+                  generateSparkQuestion();
+                  setShowSparkQuestion(true);
+                }
+              }}
+              onTimeUpdate={(e) => {
+                const el = e.currentTarget;
+                if (
+                  !hasShownSpark &&
+                  el.duration > 0 &&
+                  el.currentTime / el.duration > 0.8
+                ) {
+                  setHasShownSpark(true);
+                  generateSparkQuestion();
+                  setTimeout(() => setShowSparkQuestion(true), 2000);
+                }
+              }}
+            >
               <source src={bubble.file_url} />
             </audio>
           )}
@@ -821,6 +964,133 @@ export default function MemoryFullscreen({
           </div>
         </div>
       )}
+
+      {showSparkQuestion && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.92)",
+            zIndex: 300,
+            display: "flex",
+            alignItems: "flex-end",
+            animation: "fadeIn 0.5s ease",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "linear-gradient(to top, #0f0501, #1a0a05)",
+              borderRadius: "24px 24px 0 0",
+              padding: "40px 24px 56px",
+              textAlign: "center",
+              borderTop: "1px solid rgba(212,175,55,0.2)",
+            }}
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "3px",
+                background: "rgba(255,255,255,0.2)",
+                borderRadius: "999px",
+                margin: "0 auto 24px",
+              }}
+            />
+
+            <p
+              style={{
+                fontSize: "11px",
+                fontWeight: 900,
+                letterSpacing: "0.3em",
+                color: "#D4AF37",
+                textTransform: "uppercase",
+                marginBottom: "16px",
+              }}
+            >
+              ✦{" "}
+              {lang === "fr"
+                ? "Ce souvenir t'a touché"
+                : lang === "ar"
+                  ? "لمستك هذه الذكرى"
+                  : "This memory touched you"}
+            </p>
+
+            <h3
+              style={{
+                color: "#fff",
+                fontSize: "20px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                lineHeight: 1.5,
+                marginBottom: "32px",
+                padding: "0 8px",
+              }}
+            >
+              {sparkQuestion}
+            </h3>
+
+            <button
+              onClick={() => {
+                setShowSparkQuestion(false);
+                navigate("/record", {
+                  state: {
+                    question: sparkQuestion,
+                    inspiredBy: {
+                      memoryId: bubble.id,
+                      title: bubble.title,
+                    },
+                  },
+                });
+              }}
+              style={{
+                width: "100%",
+                padding: "18px",
+                borderRadius: "18px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "12px",
+                boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
+              🎙️{" "}
+              {lang === "fr"
+                ? "Enregistrer ma réponse"
+                : lang === "ar"
+                  ? "سجّل إجابتي"
+                  : "Record my answer"}
+            </button>
+
+            <button
+              onClick={() => setShowSparkQuestion(false)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "14px",
+                cursor: "pointer",
+                padding: "8px",
+              }}
+            >
+              {lang === "fr" ? "Plus tard" : lang === "ar" ? "لاحقاً" : "Maybe later"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
