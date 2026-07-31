@@ -75,6 +75,11 @@ const App = () => (
                 <Profile />
               </HeaderProvider>
             } />
+            <Route path="/profile/:userId" element={
+              <HeaderProvider showBack pageTitle="Mon espace">
+                <Profile />
+              </HeaderProvider>
+            } />
             <Route path="/about" element={<About />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
