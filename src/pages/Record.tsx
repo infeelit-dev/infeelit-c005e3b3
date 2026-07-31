@@ -1348,7 +1348,7 @@ const Record = () => {
       } catch (er: any) {
         if (er?.name === "AbortError") return;
         navigator.clipboard.writeText(txt + " " + url);
-        toast.success(lang === "ar" ? "تم نسخ الرابط!" : pickLocalized(lang, { fr: "Lien copié !" : "Link copied!");
+        toast.success(lang === "ar" ? "تم نسخ الرابط!" : pickLocalized(lang, { fr: "Lien copié !", en: "Link copied!" }));
       }
     } else {
       navigator.clipboard.writeText(txt + " " + url);
@@ -3162,7 +3162,7 @@ const Record = () => {
                 marginBottom: "8px",
               }}
             >
-              ✦ {lang === "fr" ? "Souvenir préservé", ar: "تم حفظ الذكرى", en: "Memory preserved" })}
+              ✦ {pickLocalized(lang, { fr: "Souvenir préservé", ar: "تم حفظ الذكرى", en: "Memory preserved" })}
             </p>
             <p
               style={{
