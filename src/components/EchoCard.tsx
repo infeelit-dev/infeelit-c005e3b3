@@ -185,4 +185,102 @@ const generateEchoCard = async (
   });
 };
 
+/**
+ * Instagram Stories–optimized card: larger type, link-sticker hint, bottom safe zone.
+ */
+export const generateStoriesCard = async (
+  memory: {
+    title?: string | null;
+    transcript_fr?: string | null;
+    transcript_en?: string | null;
+    transcript_ar?: string | null;
+    detected_lang?: string | null;
+  },
+  anonymous: boolean = false,
+): Promise<Blob> => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas not supported");
+
+  ctx.fillStyle = "#0a0501";
+  ctx.fillRect(0, 0, 1080, 1920);
+
+  const g = ctx.createRadialGradient(540, 960, 0, 540, 960, 900);
+  g.addColorStop(0, "rgba(232,116,42,0.1)");
+  g.addColorStop(1, "transparent");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 1080, 1920);
+
+  // Top hint for Stories link sticker (safe from top chrome)
+  ctx.fillStyle = "rgba(255,255,255,0.3)";
+  ctx.font = "32px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("↑ Add link sticker here", 540, 120);
+
+  ctx.fillStyle = "#E8742A";
+  ctx.font = "bold 60px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.fillText("✦ infeelit", 540, 280);
+
+  if (!anonymous) {
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "italic 80px Georgia, serif";
+    ctx.textAlign = "center";
+    wrapText(ctx, memory.title || "A memory", 540, 560, 900, 100, 2);
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = "italic 52px Georgia, serif";
+    ctx.textAlign = "center";
+    wrapText(ctx, "A memory preserved on Infeelit ✦", 540, 600, 900, 64, 2);
+  }
+
+  const bars = 36;
+  const bw = 18;
+  const gap = 12;
+  const tw = bars * (bw + gap);
+  const sx = (1080 - tw) / 2;
+  for (let i = 0; i < bars; i++) {
+    const h = 50 + Math.sin(i * 0.6) * 90 + Math.random() * 50;
+    ctx.fillStyle = `rgba(212,175,55,${0.5 + Math.sin(i * 0.4) * 0.4})`;
+    fillRoundRect(ctx, sx + i * (bw + gap), 1000 - h / 2, bw, h, 6);
+  }
+
+  const transcript =
+    memory.transcript_fr || memory.transcript_en || memory.transcript_ar || null;
+  if (transcript && !anonymous) {
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.font = "italic 48px Georgia, serif";
+    ctx.textAlign = "center";
+    wrapText(ctx, `"${transcript.slice(0, 70)}..."`, 540, 1220, 900, 58, 3);
+  }
+
+  // CTA above Stories bottom UI safe zone
+  ctx.fillStyle = "#E8742A";
+  fillRoundRect(ctx, 240, 1520, 600, 110, 55);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 46px Georgia, serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("Hear the full story →", 540, 1575);
+  ctx.textBaseline = "alphabetic";
+
+  ctx.fillStyle = "rgba(255,255,255,0.25)";
+  ctx.font = "38px Georgia, serif";
+  ctx.fillText("infeelit.com", 540, 1750);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to generate Stories card"));
+      },
+      "image/png",
+      0.95,
+    );
+  });
+};
+
 export default generateEchoCard;
