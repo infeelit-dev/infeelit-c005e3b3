@@ -63,6 +63,7 @@ export const LANGUAGES: {
 }[] = [
   { code: "en", label: "English", flag: "🇬🇧" },
   { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "kab", label: "Taqbaylit", flag: "🇩🇿" },
   { code: "ar", label: "العربية", flag: "🇸🇦", rtl: true },
   { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
   { code: "ur", label: "اردو", flag: "🇵🇰", rtl: true },
@@ -72,13 +73,12 @@ export const LANGUAGES: {
   { code: "pt", label: "Português", flag: "🇧🇷" },
   { code: "tr", label: "Türkçe", flag: "🇹🇷" },
   { code: "sw", label: "Kiswahili", flag: "🇰🇪" },
-  { code: "kab", label: "Taqbaylit", flag: "🇩🇿" },
   { code: "de", label: "Deutsch", flag: "🇩🇪" },
   { code: "it", label: "Italiano", flag: "🇮🇹" },
   { code: "ja", label: "日本語", flag: "🇯🇵" },
   { code: "bn", label: "বাংলা", flag: "🇧🇩" },
   { code: "fa", label: "فارسی", flag: "🇮🇷", rtl: true },
-  { code: "zgh", label: "ⵜⴰⵎⴰⵣⵉⵖⵜ", flag: "ⵣ" },
+  { code: "zgh", label: "ⵜⴰⵎⴰⵣⵉⵖⵜ", flag: "⵰" },
 ];
 
 /** Canvas / UI font family for script-specific rendering */
