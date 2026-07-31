@@ -251,7 +251,7 @@ serve(async (req) => {
                    alt="Infeelit"
                    style="display:block;margin:0 auto 16px;border-radius:50%;">
               <p style="margin:0;font-size:26px;color:#E8742A;letter-spacing:0.1em;font-family:Georgia,serif;">
-                ✦ infeelit
+                ✦ Infeelit
               </p>
               <p style="margin:8px 0 0;font-size:13px;color:#999999;font-style:italic;">
                 ${copy.tagline}
