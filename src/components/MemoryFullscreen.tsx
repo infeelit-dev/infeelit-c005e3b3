@@ -3,7 +3,10 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import { supabase } from "@/integrations/supabase/client";
-import generateEchoCard, { generateStoriesCard } from "@/components/EchoCard";
+import generateEchoCard, {
+  generateStoriesCard,
+  generateTeaserVideo,
+} from "@/components/EchoCard";
 
 interface MemoryFullscreenProps {
   bubble: {
@@ -179,6 +182,29 @@ export default function MemoryFullscreen({
     } catch (err) {
       console.error("Stories card failed:", err);
       toast.error("Could not generate Stories card.");
+    } finally {
+      setSharingBusy(false);
+    }
+  };
+
+  const handleGenerateTeaserVideo = async () => {
+    if (sharingBusy) return;
+    setSharingBusy(true);
+    toast.info("Generating teaser video... (~12 seconds)");
+    try {
+      const blob = await generateTeaserVideo(bubble);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = blob.type.includes("mp4")
+        ? "infeelit-teaser.mp4"
+        : "infeelit-teaser.webm";
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Teaser video ready! Upload to TikTok or Instagram Reels.");
+    } catch (err) {
+      console.error("Teaser video failed:", err);
+      toast.error("Could not generate teaser video on this device.");
     } finally {
       setSharingBusy(false);
     }
@@ -716,6 +742,43 @@ export default function MemoryFullscreen({
                     }}
                   >
                     Add a link sticker in Stories
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleGenerateTeaserVideo}
+                disabled={sharingBusy}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: sharingBusy ? "wait" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginTop: "8px",
+                  opacity: sharingBusy ? 0.7 : 1,
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>🎵</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>
+                    Generate TikTok/Reels teaser
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    12s animated video with waveform
                   </p>
                 </div>
               </button>

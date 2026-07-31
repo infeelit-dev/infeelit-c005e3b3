@@ -283,4 +283,147 @@ export const generateStoriesCard = async (
   });
 };
 
+function pickRecorderMimeType(): string {
+  const candidates = [
+    "video/webm;codecs=vp9",
+    "video/webm;codecs=vp8",
+    "video/webm",
+    "video/mp4",
+  ];
+  for (const type of candidates) {
+    if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(type)) {
+      return type;
+    }
+  }
+  return "video/webm";
+}
+
+/**
+ * 12s animated 9:16 teaser for TikTok / Instagram Reels upload.
+ */
+export const generateTeaserVideo = async (
+  memory: {
+    title?: string | null;
+    transcript_fr?: string | null;
+    transcript_en?: string | null;
+    transcript_ar?: string | null;
+    file_url?: string | null;
+  },
+  durationSeconds: number = 12,
+): Promise<Blob> => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas not supported");
+
+  const stream = canvas.captureStream(30);
+  const mimeType = pickRecorderMimeType();
+  const recorder = new MediaRecorder(stream, {
+    mimeType,
+    videoBitsPerSecond: 2_500_000,
+  });
+
+  const chunks: Blob[] = [];
+  recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) chunks.push(e.data);
+  };
+
+  const transcript =
+    memory.transcript_fr || memory.transcript_en || memory.transcript_ar || "";
+  const title = memory.title || "A memory";
+
+  return new Promise((resolve, reject) => {
+    let raf = 0;
+    const startTime = Date.now();
+
+    recorder.onerror = () => {
+      cancelAnimationFrame(raf);
+      reject(new Error("MediaRecorder failed"));
+    };
+
+    recorder.onstop = () => {
+      cancelAnimationFrame(raf);
+      stream.getTracks().forEach((t) => t.stop());
+      resolve(new Blob(chunks, { type: mimeType.startsWith("video/mp4") ? "video/mp4" : "video/webm" }));
+    };
+
+    const animate = () => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      if (elapsed >= durationSeconds) {
+        if (recorder.state !== "inactive") recorder.stop();
+        return;
+      }
+
+      ctx.fillStyle = "#0a0501";
+      ctx.fillRect(0, 0, 1080, 1920);
+
+      const pulse = (Math.sin(elapsed * 2) + 1) / 2;
+      const g = ctx.createRadialGradient(540, 960, 0, 540, 960, 600 + pulse * 200);
+      g.addColorStop(0, `rgba(232,116,42,${0.05 + pulse * 0.08})`);
+      g.addColorStop(1, "transparent");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 1080, 1920);
+
+      ctx.fillStyle = "#E8742A";
+      ctx.font = "bold 52px Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText("✦ infeelit", 540, 200);
+
+      const titleOpacity = Math.min(1, elapsed / 1.5);
+      ctx.fillStyle = `rgba(255,255,255,${titleOpacity})`;
+      ctx.font = "italic 76px Georgia, serif";
+      wrapText(ctx, title, 540, 520, 900, 95, 2);
+
+      const bars = 40;
+      const bw = 14;
+      const gap = 12;
+      const tw = bars * (bw + gap);
+      const sx = (1080 - tw) / 2;
+      for (let i = 0; i < bars; i++) {
+        const h =
+          40 +
+          Math.sin(i * 0.5 + elapsed * 3) * 70 +
+          Math.sin(i * 0.3 + elapsed * 2) * 40;
+        const opacity = 0.4 + Math.sin(i * 0.4 + elapsed * 2) * 0.4;
+        ctx.fillStyle = `rgba(212,175,55,${opacity})`;
+        fillRoundRect(ctx, sx + i * (bw + gap), 980 - h / 2, bw, Math.max(h, 10), 5);
+      }
+
+      if (elapsed > 3 && transcript) {
+        const teaserOpacity = Math.min(1, (elapsed - 3) / 1);
+        ctx.fillStyle = `rgba(255,255,255,${teaserOpacity * 0.65})`;
+        ctx.font = "italic 44px Georgia, serif";
+        wrapText(ctx, `"${transcript.slice(0, 70)}..."`, 540, 1220, 900, 56, 3);
+      }
+
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.font = "bold 40px Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.fillText("infeelit.com", 540, 1750);
+
+      if (elapsed > 8) {
+        const ctaOpacity = Math.min(1, (elapsed - 8) / 0.5);
+        ctx.fillStyle = `rgba(232,116,42,${ctaOpacity})`;
+        fillRoundRect(ctx, 240, 1550, 600, 100, 50);
+        ctx.fillStyle = `rgba(255,255,255,${ctaOpacity})`;
+        ctx.font = "bold 40px Georgia, serif";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Hear the full story →", 540, 1600);
+        ctx.textBaseline = "alphabetic";
+      }
+
+      raf = requestAnimationFrame(animate);
+    };
+
+    try {
+      recorder.start(100);
+      raf = requestAnimationFrame(animate);
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
 export default generateEchoCard;
