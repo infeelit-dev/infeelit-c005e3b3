@@ -86,6 +86,7 @@ const Circle = () => {
   const sphereTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [loading, setLoading] = useState(true);
+  const [circleError, setCircleError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [sphereMode, setSphereMode] = useState<SphereMode>("question");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
@@ -101,6 +102,7 @@ const Circle = () => {
 
   const loadCircleData = useCallback(async () => {
     setLoading(true);
+    setCircleError(null);
     try {
       const {
         data: { session },
@@ -121,7 +123,13 @@ const Circle = () => {
 
       if (membershipError) {
         console.error("Circle memberships error:", membershipError);
-        setCircle(null);
+        setCircleError(
+          lang === "fr"
+            ? "Erreur de chargement"
+            : lang === "ar"
+              ? "خطأ في التحميل"
+              : "Failed to load circle",
+        );
         return;
       }
 
@@ -178,11 +186,17 @@ const Circle = () => {
       setMemories(validMemories);
     } catch (err) {
       console.error("loadCircleData failed:", err);
-      setCircle(null);
+      setCircleError(
+        lang === "fr"
+          ? "Erreur de chargement"
+          : lang === "ar"
+            ? "خطأ في التحميل"
+            : "Failed to load circle",
+      );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     loadCircleData();
