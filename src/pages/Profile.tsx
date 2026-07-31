@@ -17,7 +17,7 @@ const LoadingSpinner = () => (
   <div
     style={{
       minHeight: "100vh",
-      background: "#FDF8F0",
+      background: "#0f0501",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -153,7 +153,7 @@ const Profile = () => {
         dir={rtl ? "rtl" : "ltr"}
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(160deg, #2D1810 0%, #8B3A1A 50%, #E8742A 100%)",
+          background: "linear-gradient(160deg, #0f0501 0%, #1a0a05 40%, #8B3A1A 75%, #E8742A 100%)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -268,8 +268,8 @@ const Profile = () => {
             maxWidth: "300px",
             padding: "18px",
             borderRadius: "18px",
-            background: "#fff",
-            color: "#E8742A",
+            background: "linear-gradient(135deg, #E8742A, #D4621A)",
+            color: "#fff",
             fontWeight: 800,
             fontSize: "17px",
             border: "none",
@@ -311,13 +311,13 @@ const Profile = () => {
       dir={rtl ? "rtl" : "ltr"}
       style={{
         minHeight: "100vh",
-        background: "#FDF8F0",
+        background: "#0f0501",
         paddingBottom: "100px",
       }}
     >
       <div
         style={{
-          background: "linear-gradient(160deg, #2D1810, #8B3A1A)",
+          background: "linear-gradient(160deg, #0f0501 0%, #1a0a05 60%, #2D1810 100%)",
           padding: "60px 24px 32px",
           textAlign: "center",
           position: "relative",
@@ -551,7 +551,7 @@ const Profile = () => {
             <p style={{ fontSize: "48px", margin: 0 }}>✦</p>
             <h3
               style={{
-                color: "#3D2B1F",
+                color: "#ffffff",
                 fontSize: "20px",
                 fontFamily: "Georgia, serif",
                 fontStyle: "italic",
@@ -567,7 +567,7 @@ const Profile = () => {
             </h3>
             <p
               style={{
-                color: "rgba(61,43,31,0.5)",
+                color: "rgba(255,255,255,0.5)",
                 fontSize: "14px",
                 lineHeight: 1.6,
                 margin: 0,
@@ -701,8 +701,8 @@ const Profile = () => {
             padding: "14px",
             borderRadius: "14px",
             background: "none",
-            border: "1px solid rgba(61,43,31,0.12)",
-            color: "rgba(61,43,31,0.5)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            color: "rgba(255,255,255,0.5)",
             fontWeight: 600,
             fontSize: "14px",
             cursor: "pointer",
@@ -721,13 +721,13 @@ const Profile = () => {
         style={{
           textAlign: "center",
           padding: "32px 24px 16px",
-          borderTop: "1px solid rgba(61,43,31,0.08)",
+          borderTop: "1px solid rgba(255,255,255,0.08)",
           marginTop: "32px",
         }}
       >
         <p
           style={{
-            color: "rgba(61,43,31,0.35)",
+            color: "rgba(255,255,255,0.4)",
             fontSize: "12px",
             marginBottom: "8px",
           }}
@@ -741,7 +741,7 @@ const Profile = () => {
         <a
           href="mailto:malik@infeelit.com?subject=Account deletion request"
           style={{
-            color: "rgba(61,43,31,0.4)",
+            color: "rgba(255,255,255,0.45)",
             fontSize: "12px",
             textDecoration: "underline",
           }}

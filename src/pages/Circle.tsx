@@ -55,7 +55,7 @@ const MEMBER_LAYOUTS = [
   { leftPct: 53, topPct: 72.2, sizePct: 16.2, float: "mf-a", delay: "0.4s" },
 ];
 
-const MEMBER_COLORS = ["#E8742A", "#6B4E9B", "#2D6A4F", "#C45C26", "#3D2B1A", "#D4AF37"];
+const MEMBER_COLORS = ["#E8742A", "#D4AF37", "#2D6A4F", "#C45C26", "#E8A87C", "#8B5CF6"];
 
 const BG_BUBBLES = [
   { photo: grandfatherImg, size: 64, x: 2, y: 6, anim: "bg-s", delay: "0s", op: 0.13 },
@@ -287,7 +287,7 @@ const Circle = () => {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: "radial-gradient(ellipse at 50% 36%, #F5E6CC 0%, #D2B48C 100%)" }}
+        style={{ background: "radial-gradient(ellipse at 50% 36%, #1a0a05 0%, #0f0501 55%, #0a0301 100%)" }}
       >
         <div
           style={{
@@ -310,7 +310,7 @@ const Circle = () => {
         className="min-h-screen flex flex-col"
         dir={rtl ? "rtl" : "ltr"}
         style={{
-          background: "radial-gradient(ellipse at 50% 36%, #F5E6CC 0%, #D2B48C 100%)",
+          background: "radial-gradient(ellipse at 50% 36%, #1a0a05 0%, #0f0501 55%, #0a0301 100%)",
           fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
         }}
       >
@@ -322,7 +322,7 @@ const Circle = () => {
               fontSize: "22px",
               fontFamily: "Georgia, serif",
               fontStyle: "italic",
-              color: "#3D2B1A",
+              color: "#ffffff",
               lineHeight: 1.4,
             }}
           >
@@ -332,7 +332,7 @@ const Circle = () => {
                 ? "أنشئ دائرتك العائلية"
                 : "Create your family circle"}
           </h1>
-          <p style={{ fontSize: "14px", color: "rgba(61,43,26,0.55)", maxWidth: "280px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", maxWidth: "280px", lineHeight: 1.6 }}>
             {lang === "fr"
               ? "Un espace privé pour préserver les voix de ceux que tu aimes."
               : lang === "ar"
@@ -375,7 +375,7 @@ const Circle = () => {
             style={{
               background: "none",
               border: "none",
-              color: "rgba(61,43,26,0.5)",
+              color: "rgba(255,255,255,0.5)",
               fontSize: "14px",
               cursor: "pointer",
               padding: "8px",
@@ -397,8 +397,8 @@ const Circle = () => {
       className="min-h-screen flex flex-col relative overflow-x-hidden"
       dir={rtl ? "rtl" : "ltr"}
       style={{
-        background: "radial-gradient(ellipse at 50% 36%, #F5E6CC 0%, #D2B48C 100%)",
-        backgroundColor: "#D2B48C",
+        background: "radial-gradient(ellipse at 50% 36%, #1a0a05 0%, #0f0501 55%, #0a0301 100%)",
+        backgroundColor: "#0f0501",
         fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
       }}
     >
@@ -457,15 +457,15 @@ const Circle = () => {
         <button
           onClick={() => navigate(-1)}
           className="p-2 rounded-full"
-          style={{ backgroundColor: "rgba(61,43,26,.12)", color: "#3D2B1A" }}
+          style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "#ffffff" }}
         >
           ←
         </button>
         <div className="text-center">
-          <h1 className="font-bold text-lg font-serif" style={{ color: "#3D2B1A" }}>
+          <h1 className="font-bold text-lg font-serif" style={{ color: "#ffffff" }}>
             {circle.name}
           </h1>
-          <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(61,43,26,.42)" }}>
+          <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>
             {t.ourCircle} · {members.length}{" "}
             {lang === "fr" ? "membres" : lang === "ar" ? "أعضاء" : "members"}
           </p>
@@ -492,7 +492,7 @@ const Circle = () => {
               height: `${((r * 2) / 510) * 100}%`,
               left: `${((185 - r) / 370) * 100}%`,
               top: `${((198 - r) / 510) * 100}%`,
-              border: `1px solid rgba(139,90,43,${0.08 + i * 0.04})`,
+              border: `1px solid rgba(212,175,55,${0.08 + i * 0.04})`,
             }}
           />
         ))}
@@ -555,7 +555,7 @@ const Circle = () => {
           )}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
-            style={{ background: "linear-gradient(135deg,rgba(255,255,255,.26) 0%,transparent 55%)" }}
+            style={{ background: "linear-gradient(135deg,rgba(232,116,42,.2) 0%,transparent 55%)" }}
           />
         </div>
 
@@ -585,7 +585,7 @@ const Circle = () => {
                   borderRadius: "50%",
                   overflow: "hidden",
                   position: "relative",
-                  border: "2.5px solid rgba(255,255,255,.62)",
+                  border: "2.5px solid rgba(212,175,55,.5)",
                   boxShadow: "0 4px 14px rgba(0,0,0,.16)",
                   background: color,
                   display: "flex",
@@ -599,15 +599,15 @@ const Circle = () => {
                 style={{
                   fontSize: "8.5px",
                   fontWeight: 700,
-                  color: "#3D2B1A",
+                  color: "#ffffff",
                   textAlign: "center",
                   marginTop: "3px",
-                  textShadow: "0 1px 2px rgba(255,255,255,.75)",
+                  textShadow: "0 1px 4px rgba(0,0,0,.75)",
                 }}
               >
                 {name}
               </p>
-              <p style={{ fontSize: "7px", color: "rgba(61,43,26,.48)", textAlign: "center", lineHeight: 1.1 }}>
+              <p style={{ fontSize: "7px", color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.1 }}>
                 {count}{" "}
                 {lang === "fr" ? "souvenirs" : lang === "ar" ? "ذكريات" : "memories"}
               </p>
@@ -624,7 +624,7 @@ const Circle = () => {
               fontWeight: 900,
               letterSpacing: ".16em",
               textTransform: "uppercase",
-              color: "rgba(61,43,26,.38)",
+              color: "rgba(255,255,255,0.4)",
             }}
           >
             {t.thisWeek}
@@ -635,12 +635,12 @@ const Circle = () => {
             style={{
               padding: "24px 16px",
               borderRadius: "16px",
-              background: "rgba(255,255,255,.36)",
+              background: "rgba(255,255,255,0.08)",
               border: "1px solid rgba(180,140,80,.38)",
               textAlign: "center",
             }}
           >
-            <p style={{ fontSize: "13px", color: "rgba(61,43,26,.55)", marginBottom: "12px" }}>
+            <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.55)", marginBottom: "12px" }}>
               {lang === "fr"
                 ? "Aucun souvenir partagé pour l'instant."
                 : lang === "ar"
@@ -672,7 +672,7 @@ const Circle = () => {
                 style={{
                   width: "148px",
                   height: "116px",
-                  backgroundColor: "rgba(255,255,255,.36)",
+                  backgroundColor: "rgba(255,255,255,0.08)",
                   border: "1px solid rgba(180,140,80,.38)",
                   backdropFilter: "blur(6px)",
                 }}
@@ -707,10 +707,10 @@ const Circle = () => {
                 </div>
                 <div style={{ padding: "5px 8px" }}>
                   <div className="flex items-center gap-1.5">
-                    <p style={{ fontSize: "8px", fontWeight: 700, color: "#3D2B1A" }}>
+                    <p style={{ fontSize: "8px", fontWeight: 700, color: "#ffffff" }}>
                       {memberNameById(card.user_id)}
                     </p>
-                    <span style={{ fontSize: "7px", color: "rgba(61,43,26,.4)", marginLeft: "auto" }}>
+                    <span style={{ fontSize: "7px", color: "rgba(255,255,255,0.45)", marginLeft: "auto" }}>
                       {timeAgo(card.created_at, lang)}
                     </span>
                   </div>
@@ -718,7 +718,7 @@ const Circle = () => {
                     style={{
                       fontSize: "9px",
                       fontWeight: 600,
-                      color: "#3D2B1A",
+                      color: "#ffffff",
                       marginTop: "2px",
                       overflow: "hidden",
                       whiteSpace: "nowrap",
@@ -746,8 +746,8 @@ const Circle = () => {
                 activeFilter === f.id
                   ? { backgroundColor: "#E8742A", color: "#fff", boxShadow: "0 3px 12px rgba(232,116,42,.45)" }
                   : {
-                      backgroundColor: "rgba(255,255,255,.48)",
-                      color: "#3D2B1A",
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                      color: "#ffffff",
                       border: "1px solid rgba(180,140,80,.36)",
                     }
               }
@@ -761,7 +761,7 @@ const Circle = () => {
       <div className="px-5 pb-36 relative z-10 space-y-3">
         <div
           className="flex items-center gap-3 p-4 rounded-2xl"
-          style={{ backgroundColor: "rgba(255,255,255,.38)", border: "1px solid rgba(180,140,80,.36)" }}
+          style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(180,140,80,.36)" }}
         >
           <div className="flex-1 min-w-0">
             <p
@@ -769,13 +769,13 @@ const Circle = () => {
                 fontSize: "8px",
                 textTransform: "uppercase",
                 letterSpacing: ".1em",
-                color: "rgba(61,43,26,.36)",
+                color: "rgba(255,255,255,0.4)",
                 marginBottom: "2px",
               }}
             >
               {t.inviteLink}
             </p>
-            <p className="font-mono text-sm truncate" style={{ color: "#3D2B1A" }}>
+            <p className="font-mono text-sm truncate" style={{ color: "#ffffff" }}>
               {circleCode ? `infeelit.com/join/${circleCode}` : "…"}
             </p>
           </div>
@@ -785,13 +785,13 @@ const Circle = () => {
             style={
               copied
                 ? { backgroundColor: "rgba(16,185,129,.2)", border: "1px solid rgba(16,185,129,.4)" }
-                : { backgroundColor: "rgba(255,255,255,.55)", border: "1px solid rgba(180,140,80,.36)" }
+                : { backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(180,140,80,.36)" }
             }
           >
             {copied ? (
               <Check size={16} className="text-emerald-500" />
             ) : (
-              <Copy size={16} style={{ color: "#3D2B1A" }} />
+              <Copy size={16} style={{ color: "#ffffff" }} />
             )}
           </button>
         </div>
@@ -831,7 +831,7 @@ const Circle = () => {
               : "Import my WhatsApp group"}
         </button>
 
-        <p className="text-center text-xs" style={{ color: "rgba(61,43,26,.28)" }}>
+        <p className="text-center text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
           {t.circlePrivate}
         </p>
       </div>
