@@ -97,6 +97,11 @@ const Circle = () => {
   const [showGroupImport, setShowGroupImport] = useState(false);
   const [groupNames, setGroupNames] = useState("");
   const [generatedMessage, setGeneratedMessage] = useState("");
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [inviteCodeInput, setInviteCodeInput] = useState("");
+  const [renamingCircle, setRenamingCircle] = useState(false);
+  const [newCircleName, setNewCircleName] = useState("");
+  const [savingCircleName, setSavingCircleName] = useState(false);
 
   const inviteLink = circleCode ? `https://infeelit.com/join/${circleCode}` : "";
 
@@ -419,14 +424,8 @@ const Circle = () => {
           </button>
           <button
             onClick={() => {
-              const code = prompt(
-                lang === "fr"
-                  ? "Colle le code d'invitation"
-                  : lang === "ar"
-                    ? "الصق رمز الدعوة"
-                    : "Paste invite code",
-              );
-              if (code?.trim()) navigate(`/join/${code.trim()}`);
+              setInviteCodeInput("");
+              setShowJoinModal(true);
             }}
             style={{
               background: "none",
@@ -445,6 +444,121 @@ const Circle = () => {
           </button>
         </div>
         <CurvedBottomNav onPlusClick={() => navigate("/record")} />
+
+        {showJoinModal && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.85)",
+              zIndex: 200,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "24px",
+            }}
+          >
+            <div
+              style={{
+                background: "#0f0501",
+                borderRadius: "24px",
+                padding: "32px 24px",
+                width: "100%",
+                maxWidth: "340px",
+                textAlign: "center",
+              }}
+            >
+              <p style={{ fontSize: "32px", marginBottom: "8px" }}>✦</p>
+              <h3
+                style={{
+                  color: "#fff",
+                  fontSize: "18px",
+                  fontFamily: "Georgia, serif",
+                  fontStyle: "italic",
+                  marginBottom: "16px",
+                }}
+              >
+                {lang === "fr"
+                  ? "Code d'invitation"
+                  : lang === "ar"
+                    ? "رمز الدعوة"
+                    : "Invitation code"}
+              </h3>
+              <input
+                value={inviteCodeInput}
+                onChange={(e) => setInviteCodeInput(e.target.value)}
+                placeholder={
+                  lang === "fr"
+                    ? "Colle ton code ici"
+                    : lang === "ar"
+                      ? "الصق الرمز هنا"
+                      : "Paste your code here"
+                }
+                style={{
+                  width: "100%",
+                  padding: "14px 16px",
+                  borderRadius: "12px",
+                  border: "1.5px solid rgba(232,116,42,0.4)",
+                  background: "rgba(255,255,255,0.06)",
+                  color: "#fff",
+                  fontSize: "16px",
+                  marginBottom: "16px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+                autoFocus
+              />
+              <button
+                onClick={async () => {
+                  if (!inviteCodeInput.trim()) return;
+                  const code = inviteCodeInput.trim();
+                  const { data: circleId, error } = await supabase.rpc(
+                    "lookup_circle_by_invite_code",
+                    { _code: code },
+                  );
+                  if (error || !circleId) {
+                    toast.error(
+                      lang === "fr"
+                        ? "Code invalide"
+                        : lang === "ar"
+                          ? "رمز غير صالح"
+                          : "Invalid code",
+                    );
+                    return;
+                  }
+                  setShowJoinModal(false);
+                  navigate(`/join/${code}`);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  borderRadius: "14px",
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: "15px",
+                  border: "none",
+                  cursor: "pointer",
+                  marginBottom: "10px",
+                }}
+              >
+                {lang === "fr" ? "Rejoindre ✦" : lang === "ar" ? "انضم ✦" : "Join ✦"}
+              </button>
+              <button
+                onClick={() => setShowJoinModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.4)",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                }}
+              >
+                {lang === "fr" ? "Annuler" : lang === "ar" ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -514,30 +628,126 @@ const Circle = () => {
       <div className="relative z-10 flex items-center justify-between px-5 pt-14 pb-2">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 rounded-full"
-          style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "#ffffff" }}
+          className="rounded-full"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.1)",
+            color: "#ffffff",
+            width: "44px",
+            height: "44px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "18px",
+          }}
+          aria-label="Back"
         >
           ←
         </button>
-        <div className="text-center">
-          <h1 className="font-bold text-lg font-serif" style={{ color: "#ffffff" }}>
-            {circle.name}
-          </h1>
-          <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>
-            {t.ourCircle} · {members.length}{" "}
-            {lang === "fr" ? "membres" : lang === "ar" ? "أعضاء" : "members"}
-          </p>
+        <div className="text-center flex-1 px-2">
+          {renamingCircle ? (
+            <div style={{ display: "flex", gap: "8px", justifyContent: "center", alignItems: "center" }}>
+              <input
+                value={newCircleName}
+                onChange={(e) => setNewCircleName(e.target.value)}
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter") {
+                    // save handled by button
+                    document.getElementById("save-circle-name")?.click();
+                  }
+                }}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "10px",
+                  border: "1.5px solid rgba(232,116,42,0.5)",
+                  background: "rgba(255,255,255,0.06)",
+                  color: "#fff",
+                  fontSize: "16px",
+                  fontFamily: "Georgia, serif",
+                  maxWidth: "180px",
+                  outline: "none",
+                }}
+                autoFocus
+              />
+              <button
+                id="save-circle-name"
+                disabled={savingCircleName}
+                onClick={async () => {
+                  if (!circle || !newCircleName.trim()) return;
+                  setSavingCircleName(true);
+                  const { error } = await supabase
+                    .from("circles")
+                    .update({ name: newCircleName.trim() })
+                    .eq("id", circle.id);
+                  setSavingCircleName(false);
+                  if (error) {
+                    toast.error(lang === "fr" ? "Erreur" : "Error");
+                    return;
+                  }
+                  setCircle({ ...circle, name: newCircleName.trim() });
+                  setRenamingCircle(false);
+                  toast.success(lang === "fr" ? "Nom mis à jour ✦" : "Name updated ✦");
+                }}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "999px",
+                  background: "#E8742A",
+                  color: "#fff",
+                  border: "none",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                ✓
+              </button>
+              <button
+                onClick={() => setRenamingCircle(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.5)",
+                  cursor: "pointer",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <>
+              <h1 className="font-bold text-lg font-serif" style={{ color: "#ffffff" }}>
+                {circle.name}
+              </h1>
+              <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>
+                {t.ourCircle} · {members.length}{" "}
+                {lang === "fr" ? "membres" : lang === "ar" ? "أعضاء" : "members"}
+              </p>
+            </>
+          )}
         </div>
-        <div
-          className="px-3 py-1 rounded-full text-[10px] font-bold"
-          style={{
-            backgroundColor: "rgba(107,78,155,.13)",
-            border: "1px solid rgba(107,78,155,.36)",
-            color: "#6B4E9B",
+        <button
+          onClick={() => {
+            setNewCircleName(circle.name);
+            setRenamingCircle(true);
           }}
+          className="rounded-full"
+          style={{
+            backgroundColor: "rgba(212,175,55,0.15)",
+            border: "1px solid rgba(212,175,55,0.4)",
+            color: "#D4AF37",
+            width: "44px",
+            height: "44px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            fontSize: "18px",
+          }}
+          aria-label={lang === "fr" ? "Renommer" : "Rename"}
+          title={lang === "fr" ? "Renommer le cercle" : "Rename circle"}
         >
-          {t.privateLabel}
-        </div>
+          ✎
+        </button>
       </div>
 
       <div className="relative mx-auto z-10 w-full max-w-[90vw] aspect-[3.7/5.1] max-h-[55vh]">
@@ -624,8 +834,10 @@ const Circle = () => {
           const color = MEMBER_COLORS[i % MEMBER_COLORS.length];
           const count = memories.filter((mem) => mem.user_id === m.user_id).length;
           return (
-            <div
+            <button
               key={m.user_id}
+              type="button"
+              onClick={() => navigate(`/profile/${m.user_id}`)}
               className={`absolute ${layout.float}`}
               style={{
                 left: `${layout.leftPct}%`,
@@ -634,6 +846,10 @@ const Circle = () => {
                 maxWidth: "80px",
                 zIndex: 5,
                 animationDelay: layout.delay,
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
               }}
             >
               <div
@@ -655,7 +871,7 @@ const Circle = () => {
               </div>
               <p
                 style={{
-                  fontSize: "8.5px",
+                  fontSize: "12px",
                   fontWeight: 700,
                   color: "#ffffff",
                   textAlign: "center",
@@ -665,11 +881,11 @@ const Circle = () => {
               >
                 {name}
               </p>
-              <p style={{ fontSize: "7px", color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.1 }}>
+              <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.1 }}>
                 {count}{" "}
                 {lang === "fr" ? "souvenirs" : lang === "ar" ? "ذكريات" : "memories"}
               </p>
-            </div>
+            </button>
           );
         })}
       </div>
