@@ -694,6 +694,24 @@ const Profile = () => {
                   position: "relative",
                 }}
               >
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "8px",
+                    left: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    background: "rgba(0,0,0,0.6)",
+                    borderRadius: "999px",
+                    padding: "3px 8px",
+                    zIndex: 4,
+                  }}
+                >
+                  <span style={{ fontSize: "10px", color: "#fff" }}>
+                    {memory.file_type === "audio" ? "🎙️" : "▶"}
+                  </span>
+                </div>
                 {editMode && (
                   <button
                     onClick={(e) => {
