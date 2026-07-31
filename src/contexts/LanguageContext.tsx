@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Lang, translations, Translations, isRTL } from "@/lib/i18n";
+import { ALL_LANGS, Lang, translations, Translations, isRTL } from "@/lib/i18n";
 
 interface LanguageContextType {
   lang: Lang;
@@ -15,11 +15,14 @@ const LanguageContext = createContext<LanguageContextType>({
   rtl: false,
 });
 
+const isValidLang = (value: string | null): value is Lang =>
+  !!value && (ALL_LANGS as string[]).includes(value);
+
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [lang, setLangState] = useState<Lang>(() => {
     // Persist language choice in localStorage
-    const saved = localStorage.getItem("infeelit_lang") as Lang | null;
-    return saved ?? "en";
+    const saved = localStorage.getItem("infeelit_lang");
+    return isValidLang(saved) ? saved : "en";
   });
 
   const setLang = (l: Lang) => {

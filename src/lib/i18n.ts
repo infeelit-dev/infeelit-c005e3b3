@@ -1,3 +1,12 @@
+import hi from "@/lib/locales/hi";
+import ur from "@/lib/locales/ur";
+import es from "@/lib/locales/es";
+import ru from "@/lib/locales/ru";
+import zh from "@/lib/locales/zh";
+import pt from "@/lib/locales/pt";
+import tr from "@/lib/locales/tr";
+import sw from "@/lib/locales/sw";
+
 export type Lang =
   | "en"
   | "fr"
@@ -549,15 +558,6 @@ const ar: Translations = {
   navConnect: "التواصل",
   navTreasure: "الكنز",
 };
-
-import hi from "@/lib/locales/hi";
-import ur from "@/lib/locales/ur";
-import es from "@/lib/locales/es";
-import ru from "@/lib/locales/ru";
-import zh from "@/lib/locales/zh";
-import pt from "@/lib/locales/pt";
-import tr from "@/lib/locales/tr";
-import sw from "@/lib/locales/sw";
 
 // AI-generated drafts for new locales — pending native review
 export const translations: Record<Lang, Translations> = {

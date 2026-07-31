@@ -233,8 +233,9 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                       backdropFilter: "blur(16px)",
                       borderRadius: "14px",
                       border: "1px solid rgba(255,255,255,.12)",
-                      overflow: "hidden",
-                      minWidth: "160px",
+                      overflowY: "auto",
+                      maxHeight: "70vh",
+                      minWidth: "200px",
                       boxShadow: "0 8px 32px rgba(0,0,0,.5)",
                       zIndex: 200,
                     }}
