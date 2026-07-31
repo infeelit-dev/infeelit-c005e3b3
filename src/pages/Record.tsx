@@ -1539,7 +1539,7 @@ const Record = () => {
               fontFamily: "system-ui",
             }}
           >
-            {lang === "fr" ? "Ta réponse à :", ar: "ردّك على:", en: "Your answer to:" })}
+            {pickLocalized(lang, { fr: "Ta réponse à :", ar: "ردّك على:", en: "Your answer to:" })}
           </p>
           <p
             style={{
