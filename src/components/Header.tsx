@@ -71,6 +71,30 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
     rtl: !!l.rtl,
   }));
 
+  const getLangLabel = (lang: string) => {
+    const labels: Record<string, string> = {
+      fr: "FR",
+      en: "EN",
+      ar: "عر",
+      hi: "हि",
+      ur: "اُر",
+      es: "ES",
+      ru: "RU",
+      zh: "中",
+      pt: "PT",
+      tr: "TR",
+      sw: "SW",
+      kab: "KAB",
+      de: "DE",
+      it: "IT",
+      ja: "日",
+      bn: "বা",
+      fa: "فا",
+      zgh: "ⵣ",
+    };
+    return labels[lang] || "EN";
+  };
+
   const closeBurgerMenu = () => setMenuOpen(false);
 
   return (
@@ -210,7 +234,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                     fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
                   }}
                 >
-                  {lang === "fr" ? "FR" : lang === "en" ? "EN" : "عر"}
+                  {getLangLabel(lang)}
                 </span>
               </button>
 
