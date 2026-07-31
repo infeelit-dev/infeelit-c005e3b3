@@ -39,6 +39,7 @@ export default function MemoryFullscreen({
 
   const isOwner = !!(currentUserId && bubble.user_id && currentUserId === bubble.user_id);
   const memoryUrl = `https://infeelit.com/memory/${bubble.id}`;
+  const ogShareUrl = `https://rynnnhxfrcebdandsbjn.supabase.co/functions/v1/og-meta?id=${bubble.id}`;
 
   const handleReport = async () => {
     if (!currentUserId || !bubble.id || reportSent) return;
@@ -118,15 +119,15 @@ export default function MemoryFullscreen({
   };
 
   const shareText = anonymous
-    ? `A memory preserved on Infeelit ✦\n${memoryUrl}`
-    : `"${bubble.title || "A memory"}" — a voice preserved on Infeelit ✦\n${memoryUrl}`;
+    ? `A memory preserved on Infeelit ✦\n${ogShareUrl}`
+    : `"${bubble.title || "A memory"}" — a voice preserved on Infeelit ✦\n${ogShareUrl}`;
 
   const handleShareLink = async () => {
     try {
       if (navigator.share) {
-        await navigator.share({ text: shareText, url: memoryUrl });
+        await navigator.share({ text: shareText, url: ogShareUrl });
       } else {
-        await navigator.clipboard.writeText(memoryUrl);
+        await navigator.clipboard.writeText(ogShareUrl);
         alert(
           lang === "fr"
             ? "Lien copié !"
@@ -138,7 +139,7 @@ export default function MemoryFullscreen({
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
       try {
-        await navigator.clipboard.writeText(memoryUrl);
+        await navigator.clipboard.writeText(ogShareUrl);
         alert(
           lang === "fr"
             ? "Lien copié !"
@@ -155,8 +156,8 @@ export default function MemoryFullscreen({
   const handleWhatsApp = () => {
     const text = encodeURIComponent(
       anonymous
-        ? `A memory preserved on Infeelit ✦\n${memoryUrl}`
-        : `"${bubble.title || "A memory"}" — listen to this memory ✦\n${memoryUrl}`,
+        ? `A memory preserved on Infeelit ✦\n${ogShareUrl}`
+        : `"${bubble.title || "A memory"}" — listen to this memory ✦\n${ogShareUrl}`,
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
@@ -187,10 +188,10 @@ export default function MemoryFullscreen({
     bubble.transcript_fr || bubble.transcript_en || bubble.transcript_ar || "";
 
   const captions = {
-    whatsapp: `"${bubble.title || "A memory"}" — écoute ce souvenir ✦\n${memoryUrl}`,
+    whatsapp: `"${bubble.title || "A memory"}" — écoute ce souvenir ✦\n${ogShareUrl}`,
     instagram: `${bubble.title || "A memory"}\n\n"${transcript.slice(0, 80)}..."\n\nLa suite sur infeelit.com — lien en bio ✦\n\n#infeelit #memoire #famille #voix`,
     tiktok: `${bubble.title || "A memory"}\n\n"${transcript.slice(0, 60)}..."\n\ninfeelit.com (lien en bio)\n\n#infeelit #memoire #famille`,
-    linkedin: `J'ai préservé ce souvenir sur Infeelit.\n\n"${bubble.title || "A memory"}"\n\n"${transcript.slice(0, 120)}..."\n\nChaque voix mérite de durer. infeelit.com ✦`,
+    linkedin: `J'ai préservé ce souvenir sur Infeelit.\n\n"${bubble.title || "A memory"}"\n\n"${transcript.slice(0, 120)}..."\n\nChaque voix mérite de durer. ${ogShareUrl} ✦`,
   };
 
   const isAudio = bubble.file_type === "audio";
@@ -530,6 +531,8 @@ export default function MemoryFullscreen({
               background: "#0f0501",
               borderRadius: "24px 24px 0 0",
               padding: "32px 24px 48px",
+              maxHeight: "90vh",
+              overflowY: "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
