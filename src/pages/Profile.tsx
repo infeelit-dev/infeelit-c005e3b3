@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveMemoryUrl } from "@/lib/memoryUrl";
@@ -42,6 +42,7 @@ const LoadingSpinner = () => (
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { userId: routeUserId } = useParams();
   const { lang, rtl } = useLanguage();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,18 +117,29 @@ const Profile = () => {
   useEffect(() => {
     if (!session) return;
 
-    setDisplayName(
-      session.user.user_metadata?.display_name ||
-        localStorage.getItem("infeelit_user_name") ||
-        session.user.email?.split("@")[0] ||
-        "Infeelit",
-    );
+    const targetId = routeUserId || session.user.id;
 
     const loadProfileData = async () => {
+      if (!routeUserId || routeUserId === session.user.id) {
+        setDisplayName(
+          session.user.user_metadata?.display_name ||
+            localStorage.getItem("infeelit_user_name") ||
+            session.user.email?.split("@")[0] ||
+            "Infeelit",
+        );
+      } else {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", routeUserId)
+          .maybeSingle();
+        setDisplayName(prof?.display_name || "Infeelit");
+      }
+
       const { count: exactCount } = await supabase
         .from("memories")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", session.user.id);
+        .eq("user_id", routeUserId || session.user.id);
       setTotalMemoryCount(exactCount || 0);
 
       const from = page * PAGE_SIZE;
@@ -135,7 +147,7 @@ const Profile = () => {
       const { data } = await supabase
         .from("memories")
         .select("id, title, thumbnail_url, created_at, sparks_count, file_type")
-        .eq("user_id", session.user.id)
+        .eq("user_id", routeUserId || session.user.id)
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -155,7 +167,7 @@ const Profile = () => {
       const { data: sparkRows } = await supabase
         .from("memories")
         .select("sparks_count")
-        .eq("user_id", session.user.id);
+        .eq("user_id", routeUserId || session.user.id);
       const totalSparks = (sparkRows || []).reduce(
         (sum: number, row: { sparks_count?: number | null }) => sum + (row.sparks_count || 0),
         0,
@@ -164,7 +176,7 @@ const Profile = () => {
     };
 
     loadProfileData();
-  }, [session, page]);
+  }, [session, page, routeUserId]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -173,6 +185,9 @@ const Profile = () => {
     navigate("/");
     window.location.reload();
   };
+
+  const profileUserId = routeUserId || session?.user?.id || null;
+  const isOwnProfile = !routeUserId || routeUserId === session?.user?.id;
 
   if (loading) return <LoadingSpinner />;
 
@@ -481,33 +496,37 @@ const Profile = () => {
             >
               {userName}
             </h2>
-            <button
-              onClick={() => {
-                setNewName(userName);
-                setEditingName(true);
-              }}
-              style={{
-                background: "none",
-                border: "none",
-                color: "rgba(255,255,255,0.4)",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-              aria-label={lang === "fr" ? "Modifier le nom" : lang === "ar" ? "تعديل الاسم" : "Edit name"}
-            >
-              ✎
-            </button>
+            {isOwnProfile && (
+              <button
+                onClick={() => {
+                  setNewName(userName);
+                  setEditingName(true);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.4)",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                }}
+                aria-label={lang === "fr" ? "Modifier le nom" : lang === "ar" ? "تعديل الاسم" : "Edit name"}
+              >
+                ✎
+              </button>
+            )}
           </div>
         )}
-        <p
-          style={{
-            fontSize: "13px",
-            color: "rgba(255,255,255,0.5)",
-            margin: 0,
-          }}
-        >
-          {session.user.email || ""}
-        </p>
+        {isOwnProfile && (
+          <p
+            style={{
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.5)",
+              margin: 0,
+            }}
+          >
+            {session.user.email || ""}
+          </p>
+        )}
 
         <div
           style={{
@@ -576,7 +595,7 @@ const Profile = () => {
           >
             {lang === "fr" ? "Mes souvenirs" : lang === "ar" ? "ذكرياتي" : "My memories"}
           </p>
-          {memories.length > 0 && (
+          {isOwnProfile && memories.length > 0 && (
             <button
               onClick={() => setEditMode(!editMode)}
               style={{
@@ -803,6 +822,7 @@ const Profile = () => {
         )}
       </div>
 
+      {isOwnProfile && (
       <div style={{ padding: "32px 20px 0" }}>
         <button
           onClick={handleLogout}
@@ -859,6 +879,7 @@ const Profile = () => {
           {lang === "fr" ? "Contactez-nous" : lang === "ar" ? "تواصل معنا" : "Contact us"}
         </a>
       </div>
+      )}
 
       {memoryToDelete && (
         <div
