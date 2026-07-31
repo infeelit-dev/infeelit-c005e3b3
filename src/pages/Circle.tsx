@@ -319,6 +319,46 @@ const Circle = () => {
     );
   }
 
+  if (circleError) {
+    return (
+      <div
+        className="min-h-screen flex flex-col relative"
+        style={{ background: "#0f0501", paddingBottom: "100px" }}
+      >
+        <Header activeTimeline="memories" onTimelineChange={() => {}} />
+        <div style={{ textAlign: "center", padding: "80px 24px", flex: 1 }}>
+          <p style={{ color: "#E8742A", fontSize: "16px", marginBottom: "20px" }}>
+            ⚠️{" "}
+            {lang === "fr"
+              ? "Erreur de chargement"
+              : lang === "ar"
+                ? "خطأ في التحميل"
+                : "Loading error"}
+          </p>
+          <button
+            onClick={() => {
+              setCircleError(null);
+              loadCircleData();
+            }}
+            style={{
+              padding: "14px 28px",
+              borderRadius: "14px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
+              fontWeight: 700,
+              border: "none",
+              cursor: "pointer",
+              fontSize: "15px",
+            }}
+          >
+            {lang === "fr" ? "Réessayer" : lang === "ar" ? "إعادة المحاولة" : "Retry"}
+          </button>
+        </div>
+        <CurvedBottomNav onPlusClick={() => navigate("/record")} />
+      </div>
+    );
+  }
+
   if (!circle) {
     return (
       <div
