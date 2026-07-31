@@ -825,6 +825,7 @@ const Profile = () => {
       </div>
 
       {isOwnProfile && (
+      <>
       <div style={{ padding: "32px 20px 0" }}>
         <button
           onClick={handleLogout}
