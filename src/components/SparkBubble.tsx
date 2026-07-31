@@ -4,6 +4,11 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CHAPTERS } from "@/data/questions";
+import {
+  getLocalizedQuestions,
+  getLocalizedQuestionsForChapter,
+} from "@/data/localizedQuestions";
+import type { Lang } from "@/lib/i18n";
 import infeeilitSymbol from "@/assets/logo_sparkl_4.png";
 
 type Step = "chapters" | "categories" | "questions";
@@ -143,11 +148,23 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     const category = chapter?.categories.find((cat) => cat.id === categoryId);
     if (!category) return [];
 
-    const langKey = language as "fr" | "en" | "ar";
+    // New locales: culturally adapted AI drafts
+    if (getLocalizedQuestions(language as Lang)) {
+      const chapterId = chapter?.id || categoryId;
+      return getLocalizedQuestionsForChapter(language as Lang, chapterId).map((q) => ({
+        text: q.text.replace("{name}", name || "").trim(),
+        bubble: q.bubble,
+      }));
+    }
+
+    const langKey = (["fr", "en", "ar"].includes(language) ? language : "en") as
+      | "fr"
+      | "en"
+      | "ar";
 
     return category.questions.map((q) => ({
-      text: q[langKey].replace("{name}", name || "toi"),
-      bubble: q[`bubble_${langKey}` as keyof typeof q] as string,
+      text: (q[langKey] || q.en).replace("{name}", name || "toi"),
+      bubble: (q[`bubble_${langKey}` as keyof typeof q] as string) || q.bubble_en,
     }));
   };
 

@@ -274,11 +274,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   const getDemoBubbles = useCallback((): BubbleData[] => {
     const questions = DEMO_QUESTIONS[activeTimeline] || DEMO_QUESTIONS.memories;
-    const langKey = (lang === "fr" ? "fr" : lang === "ar" ? "ar" : "en") as "fr" | "en" | "ar";
+    const langKey = (lang === "fr" || lang === "ar" ? lang : "en") as "fr" | "en" | "ar";
+    // New locales fall back to EN demo titles until culturally adapted demos ship
     return questions
       .filter((q) => q[langKey] && q[langKey].length > 0)
       .map((q, i) => ({
-        id: `demo-${i}-${langKey}`,
+        id: `demo-${i}-${lang}`,
         type: "demo" as const,
         title: q[langKey] || q.en || "",
         image: q.image,

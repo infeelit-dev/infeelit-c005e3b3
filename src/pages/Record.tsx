@@ -368,11 +368,14 @@ const Record = () => {
   const replyTo = location.state?.replyTo;
 
   const initialQuestion = preSelected
-    ? lang === "fr"
-      ? preSelected.fr
-      : lang === "ar"
-        ? preSelected.ar
-        : preSelected.en
+    ? (preSelected[lang as keyof typeof preSelected] as string) ||
+      (lang === "fr"
+        ? preSelected.fr
+        : lang === "ar"
+          ? preSelected.ar
+          : preSelected.en) ||
+      preSelected.en ||
+      preSelected.fr
     : loc.state?.question ||
       (lang === "fr"
         ? "Quelle odeur te ramène instantanément à la maison de ton enfance ?"
