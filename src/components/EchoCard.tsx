@@ -1,3 +1,5 @@
+import { getCanvasFont } from "@/lib/i18n";
+
 export type EchoCardMemory = {
   title?: string | null;
   transcript_fr?: string | null;
@@ -5,6 +7,19 @@ export type EchoCardMemory = {
   transcript_ar?: string | null;
   detected_lang?: string | null;
 };
+
+async function ensureCanvasFont(lang: string, sizePx: number, style = "") {
+  const family = getCanvasFont(lang);
+  const fontCss = `${style} ${sizePx}px "${family}"`.trim();
+  try {
+    if (document.fonts?.load) {
+      await document.fonts.load(fontCss);
+    }
+  } catch {
+    /* ignore font load errors — browser will fall back */
+  }
+  return family;
+}
 
 function fillRoundRect(
   ctx: CanvasRenderingContext2D,
@@ -84,6 +99,9 @@ const generateEchoCard = async (
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
 
+  const scriptLang = (memory.detected_lang || "en").toLowerCase().slice(0, 2);
+  const fontFamily = await ensureCanvasFont(scriptLang, 72, "italic");
+
   // Background
   ctx.fillStyle = "#0a0501";
   ctx.fillRect(0, 0, 1080, 1920);
@@ -105,7 +123,7 @@ const generateEchoCard = async (
 
   // ✦ infeelit top
   ctx.fillStyle = "#E8742A";
-  ctx.font = "bold 52px Georgia, serif";
+  ctx.font = `bold 52px "${fontFamily}", Georgia, serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
   ctx.fillText("✦ infeelit", 540, 200);
@@ -113,7 +131,7 @@ const generateEchoCard = async (
   // Question / title
   if (!anonymous) {
     ctx.fillStyle = "#ffffff";
-    ctx.font = "italic 72px Georgia, serif";
+    ctx.font = `italic 72px "${fontFamily}", Georgia, serif`;
     ctx.textAlign = "center";
     const title = memory.title || "A memory";
     wrapText(ctx, title, 540, 480, 900, 90, 2);
@@ -140,18 +158,18 @@ const generateEchoCard = async (
 
   if (anonymous) {
     ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = "italic 48px Georgia, serif";
+    ctx.font = `italic 48px "${fontFamily}", Georgia, serif`;
     ctx.textAlign = "center";
     wrapText(ctx, "A memory preserved on Infeelit ✦", 540, 1180, 900, 60, 2);
   } else if (transcript) {
     const teaser = `"${transcript.slice(0, 80)}..."`;
     ctx.fillStyle = "rgba(255,255,255,0.6)";
-    ctx.font = "italic 44px Georgia, serif";
+    ctx.font = `italic 44px "${fontFamily}", Georgia, serif`;
     ctx.textAlign = "center";
     wrapText(ctx, teaser, 540, 1180, 900, 58, 3);
   } else {
     ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = "44px Georgia, serif";
+    ctx.font = `44px "${fontFamily}", Georgia, serif`;
     ctx.textAlign = "center";
     ctx.fillText("A voice preserved forever", 540, 1200);
   }
@@ -161,7 +179,7 @@ const generateEchoCard = async (
   fillRoundRect(ctx, 290, 1500, 500, 100, 50);
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 42px Georgia, serif";
+  ctx.font = `bold 42px "${fontFamily}", Georgia, serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("Hear the full story →", 540, 1550);
@@ -169,7 +187,7 @@ const generateEchoCard = async (
 
   // URL
   ctx.fillStyle = "rgba(255,255,255,0.3)";
-  ctx.font = "36px Georgia, serif";
+  ctx.font = `36px "${fontFamily}", Georgia, serif`;
   ctx.textAlign = "center";
   ctx.fillText("infeelit.com", 540, 1750);
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LANGUAGES, getUiFontFamily, type Lang } from "@/lib/i18n";
 import type { Timeline } from "@/types/timeline";
 import infeelit from "@/assets/infeelit-logo.png";
 
@@ -63,11 +64,12 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
 
   const underlineColor = (id: Timeline) => (id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : "#ffffff");
 
-  const LANGS = [
-    { id: "fr", label: "Français" },
-    { id: "en", label: "English" },
-    { id: "ar", label: "العربية" },
-  ];
+  const LANGS = LANGUAGES.map((l) => ({
+    id: l.code,
+    label: l.label,
+    flag: l.flag,
+    rtl: !!l.rtl,
+  }));
 
   const closeBurgerMenu = () => setMenuOpen(false);
 
@@ -241,7 +243,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                       <button
                         key={l.id}
                         onClick={() => {
-                          setLang(l.id as import("@/lib/i18n").Lang);
+                          setLang(l.id as Lang);
                           setLangOpen(false);
                         }}
                         style={{
@@ -256,23 +258,13 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                           cursor: "pointer",
                         }}
                       >
-                        <span
-                          style={{
-                            fontSize: "12px",
-                            fontWeight: 900,
-                            color: lang === l.id ? "#E8742A" : "rgba(255,255,255,0.5)",
-                            width: "28px",
-                            fontFamily: l.id === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
-                          }}
-                        >
-                          {l.id === "fr" ? "FR" : l.id === "en" ? "EN" : "عر"}
-                        </span>
+                        <span style={{ fontSize: "14px", width: "22px" }}>{l.flag}</span>
                         <span
                           style={{
                             fontSize: "13px",
                             fontWeight: 600,
                             color: "#fff",
-                            fontFamily: l.id === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+                            fontFamily: getUiFontFamily(l.id),
                           }}
                         >
                           {l.label}

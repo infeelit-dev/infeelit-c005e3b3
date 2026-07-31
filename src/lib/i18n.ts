@@ -1,4 +1,66 @@
-export type Lang = "en" | "fr" | "ar";
+export type Lang =
+  | "en"
+  | "fr"
+  | "ar"
+  | "hi"
+  | "ur"
+  | "es"
+  | "ru"
+  | "zh"
+  | "pt"
+  | "tr"
+  | "sw";
+
+export const ALL_LANGS: Lang[] = [
+  "en",
+  "fr",
+  "ar",
+  "hi",
+  "ur",
+  "es",
+  "ru",
+  "zh",
+  "pt",
+  "tr",
+  "sw",
+];
+
+export const LANGUAGES: {
+  code: Lang;
+  label: string;
+  flag: string;
+  rtl?: boolean;
+}[] = [
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "ar", label: "العربية", flag: "🇸🇦", rtl: true },
+  { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
+  { code: "ur", label: "اردو", flag: "🇵🇰", rtl: true },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "ru", label: "Русский", flag: "🇷🇺" },
+  { code: "zh", label: "中文", flag: "🇨🇳" },
+  { code: "pt", label: "Português", flag: "🇧🇷" },
+  { code: "tr", label: "Türkçe", flag: "🇹🇷" },
+  { code: "sw", label: "Kiswahili", flag: "🇰🇪" },
+];
+
+/** Canvas / UI font family for script-specific rendering */
+export const getCanvasFont = (lang: string): string => {
+  if (lang === "hi") return "Noto Sans Devanagari";
+  if (lang === "ur") return "Noto Nastaliq Urdu";
+  if (lang === "zh") return "Noto Sans SC";
+  if (lang === "ar") return "Noto Sans Arabic";
+  return "Georgia";
+};
+
+export const getUiFontFamily = (lang: Lang | string): string => {
+  if (lang === "hi") return "'Noto Sans Devanagari', 'Noto Sans', sans-serif";
+  if (lang === "ur") return "'Noto Nastaliq Urdu', 'Noto Sans Arabic', sans-serif";
+  if (lang === "zh") return "'Noto Sans SC', 'Noto Sans', sans-serif";
+  if (lang === "ar") return "'Noto Sans Arabic', Arial, sans-serif";
+  if (lang === "ru") return "Georgia, 'Noto Sans', serif";
+  return "inherit";
+};
 
 export interface Translations {
   memories: string;
@@ -488,6 +550,31 @@ const ar: Translations = {
   navTreasure: "الكنز",
 };
 
-export const translations: Record<Lang, Translations> = { en, fr, ar };
-export const isRTL = (lang: Lang) => lang === "ar";
-export const langLabel: Record<Lang, string> = { en: "EN", fr: "FR", ar: "عر" };
+// New locales fall back to English until STEP 2 fills real AI drafts.
+export const translations: Record<Lang, Translations> = {
+  en,
+  fr,
+  ar,
+  hi: en,
+  ur: en,
+  es: en,
+  ru: en,
+  zh: en,
+  pt: en,
+  tr: en,
+  sw: en,
+};
+export const isRTL = (lang: Lang) => lang === "ar" || lang === "ur";
+export const langLabel: Record<Lang, string> = {
+  en: "EN",
+  fr: "FR",
+  ar: "عر",
+  hi: "हि",
+  ur: "اُر",
+  es: "ES",
+  ru: "RU",
+  zh: "中文",
+  pt: "PT",
+  tr: "TR",
+  sw: "SW",
+};
