@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import { supabase } from "@/integrations/supabase/client";
-import generateEchoCard from "@/components/EchoCard";
+import generateEchoCard, { generateStoriesCard } from "@/components/EchoCard";
 
 interface MemoryFullscreenProps {
   bubble: {
@@ -158,6 +159,38 @@ export default function MemoryFullscreen({
         : `"${bubble.title || "A memory"}" — listen to this memory ✦\n${memoryUrl}`,
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
+  };
+
+  const handleDownloadStoriesCard = async () => {
+    if (sharingBusy) return;
+    setSharingBusy(true);
+    try {
+      const blob = await generateStoriesCard(bubble, anonymous);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "infeelit-stories.png";
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(
+        "Stories card downloaded! Upload to Instagram Stories and add a link sticker.",
+      );
+    } catch (err) {
+      console.error("Stories card failed:", err);
+      toast.error("Could not generate Stories card.");
+    } finally {
+      setSharingBusy(false);
+    }
+  };
+
+  const transcript =
+    bubble.transcript_fr || bubble.transcript_en || bubble.transcript_ar || "";
+
+  const captions = {
+    whatsapp: `"${bubble.title || "A memory"}" — écoute ce souvenir ✦\n${memoryUrl}`,
+    instagram: `${bubble.title || "A memory"}\n\n"${transcript.slice(0, 80)}..."\n\nLa suite sur infeelit.com — lien en bio ✦\n\n#infeelit #memoire #famille #voix`,
+    tiktok: `${bubble.title || "A memory"}\n\n"${transcript.slice(0, 60)}..."\n\ninfeelit.com (lien en bio)\n\n#infeelit #memoire #famille`,
+    linkedin: `J'ai préservé ce souvenir sur Infeelit.\n\n"${bubble.title || "A memory"}"\n\n"${transcript.slice(0, 120)}..."\n\nChaque voix mérite de durer. infeelit.com ✦`,
   };
 
   const isAudio = bubble.file_type === "audio";
@@ -646,6 +679,92 @@ export default function MemoryFullscreen({
                   </p>
                 </div>
               </button>
+
+              <button
+                onClick={handleDownloadStoriesCard}
+                disabled={sharingBusy}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(193,53,132,0.15)",
+                  border: "1px solid rgba(193,53,132,0.3)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: sharingBusy ? "wait" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginTop: "8px",
+                  opacity: sharingBusy ? 0.7 : 1,
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>📸</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>
+                    Download for Instagram Stories
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.4)",
+                    }}
+                  >
+                    Add a link sticker in Stories
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <p
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  marginBottom: "10px",
+                  textAlign: "center",
+                }}
+              >
+                Caption kit — copy & paste
+              </p>
+
+              {(
+                [
+                  { platform: "WhatsApp", key: "whatsapp" as const },
+                  { platform: "Instagram", key: "instagram" as const },
+                  { platform: "TikTok", key: "tiktok" as const },
+                  { platform: "LinkedIn", key: "linkedin" as const },
+                ] as const
+              ).map(({ platform, key }) => (
+                <button
+                  key={key}
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(captions[key]);
+                    toast.success(`${platform} caption copied!`);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: "12px",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <span>Copy {platform} caption</span>
+                </button>
+              ))}
             </div>
 
             <button
