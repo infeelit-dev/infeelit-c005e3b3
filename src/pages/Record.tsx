@@ -2511,8 +2511,7 @@ const Record = () => {
                 }}
               >
                 {bgVideoUrl
-                  ? lang === "fr"
-                    ? "Vidéo sélectionnée ✓", ar: "تم اختيار الفيديو ✓", en: "Video selected ✓" })
+                  ? pickLocalized(lang, { fr: "Vidéo sélectionnée ✓", ar: "تم اختيار الفيديو ✓", en: "Video selected ✓" })
                   : pickLocalized(lang, { fr: "Une vidéo depuis ma galerie", ar: "فيديو من معرضي", en: "A video from my gallery" })}
               </p>
               <p
@@ -2652,8 +2651,7 @@ const Record = () => {
             }}
           >
             {followupIdx < followupQuestions.length - 1
-              ? lang === "fr"
-                ? "Question suivante →", ar: "السؤال التالي →", en: "Next question →" })
+              ? pickLocalized(lang, { fr: "Question suivante →", ar: "السؤال التالي →", en: "Next question →" })
               : pickLocalized(lang, { fr: "Terminer ✓", ar: "إنهاء ✓", en: "Finish ✓" })}
           </button>
         </div>
@@ -2685,8 +2683,7 @@ const Record = () => {
                 </audio>
               ) : (
                 <p style={{ color: "#ff6b6b", fontSize: 13, padding: 12 }}>
-                  {lang === "fr"
-                    ? "Enregistrement vide. Réessayez.", ar: "التسجيل فارغ. حاول مرة أخرى.", en: "Recording is empty. Please try again." })}
+                  {pickLocalized(lang, { fr: "Enregistrement vide. Réessayez.", ar: "التسجيل فارغ. حاول مرة أخرى.", en: "Recording is empty. Please try again." })}
                 </p>
               )
             ) : (
@@ -2752,8 +2749,7 @@ const Record = () => {
           </div>
           {!(localBlob && localBlob.size > 0) && (
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", textAlign: "center" }}>
-              {lang === "fr"
-                ? "Aucun audio capturé. Réessaie.", ar: "لم يتم التقاط صوت. حاول مجدداً.", en: "No audio captured. Please try again." })}
+              {pickLocalized(lang, { fr: "Aucun audio capturé. Réessaie.", ar: "لم يتم التقاط صوت. حاول مجدداً.", en: "No audio captured. Please try again." })}
             </p>
           )}
         </div>
@@ -3078,8 +3074,7 @@ const Record = () => {
                   fontWeight: 600,
                 }}
               >
-                {lang === "fr"
-                  ? "✦ Autoriser un teaser anonyme", ar: "✦ السماح بمعاينة مجهولة", en: "✦ Allow anonymous teaser" })}
+                {pickLocalized(lang, { fr: "✦ Autoriser un teaser anonyme", ar: "✦ السماح بمعاينة مجهولة", en: "✦ Allow anonymous teaser" })}
               </p>
               <p
                 style={{
