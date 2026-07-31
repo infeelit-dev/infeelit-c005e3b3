@@ -550,19 +550,28 @@ const ar: Translations = {
   navTreasure: "الكنز",
 };
 
-// New locales fall back to English until STEP 2 fills real AI drafts.
+import hi from "@/lib/locales/hi";
+import ur from "@/lib/locales/ur";
+import es from "@/lib/locales/es";
+import ru from "@/lib/locales/ru";
+import zh from "@/lib/locales/zh";
+import pt from "@/lib/locales/pt";
+import tr from "@/lib/locales/tr";
+import sw from "@/lib/locales/sw";
+
+// AI-generated drafts for new locales — pending native review
 export const translations: Record<Lang, Translations> = {
   en,
   fr,
   ar,
-  hi: en,
-  ur: en,
-  es: en,
-  ru: en,
-  zh: en,
-  pt: en,
-  tr: en,
-  sw: en,
+  hi,
+  ur,
+  es,
+  ru,
+  zh,
+  pt,
+  tr,
+  sw,
 };
 export const isRTL = (lang: Lang) => lang === "ar" || lang === "ur";
 export const langLabel: Record<Lang, string> = {
