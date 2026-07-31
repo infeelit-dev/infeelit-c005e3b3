@@ -1348,11 +1348,11 @@ const Record = () => {
       } catch (er: any) {
         if (er?.name === "AbortError") return;
         navigator.clipboard.writeText(txt + " " + url);
-        toast.success(lang === "ar" ? "تم نسخ الرابط!" : pickLocalized(lang, { fr: "Lien copié !\" : \"Link copied!\");
+        toast.success(lang === "ar" ? "تم نسخ الرابط!" : pickLocalized(lang, { fr: "Lien copié !" : "Link copied!");
       }
     } else {
-      navigator.clipboard.writeText(txt + \" \" + url);
-      toast.success(lang === \"ar\" ? \"تم نسخ الرابط!\" : lang === \"fr\" ? \"Lien copié !\" : \"Link copied!\");
+      navigator.clipboard.writeText(txt + " " + url);
+      toast.success(lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!");
     }
   };
 
@@ -1361,9 +1361,9 @@ const Record = () => {
     const cb = new Blob(all, { type: getMimeType(audioMode) });
     if (cb.size === 0) return;
     const u = URL.createObjectURL(cb);
-    const a = document.createElement(\"a\");
+    const a = document.createElement("a");
     a.href = u;
-    a.download = \"infeelit-memory-\" + Date.now() + \".\" + (audioMode ? \"webm\" : \"mp4\");
+    a.download = "infeelit-memory-" + Date.now() + "." + (audioMode ? "webm" : "mp4");
     a.click();
     URL.revokeObjectURL(u);
   };
@@ -1371,17 +1371,17 @@ const Record = () => {
   const estimateFileSize = (s: number, audio: boolean): string => {
     const b = audio ? (AUDIO_BITRATE / 8) * s : ((VIDEO_BITRATE + AUDIO_BITRATE) / 8) * s;
     const mb = b / (1024 * 1024);
-    return mb < 1 ? Math.round(mb * 1000) + \" KB\" : mb.toFixed(1) + \" MB\";
+    return mb < 1 ? Math.round(mb * 1000) + " KB" : mb.toFixed(1) + " MB";
   };
 
-  const formatTime = (s: number) => Math.floor(s / 60) + \":\" + (s % 60).toString().padStart(2, \"0\");
-  const timerColor = elapsed >= 150 ? \"#EF4444\" : elapsed >= 120 ? \"#F97316\" : \"#FFFFFF\";
+  const formatTime = (s: number) => Math.floor(s / 60) + ":" + (s % 60).toString().padStart(2, "0");
+  const timerColor = elapsed >= 150 ? "#EF4444" : elapsed >= 120 ? "#F97316" : "#FFFFFF";
 
-  const sparkBalance = Number(localStorage.getItem(\"infeelit_spark_balance\") || 0);
+  const sparkBalance = Number(localStorage.getItem("infeelit_spark_balance") || 0);
 
   return (
-    <div className=\"min-h-screen bg-black flex flex-col relative overflow-hidden font-sans\" dir={rtl ? \"rtl\" : \"ltr\"}>
-      <Header activeTimeline=\"memories\" onTimelineChange={() => {}} />
+    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden font-sans" dir={rtl ? "rtl" : "ltr"}>
+      <Header activeTimeline="memories" onTimelineChange={() => {}} />
       <style>{`
         @keyframes ambientShift {
           0% { background-position: 0% 50%; }
@@ -1410,14 +1410,14 @@ const Record = () => {
       `}</style>
 
       {/* Fond pendant l'enregistrement — image, vidéo ou gradient */}
-      {stage === \"recording\" && (
+      {stage === "recording" && (
         <div
           style={{
-            position: \"absolute\",
+            position: "absolute",
             inset: 0,
-            overflow: \"hidden\",
+            overflow: "hidden",
             zIndex: 0,
-            pointerEvents: \"none\",
+            pointerEvents: "none",
           }}
         >
           {bgVideoUrl && (
@@ -1428,15 +1428,15 @@ const Record = () => {
               muted
               playsInline
               style={{
-                position: \"absolute\",
+                position: "absolute",
                 inset: 0,
-                width: \"100%\",
-                height: \"100%\",
-                objectFit: \"cover\",
-                filter: \"blur(6px) brightness(0.55)\",
-                transform: \"scale(1.05)\",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                filter: "blur(6px) brightness(0.55)",
+                transform: "scale(1.05)",
                 zIndex: 0,
-                pointerEvents: \"none\",
+                pointerEvents: "none",
               }}
             />
           )}
@@ -1444,15 +1444,15 @@ const Record = () => {
           {!bgVideoUrl && bgImage && (
             <div
               style={{
-                position: \"absolute\",
+                position: "absolute",
                 inset: 0,
                 backgroundImage: `url(${bgImage})`,
-                backgroundSize: \"cover\",
-                backgroundPosition: \"center\",
-                filter: \"blur(10px) brightness(0.5)\",
-                transform: \"scale(1.1)\",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "blur(10px) brightness(0.5)",
+                transform: "scale(1.1)",
                 zIndex: 0,
-                pointerEvents: \"none\",
+                pointerEvents: "none",
               }}
             />
           )}
@@ -1460,86 +1460,86 @@ const Record = () => {
           {!bgVideoUrl && !bgImage && (
             <div
               style={{
-                position: \"absolute\",
+                position: "absolute",
                 inset: 0,
-                background: \"linear-gradient(135deg, #1a0a05 0%, #3D1810 40%, #8B3A1A 100%)\",
+                background: "linear-gradient(135deg, #1a0a05 0%, #3D1810 40%, #8B3A1A 100%)",
                 zIndex: 0,
-                pointerEvents: \"none\",
+                pointerEvents: "none",
               }}
             />
           )}
 
           <div
             style={{
-              position: \"absolute\",
+              position: "absolute",
               inset: 0,
               background:
-                \"radial-gradient(ellipse at center bottom, rgba(232,116,42,0.15) 0%, transparent 60%)\",
+                "radial-gradient(ellipse at center bottom, rgba(232,116,42,0.15) 0%, transparent 60%)",
               zIndex: 1,
-              pointerEvents: \"none\",
+              pointerEvents: "none",
             }}
           />
         </div>
       )}
 
       {/* Caméra utilisateur */}
-      {!audioMode && !isStage(stage, \"preview\") && (
+      {!audioMode && !isStage(stage, "preview") && (
         <video
           ref={videoRef}
           autoPlay
           muted
           playsInline
           style={{
-            zIndex: stage === \"recording\" ? 2 : 10,
-            pointerEvents: stage === \"recording\" ? \"none\" : undefined,
+            zIndex: stage === "recording" ? 2 : 10,
+            pointerEvents: stage === "recording" ? "none" : undefined,
           }}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-            stage === \"recording\" ? \"opacity-[0.88]\" : \"opacity-20\"
+            stage === "recording" ? "opacity-[0.88]" : "opacity-20"
           }`}
         />
       )}
 
-      {stage === \"preview\" && !audioMode && (
-        <video ref={videoRef} className=\"absolute inset-0 w-full h-full object-cover opacity-90\" />
+      {stage === "preview" && !audioMode && (
+        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover opacity-90" />
       )}
 
-      {audioMode && !isStage(stage, \"recording\") && !isStage(stage, \"preview\") && (
+      {audioMode && !isStage(stage, "recording") && !isStage(stage, "preview") && (
         <div
-          className=\"absolute inset-0\"
+          className="absolute inset-0"
           style={{
-            background: \"linear-gradient(160deg, #1A3B47 0%, #2D5A4F 30%, #3D2B1F 70%, #E8742A 100%)\",
+            background: "linear-gradient(160deg, #1A3B47 0%, #2D5A4F 30%, #3D2B1F 70%, #E8742A 100%)",
           }}
         />
       )}
 
-      {stage !== \"recording\" && (
-        <div className=\"absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90\" />
+      {stage !== "recording" && (
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
       )}
 
-      {replyTo && preSelected && stage === \"recording\" && (
+      {replyTo && preSelected && stage === "recording" && (
         <div
           style={{
-            position: \"absolute\",
-            top: \"56px\",
-            left: \"16px\",
-            right: \"16px\",
-            padding: \"10px 14px\",
-            background: \"rgba(0,0,0,0.6)\",
-            borderRadius: \"12px\",
-            backdropFilter: \"blur(8px)\",
+            position: "absolute",
+            top: "56px",
+            left: "16px",
+            right: "16px",
+            padding: "10px 14px",
+            background: "rgba(0,0,0,0.6)",
+            borderRadius: "12px",
+            backdropFilter: "blur(8px)",
             zIndex: 5,
           }}
         >
           <p
             style={{
-              fontSize: \"10px\",
-              color: \"rgba(232,116,42,0.7)\",
-              letterSpacing: \"0.15em\",
-              marginBottom: \"4px\",
-              fontFamily: \"system-ui\",
+              fontSize: "10px",
+              color: "rgba(232,116,42,0.7)",
+              letterSpacing: "0.15em",
+              marginBottom: "4px",
+              fontFamily: "system-ui",
             }}
           >
-            {lang === \"fr\" ? \"Ta réponse à :", ar: "ردّك على:", en: "Your answer to:" })}
+            {lang === "fr" ? "Ta réponse à :", ar: "ردّك على:", en: "Your answer to:" })}
           </p>
           <p
             style={{
@@ -2436,13 +2436,13 @@ const Record = () => {
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
             {lang === "ar"
               ? "اختر خلفية لتسجيلك"
-              : pickLocalized(lang, { fr: "Choisis un fond pour ton enregistrement\"
-                : \"Choose a background for your recording\"}
+              : pickLocalized(lang, { fr: "Choisis un fond pour ton enregistrement"
+                : "Choose a background for your recording"}
           </p>
           <div
             ref={thumbScrollRef}
-            className=\"flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 max-w-full hide-scroll\"
-            style={{ scrollbarWidth: \"none\", opacity: bgVideoUrl ? 0.45 : 1 }}
+            className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 max-w-full hide-scroll"
+            style={{ scrollbarWidth: "none", opacity: bgVideoUrl ? 0.45 : 1 }}
           >
             {thumbCards.map((img, idx) => {
               const isSel = selectedThumb === idx && !customThumb;
@@ -2450,14 +2450,14 @@ const Record = () => {
                 <button
                   key={idx}
                   onClick={() => handleThumbSelect(idx)}
-                  className={`snap-center shrink-0 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${isSel ? \"border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]\" : \"border-transparent opacity-70\"}`}
-                  style={{ width: \"180px\", height: \"180px\", transform: `rotate(${(idx - 1) * 4}deg)` }}
+                  className={`snap-center shrink-0 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${isSel ? "border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]" : "border-transparent opacity-70"}`}
+                  style={{ width: "180px", height: "180px", transform: `rotate(${(idx - 1) * 4}deg)` }}
                 >
                   <img
                     src={img}
-                    alt=\"\"
-                    className=\"w-full h-full object-cover\"
-                    style={{ filter: \"sepia(40%) brightness(0.85)\" }}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    style={{ filter: "sepia(40%) brightness(0.85)" }}
                   />
                 </button>
               );
@@ -2468,52 +2468,52 @@ const Record = () => {
                   setCustomThumb(null);
                   setSelectedThumb(0);
                 }}
-                className=\"snap-center shrink-0 rounded-2xl overflow-hidden border-2 border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]\"
-                style={{ width: \"180px\", height: \"180px\" }}
+                className="snap-center shrink-0 rounded-2xl overflow-hidden border-2 border-[#E8742A] scale-105 shadow-[0_0_24px_rgba(232,116,42,0.5)]"
+                style={{ width: "180px", height: "180px" }}
               >
-                <img src={customThumb} alt=\"\" className=\"w-full h-full object-cover\" />
+                <img src={customThumb} alt="" className="w-full h-full object-cover" />
               </button>
             )}
           </div>
           <label
-            className={`flex items-center gap-2 text-white/40 text-xs cursor-pointer hover:text-white/60 transition-colors ${bgVideoUrl ? \"opacity-45 pointer-events-none\" : \"\"}`}
+            className={`flex items-center gap-2 text-white/40 text-xs cursor-pointer hover:text-white/60 transition-colors ${bgVideoUrl ? "opacity-45 pointer-events-none" : ""}`}
           >
             <Camera size={14} />
-            {lang === \"ar\" ? \"📷 استخدام صورتي\" : lang === \"fr\" ? \"📷 Utiliser ma photo\" : \"📷 Use my photo\"}
-            <input type=\"file\" accept=\"image/*\" onChange={handleFileUpload} className=\"hidden\" />
+            {lang === "ar" ? "📷 استخدام صورتي" : lang === "fr" ? "📷 Utiliser ma photo" : "📷 Use my photo"}
+            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
           </label>
 
           <button
             onClick={() => bgVideoInputRef.current?.click()}
             style={{
-              width: \"100%\",
-              maxWidth: \"300px\",
-              padding: \"18px\",
-              borderRadius: \"20px\",
+              width: "100%",
+              maxWidth: "300px",
+              padding: "18px",
+              borderRadius: "20px",
               background: bgVideoUrl
-                ? \"linear-gradient(135deg, #E8742A, #D4621A)\"
-                : \"rgba(255,255,255,0.08)\",
-              border: bgVideoUrl ? \"none\" : \"1.5px solid rgba(255,255,255,0.15)\",
-              cursor: \"pointer\",
-              display: \"flex\",
-              alignItems: \"center\",
-              gap: \"16px\",
-              marginTop: \"12px\",
+                ? "linear-gradient(135deg, #E8742A, #D4621A)"
+                : "rgba(255,255,255,0.08)",
+              border: bgVideoUrl ? "none" : "1.5px solid rgba(255,255,255,0.15)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              marginTop: "12px",
             }}
           >
-            <span style={{ fontSize: \"28px\" }}>🎬</span>
-            <div style={{ textAlign: \"left\" }}>
+            <span style={{ fontSize: "28px" }}>🎬</span>
+            <div style={{ textAlign: "left" }}>
               <p
                 style={{
-                  fontSize: \"16px\",
+                  fontSize: "16px",
                   fontWeight: 700,
-                  color: \"#fff\",
+                  color: "#fff",
                   margin: 0,
                 }}
               >
                 {bgVideoUrl
-                  ? lang === \"fr\"
-                    ? \"Vidéo sélectionnée ✓", ar: "تم اختيار الفيديو ✓", en: "Video selected ✓" })
+                  ? lang === "fr"
+                    ? "Vidéo sélectionnée ✓", ar: "تم اختيار الفيديو ✓", en: "Video selected ✓" })
                   : pickLocalized(lang, { fr: "Une vidéo depuis ma galerie", ar: "فيديو من معرضي", en: "A video from my gallery" })}
               </p>
               <p
@@ -2549,42 +2549,42 @@ const Record = () => {
               >
                 {lang === "ar"
                   ? "المتابعة مع الفيديو"
-                  : pickLocalized(lang, { fr: "Continuer avec vidéo\"
-                    : \"Continue with video\"}
+                  : pickLocalized(lang, { fr: "Continuer avec vidéo"
+                    : "Continue with video"}
               </button>
             ) : (
               <button
                 onClick={handleBackgroundContinue}
-                className=\"w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]\"
+                className="w-full py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98]"
                 style={{
-                  background: \"linear-gradient(135deg, #E8742A, #D4621A)\",
-                  color: \"#fff\",
-                  boxShadow: \"0 4px 20px rgba(232,116,42,0.3)\",
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  color: "#fff",
+                  boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
                 }}
               >
-                {lang === \"ar\"
-                  ? \"المتابعة مع الصورة\"
-                  : lang === \"fr\"
-                    ? \"Continuer avec image\"
-                    : \"Continue with image\"}
+                {lang === "ar"
+                  ? "المتابعة مع الصورة"
+                  : lang === "fr"
+                    ? "Continuer avec image"
+                    : "Continue with image"}
               </button>
             )}
             <button
               onClick={handleBackgroundSkip}
-              className=\"w-full py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20\"
+              className="w-full py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20"
             >
-              {lang === \"ar\" ? \"تخطّي\" : lang === \"fr\" ? \"Passer\" : \"Skip\"}
+              {lang === "ar" ? "تخطّي" : lang === "fr" ? "Passer" : "Skip"}
             </button>
           </div>
         </div>
       )}
 
-      {stage === \"countdown\" && (
-        <div className=\"relative z-20 flex-1 flex items-center justify-center\">
+      {stage === "countdown" && (
+        <div className="relative z-20 flex-1 flex items-center justify-center">
           <div
-            className=\"text-white text-9xl font-black animate-pulse\"
+            className="text-white text-9xl font-black animate-pulse"
             style={{
-              textShadow: \"0 0 30px rgba(232,116,42,0.5)\",
+              textShadow: "0 0 30px rgba(232,116,42,0.5)",
             }}
           >
             {countdown}
@@ -2592,70 +2592,70 @@ const Record = () => {
         </div>
       )}
 
-      {stage === \"followup\" && (
+      {stage === "followup" && (
         <div
           style={{
-            position: \"absolute\",
+            position: "absolute",
             inset: 0,
-            display: \"flex\",
-            flexDirection: \"column\",
-            alignItems: \"center\",
-            justifyContent: \"center\",
-            background: \"linear-gradient(135deg, #2D1810 0%, #8B4513 50%, #D4621A 100%)\",
-            padding: \"24px\",
-            textAlign: \"center\",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "linear-gradient(135deg, #2D1810 0%, #8B4513 50%, #D4621A 100%)",
+            padding: "24px",
+            textAlign: "center",
             zIndex: 20,
           }}
         >
           <p
             style={{
-              fontSize: \"11px\",
+              fontSize: "11px",
               fontWeight: 800,
-              letterSpacing: \"0.3em\",
-              color: \"rgba(255,210,80,0.7)\",
-              textTransform: \"uppercase\",
-              marginBottom: \"24px\",
+              letterSpacing: "0.3em",
+              color: "rgba(255,210,80,0.7)",
+              textTransform: "uppercase",
+              marginBottom: "24px",
             }}
           >
             {followupIdx + 1} / {followupQuestions.length}
           </p>
           <p
             style={{
-              fontSize: \"20px\",
-              fontFamily: \"Georgia, serif\",
-              fontStyle: \"italic\",
-              color: \"#fff\",
+              fontSize: "20px",
+              fontFamily: "Georgia, serif",
+              fontStyle: "italic",
+              color: "#fff",
               lineHeight: 1.6,
-              maxWidth: \"340px\",
-              marginBottom: \"48px\",
+              maxWidth: "340px",
+              marginBottom: "48px",
             }}
           >
-            \"{followupQuestions[followupIdx]}\"
+            "{followupQuestions[followupIdx]}"
           </p>
           <button
             onClick={() => {
               if (followupIdx < followupQuestions.length - 1) {
                 setFollowIdx(followupIdx + 1);
-                setStage(\"recording\");
+                setStage("recording");
               } else {
-                setStage(\"title\");
+                setStage("title");
               }
             }}
             style={{
-              padding: \"16px 32px\",
-              borderRadius: \"999px\",
-              background: \"linear-gradient(135deg, #E8742A, #D4621A)\",
-              color: \"#fff\",
+              padding: "16px 32px",
+              borderRadius: "999px",
+              background: "linear-gradient(135deg, #E8742A, #D4621A)",
+              color: "#fff",
               fontWeight: 700,
-              fontSize: \"16px\",
-              border: \"none\",
-              cursor: \"pointer\",
-              boxShadow: \"0 4px 20px rgba(232,116,42,0.4)\",
+              fontSize: "16px",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
             }}
           >
             {followupIdx < followupQuestions.length - 1
-              ? lang === \"fr\"
-                ? \"Question suivante →", ar: "السؤال التالي →", en: "Next question →" })
+              ? lang === "fr"
+                ? "Question suivante →", ar: "السؤال التالي →", en: "Next question →" })
               : pickLocalized(lang, { fr: "Terminer ✓", ar: "إنهاء ✓", en: "Finish ✓" })}
           </button>
         </div>
@@ -2666,20 +2666,20 @@ const Record = () => {
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
             {lang === "ar"
               ? "استمع قبل الحفظ..."
-              : pickLocalized(lang, { fr: "Réécoutez avant de garder...\"
-                : \"Listen before keeping...\"}
+              : pickLocalized(lang, { fr: "Réécoutez avant de garder..."
+                : "Listen before keeping..."}
           </p>
-          <h2 className=\"text-white text-xl font-bold leading-tight italic mb-2\">\"{questionRef.current}\"</h2>
-          <div className=\"relative w-full\">
+          <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{questionRef.current}"</h2>
+          <div className="relative w-full">
             {audioMode ? (
               localUrl && localBlob && localBlob.size > 0 ? (
                 <audio
                   key={localUrl}
                   controls
                   playsInline
-                  preload=\"auto\"
+                  preload="auto"
                   autoPlay
-                  style={{ width: \"100%\" }}
+                  style={{ width: "100%" }}
                 >
                   <source
                     src={localUrl}
@@ -2687,9 +2687,9 @@ const Record = () => {
                   />
                 </audio>
               ) : (
-                <p style={{ color: \"#ff6b6b\", fontSize: 13, padding: 12 }}>
-                  {lang === \"fr\"
-                    ? \"Enregistrement vide. Réessayez.", ar: "التسجيل فارغ. حاول مرة أخرى.", en: "Recording is empty. Please try again." })}
+                <p style={{ color: "#ff6b6b", fontSize: 13, padding: 12 }}>
+                  {lang === "fr"
+                    ? "Enregistrement vide. Réessayez.", ar: "التسجيل فارغ. حاول مرة أخرى.", en: "Recording is empty. Please try again." })}
                 </p>
               )
             ) : (
@@ -2737,26 +2737,26 @@ const Record = () => {
               className="flex-1 py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20 flex items-center justify-center gap-2"
             >
               <RotateCcw size={18} />
-              {lang === "ar" ? "حاول مجدداً" : pickLocalized(lang, { fr: "Recommencer\" : \"Try again\"}
+              {lang === "ar" ? "حاول مجدداً" : pickLocalized(lang, { fr: "Recommencer" : "Try again"}
             </button>
             <button
               onClick={handleUpload}
               disabled={!(localBlob && localBlob.size > 0)}
-              className=\"flex-1 py-4 rounded-full gradient-orange text-white font-bold text-base flex items-center justify-center gap-2\"
+              className="flex-1 py-4 rounded-full gradient-orange text-white font-bold text-base flex items-center justify-center gap-2"
               style={{
-                color: \"#fff\",
+                color: "#fff",
                 opacity: localBlob && localBlob.size > 0 ? 1 : 0.4,
-                cursor: localBlob && localBlob.size > 0 ? \"pointer\" : \"not-allowed\",
+                cursor: localBlob && localBlob.size > 0 ? "pointer" : "not-allowed",
               }}
             >
               <Check size={18} />
-              {lang === \"ar\" ? \"هذا رائع ✦\" : lang === \"fr\" ? \"C'est parfait ✦\" : \"This is perfect ✦\"}
+              {lang === "ar" ? "هذا رائع ✦" : lang === "fr" ? "C'est parfait ✦" : "This is perfect ✦"}
             </button>
           </div>
           {!(localBlob && localBlob.size > 0) && (
-            <p style={{ color: \"rgba(255,255,255,0.5)\", fontSize: \"12px\", textAlign: \"center\" }}>
-              {lang === \"fr\"
-                ? \"Aucun audio capturé. Réessaie.", ar: "لم يتم التقاط صوت. حاول مجدداً.", en: "No audio captured. Please try again." })}
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", textAlign: "center" }}>
+              {lang === "fr"
+                ? "Aucun audio capturé. Réessaie.", ar: "لم يتم التقاط صوت. حاول مجدداً.", en: "No audio captured. Please try again." })}
             </p>
           )}
         </div>
@@ -3040,49 +3040,49 @@ const Record = () => {
             style={visibilityButtonStyle("community")}
           >
             <Globe size={18} />
-            {lang === "ar" ? "للجميع" : pickLocalized(lang, { fr: "Tout le monde\" : \"Everyone\"}
+            {lang === "ar" ? "للجميع" : pickLocalized(lang, { fr: "Tout le monde" : "Everyone"}
           </button>
           <button
-            onClick={() => handleVisibilitySelect(\"family\")}
-            className=\"w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all duration-200\"
-            style={visibilityButtonStyle(\"family\")}
+            onClick={() => handleVisibilitySelect("family")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all duration-200"
+            style={visibilityButtonStyle("family")}
           >
             <Users size={18} />
-            {lang === \"ar\" ? \"عائلتي\" : lang === \"fr\" ? \"Ma famille\" : \"My family\"}
+            {lang === "ar" ? "عائلتي" : lang === "fr" ? "Ma famille" : "My family"}
           </button>
           <button
-            onClick={() => handleVisibilitySelect(\"private\")}
-            className=\"w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all duration-200\"
-            style={visibilityButtonStyle(\"private\")}
+            onClick={() => handleVisibilitySelect("private")}
+            className="w-full max-w-xs py-4 rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all duration-200"
+            style={visibilityButtonStyle("private")}
           >
             <Lock size={18} />
-            {lang === \"ar\" ? \"خاص\" : lang === \"fr\" ? \"Privé\" : \"Private\"}
+            {lang === "ar" ? "خاص" : lang === "fr" ? "Privé" : "Private"}
           </button>
 
           <div
             style={{
-              display: \"flex\",
-              alignItems: \"center\",
-              justifyContent: \"space-between\",
-              padding: \"14px 16px\",
-              background: \"rgba(255,255,255,0.05)\",
-              borderRadius: \"12px\",
-              marginTop: \"16px\",
-              maxWidth: \"320px\",
-              width: \"100%\",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "14px 16px",
+              background: "rgba(255,255,255,0.05)",
+              borderRadius: "12px",
+              marginTop: "16px",
+              maxWidth: "320px",
+              width: "100%",
             }}
           >
             <div>
               <p
                 style={{
-                  color: \"#fff\",
-                  fontSize: \"14px\",
+                  color: "#fff",
+                  fontSize: "14px",
                   margin: 0,
                   fontWeight: 600,
                 }}
               >
-                {lang === \"fr\"
-                  ? \"✦ Autoriser un teaser anonyme", ar: "✦ السماح بمعاينة مجهولة", en: "✦ Allow anonymous teaser" })}
+                {lang === "fr"
+                  ? "✦ Autoriser un teaser anonyme", ar: "✦ السماح بمعاينة مجهولة", en: "✦ Allow anonymous teaser" })}
               </p>
               <p
                 style={{
@@ -3131,38 +3131,38 @@ const Record = () => {
             style={{ color: "#fff" }}
           >
             <Share2 size={18} />
-            {lang === "ar" ? "نشر ✦" : pickLocalized(lang, { fr: "Publier ✦\" : \"Publish ✦\"}
+            {lang === "ar" ? "نشر ✦" : pickLocalized(lang, { fr: "Publier ✦" : "Publish ✦"}
           </button>
         </div>
       )}
 
-      {stage === \"share\" && (
+      {stage === "share" && (
         <div
           style={{
-            position: \"absolute\",
+            position: "absolute",
             inset: 0,
-            background: \"#FDF8F0\",
-            display: \"flex\",
-            flexDirection: \"column\",
-            alignItems: \"center\",
-            justifyContent: \"space-between\",
-            padding: \"60px 24px 40px\",
-            overflowY: \"auto\",
+            background: "#FDF8F0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "60px 24px 40px",
+            overflowY: "auto",
             zIndex: 20,
           }}
         >
-          <div style={{ textAlign: \"center\", marginBottom: \"8px\" }}>
+          <div style={{ textAlign: "center", marginBottom: "8px" }}>
             <p
               style={{
-                fontSize: \"11px\",
+                fontSize: "11px",
                 fontWeight: 900,
-                letterSpacing: \"0.3em\",
-                color: \"#E8742A\",
-                textTransform: \"uppercase\",
-                marginBottom: \"8px\",
+                letterSpacing: "0.3em",
+                color: "#E8742A",
+                textTransform: "uppercase",
+                marginBottom: "8px",
               }}
             >
-              ✦ {lang === \"fr\" ? \"Souvenir préservé", ar: "تم حفظ الذكرى", en: "Memory preserved" })}
+              ✦ {lang === "fr" ? "Souvenir préservé", ar: "تم حفظ الذكرى", en: "Memory preserved" })}
             </p>
             <p
               style={{
