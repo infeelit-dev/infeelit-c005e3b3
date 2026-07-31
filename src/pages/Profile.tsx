@@ -13,6 +13,7 @@ interface ProfileMemory {
   thumbnail_url: string | null;
   created_at: string;
   sparks_count: number;
+  file_type?: string | null;
 }
 
 const LoadingSpinner = () => (
@@ -50,6 +51,12 @@ const Profile = () => {
   const [newName, setNewName] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [memoryToDelete, setMemoryToDelete] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalMemoryCount, setTotalMemoryCount] = useState(0);
+  const [displayName, setDisplayName] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const PAGE_SIZE = 12;
 
   const handleSaveName = async () => {
     if (!newName.trim() || !session?.user?.id) return;
@@ -95,6 +102,7 @@ const Profile = () => {
   }, []);
 
   const userName =
+    displayName ||
     session?.user.user_metadata?.display_name ||
     localStorage.getItem("infeelit_user_name") ||
     session?.user.email?.split("@")[0] ||
@@ -103,13 +111,28 @@ const Profile = () => {
   useEffect(() => {
     if (!session) return;
 
+    setDisplayName(
+      session.user.user_metadata?.display_name ||
+        localStorage.getItem("infeelit_user_name") ||
+        session.user.email?.split("@")[0] ||
+        "Infeelit",
+    );
+
     const loadProfileData = async () => {
+      const { count: exactCount } = await supabase
+        .from("memories")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", session.user.id);
+      setTotalMemoryCount(exactCount || 0);
+
+      const from = page * PAGE_SIZE;
+      const to = (page + 1) * PAGE_SIZE - 1;
       const { data } = await supabase
         .from("memories")
-        .select("id, title, thumbnail_url, created_at, sparks_count")
+        .select("id, title, thumbnail_url, created_at, sparks_count, file_type")
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false })
-        .limit(12);
+        .range(from, to);
 
       const memoriesData = data || [];
 
@@ -120,24 +143,23 @@ const Profile = () => {
         })),
       );
 
-      setMemories(signed);
+      setMemories((prev) => (page === 0 ? signed : [...prev, ...signed]));
+      setHasMore((exactCount || 0) > (page + 1) * PAGE_SIZE);
 
-      if (memoriesData.length > 0) {
-        const { count } = await supabase
-          .from("memory_sparks")
-          .select("id", { count: "exact", head: true })
-          .in(
-            "memory_id",
-            memoriesData.map((m) => m.id),
-          );
-        setSparksCount(count || 0);
-      } else {
-        setSparksCount(0);
-      }
+      // Accurate sparks: sum sparks_count from all user memories (paginated aggregate approx via RPC-less query)
+      const { data: sparkRows } = await supabase
+        .from("memories")
+        .select("sparks_count")
+        .eq("user_id", session.user.id);
+      const totalSparks = (sparkRows || []).reduce(
+        (sum: number, row: { sparks_count?: number | null }) => sum + (row.sparks_count || 0),
+        0,
+      );
+      setSparksCount(totalSparks);
     };
 
     loadProfileData();
-  }, [session]);
+  }, [session, page]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -490,7 +512,7 @@ const Profile = () => {
         >
           {[
             {
-              count: memories.length,
+              count: totalMemoryCount,
               label: lang === "fr" ? "souvenirs" : lang === "ar" ? "ذكريات" : "memories",
             },
             {
@@ -715,14 +737,15 @@ const Profile = () => {
                   <div
                     style={{
                       position: "absolute",
-                      bottom: "6px",
-                      left: "6px",
+                      bottom: "8px",
+                      right: "8px",
                       background: "rgba(0,0,0,0.6)",
                       borderRadius: "999px",
                       padding: "2px 8px",
                       display: "flex",
                       alignItems: "center",
                       gap: "3px",
+                      zIndex: 4,
                     }}
                   >
                     <span style={{ fontSize: "10px", color: "#E8742A" }}>✦</span>
@@ -734,6 +757,23 @@ const Profile = () => {
               </div>
             ))}
           </div>
+          {hasMore && (
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "16px" }}>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                style={{
+                  padding: "12px 32px",
+                  borderRadius: "999px",
+                  background: "rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  cursor: "pointer",
+                }}
+              >
+                {lang === "fr" ? "Voir plus" : lang === "ar" ? "عرض المزيد" : "Load more"}
+              </button>
+            </div>
+          )}
         )}
       </div>
 
