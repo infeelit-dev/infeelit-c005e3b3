@@ -6,6 +6,7 @@ import { resolveMemoryFields } from "@/lib/memoryUrl";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
+import CurvedBottomNav from "@/components/CurvedBottomNav";
 import useUserName from "@/hooks/useUserName";
 
 import grandfatherImg from "@/assets/grandfather.jpg";
@@ -307,11 +308,12 @@ const Circle = () => {
   if (!circle) {
     return (
       <div
-        className="min-h-screen flex flex-col"
+        className="min-h-screen flex flex-col relative"
         dir={rtl ? "rtl" : "ltr"}
         style={{
           background: "radial-gradient(ellipse at 50% 36%, #1a0a05 0%, #0f0501 55%, #0a0301 100%)",
           fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+          paddingBottom: "100px",
         }}
       >
         <Header activeTimeline="memories" onTimelineChange={() => {}} />
@@ -388,6 +390,7 @@ const Circle = () => {
                 : "I have an invite code"}
           </button>
         </div>
+        <CurvedBottomNav onPlusClick={() => navigate("/record")} />
       </div>
     );
   }
@@ -400,6 +403,7 @@ const Circle = () => {
         background: "radial-gradient(ellipse at 50% 36%, #1a0a05 0%, #0f0501 55%, #0a0301 100%)",
         backgroundColor: "#0f0501",
         fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+        paddingBottom: "100px",
       }}
     >
       <Header activeTimeline="memories" onTimelineChange={() => {}} />
@@ -837,8 +841,11 @@ const Circle = () => {
       </div>
 
       <div
-        className="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 z-20"
-        style={{ background: "linear-gradient(to top,rgba(210,180,140,1) 60%,transparent)" }}
+        className="fixed left-0 right-0 px-5 pb-4 pt-4 z-20"
+        style={{
+          bottom: "88px",
+          background: "linear-gradient(to top, rgba(15,5,1,1) 60%, transparent)",
+        }}
       >
         <button
           onClick={() => navigate("/record")}
@@ -847,6 +854,7 @@ const Circle = () => {
             background: "linear-gradient(135deg,#E8742A,#D4621A)",
             color: "#fff",
             boxShadow: "0 0 28px rgba(232,116,42,.45)",
+            minHeight: "48px",
           }}
         >
           <Mic size={20} /> {t.addVoice}
@@ -1034,6 +1042,7 @@ const Circle = () => {
           </div>
         </div>
       )}
+      <CurvedBottomNav onPlusClick={() => navigate("/record")} />
     </div>
   );
 };

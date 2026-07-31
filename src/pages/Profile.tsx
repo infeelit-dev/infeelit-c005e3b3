@@ -4,6 +4,8 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveMemoryUrl } from "@/lib/memoryUrl";
 import { useLanguage } from "@/contexts/LanguageContext";
+import CurvedBottomNav from "@/components/CurvedBottomNav";
+import { toast } from "sonner";
 
 interface ProfileMemory {
   id: string;
@@ -302,6 +304,7 @@ const Profile = () => {
               ? "→ لديّ حسابٌ بالفعل"
               : "I already have an account →"}
         </button>
+        <CurvedBottomNav onPlusClick={() => navigate("/record")} />
       </div>
     );
   }
@@ -309,12 +312,13 @@ const Profile = () => {
   return (
     <div
       dir={rtl ? "rtl" : "ltr"}
-      style={{
-        minHeight: "100vh",
-        background: "#0f0501",
-        paddingBottom: "100px",
-      }}
-    >
+        style={{
+          minHeight: "100vh",
+          background: "#0f0501",
+          paddingBottom: "100px",
+          position: "relative",
+        }}
+      >
       <div
         style={{
           background: "linear-gradient(160deg, #0f0501 0%, #1a0a05 60%, #2D1810 100%)",
@@ -749,6 +753,7 @@ const Profile = () => {
           {lang === "fr" ? "Contactez-nous" : lang === "ar" ? "تواصل معنا" : "Contact us"}
         </a>
       </div>
+      <CurvedBottomNav onPlusClick={() => navigate("/record")} />
     </div>
   );
 };
