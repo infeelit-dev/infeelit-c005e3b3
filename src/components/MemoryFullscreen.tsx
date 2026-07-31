@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import generateEchoCard, {
@@ -33,7 +34,7 @@ export default function MemoryFullscreen({
   onClose,
   currentUserId,
 }: MemoryFullscreenProps) {
-  const { lang, rtl } = useLanguage();
+  const { lang, rtl, t } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
   const [reportSent, setReportSent] = useState(false);
   const [showShareOptions, setShowShareOptions] = useState(false);
@@ -47,11 +48,7 @@ export default function MemoryFullscreen({
   const handleReport = async () => {
     if (!currentUserId || !bubble.id || reportSent) return;
     const reason = prompt(
-      lang === "fr"
-        ? "Raison du signalement :"
-        : lang === "ar"
-          ? "سبب البلاغ:"
-          : "Reason for report:",
+      pickLocalized(lang, { fr: "Raison du signalement :", ar: "سبب البلاغ:", en: "Reason for report:" }),
     );
     if (!reason) return;
 
@@ -65,11 +62,7 @@ export default function MemoryFullscreen({
     if (error) {
       console.error("Report failed:", error);
       alert(
-        lang === "fr"
-          ? "Impossible d'envoyer le signalement."
-          : lang === "ar"
-            ? "تعذر إرسال البلاغ."
-            : "Could not send report.",
+        pickLocalized(lang, { fr: "Impossible d'envoyer le signalement.", ar: "تعذر إرسال البلاغ.", en: "Could not send report." }),
       );
       return;
     }
@@ -81,11 +74,7 @@ export default function MemoryFullscreen({
 
     setReportSent(true);
     alert(
-      lang === "fr"
-        ? "Signalement envoyé. Merci."
-        : lang === "ar"
-          ? "تم إرسال البلاغ. شكراً."
-          : "Report sent. Thank you.",
+      pickLocalized(lang, { fr: "Signalement envoyé. Merci.", ar: "تم إرسال البلاغ. شكراً.", en: "Report sent. Thank you." }),
     );
   };
 
@@ -110,11 +99,7 @@ export default function MemoryFullscreen({
     } catch (err) {
       console.error("Echo Card generation failed:", err);
       alert(
-        lang === "fr"
-          ? "Impossible de générer la carte."
-          : lang === "ar"
-            ? "تعذر إنشاء البطاقة."
-            : "Could not generate Echo Card.",
+        pickLocalized(lang, { fr: "Impossible de générer la carte.", ar: "تعذر إنشاء البطاقة.", en: "Could not generate Echo Card." }),
       );
     } finally {
       setSharingBusy(false);
@@ -132,11 +117,7 @@ export default function MemoryFullscreen({
       } else {
         await navigator.clipboard.writeText(ogShareUrl);
         alert(
-          lang === "fr"
-            ? "Lien copié !"
-            : lang === "ar"
-              ? "تم نسخ الرابط!"
-              : "Link copied!",
+          pickLocalized(lang, { fr: "Lien copié !", ar: "تم نسخ الرابط!", en: "Link copied!" }),
         );
       }
     } catch (err: unknown) {
@@ -144,11 +125,7 @@ export default function MemoryFullscreen({
       try {
         await navigator.clipboard.writeText(ogShareUrl);
         alert(
-          lang === "fr"
-            ? "Lien copié !"
-            : lang === "ar"
-              ? "تم نسخ الرابط!"
-              : "Link copied!",
+          pickLocalized(lang, { fr: "Lien copié !", ar: "تم نسخ الرابط!", en: "Link copied!" }),
         );
       } catch {
         /* ignore */
@@ -485,16 +462,8 @@ export default function MemoryFullscreen({
           >
             ⚑{" "}
             {reportSent
-              ? lang === "fr"
-                ? "Signalé"
-                : lang === "ar"
-                  ? "تم الإبلاغ"
-                  : "Reported"
-              : lang === "fr"
-                ? "Signaler"
-                : lang === "ar"
-                  ? "إبلاغ"
-                  : "Report"}
+              ? pickLocalized(lang, { fr: "Signalé", ar: "تم الإبلاغ", en: "Reported" })
+              : pickLocalized(lang, { fr: "Signaler", ar: "إبلاغ", en: "Report" })}
           </button>
         )}
       </div>
@@ -534,7 +503,7 @@ export default function MemoryFullscreen({
               gap: "8px",
             }}
           >
-            ✦ Share this memory
+            ✦ {t.shareMemory}
           </button>
         </div>
       )}

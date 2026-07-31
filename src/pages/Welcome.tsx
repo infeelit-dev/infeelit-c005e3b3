@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import infeelit from "@/assets/infeelit-logo.png";
 
 const Welcome = () => {
@@ -27,11 +28,7 @@ const Welcome = () => {
       if (error) throw error;
       toast.success(t.welcomeSuccess, {
         description:
-          lang === "fr"
-            ? "Vérifie tes spams si tu ne vois rien"
-            : lang === "ar"
-              ? "تحقق من البريد العشوائي"
-              : "Check your spam if you don't see it",
+          pickLocalized(lang, { fr: "Vérifie tes spams si tu ne vois rien", ar: "تحقق من البريد العشوائي", en: "Check your spam if you don't see it" }),
         duration: 8000,
       });
     } catch (error: any) {

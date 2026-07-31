@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import infeelit from "@/assets/infeelit-logo.png";
 
 const FamilyIdentity = () => {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
   const [firstName, setFirstName] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -46,7 +49,14 @@ const FamilyIdentity = () => {
       } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        toast.error("Session expired. Please login again.");
+        toast.error(
+          pickLocalized(lang, {
+            en: "Session expired. Please login again.",
+            fr: "Session expirée. Reconnecte-toi.",
+            ar: "انتهت الجلسة. سجّل الدخول مرة أخرى.",
+            // TODO: translate to hi/ur/es/ru/zh/pt/tr/sw
+          }),
+        );
         navigate("/welcome", { replace: true });
         return;
       }
@@ -73,7 +83,15 @@ const FamilyIdentity = () => {
       navigate("/loading");
     } catch (err: any) {
       console.error("FamilyIdentity save error:", err);
-      toast.error(err.message || "Could not save your name. Please try again.");
+      toast.error(
+        err.message ||
+          pickLocalized(lang, {
+            en: "Could not save your name. Please try again.",
+            fr: "Impossible d'enregistrer ton nom. Réessaie.",
+            ar: "تعذر حفظ اسمك. حاول مرة أخرى.",
+            // TODO: translate to hi/ur/es/ru/zh/pt/tr/sw
+          }),
+      );
       setLoading(false);
     }
   };
@@ -110,7 +128,19 @@ const FamilyIdentity = () => {
           className="text-3xl font-semibold text-center mb-2"
           style={{ color: "#1A3B47", textAlign: "center" }}
         >
-          What's your name?
+          {pickLocalized(lang, {
+            en: "What's your name?",
+            fr: "Comment tu t'appelles ?",
+            ar: "ما اسمك؟",
+            hi: "आपका नाम क्या है?",
+            ur: "آپ کا نام کیا ہے؟",
+            es: "¿Cómo te llamas?",
+            ru: "Как тебя зовут?",
+            zh: "你叫什么名字？",
+            pt: "Como você se chama?",
+            tr: "Adın ne?",
+            sw: "Jina lako nani?",
+          })}
         </h1>
 
         <p
@@ -118,9 +148,33 @@ const FamilyIdentity = () => {
           className="text-center text-base font-medium mb-8 max-w-xs mx-auto leading-relaxed"
           style={{ color: "#1A1A1A", textAlign: "center" }}
         >
-          Your circle will know you by this name.
+          {pickLocalized(lang, {
+            en: "Your circle will know you by this name.",
+            fr: "Ton cercle te connaîtra sous ce nom.",
+            ar: "سيدعك دائرتك بهذا الاسم.",
+            hi: "आपका चक्र आपको इसी नाम से जानेगा।",
+            ur: "آپ کا دائرہ آپ کو اسی نام سے پہچانے گا۔",
+            es: "Tu círculo te conocerá por este nombre.",
+            ru: "Твой круг будет знать тебя по этому имени.",
+            zh: "你的圈子会用这个名字认识你。",
+            pt: "Seu círculo conhecerá você por este nome.",
+            tr: "Çevrende bu isimle tanınacaksın.",
+            sw: "Mduara wako utakujua kwa jina hili.",
+          })}
           <br />
-          Begin your story here.
+          {pickLocalized(lang, {
+            en: "Begin your story here.",
+            fr: "Commence ton histoire ici.",
+            ar: "ابدأ قصتك من هنا.",
+            hi: "अपनी कहानी यहीं से शुरू करें।",
+            ur: "اپنی کہانی یہاں سے شروع کریں۔",
+            es: "Comienza tu historia aquí.",
+            ru: "Начни свою историю здесь.",
+            zh: "从这里开始你的故事。",
+            pt: "Comece sua história aqui.",
+            tr: "Hikâyene buradan başla.",
+            sw: "Anza hadithi yako hapa.",
+          })}
         </p>
 
         <div
@@ -135,7 +189,19 @@ const FamilyIdentity = () => {
                 : "top-4 text-base text-muted-foreground"
             }`}
           >
-            First Name
+            {pickLocalized(lang, {
+              en: "First Name",
+              fr: "Prénom",
+              ar: "الاسم الأول",
+              hi: "पहला नाम",
+              ur: "پہلا نام",
+              es: "Nombre",
+              ru: "Имя",
+              zh: "名字",
+              pt: "Nome",
+              tr: "Ad",
+              sw: "Jina la kwanza",
+            })}
           </span>
           <input
             type="text"
