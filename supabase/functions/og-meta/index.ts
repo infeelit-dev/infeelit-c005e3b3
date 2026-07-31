@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 function escapeHtml(value: string): string {
   return value
@@ -28,24 +28,32 @@ serve(async (req) => {
 
   const supabase = createClient(supabaseUrl, serviceKey || anonKey!);
 
+  // Select only columns known to exist on production memories table
   const { data: memory, error } = await supabase
     .from("memories")
-    .select("title, transcript_fr, transcript_en, thumbnail_url, is_public")
+    .select(
+      "title, description, thumbnail_url, is_public, question_fr, question_en, question_ar",
+    )
     .eq("id", memoryId)
     .maybeSingle();
 
   if (error) {
     console.error("og-meta query error:", error);
-    return new Response("Query failed", { status: 500 });
+    return new Response(`Query failed: ${error.message}`, { status: 500 });
   }
 
   if (!memory || memory.is_public !== true) {
     return new Response("Not found", { status: 404 });
   }
 
-  const transcript = memory.transcript_fr || memory.transcript_en || "";
-  const teaser = transcript
-    ? transcript.slice(0, 100) + "..."
+  const teaserSource =
+    memory.description ||
+    memory.question_fr ||
+    memory.question_en ||
+    memory.question_ar ||
+    "";
+  const teaser = teaserSource
+    ? String(teaserSource).slice(0, 100) + (String(teaserSource).length > 100 ? "..." : "")
     : "A voice preserved forever on Infeelit";
 
   let thumbnailUrl: string | null = null;
