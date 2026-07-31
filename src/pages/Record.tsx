@@ -319,6 +319,7 @@ const Record = () => {
   const isCommunityRef = useRef(false);
   const isAnonymousRef = useRef(false);
   const [visibilityChoice, setVisibilityChoice] = useState<"family" | "community" | "private" | null>(null);
+  const [allowAnonymousShare, setAllowAnonymousShare] = useState(false);
   const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const thumbScrollRef = useRef<HTMLDivElement>(null);
   const bgVideoInputRef = useRef<HTMLInputElement>(null);
@@ -1222,6 +1223,7 @@ const Record = () => {
             is_public: isCommunityRef.current,
             is_community: isCommunityRef.current,
             is_anonymous: isAnonymousRef.current,
+            allow_anonymous_share: allowAnonymousShare,
             spark_reward: sparkRewardRef.current,
             background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,
             aura_intensity: auraRef.current ? 35 : null,
@@ -3192,6 +3194,79 @@ const Record = () => {
             <Lock size={18} />
             {lang === "ar" ? "خاص" : lang === "fr" ? "Privé" : "Private"}
           </button>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "14px 16px",
+              background: "rgba(255,255,255,0.05)",
+              borderRadius: "12px",
+              marginTop: "16px",
+              maxWidth: "320px",
+              width: "100%",
+            }}
+          >
+            <div>
+              <p
+                style={{
+                  color: "#fff",
+                  fontSize: "14px",
+                  margin: 0,
+                  fontWeight: 600,
+                }}
+              >
+                {lang === "fr"
+                  ? "✦ Autoriser un teaser anonyme"
+                  : lang === "ar"
+                    ? "✦ السماح بمعاينة مجهولة"
+                    : "✦ Allow anonymous teaser"}
+              </p>
+              <p
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontSize: "11px",
+                  margin: "2px 0 0",
+                }}
+              >
+                {lang === "fr"
+                  ? "Infeelit peut partager un extrait sans ton nom"
+                  : lang === "ar"
+                    ? "يمكن لـ Infeelit مشاركة مقتطف دون اسمك"
+                    : "Infeelit may share a teaser without your name"}
+              </p>
+            </div>
+            <div
+              onClick={() => setAllowAnonymousShare(!allowAnonymousShare)}
+              role="switch"
+              aria-checked={allowAnonymousShare}
+              style={{
+                width: "44px",
+                height: "24px",
+                borderRadius: "12px",
+                background: allowAnonymousShare ? "#E8742A" : "rgba(255,255,255,0.2)",
+                cursor: "pointer",
+                position: "relative",
+                transition: "background 0.2s",
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: "2px",
+                  left: allowAnonymousShare ? "22px" : "2px",
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  background: "#fff",
+                  transition: "left 0.2s",
+                }}
+              />
+            </div>
+          </div>
+
           <button
             onClick={handleVisibilityConfirm}
             disabled={!visibilityChoice}
