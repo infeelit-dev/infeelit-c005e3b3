@@ -721,6 +721,8 @@ const Circle = () => {
               <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>
                 {t.ourCircle} · {members.length}{" "}
                 {lang === "fr" ? "membres" : lang === "ar" ? "أعضاء" : "members"}
+                {" · "}
+                {t.privateLabel}
               </p>
             </>
           )}
