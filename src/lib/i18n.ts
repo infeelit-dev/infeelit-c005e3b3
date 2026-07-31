@@ -7,6 +7,12 @@ import pt from "@/lib/locales/pt";
 import tr from "@/lib/locales/tr";
 import sw from "@/lib/locales/sw";
 import kab from "@/lib/locales/kab";
+import de from "@/lib/locales/de";
+import it from "@/lib/locales/it";
+import ja from "@/lib/locales/ja";
+import bn from "@/lib/locales/bn";
+import fa from "@/lib/locales/fa";
+import zgh from "@/lib/locales/zgh";
 
 export type Lang =
   | "en"
@@ -20,7 +26,13 @@ export type Lang =
   | "pt"
   | "tr"
   | "sw"
-  | "kab";
+  | "kab"
+  | "de"
+  | "it"
+  | "ja"
+  | "bn"
+  | "fa"
+  | "zgh";
 
 export const ALL_LANGS: Lang[] = [
   "en",
@@ -35,6 +47,12 @@ export const ALL_LANGS: Lang[] = [
   "tr",
   "sw",
   "kab",
+  "de",
+  "it",
+  "ja",
+  "bn",
+  "fa",
+  "zgh",
 ];
 
 export const LANGUAGES: {
@@ -55,22 +73,34 @@ export const LANGUAGES: {
   { code: "tr", label: "Türkçe", flag: "🇹🇷" },
   { code: "sw", label: "Kiswahili", flag: "🇰🇪" },
   { code: "kab", label: "Taqbaylit", flag: "🇩🇿" },
+  { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  { code: "it", label: "Italiano", flag: "🇮🇹" },
+  { code: "ja", label: "日本語", flag: "🇯🇵" },
+  { code: "bn", label: "বাংলা", flag: "🇧🇩" },
+  { code: "fa", label: "فارسی", flag: "🇮🇷", rtl: true },
+  { code: "zgh", label: "ⵜⴰⵎⴰⵣⵉⵖⵜ", flag: "ⵣ" },
 ];
 
 /** Canvas / UI font family for script-specific rendering */
 export const getCanvasFont = (lang: string): string => {
   if (lang === "hi") return "Noto Sans Devanagari";
-  if (lang === "ur") return "Noto Nastaliq Urdu";
+  if (lang === "ur" || lang === "fa") return "Noto Nastaliq Urdu";
   if (lang === "zh") return "Noto Sans SC";
   if (lang === "ar") return "Noto Sans Arabic";
+  if (lang === "ja") return "Noto Sans JP";
+  if (lang === "bn") return "Noto Sans Bengali";
+  if (lang === "zgh") return "Noto Sans Tifinagh";
   return "Georgia";
 };
 
 export const getUiFontFamily = (lang: Lang | string): string => {
   if (lang === "hi") return "'Noto Sans Devanagari', 'Noto Sans', sans-serif";
-  if (lang === "ur") return "'Noto Nastaliq Urdu', 'Noto Sans Arabic', sans-serif";
+  if (lang === "ur" || lang === "fa") return "'Noto Nastaliq Urdu', 'Noto Sans Arabic', sans-serif";
   if (lang === "zh") return "'Noto Sans SC', 'Noto Sans', sans-serif";
   if (lang === "ar") return "'Noto Sans Arabic', Arial, sans-serif";
+  if (lang === "ja") return "'Noto Sans JP', 'Noto Sans', sans-serif";
+  if (lang === "bn") return "'Noto Sans Bengali', 'Noto Sans', sans-serif";
+  if (lang === "zgh") return "'Noto Sans Tifinagh', 'Noto Sans', sans-serif";
   if (lang === "ru") return "Georgia, 'Noto Sans', serif";
   return "inherit";
 };
@@ -577,8 +607,14 @@ export const translations: Record<Lang, Translations> = {
   tr,
   sw,
   kab,
+  de,
+  it,
+  ja,
+  bn,
+  fa,
+  zgh,
 };
-export const isRTL = (lang: Lang) => lang === "ar" || lang === "ur";
+export const isRTL = (lang: Lang) => lang === "ar" || lang === "ur" || lang === "fa";
 export const langLabel: Record<Lang, string> = {
   en: "EN",
   fr: "FR",
@@ -592,4 +628,10 @@ export const langLabel: Record<Lang, string> = {
   tr: "TR",
   sw: "SW",
   kab: "KAB",
+  de: "DE",
+  it: "IT",
+  ja: "日本語",
+  bn: "বাং",
+  fa: "فا",
+  zgh: "ⵣ",
 };

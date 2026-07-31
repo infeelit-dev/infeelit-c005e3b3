@@ -92,6 +92,7 @@ function pickTranscript(memory: EchoCardMemory): string | null {
 const resolveScriptLang = (uiLang?: string | null, detected?: string | null) => {
   const raw = (uiLang || detected || "en").toLowerCase();
   if (raw.startsWith("kab")) return "kab";
+  if (raw.startsWith("zgh")) return "zgh";
   return raw.slice(0, 2);
 };
 

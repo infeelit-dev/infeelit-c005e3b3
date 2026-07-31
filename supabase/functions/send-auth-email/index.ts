@@ -12,7 +12,13 @@ type EmailLang =
   | "pt"
   | "tr"
   | "sw"
-  | "kab";
+  | "kab"
+  | "de"
+  | "it"
+  | "ja"
+  | "bn"
+  | "fa"
+  | "zgh";
 
 const getEmailContent = (lang: string) => {
   const content: Record<
@@ -127,6 +133,60 @@ const getEmailContent = (lang: string) => {
       expire: "Aseɣwen-a ad ifak deg 24 n tsaɛtin.",
       footer: "infeelit.com — S tmerna, tarbaɛt n Infeelit",
     },
+    de: {
+      subject: "✦ Treten Sie Infeelit bei — Ihr Link wartet",
+      title: "Diese Stimme verdient es zu bleiben.",
+      body: "Erstellen Sie Ihren kostenlosen Raum, damit diese Erinnerung für immer lebt.",
+      cta: "Infeelit betreten ✦",
+      tagline: "Bewahre die Stimmen, die zählen",
+      expire: "Dieser Link läuft in 24 Stunden ab.",
+      footer: "infeelit.com — Mit Sorgfalt, das Infeelit-Team",
+    },
+    it: {
+      subject: "✦ Entra in Infeelit — Il tuo link ti aspetta",
+      title: "Questa voce merita di restare.",
+      body: "Crea il tuo spazio gratuito perché questo ricordo viva per sempre.",
+      cta: "Entra in Infeelit ✦",
+      tagline: "Preserva le voci che contano",
+      expire: "Questo link scade tra 24 ore.",
+      footer: "infeelit.com — Con cura, il team Infeelit",
+    },
+    ja: {
+      subject: "✦ Infeelit へようこそ — リンクが届いています",
+      title: "この声は残るべきです。",
+      body: "この思い出が永遠に生きるよう、無料のスペースを作成してください。",
+      cta: "Infeelit に入る ✦",
+      tagline: "大切な声を守る",
+      expire: "このリンクは24時間で期限切れになります。",
+      footer: "infeelit.com — 心を込めて、Infeelitチーム",
+    },
+    bn: {
+      subject: "✦ Infeelit-এ প্রবেশ করুন — আপনার লিংক অপেক্ষা করছে",
+      title: "এই কণ্ঠস্বর থাকার যোগ্য।",
+      body: "আপনার বিনামূল্যের জায়গা তৈরি করুন যাতে এই স্মৃতি চিরকাল বেঁচে থাকে।",
+      cta: "Infeelit-এ প্রবেশ করুন ✦",
+      tagline: "গুরুত্বপূর্ণ কণ্ঠস্বর সংরক্ষণ করুন",
+      expire: "এই লিংক ২৪ ঘণ্টায় মেয়াদোত্তীর্ণ হবে।",
+      footer: "infeelit.com — যত্নসহ, Infeelit দল",
+    },
+    fa: {
+      subject: "✦ وارد Infeelit شوید — لینک شما منتظر است",
+      title: "این صدا لایق ماندن است.",
+      body: "فضای رایگان خود را ایجاد کنید تا این خاطره برای همیشه زنده بماند.",
+      cta: "وارد Infeelit شوید ✦",
+      tagline: "صداهایی را نگه دارید که مهم‌اند",
+      expire: "این لینک تا ۲۴ ساعت دیگر منقضی می‌شود.",
+      footer: "infeelit.com — با مهر، تیم Infeelit",
+    },
+    zgh: {
+      subject: "✦ Kcem ɣer Infeelit — Aseɣwen-ik ittsares",
+      title: "ⵜⵉⴳⴰⵡⵜ ⴰⴷ ⵜⵉⵙⵜⴰⵀⴰⵇ ⴰⴷ ⵜⵇⵉⵎ.",
+      body: "Rnu aghal-ik n tilellit i talɣut-a ad tɛiš akw.",
+      cta: "Kcem ɣer Infeelit ✦",
+      tagline: "Ḥrez tigawt i d-teqqaren",
+      expire: "Aseɣwen-a ad ifak deg 24 n tsaɛtin.",
+      footer: "infeelit.com — S tmerna, tarbaɛt n Infeelit",
+    },
   };
 
   return content[(lang as EmailLang)] || content.en;
@@ -146,8 +206,9 @@ const detectLang = (payload: Record<string, unknown>): string => {
   for (const c of candidates) {
     if (typeof c === "string" && c.length >= 2) {
       const lower = c.toLowerCase().replace("_", "-").split("-")[0];
-      // Preserve 3-letter Kabyle code
+      // Preserve 3-letter language codes
       if (lower === "kab" || lower.startsWith("kab")) return "kab";
+      if (lower === "zgh" || lower.startsWith("zgh")) return "zgh";
       return lower.slice(0, 2);
     }
   }
@@ -169,7 +230,7 @@ serve(async (req) => {
   const toEmail = payload?.user?.email || payload?.email || "";
   const lang = detectLang(payload);
   const copy = getEmailContent(lang);
-  const dir = lang === "ar" || lang === "ur" ? "rtl" : "ltr";
+  const dir = lang === "ar" || lang === "ur" || lang === "fa" ? "rtl" : "ltr";
 
   console.log("confirmationUrl:", confirmationUrl);
   console.log("toEmail:", toEmail);
