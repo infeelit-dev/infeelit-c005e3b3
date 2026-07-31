@@ -238,7 +238,33 @@ const FamilyIdentity = () => {
               WebkitTapHighlightColor: "transparent",
             }}
           >
-            {loading ? "Saving..." : "Enter Infeelit"}
+            {loading
+              ? pickLocalized(lang, {
+                  en: "Saving...",
+                  fr: "Enregistrement...",
+                  ar: "جارٍ الحفظ...",
+                  hi: "सहेजा जा रहा है...",
+                  ur: "محفوظ ہو رہا ہے...",
+                  es: "Guardando...",
+                  ru: "Сохранение...",
+                  zh: "保存中...",
+                  pt: "Salvando...",
+                  tr: "Kaydediliyor...",
+                  sw: "Inahifadhi...",
+                })
+              : pickLocalized(lang, {
+                  en: "Enter Infeelit",
+                  fr: "Entrer dans Infeelit",
+                  ar: "ادخل إلى Infeelit",
+                  hi: "Infeelit में प्रवेश करें",
+                  ur: "Infeelit میں داخل ہوں",
+                  es: "Entrar en Infeelit",
+                  ru: "Войти в Infeelit",
+                  zh: "进入 Infeelit",
+                  pt: "Entrar no Infeelit",
+                  tr: "Infeelit'e gir",
+                  sw: "Ingia Infeelit",
+                })}
           </button>
         </div>
       </div>

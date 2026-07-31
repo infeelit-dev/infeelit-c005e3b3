@@ -889,16 +889,24 @@ export function getLocalizedQuestions(lang: Lang): LocalizedQuestion[] | null {
   return LOCALIZED_QUESTIONS[lang as NewLang] || null;
 }
 
-/** Map existing CHAPTERS ids → localized chapter buckets */
+/** Map existing CHAPTERS / category ids → localized chapter buckets */
 export const CHAPTER_TO_LOCAL: Record<string, LocalizedQuestion["chapter"]> = {
   enfance: "childhood",
-  adolescence: "family",
-  jeunesse: "lessons",
-  amour: "traditions",
+  petite_enfance: "childhood",
+  ecole: "childhood",
+  animaux: "childhood",
+  jeunesse: "family",
+  lycee: "family",
+  etudes: "lessons",
+  amis: "family",
+  voyages: "migration",
+  passions: "traditions",
+  adulte: "legacy",
+  amour: "family",
+  parentalite: "family",
+  carriere: "lessons",
   famille: "family",
-  voyage: "migration",
-  transmission: "legacy",
-  sagesse: "legacy",
+  epreuves: "lessons",
   childhood: "childhood",
   family: "family",
   lessons: "lessons",
@@ -909,10 +917,11 @@ export const CHAPTER_TO_LOCAL: Record<string, LocalizedQuestion["chapter"]> = {
 
 export function getLocalizedQuestionsForChapter(
   lang: Lang,
-  chapterId: string,
+  chapterOrCategoryId: string,
 ): LocalizedQuestion[] {
   const all = getLocalizedQuestions(lang);
   if (!all) return [];
-  const bucket = CHAPTER_TO_LOCAL[chapterId] || "childhood";
-  return all.filter((q) => q.chapter === bucket);
+  const bucket = CHAPTER_TO_LOCAL[chapterOrCategoryId] || "childhood";
+  const filtered = all.filter((q) => q.chapter === bucket);
+  return filtered.length > 0 ? filtered : all.slice(0, 20);
 }

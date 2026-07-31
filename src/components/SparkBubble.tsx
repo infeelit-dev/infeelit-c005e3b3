@@ -148,10 +148,9 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     const category = chapter?.categories.find((cat) => cat.id === categoryId);
     if (!category) return [];
 
-    // New locales: culturally adapted AI drafts
+    // New locales: culturally adapted AI drafts (100 questions / language)
     if (getLocalizedQuestions(language as Lang)) {
-      const chapterId = chapter?.id || categoryId;
-      return getLocalizedQuestionsForChapter(language as Lang, chapterId).map((q) => ({
+      return getLocalizedQuestionsForChapter(language as Lang, categoryId).map((q) => ({
         text: q.text.replace("{name}", name || "").trim(),
         bubble: q.bubble,
       }));
