@@ -693,6 +693,7 @@ const Profile = () => {
             </button>
           </div>
         ) : (
+          <>
           <div
             style={{
               display: "grid",
@@ -819,10 +820,12 @@ const Profile = () => {
               </button>
             </div>
           )}
+          </>
         )}
       </div>
 
       {isOwnProfile && (
+      <>
       <div style={{ padding: "32px 20px 0" }}>
         <button
           onClick={handleLogout}
@@ -879,6 +882,7 @@ const Profile = () => {
           {lang === "fr" ? "Contactez-nous" : lang === "ar" ? "تواصل معنا" : "Contact us"}
         </a>
       </div>
+      </>
       )}
 
       {memoryToDelete && (
