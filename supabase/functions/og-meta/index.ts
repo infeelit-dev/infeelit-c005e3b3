@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 function escapeHtml(value: string): string {
   return value
@@ -15,22 +15,31 @@ serve(async (req) => {
   const memoryId = url.searchParams.get("id");
 
   if (!memoryId) {
-    return new Response("Not found", { status: 404 });
+    return new Response("Missing id", { status: 400 });
   }
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
-  const { data: memory } = await supabase
+  if (!supabaseUrl || !(serviceKey || anonKey)) {
+    return new Response("Server misconfigured", { status: 500 });
+  }
+
+  const supabase = createClient(supabaseUrl, serviceKey || anonKey!);
+
+  const { data: memory, error } = await supabase
     .from("memories")
-    .select("title, transcript_fr, transcript_en, thumbnail_url")
+    .select("title, transcript_fr, transcript_en, thumbnail_url, is_public")
     .eq("id", memoryId)
-    .eq("is_public", true)
-    .single();
+    .maybeSingle();
 
-  if (!memory) {
+  if (error) {
+    console.error("og-meta query error:", error);
+    return new Response("Query failed", { status: 500 });
+  }
+
+  if (!memory || memory.is_public !== true) {
     return new Response("Not found", { status: 404 });
   }
 
@@ -42,14 +51,13 @@ serve(async (req) => {
   let thumbnailUrl: string | null = null;
   if (memory.thumbnail_url) {
     if (memory.thumbnail_url.startsWith("http")) {
-      // Prefer signed URLs for private bucket; skip broken public URLs
       const pathMatch = memory.thumbnail_url.match(
         /\/storage\/v1\/object\/(?:public|sign)\/memories\/([^?]+)/,
       );
       if (pathMatch) {
         const { data } = await supabase.storage
           .from("memories")
-          .createSignedUrl(decodeURIComponent(pathMatch[1]), 3600);
+          .createSignedUrl(decodeURIComponent(pathMatch[1]), 86400);
         thumbnailUrl = data?.signedUrl || null;
       } else {
         thumbnailUrl = memory.thumbnail_url;
@@ -57,7 +65,7 @@ serve(async (req) => {
     } else {
       const { data } = await supabase.storage
         .from("memories")
-        .createSignedUrl(memory.thumbnail_url, 3600);
+        .createSignedUrl(memory.thumbnail_url, 86400);
       thumbnailUrl = data?.signedUrl || null;
     }
   }
