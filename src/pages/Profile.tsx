@@ -882,6 +882,7 @@ const Profile = () => {
           {lang === "fr" ? "Contactez-nous" : lang === "ar" ? "تواصل معنا" : "Contact us"}
         </a>
       </div>
+      </>
       )}
 
       {memoryToDelete && (
