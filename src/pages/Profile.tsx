@@ -59,20 +59,25 @@ const Profile = () => {
   const PAGE_SIZE = 12;
 
   const handleSaveName = async () => {
-    if (!newName.trim() || !session?.user?.id) return;
+    if (!newName.trim() || !session?.user?.id || savingName) return;
     const trimmed = newName.trim();
+    setSavingName(true);
     const { error } = await supabase
       .from("profiles")
       .update({ display_name: trimmed })
       .eq("user_id", session.user.id);
     if (error) {
       console.error("Save name failed:", error);
+      toast.error(lang === "fr" ? "Erreur de sauvegarde" : lang === "ar" ? "فشل الحفظ" : "Save failed");
+      setSavingName(false);
       return;
     }
     localStorage.setItem("infeelit_user_name", trimmed);
     await supabase.auth.updateUser({ data: { display_name: trimmed } });
+    setDisplayName(trimmed);
     setEditingName(false);
-    window.location.reload();
+    setSavingName(false);
+    toast.success(lang === "fr" ? "Nom mis à jour ✦" : lang === "ar" ? "تم تحديث الاسم ✦" : "Name updated ✦");
   };
 
   const handleDeleteMemory = (memoryId: string) => {
@@ -412,6 +417,7 @@ const Profile = () => {
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
               placeholder={userName}
               style={{
                 padding: "8px 16px",
@@ -426,17 +432,19 @@ const Profile = () => {
             />
             <button
               onClick={handleSaveName}
+              disabled={savingName}
               style={{
                 padding: "8px 16px",
                 borderRadius: "999px",
                 background: "#E8742A",
                 color: "#fff",
                 border: "none",
-                cursor: "pointer",
+                cursor: savingName ? "wait" : "pointer",
                 fontWeight: 700,
+                opacity: savingName ? 0.7 : 1,
               }}
             >
-              ✓
+              {savingName ? "…" : "✓"}
             </button>
             <button
               onClick={() => setEditingName(false)}
