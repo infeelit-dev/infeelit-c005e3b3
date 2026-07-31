@@ -40,6 +40,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
   const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [langSearch, setLangSearch] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -70,6 +71,12 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
     flag: l.flag,
     rtl: !!l.rtl,
   }));
+
+  const filteredLangs = LANGS.filter(
+    (l) =>
+      l.label.toLowerCase().includes(langSearch.toLowerCase()) ||
+      l.id.toLowerCase().includes(langSearch.toLowerCase()),
+  );
 
   const getLangLabel = (lang: string) => {
     const labels: Record<string, string> = {
@@ -246,7 +253,10 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                       inset: 0,
                       zIndex: 199,
                     }}
-                    onClick={() => setLangOpen(false)}
+                    onClick={() => {
+                      setLangOpen(false);
+                      setLangSearch("");
+                    }}
                   />
                   <div
                     style={{
@@ -258,18 +268,39 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                       borderRadius: "14px",
                       border: "1px solid rgba(255,255,255,.12)",
                       overflowY: "auto",
-                      maxHeight: "70vh",
-                      minWidth: "200px",
+                      maxHeight: "320px",
+                      minWidth: "220px",
                       boxShadow: "0 8px 32px rgba(0,0,0,.5)",
                       zIndex: 200,
+                      padding: "10px 8px 8px",
                     }}
                   >
-                    {LANGS.map((l, i) => (
+                    <input
+                      type="text"
+                      placeholder="Search language..."
+                      value={langSearch}
+                      onChange={(e) => setLangSearch(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        width: "100%",
+                        padding: "8px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        background: "rgba(255,255,255,0.05)",
+                        color: "#fff",
+                        fontSize: "13px",
+                        marginBottom: "8px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                    {filteredLangs.map((l, i) => (
                       <button
                         key={l.id}
                         onClick={() => {
                           setLang(l.id as Lang);
                           setLangOpen(false);
+                          setLangSearch("");
                         }}
                         style={{
                           width: "100%",
@@ -279,8 +310,10 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                           gap: "10px",
                           backgroundColor: lang === l.id ? "rgba(232,116,42,0.2)" : "transparent",
                           border: "none",
-                          borderBottom: i < LANGS.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none",
+                          borderBottom:
+                            i < filteredLangs.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none",
                           cursor: "pointer",
+                          borderRadius: "8px",
                         }}
                       >
                         <span style={{ fontSize: "14px", width: "22px" }}>{l.flag}</span>
