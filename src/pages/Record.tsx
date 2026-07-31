@@ -2436,8 +2436,7 @@ const Record = () => {
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
             {lang === "ar"
               ? "اختر خلفية لتسجيلك"
-              : pickLocalized(lang, { fr: "Choisis un fond pour ton enregistrement"
-                : "Choose a background for your recording"}
+              : pickLocalized(lang, { fr: "Choisis un fond pour ton enregistrement", en: "Choose a background for your recording" })}
           </p>
           <div
             ref={thumbScrollRef}
@@ -2549,8 +2548,7 @@ const Record = () => {
               >
                 {lang === "ar"
                   ? "المتابعة مع الفيديو"
-                  : pickLocalized(lang, { fr: "Continuer avec vidéo"
-                    : "Continue with video"}
+                  : pickLocalized(lang, { fr: "Continuer avec vidéo", en: "Continue with video" })}
               </button>
             ) : (
               <button
@@ -2666,8 +2664,7 @@ const Record = () => {
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
             {lang === "ar"
               ? "استمع قبل الحفظ..."
-              : pickLocalized(lang, { fr: "Réécoutez avant de garder..."
-                : "Listen before keeping..."}
+              : pickLocalized(lang, { fr: "Réécoutez avant de garder...", en: "Listen before keeping..." })}
           </p>
           <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{questionRef.current}"</h2>
           <div className="relative w-full">
@@ -2737,7 +2734,7 @@ const Record = () => {
               className="flex-1 py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20 flex items-center justify-center gap-2"
             >
               <RotateCcw size={18} />
-              {lang === "ar" ? "حاول مجدداً" : pickLocalized(lang, { fr: "Recommencer" : "Try again"}
+              {lang === "ar" ? "حاول مجدداً" : pickLocalized(lang, { fr: "Recommencer", en: "Try again" })}
             </button>
             <button
               onClick={handleUpload}
@@ -3040,7 +3037,7 @@ const Record = () => {
             style={visibilityButtonStyle("community")}
           >
             <Globe size={18} />
-            {lang === "ar" ? "للجميع" : pickLocalized(lang, { fr: "Tout le monde" : "Everyone"}
+            {lang === "ar" ? "للجميع" : pickLocalized(lang, { fr: "Tout le monde", en: "Everyone" })}
           </button>
           <button
             onClick={() => handleVisibilitySelect("family")}
@@ -3131,7 +3128,7 @@ const Record = () => {
             style={{ color: "#fff" }}
           >
             <Share2 size={18} />
-            {lang === "ar" ? "نشر ✦" : pickLocalized(lang, { fr: "Publier ✦" : "Publish ✦"}
+            {lang === "ar" ? "نشر ✦" : pickLocalized(lang, { fr: "Publier ✦", en: "Publish ✦" })}
           </button>
         </div>
       )}
