@@ -11,7 +11,8 @@ type EmailLang =
   | "zh"
   | "pt"
   | "tr"
-  | "sw";
+  | "sw"
+  | "kab";
 
 const getEmailContent = (lang: string) => {
   const content: Record<
@@ -117,6 +118,15 @@ const getEmailContent = (lang: string) => {
       expire: "Kiungo hiki kitaisha baada ya saa 24.",
       footer: "infeelit.com — Kwa upendo, timu ya Infeelit",
     },
+    kab: {
+      subject: "✦ Kcem ɣer Infeelit — Aseɣwen-ik ittsares",
+      title: "Tigawt-a tistahaq ad tqim.",
+      body: "Rnu aghal-ik n tilellit i talɣut-a ad tɛiš akw.",
+      cta: "Kcem ɣer Infeelit ✦",
+      tagline: "Ḥrez tigawt i d-teqqaren",
+      expire: "Aseɣwen-a ad ifak deg 24 n tsaɛtin.",
+      footer: "infeelit.com — S tmerna, tarbaɛt n Infeelit",
+    },
   };
 
   return content[(lang as EmailLang)] || content.en;
@@ -135,7 +145,10 @@ const detectLang = (payload: Record<string, unknown>): string => {
   ];
   for (const c of candidates) {
     if (typeof c === "string" && c.length >= 2) {
-      return c.slice(0, 2).toLowerCase();
+      const lower = c.toLowerCase().replace("_", "-").split("-")[0];
+      // Preserve 3-letter Kabyle code
+      if (lower === "kab" || lower.startsWith("kab")) return "kab";
+      return lower.slice(0, 2);
     }
   }
   return "en";

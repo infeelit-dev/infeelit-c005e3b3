@@ -6,6 +6,7 @@ import zh from "@/lib/locales/zh";
 import pt from "@/lib/locales/pt";
 import tr from "@/lib/locales/tr";
 import sw from "@/lib/locales/sw";
+import kab from "@/lib/locales/kab";
 
 export type Lang =
   | "en"
@@ -18,7 +19,8 @@ export type Lang =
   | "zh"
   | "pt"
   | "tr"
-  | "sw";
+  | "sw"
+  | "kab";
 
 export const ALL_LANGS: Lang[] = [
   "en",
@@ -32,6 +34,7 @@ export const ALL_LANGS: Lang[] = [
   "pt",
   "tr",
   "sw",
+  "kab",
 ];
 
 export const LANGUAGES: {
@@ -51,6 +54,7 @@ export const LANGUAGES: {
   { code: "pt", label: "Português", flag: "🇧🇷" },
   { code: "tr", label: "Türkçe", flag: "🇹🇷" },
   { code: "sw", label: "Kiswahili", flag: "🇰🇪" },
+  { code: "kab", label: "Taqbaylit", flag: "🇩🇿" },
 ];
 
 /** Canvas / UI font family for script-specific rendering */
@@ -572,6 +576,7 @@ export const translations: Record<Lang, Translations> = {
   pt,
   tr,
   sw,
+  kab,
 };
 export const isRTL = (lang: Lang) => lang === "ar" || lang === "ur";
 export const langLabel: Record<Lang, string> = {
@@ -586,4 +591,5 @@ export const langLabel: Record<Lang, string> = {
   pt: "PT",
   tr: "TR",
   sw: "SW",
+  kab: "KAB",
 };

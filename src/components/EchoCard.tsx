@@ -89,9 +89,16 @@ function pickTranscript(memory: EchoCardMemory): string | null {
 /**
  * Generate a 1080×1920 Stories-format Echo Card PNG for viral sharing.
  */
+const resolveScriptLang = (uiLang?: string | null, detected?: string | null) => {
+  const raw = (uiLang || detected || "en").toLowerCase();
+  if (raw.startsWith("kab")) return "kab";
+  return raw.slice(0, 2);
+};
+
 const generateEchoCard = async (
   memory: EchoCardMemory,
   anonymous: boolean = false,
+  uiLang?: string,
 ): Promise<Blob> => {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
@@ -99,7 +106,7 @@ const generateEchoCard = async (
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
 
-  const scriptLang = (memory.detected_lang || "en").toLowerCase().slice(0, 2);
+  const scriptLang = resolveScriptLang(uiLang, memory.detected_lang);
   const fontFamily = await ensureCanvasFont(scriptLang, 72, "italic");
 
   // Background
@@ -190,6 +197,14 @@ const generateEchoCard = async (
   ctx.font = `36px "${fontFamily}", Georgia, serif`;
   ctx.textAlign = "center";
   ctx.fillText("infeelit.com", 540, 1750);
+
+  // Tifinagh watermark — honors ancestral script for Kabyle (dedicated to Malha)
+  if (scriptLang === "kab") {
+    ctx.fillStyle = "rgba(212,175,55,0.3)";
+    ctx.font = "28px serif";
+    ctx.textAlign = "right";
+    ctx.fillText("ⵜⴰⵇⴱⴰⵢⵍⵉⵜ", 1020, 1880);
+  }
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(

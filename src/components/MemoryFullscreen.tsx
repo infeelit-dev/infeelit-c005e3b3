@@ -89,7 +89,7 @@ export default function MemoryFullscreen({
     if (sharingBusy) return;
     setSharingBusy(true);
     try {
-      const blob = await generateEchoCard(bubble, anonymous);
+      const blob = await generateEchoCard(bubble, anonymous, lang);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
