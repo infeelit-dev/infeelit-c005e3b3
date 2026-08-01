@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import { useUserName } from "@/hooks/useUserName";
 import { Link2, PlusCircle, Eye } from "lucide-react";
 
@@ -25,24 +26,16 @@ const OnboardingChoice = ({ onClose }: OnboardingChoiceProps) => {
           : userName
             ? userName + ", how do you arrive here?"
             : "How do you arrive here?",
-    card1Title: lang === "ar" ? "تلقيت دعوة" : lang === "fr" ? "J'ai reçu une invitation" : "I received an invitation",
-    card1Sub: lang === "ar" ? "شخص ما ينتظرني" : lang === "fr" ? "Quelqu'un m'attend" : "Someone is waiting for me",
+    card1Title: pickLocalized(lang, { ar: "تلقيت دعوة", fr: "J'ai reçu une invitation", en: "I received an invitation" }),
+    card1Sub: pickLocalized(lang, { ar: "شخص ما ينتظرني", fr: "Quelqu'un m'attend", en: "Someone is waiting for me" }),
     card2Title:
-      lang === "ar"
-        ? "أريد إنشاء مساحتنا"
-        : lang === "fr"
-          ? "Je veux créer notre espace"
-          : "I want to create our space",
-    card2Sub: lang === "ar" ? "أجمع عائلتي" : lang === "fr" ? "Je rassemble ma famille" : "I'm gathering my family",
-    card3Title: lang === "ar" ? "أبدأ وحدي" : lang === "fr" ? "Je commence seul" : "I start alone",
+      pickLocalized(lang, { ar: "أريد إنشاء مساحتنا", fr: "Je veux créer notre espace", en: "I want to create our space" }),
+    card2Sub: pickLocalized(lang, { ar: "أجمع عائلتي", fr: "Je rassemble ma famille", en: "I'm gathering my family" }),
+    card3Title: pickLocalized(lang, { ar: "أبدأ وحدي", fr: "Je commence seul", en: "I start alone" }),
     card3Sub:
-      lang === "ar"
-        ? "يمكنني دعوة عائلتي لاحقاً"
-        : lang === "fr"
-          ? "Je pourrai inviter ma famille plus tard"
-          : "I can invite my family later",
-    inputPlaceholder: lang === "ar" ? "الصق الرمز هنا" : lang === "fr" ? "Colle ton code ici" : "Paste your code here",
-    joinButton: lang === "ar" ? "انضمام" : lang === "fr" ? "Rejoindre" : "Join",
+      pickLocalized(lang, { ar: "يمكنني دعوة عائلتي لاحقاً", fr: "Je pourrai inviter ma famille plus tard", en: "I can invite my family later" }),
+    inputPlaceholder: pickLocalized(lang, { ar: "الصق الرمز هنا", fr: "Colle ton code ici", en: "Paste your code here" }),
+    joinButton: pickLocalized(lang, { ar: "انضمام", fr: "Rejoindre", en: "Join" }),
   };
 
   const handleJoinWithCode = () => {

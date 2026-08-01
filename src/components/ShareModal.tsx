@@ -2,6 +2,7 @@ import { X, Copy, Facebook, Twitter, MessageCircle, Link2, Check, Share2 } from 
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
     await navigator.clipboard.writeText(`${text} ${deepLink}`);
     setCopied(true);
     toast.success(
-      lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!",
+      pickLocalized(lang, { ar: "تم نسخ الرابط!", fr: "Lien copié !", en: "Link copied!" }),
     );
     setTimeout(() => setCopied(false), 2000);
   };
@@ -52,7 +53,7 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
       try {
         await navigator.share({ title, text, url: deepLink });
         toast.success(
-          lang === "ar" ? "تمت المشاركة!" : lang === "fr" ? "Partagé avec succès !" : "Shared successfully!",
+          pickLocalized(lang, { ar: "تمت المشاركة!", fr: "Partagé avec succès !", en: "Shared successfully!" }),
         );
       } catch (err: any) {
         if (err?.name !== "AbortError") handleCopyLink();
@@ -66,11 +67,7 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
     if (platform === "instagram" || platform === "tiktok" || platform === "snapchat") {
       await navigator.clipboard.writeText(`${text} ${deepLink}`);
       toast.success(
-        lang === "ar"
-          ? "تم نسخ النص! افتح التطبيق والصقه"
-          : lang === "fr"
-            ? "Texte copié ! Ouvrez l'application et collez-le"
-            : "Text copied! Open the app and paste it",
+        pickLocalized(lang, { ar: "تم نسخ النص! افتح التطبيق والصقه", fr: "Texte copié ! Ouvrez l'application et collez-le", en: "Text copied! Open the app and paste it" }),
       );
     }
   };
@@ -106,7 +103,7 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h3 style={{ color: "#fff", fontSize: "18px", fontWeight: 700, fontFamily: "Georgia, serif" }}>
-            {lang === "ar" ? "شارك هذه الذكرى" : lang === "fr" ? "Partager ce souvenir" : "Share this memory"}
+            {pickLocalized(lang, { ar: "شارك هذه الذكرى", fr: "Partager ce souvenir", en: "Share this memory" })}
           </h3>
           <button
             onClick={onClose}
@@ -148,7 +145,7 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
               marginBottom: "4px",
             }}
           >
-            {lang === "ar" ? "ذكرى من Infeelit" : lang === "fr" ? "Un souvenir Infeelit" : "An Infeelit memory"}
+            {pickLocalized(lang, { ar: "ذكرى من Infeelit", fr: "Un souvenir Infeelit", en: "An Infeelit memory" })}
           </p>
           <p
             style={{ color: "#fff", fontSize: "15px", fontWeight: 600, fontFamily: "Georgia, serif", lineHeight: 1.4 }}
@@ -179,7 +176,7 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
           }}
         >
           <Share2 size={20} />
-          {lang === "ar" ? "مشاركة عبر..." : lang === "fr" ? "Partager via..." : "Share via..."}
+          {pickLocalized(lang, { ar: "مشاركة عبر...", fr: "Partager via...", en: "Share via..." })}
         </button>
 
         {/* Social buttons grid */}
@@ -350,16 +347,8 @@ const ShareModal = ({ isOpen, onClose, memoryId, title, url, text, thumbnailUrl 
         >
           {copied ? <Check size={18} color="#4ADE80" /> : <Link2 size={18} />}
           {copied
-            ? lang === "ar"
-              ? "تم النسخ!"
-              : lang === "fr"
-                ? "Copié !"
-                : "Copied!"
-            : lang === "ar"
-              ? "نسخ الرابط"
-              : lang === "fr"
-                ? "Copier le lien"
-                : "Copy link"}
+            ? pickLocalized(lang, { ar: "تم النسخ!", fr: "Copié !", en: "Copied!" })
+            : pickLocalized(lang, { ar: "نسخ الرابط", fr: "Copier le lien", en: "Copy link" })}
         </button>
       </div>
     </div>

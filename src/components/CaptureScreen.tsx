@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { X, StopCircle, Loader2, Share2, Video, Mic, Download, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 
 const MAX_DURATION_SECONDS = 180;
 const VIDEO_BITRATE = 500_000; // 500 kbps — 10x smaller than default
@@ -460,7 +461,7 @@ const Record = () => {
       }
     } else {
       navigator.clipboard.writeText(`${text} ${url}`);
-      toast.success(lang === "ar" ? "تم النسخ!" : lang === "fr" ? "Lien copié !" : "Link copied!");
+      toast.success(pickLocalized(lang, { ar: "تم النسخ!", fr: "Lien copié !", en: "Link copied!" }));
     }
   };
 
@@ -708,7 +709,7 @@ const Record = () => {
           <div className="flex items-center gap-3 w-full max-w-xs my-1">
             <div className="flex-1 h-px bg-white/15" />
             <span className="text-white/30 text-xs uppercase tracking-widest">
-              {lang === "ar" ? "أو" : lang === "fr" ? "ou" : "or"}
+              {pickLocalized(lang, { ar: "أو", fr: "ou", en: "or" })}
             </span>
             <div className="flex-1 h-px bg-white/15" />
           </div>
@@ -723,11 +724,7 @@ const Record = () => {
             }}
           >
             <Share2 size={18} />
-            {lang === "ar"
-              ? "مشاركة على وسائل التواصل"
-              : lang === "fr"
-                ? "Partager sur les réseaux"
-                : "Share on social media"}
+            {pickLocalized(lang, { ar: "مشاركة على وسائل التواصل", fr: "Partager sur les réseaux", en: "Share on social media" })}
           </button>
 
           <button
@@ -736,7 +733,7 @@ const Record = () => {
             style={{ color: "rgba(255,255,255,.4)" }}
           >
             <Download size={16} />
-            {lang === "ar" ? "تحميل الذكرى" : lang === "fr" ? "Télécharger le souvenir" : "Download memory"}
+            {pickLocalized(lang, { ar: "تحميل الذكرى", fr: "Télécharger le souvenir", en: "Download memory" })}
           </button>
         </div>
       )}

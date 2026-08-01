@@ -7,6 +7,7 @@ import SparkBubble from "@/components/SparkBubble";
 import BubbleCanvas from "@/components/BubbleCanvas";
 import useUserName from "@/hooks/useUserName";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import type { Timeline } from "@/types/timeline";
 
 const Index = () => {
@@ -220,7 +221,7 @@ const Index = () => {
               }}
               onClick={() => setShowJoinSheet(true)}
             >
-              ✦ Join free
+              {pickLocalized(lang, { fr: "✦ Rejoins gratuitement", ar: "✦ انضم مجاناً", en: "✦ Join free" })}
             </div>
           </div>
           <button
@@ -293,11 +294,7 @@ const Index = () => {
                 lineHeight: 1.4,
               }}
             >
-              {lang === "fr"
-                ? "Cette voix mérite de rester."
-                : lang === "ar"
-                  ? "هذا الصوت يستحق أن يبقى."
-                  : "This voice deserves to stay."}
+              {pickLocalized(lang, { fr: "Cette voix mérite de rester.", ar: "هذا الصوت يستحق أن يبقى.", en: "This voice deserves to stay." })}
             </h2>
 
             <p
@@ -309,11 +306,7 @@ const Index = () => {
                 whiteSpace: "pre-line",
               }}
             >
-              {lang === "fr"
-                ? "Rejoins gratuitement et préserve\nce qui compte le plus."
-                : lang === "ar"
-                  ? "انضم مجاناً واحفظ ما يهمّك أكثر."
-                  : "Join free and preserve\nwhat matters most."}
+              {pickLocalized(lang, { fr: "Rejoins gratuitement et préserve\nce qui compte le plus.", ar: "انضم مجاناً واحفظ ما يهمّك أكثر.", en: "Join free and preserve\nwhat matters most." })}
             </p>
             <button
               onClick={() => navigate("/welcome")}
@@ -331,11 +324,7 @@ const Index = () => {
                 boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
               }}
             >
-              {lang === "fr"
-                ? "Rejoindre Infeelit ✦"
-                : lang === "ar"
-                  ? "انضم إلى Infeelit ✦"
-                  : "Join Infeelit ✦"}
+              {pickLocalized(lang, { fr: "Rejoindre Infeelit ✦", ar: "انضم إلى Infeelit ✦", en: "Join Infeelit ✦" })}
             </button>
             <button
               onClick={() => {
@@ -352,11 +341,7 @@ const Index = () => {
                 padding: "8px",
               }}
             >
-              {lang === "fr"
-                ? "Continuer d'explorer"
-                : lang === "ar"
-                  ? "متابعة الاستكشاف"
-                  : "Keep exploring"}
+              {pickLocalized(lang, { fr: "Continuer d'explorer", ar: "متابعة الاستكشاف", en: "Keep exploring" })}
             </button>
           </div>
         </div>
@@ -417,7 +402,7 @@ const Index = () => {
             >
               <span style={{ fontSize: "24px" }}>🎙️</span>
               <span style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F" }}>
-                Enregistrer un souvenir
+                {pickLocalized(lang, { fr: "Enregistrer un souvenir", ar: "سجّل ذكرى", en: "Record a memory" })}
               </span>
             </button>
             <button
@@ -438,7 +423,7 @@ const Index = () => {
             >
               <span style={{ fontSize: "24px" }}>📁</span>
               <span style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F" }}>
-                Importer depuis ma galerie
+                {pickLocalized(lang, { fr: "Importer depuis ma galerie", ar: "استورد من المعرض", en: "Import from my gallery" })}
               </span>
             </button>
           </div>

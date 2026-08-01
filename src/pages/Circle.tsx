@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { resolveMemoryFields } from "@/lib/memoryUrl";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import useUserName from "@/hooks/useUserName";
@@ -129,11 +130,7 @@ const Circle = () => {
       if (membershipError) {
         console.error("Circle memberships error:", membershipError);
         setCircleError(
-          lang === "fr"
-            ? "Erreur de chargement"
-            : lang === "ar"
-              ? "خطأ في التحميل"
-              : "Failed to load circle",
+          pickLocalized(lang, { fr: "Erreur de chargement", ar: "خطأ في التحميل", en: "Failed to load circle" }),
         );
         return;
       }
@@ -192,11 +189,7 @@ const Circle = () => {
     } catch (err) {
       console.error("loadCircleData failed:", err);
       setCircleError(
-        lang === "fr"
-          ? "Erreur de chargement"
-          : lang === "ar"
-            ? "خطأ في التحميل"
-            : "Failed to load circle",
+        pickLocalized(lang, { fr: "Erreur de chargement", ar: "خطأ في التحميل", en: "Failed to load circle" }),
       );
     } finally {
       setLoading(false);
@@ -219,28 +212,20 @@ const Circle = () => {
   const handleCopyLink = () => {
     if (!inviteLink) {
       toast.error(
-        lang === "fr"
-          ? "Lien d'invitation indisponible."
-          : lang === "ar"
-            ? "رابط الدعوة غير متاح."
-            : "Invite link unavailable.",
+        pickLocalized(lang, { fr: "Lien d'invitation indisponible.", ar: "رابط الدعوة غير متاح.", en: "Invite link unavailable." }),
       );
       return;
     }
     navigator.clipboard.writeText(inviteLink);
     setCopied(true);
-    toast.success(lang === "fr" ? "Lien copié !" : lang === "ar" ? "تم نسخ الرابط!" : "Link copied!");
+    toast.success(pickLocalized(lang, { fr: "Lien copié !", ar: "تم نسخ الرابط!", en: "Link copied!" }));
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = () => {
     if (!inviteLink) {
       toast.error(
-        lang === "fr"
-          ? "Lien d'invitation indisponible."
-          : lang === "ar"
-            ? "رابط الدعوة غير متاح."
-            : "Invite link unavailable.",
+        pickLocalized(lang, { fr: "Lien d'invitation indisponible.", ar: "رابط الدعوة غير متاح.", en: "Invite link unavailable." }),
       );
       return;
     }
@@ -284,7 +269,7 @@ const Circle = () => {
 
   const memberNameById = (userId: string) => {
     const m = members.find((x) => x.user_id === userId);
-    return m?.display_name?.split(" ")[0] || (lang === "fr" ? "Membre" : lang === "ar" ? "عضو" : "Member");
+    return m?.display_name?.split(" ")[0] || (pickLocalized(lang, { fr: "Membre", ar: "عضو", en: "Member" }));
   };
 
   const FILTERS: { id: FilterType; label: string }[] = [
@@ -349,11 +334,7 @@ const Circle = () => {
         <div style={{ textAlign: "center", padding: "80px 24px", flex: 1 }}>
           <p style={{ color: "#E8742A", fontSize: "16px", marginBottom: "20px" }}>
             ⚠️{" "}
-            {lang === "fr"
-              ? "Erreur de chargement"
-              : lang === "ar"
-                ? "خطأ في التحميل"
-                : "Loading error"}
+            {pickLocalized(lang, { fr: "Erreur de chargement", ar: "خطأ في التحميل", en: "Loading error" })}
           </p>
           <button
             onClick={() => {
@@ -371,7 +352,7 @@ const Circle = () => {
               fontSize: "15px",
             }}
           >
-            {lang === "fr" ? "Réessayer" : lang === "ar" ? "إعادة المحاولة" : "Retry"}
+            {pickLocalized(lang, { fr: "Réessayer", ar: "إعادة المحاولة", en: "Retry" })}
           </button>
         </div>
         <CurvedBottomNav onPlusClick={() => navigate("/record")} familySpace />
@@ -411,18 +392,10 @@ const Circle = () => {
               lineHeight: 1.4,
             }}
           >
-            {lang === "fr"
-              ? "Crée ton cercle familial"
-              : lang === "ar"
-                ? "أنشئ دائرتك العائلية"
-                : "Create your family circle"}
+            {pickLocalized(lang, { fr: "Crée ton cercle familial", ar: "أنشئ دائرتك العائلية", en: "Create your family circle" })}
           </h1>
           <p style={{ fontSize: "14px", color: "#6B4C35", maxWidth: "280px", lineHeight: 1.6 }}>
-            {lang === "fr"
-              ? "Un espace privé pour préserver les voix de ceux que tu aimes."
-              : lang === "ar"
-                ? "مساحة خاصة لحفظ أصوات من تحب."
-                : "A private space to preserve the voices of those you love."}
+            {pickLocalized(lang, { fr: "Un espace privé pour préserver les voix de ceux que tu aimes.", ar: "مساحة خاصة لحفظ أصوات من تحب.", en: "A private space to preserve the voices of those you love." })}
           </p>
           <button
             onClick={() => navigate("/create-circle")}
@@ -440,11 +413,7 @@ const Circle = () => {
               boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
             }}
           >
-            {lang === "fr"
-              ? "Créer mon cercle familial ✦"
-              : lang === "ar"
-                ? "إنشاء دائرتي العائلية ✦"
-                : "Create your family circle ✦"}
+            {pickLocalized(lang, { fr: "Créer mon cercle familial ✦", ar: "إنشاء دائرتي العائلية ✦", en: "Create your family circle ✦" })}
           </button>
           <button
             onClick={() => {
@@ -460,11 +429,7 @@ const Circle = () => {
               padding: "8px",
             }}
           >
-            {lang === "fr"
-              ? "J'ai un code d'invitation"
-              : lang === "ar"
-                ? "لدي رمز دعوة"
-                : "I have an invite code"}
+            {pickLocalized(lang, { fr: "J'ai un code d'invitation", ar: "لدي رمز دعوة", en: "I have an invite code" })}
           </button>
         </div>
         <CurvedBottomNav onPlusClick={() => navigate("/record")} familySpace />
@@ -503,21 +468,13 @@ const Circle = () => {
                   marginBottom: "16px",
                 }}
               >
-                {lang === "fr"
-                  ? "Code d'invitation"
-                  : lang === "ar"
-                    ? "رمز الدعوة"
-                    : "Invitation code"}
+                {pickLocalized(lang, { fr: "Code d'invitation", ar: "رمز الدعوة", en: "Invitation code" })}
               </h3>
               <input
                 value={inviteCodeInput}
                 onChange={(e) => setInviteCodeInput(e.target.value)}
                 placeholder={
-                  lang === "fr"
-                    ? "Colle ton code ici"
-                    : lang === "ar"
-                      ? "الصق الرمز هنا"
-                      : "Paste your code here"
+                  pickLocalized(lang, { fr: "Colle ton code ici", ar: "الصق الرمز هنا", en: "Paste your code here" })
                 }
                 style={{
                   boxShadow: "0 2px 12px rgba(45,24,16,0.08)",
@@ -544,11 +501,7 @@ const Circle = () => {
                   );
                   if (error || !circleId) {
                     toast.error(
-                      lang === "fr"
-                        ? "Code invalide"
-                        : lang === "ar"
-                          ? "رمز غير صالح"
-                          : "Invalid code",
+                      pickLocalized(lang, { fr: "Code invalide", ar: "رمز غير صالح", en: "Invalid code" }),
                     );
                     return;
                   }
@@ -568,7 +521,7 @@ const Circle = () => {
                   marginBottom: "10px",
                 }}
               >
-                {lang === "fr" ? "Rejoindre ✦" : lang === "ar" ? "انضم ✦" : "Join ✦"}
+                {pickLocalized(lang, { fr: "Rejoindre ✦", ar: "انضم ✦", en: "Join ✦" })}
               </button>
               <button
                 onClick={() => setShowJoinModal(false)}
@@ -580,7 +533,7 @@ const Circle = () => {
                   fontSize: "13px",
                 }}
               >
-                {lang === "fr" ? "Annuler" : lang === "ar" ? "إلغاء" : "Cancel"}
+                {pickLocalized(lang, { fr: "Annuler", ar: "إلغاء", en: "Cancel" })}
               </button>
             </div>
           </div>
@@ -761,7 +714,7 @@ const Circle = () => {
               </h1>
               <p className="text-[10px] uppercase tracking-widest" style={{ color: "#9B7355" }}>
                 {t.ourCircle} · {members.length}{" "}
-                {lang === "fr" ? "membres" : lang === "ar" ? "أعضاء" : "members"}
+                {pickLocalized(lang, { fr: "membres", ar: "أعضاء", en: "members" })}
                 {" · "}
                 {t.privateLabel}
               </p>
@@ -846,11 +799,7 @@ const Circle = () => {
                 {t.thisWeek}
               </p>
               <p style={{ fontSize: "9px", fontWeight: 700, color: "#2D1810", lineHeight: 1.38, textAlign: "center" }}>
-                {lang === "ar"
-                  ? "ما الصوت الذي تريد حفظه اليوم؟"
-                  : lang === "fr"
-                    ? "Quelle voix veux-tu préserver aujourd'hui ?"
-                    : "Which voice will you preserve today?"}
+                {pickLocalized(lang, { ar: "ما الصوت الذي تريد حفظه اليوم؟", fr: "Quelle voix veux-tu préserver aujourd'hui ?", en: "Which voice will you preserve today?" })}
               </p>
             </>
           ) : (
@@ -927,7 +876,7 @@ const Circle = () => {
               </p>
               <p style={{ fontSize: "10px", color: "#9B7355", textAlign: "center", lineHeight: 1.1 }}>
                 {count}{" "}
-                {lang === "fr" ? "souvenirs" : lang === "ar" ? "ذكريات" : "memories"}
+                {pickLocalized(lang, { fr: "souvenirs", ar: "ذكريات", en: "memories" })}
               </p>
             </button>
           );
@@ -960,11 +909,7 @@ const Circle = () => {
             }}
           >
             <p style={{ fontSize: "13px", color: "#6B4C35", marginBottom: "12px" }}>
-              {lang === "fr"
-                ? "Aucun souvenir partagé pour l'instant."
-                : lang === "ar"
-                  ? "لا توجد ذكريات مشتركة بعد."
-                  : "No shared memories yet."}
+              {pickLocalized(lang, { fr: "Aucun souvenir partagé pour l'instant.", ar: "لا توجد ذكريات مشتركة بعد.", en: "No shared memories yet." })}
             </p>
             <button
               onClick={() => navigate("/record")}
@@ -979,7 +924,7 @@ const Circle = () => {
                 cursor: "pointer",
               }}
             >
-              {lang === "fr" ? "Enregistrer le premier ✦" : lang === "ar" ? "سجّل الأول ✦" : "Record the first ✦"}
+              {pickLocalized(lang, { fr: "Enregistrer le premier ✦", ar: "سجّل الأول ✦", en: "Record the first ✦" })}
             </button>
           </div>
         ) : (
@@ -1046,7 +991,7 @@ const Circle = () => {
                     }}
                   >
                     {card.title ||
-                      (lang === "fr" ? "Un souvenir" : lang === "ar" ? "ذكرى" : "A memory")}
+                      (pickLocalized(lang, { fr: "Un souvenir", ar: "ذكرى", en: "A memory" }))}
                   </p>
                 </div>
               </div>
@@ -1144,11 +1089,7 @@ const Circle = () => {
           }}
         >
           <span style={{ fontSize: "18px" }}>👥</span>
-          {lang === "fr"
-            ? "Importer mon groupe WhatsApp"
-            : lang === "ar"
-              ? "استيراد مجموعة واتساب"
-              : "Import my WhatsApp group"}
+          {pickLocalized(lang, { fr: "Importer mon groupe WhatsApp", ar: "استيراد مجموعة واتساب", en: "Import my WhatsApp group" })}
         </button>
 
         <p className="text-center text-xs" style={{ color: "#9B7355" }}>
@@ -1227,7 +1168,7 @@ const Circle = () => {
                 marginBottom: "6px",
               }}
             >
-              {lang === "fr" ? "Groupe WhatsApp" : lang === "ar" ? "مجموعة واتساب" : "WhatsApp Group"}
+              {pickLocalized(lang, { fr: "Groupe WhatsApp", ar: "مجموعة واتساب", en: "WhatsApp Group" })}
             </p>
 
             <h2
@@ -1241,11 +1182,7 @@ const Circle = () => {
                 lineHeight: 1.4,
               }}
             >
-              {lang === "fr"
-                ? "Entre les prénoms de ta famille"
-                : lang === "ar"
-                  ? "أدخل أسماء أفراد عائلتك"
-                  : "Enter your family members' names"}
+              {pickLocalized(lang, { fr: "Entre les prénoms de ta famille", ar: "أدخل أسماء أفراد عائلتك", en: "Enter your family members' names" })}
             </h2>
 
             {!generatedMessage ? (
@@ -1254,11 +1191,7 @@ const Circle = () => {
                   value={groupNames}
                   onChange={(e) => setGroupNames(e.target.value)}
                   placeholder={
-                    lang === "fr"
-                      ? "Ahmed, Fatima, Karim, Mama, Papa..."
-                      : lang === "ar"
-                        ? "أحمد، فاطمة، كريم..."
-                        : "Ahmed, Fatima, Karim, Mom, Dad..."
+                    pickLocalized(lang, { fr: "Ahmed, Fatima, Karim, Mama, Papa...", ar: "أحمد، فاطمة، كريم...", en: "Ahmed, Fatima, Karim, Mom, Dad..." })
                   }
                   rows={3}
                   style={{
@@ -1293,7 +1226,7 @@ const Circle = () => {
                     opacity: groupNames.trim().length < 2 || !circleCode ? 0.4 : 1,
                   }}
                 >
-                  {lang === "fr" ? "Générer le message ✦" : lang === "ar" ? "إنشاء الرسالة ✦" : "Generate message ✦"}
+                  {pickLocalized(lang, { fr: "Générer le message ✦", ar: "إنشاء الرسالة ✦", en: "Generate message ✦" })}
                 </button>
               </>
             ) : (
@@ -1335,7 +1268,7 @@ const Circle = () => {
                     marginBottom: "10px",
                   }}
                 >
-                  {lang === "fr" ? "Envoyer sur WhatsApp" : lang === "ar" ? "إرسال عبر واتساب" : "Send on WhatsApp"}
+                  {pickLocalized(lang, { fr: "Envoyer sur WhatsApp", ar: "إرسال عبر واتساب", en: "Send on WhatsApp" })}
                 </button>
                 <button
                   onClick={() => {
@@ -1352,7 +1285,7 @@ const Circle = () => {
                     cursor: "pointer",
                   }}
                 >
-                  {lang === "fr" ? "← Modifier les prénoms" : lang === "ar" ? "← تعديل الأسماء" : "← Edit names"}
+                  {pickLocalized(lang, { fr: "← Modifier les prénoms", ar: "← تعديل الأسماء", en: "← Edit names" })}
                 </button>
               </>
             )}

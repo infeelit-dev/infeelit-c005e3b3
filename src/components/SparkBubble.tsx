@@ -9,6 +9,7 @@ import {
   getLocalizedQuestionsForChapter,
 } from "@/data/localizedQuestions";
 import type { Lang } from "@/lib/i18n";
+import { pickLocalized, pickChapterField } from "@/lib/pickLocalized";
 import infeeilitSymbol from "@/assets/logo_sparkl_4.png";
 
 type Step = "chapters" | "categories" | "questions";
@@ -229,10 +230,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
     return () => clearTimeout(timer);
   };
 
-  const getLangText = (chapter: any, field: string) => {
-    const key = `${field}_${lang}` as keyof typeof chapter;
-    return chapter[key] || chapter[`${field}_en`];
-  };
+  const getLangText = (chapter: any, field: string) => pickChapterField(chapter, lang, field);
 
   const watched = Number(localStorage.getItem("infeelit_videos_watched") || 0);
   const threshold = 3;
@@ -511,14 +509,14 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
             {showNameInput ? (
               <form onSubmit={handleNameSubmit} className="flex flex-col items-center gap-5">
                 <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
-                  {lang === "ar" ? "ما اسمك ؟" : lang === "fr" ? "Comment tu t'appelles ?" : "What's your name?"}
+                  {pickLocalized(lang, { ar: "ما اسمك ؟", fr: "Comment tu t'appelles ?", en: "What's your name?" })}
                 </p>
                 <div className="relative w-full max-w-[260px] rounded-full px-6 py-4 transition-all border bg-[#FFFFFF] border-[#D4A853]/30 focus-within:border-[#E8742A] focus-within:shadow-[0_0_20px_rgba(232,116,42,0.1)]">
                   <input
                     type="text"
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}
-                    placeholder={lang === "ar" ? "اسمك الأول" : lang === "fr" ? "Ton prénom" : "Your first name"}
+                    placeholder={pickLocalized(lang, { ar: "اسمك الأول", fr: "Ton prénom", en: "Your first name" })}
                     className="w-full bg-transparent outline-none text-[#3D2B1F] text-lg text-center font-serif"
                     autoFocus
                   />
@@ -533,7 +531,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                     boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
                   }}
                 >
-                  {lang === "ar" ? "اكتشف قصصك" : lang === "fr" ? "Découvre tes histoires" : "Discover your stories"}
+                  {pickLocalized(lang, { ar: "اكتشف قصصك", fr: "Découvre tes histoires", en: "Discover your stories" })}
                 </button>
               </form>
             ) : (
@@ -542,11 +540,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                 {currentStep === "chapters" && (
                   <>
                     <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
-                      {lang === "ar"
-                        ? "عم تريد أن تتحدث ؟"
-                        : lang === "fr"
-                          ? "De quoi tu veux parler ?"
-                          : "What do you want to talk about?"}
+                      {pickLocalized(lang, { ar: "عم تريد أن تتحدث ؟", fr: "De quoi tu veux parler ?", en: "What do you want to talk about?" })}
                     </p>
                     <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
                       {CHAPTERS.map((chapter) => (
@@ -571,7 +565,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                           <div>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "2px" }}>
                               <p style={{ fontSize: "16px", fontWeight: 700, color: "#3D2B1F" }}>
-                                {chapter[lang as "fr" | "en" | "ar"]}
+                                {pickChapterField(chapter as Record<string, unknown>, lang)}
                               </p>
                               <span
                                 style={{
@@ -582,7 +576,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                                   borderRadius: "999px",
                                 }}
                               >
-                                {chapter[`age_${lang}` as keyof typeof chapter] as string}
+                                {pickChapterField(chapter as Record<string, unknown>, lang, "age")}
                               </span>
                             </div>
                             <p
@@ -593,7 +587,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                                 fontFamily: "Georgia, serif",
                               }}
                             >
-                              {chapter[`tagline_${lang}` as keyof typeof chapter] as string}
+                              {pickChapterField(chapter as Record<string, unknown>, lang, "tagline")}
                             </p>
                           </div>
                           <span style={{ marginLeft: "auto", color: "rgba(61,43,31,0.3)", fontSize: "16px" }}>›</span>
@@ -620,14 +614,10 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                         gap: "4px",
                       }}
                     >
-                      ← {lang === "ar" ? "رجوع" : lang === "fr" ? "Retour" : "Back"}
+                      ← {pickLocalized(lang, { ar: "رجوع", fr: "Retour", en: "Back" })}
                     </button>
                     <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
-                      {lang === "ar"
-                        ? "أي مرحلة من حياتك ؟"
-                        : lang === "fr"
-                          ? "Quel moment de ta vie ?"
-                          : "Which part of your life?"}
+                      {pickLocalized(lang, { ar: "أي مرحلة من حياتك ؟", fr: "Quel moment de ta vie ?", en: "Which part of your life?" })}
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center max-h-[400px] overflow-y-auto pb-2">
                       {(() => {
@@ -652,7 +642,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                             }}
                           >
                             <span>{cat.icon}</span>
-                            <span>{cat[lang as "fr" | "en" | "ar"]}</span>
+                            <span>{pickChapterField(cat as Record<string, unknown>, lang)}</span>
                           </button>
                         ));
                       })()}
@@ -677,10 +667,10 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                         gap: "4px",
                       }}
                     >
-                      ← {lang === "ar" ? "رجوع" : lang === "fr" ? "Retour" : "Back"}
+                      ← {pickLocalized(lang, { ar: "رجوع", fr: "Retour", en: "Back" })}
                     </button>
                     <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em] mb-2">
-                      {lang === "ar" ? "اختر قصتك" : lang === "fr" ? "Choisis ton histoire" : "Choose your story"}
+                      {pickLocalized(lang, { ar: "اختر قصتك", fr: "Choisis ton histoire", en: "Choose your story" })}
                     </p>
 
                     <div
@@ -720,7 +710,7 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                             }}
                           >
                             <span>{cat.icon}</span>
-                            <span>{cat[lang as "fr" | "en" | "ar"]}</span>
+                            <span>{pickChapterField(cat as Record<string, unknown>, lang)}</span>
                           </button>
                         );
                       })}
@@ -735,17 +725,11 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                         marginBottom: "12px",
                       }}
                     >
-                      {lang === "ar"
-                        ? userName
-                          ? `${userName}، احكِ لهم.`
-                          : "احكِ لهم."
-                        : lang === "fr"
-                          ? userName
-                            ? `${userName}, raconte-leur.`
-                            : "Raconte-leur."
-                          : userName
-                            ? `${userName}, tell them.`
-                            : "Tell them."}
+                      {pickLocalized(lang, {
+                        ar: userName ? `${userName}، احكِ لهم.` : "احكِ لهم.",
+                        fr: userName ? `${userName}, raconte-leur.` : "Raconte-leur.",
+                        en: userName ? `${userName}, tell them.` : "Tell them.",
+                      })}
                     </p>
 
                     <div
@@ -833,14 +817,10 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                       <span style={{ fontSize: "24px" }}>⚡</span>
                       <div style={{ textAlign: "left" }}>
                         <p style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F", margin: 0 }}>
-                          {lang === "fr" ? "Enregistrer maintenant" : lang === "ar" ? "سجّل الآن" : "Record now"}
+                          {pickLocalized(lang, { fr: "Enregistrer maintenant", ar: "سجّل الآن", en: "Record now" })}
                         </p>
                         <p style={{ fontSize: "12px", color: "rgba(61,43,31,0.55)", margin: "2px 0 0" }}>
-                          {lang === "fr"
-                            ? "Sans question guidée · Instant"
-                            : lang === "ar"
-                              ? "بدون سؤال · آني"
-                              : "No guided question · Instant"}
+                          {pickLocalized(lang, { fr: "Sans question guidée · Instant", ar: "بدون سؤال · آني", en: "No guided question · Instant" })}
                         </p>
                       </div>
                     </button>
@@ -863,14 +843,10 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
                       <span style={{ fontSize: "24px" }}>✉️</span>
                       <div style={{ textAlign: "left" }}>
                         <p style={{ fontSize: "15px", fontWeight: 700, color: "#3D2B1F", margin: 0 }}>
-                          {lang === "fr" ? "Message pour plus tard" : lang === "ar" ? "رسالة للمستقبل" : "Message for later"}
+                          {pickLocalized(lang, { fr: "Message pour plus tard", ar: "رسالة للمستقبل", en: "Message for later" })}
                         </p>
                         <p style={{ fontSize: "12px", color: "rgba(61,43,31,0.55)", margin: "2px 0 0" }}>
-                          {lang === "fr"
-                            ? "Livré à une date choisie · Forever"
-                            : lang === "ar"
-                              ? "يُسلَّم في تاريخ تختاره · للأبد"
-                              : "Delivered on a chosen date · Forever"}
+                          {pickLocalized(lang, { fr: "Livré à une date choisie · Forever", ar: "يُسلَّم في تاريخ تختاره · للأبد", en: "Delivered on a chosen date · Forever" })}
                         </p>
                       </div>
                     </button>
@@ -879,11 +855,11 @@ const SparkBubble = ({ forceOpen, onSparkClose }: SparkBubbleProps) => {
 
                 {sparkBalance > 0 && currentStep === "chapters" && (
                   <p className="text-[#3D2B1F]/30 text-[9px] mt-3">
-                    {lang === "ar"
-                      ? `لديك ${sparkBalance} شرارات`
-                      : lang === "fr"
-                        ? `Tu as ${sparkBalance} étincelles`
-                        : `You have ${sparkBalance} sparks`}
+                    {pickLocalized(lang, {
+                      ar: `لديك ${sparkBalance} شرارات`,
+                      fr: `Tu as ${sparkBalance} étincelles`,
+                      en: `You have ${sparkBalance} sparks`,
+                    })}
                   </p>
                 )}
               </>

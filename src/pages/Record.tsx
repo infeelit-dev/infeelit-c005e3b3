@@ -379,7 +379,7 @@ const Record = () => {
       setMemoryLat(location.state.latitude);
       setMemoryLng(location.state.longitude);
       setMemoryLocationName(
-        lang === "fr" ? "Enregistré depuis la carte" : "Recorded from the map",
+        pickLocalized(lang, { fr: "Enregistré depuis la carte", en: "Recorded from the map" }),
       );
     }
   }, [location.state?.latitude, location.state?.longitude, lang]);
@@ -414,16 +414,12 @@ const Record = () => {
         setMemoryLat(pos.coords.latitude);
         setMemoryLng(pos.coords.longitude);
         setMemoryLocationName(
-          lang === "fr"
-            ? "Ma position actuelle"
-            : lang === "ar"
-              ? "موقعي الحالي"
-              : "My current location",
+          pickLocalized(lang, { fr: "Ma position actuelle", ar: "موقعي الحالي", en: "My current location" }),
         );
       },
       () => {
         toast.error(
-          lang === "fr" ? "Position non disponible" : "Location unavailable",
+          pickLocalized(lang, { fr: "Position non disponible", en: "Location unavailable" }),
         );
       },
     );
@@ -1412,11 +1408,11 @@ const Record = () => {
       } catch (er: any) {
         if (er?.name === "AbortError") return;
         navigator.clipboard.writeText(txt + " " + url);
-        toast.success(lang === "ar" ? "تم نسخ الرابط!" : pickLocalized(lang, { fr: "Lien copié !", en: "Link copied!" }));
+        toast.success(pickLocalized(lang, { ar: "تم نسخ الرابط!", fr: "Lien copié !", en: "Link copied!" }));
       }
     } else {
       navigator.clipboard.writeText(txt + " " + url);
-      toast.success(lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!");
+      toast.success(pickLocalized(lang, { ar: "تم نسخ الرابط!", fr: "Lien copié !", en: "Link copied!" }));
     }
   };
 
@@ -2213,11 +2209,11 @@ const Record = () => {
                   marginTop: "8px",
                 }}
               >
-                {lang === "fr"
-                  ? `${userName}, raconte-leur.`
-                  : lang === "ar"
-                    ? `${userName}، احكِ لهم.`
-                    : `${userName}, tell them.`}
+                {pickLocalized(lang, {
+                  fr: `${userName}, raconte-leur.`,
+                  ar: `${userName}، احكِ لهم.`,
+                  en: `${userName}, tell them.`,
+                })}
               </p>
             )}
             <p className="text-white/50 text-sm">{t.breathe}</p>
@@ -2498,9 +2494,7 @@ const Record = () => {
       {stage === "background" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
-            {lang === "ar"
-              ? "اختر خلفية لتسجيلك"
-              : pickLocalized(lang, { fr: "Choisis un fond pour ton enregistrement", en: "Choose a background for your recording" })}
+            {pickLocalized(lang, { ar: "اختر خلفية لتسجيلك", fr: "Choisis un fond pour ton enregistrement", en: "Choose a background for your recording" })}
           </p>
           <div
             ref={thumbScrollRef}
@@ -2542,7 +2536,7 @@ const Record = () => {
             className={`flex items-center gap-2 text-white/40 text-xs cursor-pointer hover:text-white/60 transition-colors ${bgVideoUrl ? "opacity-45 pointer-events-none" : ""}`}
           >
             <Camera size={14} />
-            {lang === "ar" ? "📷 استخدام صورتي" : lang === "fr" ? "📷 Utiliser ma photo" : "📷 Use my photo"}
+            {pickLocalized(lang, { ar: "📷 استخدام صورتي", fr: "📷 Utiliser ma photo", en: "📷 Use my photo" })}
             <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
           </label>
 
@@ -2609,9 +2603,7 @@ const Record = () => {
                   boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
                 }}
               >
-                {lang === "ar"
-                  ? "المتابعة مع الفيديو"
-                  : pickLocalized(lang, { fr: "Continuer avec vidéo", en: "Continue with video" })}
+                {pickLocalized(lang, { ar: "المتابعة مع الفيديو", fr: "Continuer avec vidéo", en: "Continue with video" })}
               </button>
             ) : (
               <button
@@ -2623,18 +2615,14 @@ const Record = () => {
                   boxShadow: "0 4px 20px rgba(232,116,42,0.3)",
                 }}
               >
-                {lang === "ar"
-                  ? "المتابعة مع الصورة"
-                  : lang === "fr"
-                    ? "Continuer avec image"
-                    : "Continue with image"}
+                {pickLocalized(lang, { ar: "المتابعة مع الصورة", fr: "Continuer avec image", en: "Continue with image" })}
               </button>
             )}
             <button
               onClick={handleBackgroundSkip}
               className="w-full py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20"
             >
-              {lang === "ar" ? "تخطّي" : lang === "fr" ? "Passer" : "Skip"}
+              {pickLocalized(lang, { ar: "تخطّي", fr: "Passer", en: "Skip" })}
             </button>
           </div>
         </div>
@@ -2724,9 +2712,7 @@ const Record = () => {
       {stage === "preview" && (
         <div className="relative z-20 flex-1 flex flex-col items-center justify-center px-8 text-center gap-6">
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
-            {lang === "ar"
-              ? "استمع قبل الحفظ..."
-              : pickLocalized(lang, { fr: "Réécoutez avant de garder...", en: "Listen before keeping..." })}
+            {pickLocalized(lang, { ar: "استمع قبل الحفظ...", fr: "Réécoutez avant de garder...", en: "Listen before keeping..." })}
           </p>
           <h2 className="text-white text-xl font-bold leading-tight italic mb-2">"{questionRef.current}"</h2>
           <div className="relative w-full">
@@ -2795,7 +2781,7 @@ const Record = () => {
               className="flex-1 py-4 rounded-full bg-white/10 text-white font-bold text-base border border-white/20 flex items-center justify-center gap-2"
             >
               <RotateCcw size={18} />
-              {lang === "ar" ? "حاول مجدداً" : pickLocalized(lang, { fr: "Recommencer", en: "Try again" })}
+              {pickLocalized(lang, { ar: "حاول مجدداً", fr: "Recommencer", en: "Try again" })}
             </button>
             <button
               onClick={handleUpload}
@@ -2808,7 +2794,7 @@ const Record = () => {
               }}
             >
               <Check size={18} />
-              {lang === "ar" ? "هذا رائع ✦" : lang === "fr" ? "C'est parfait ✦" : "This is perfect ✦"}
+              {pickLocalized(lang, { ar: "هذا رائع ✦", fr: "C'est parfait ✦", en: "This is perfect ✦" })}
             </button>
           </div>
           {!(localBlob && localBlob.size > 0) && (
@@ -3087,11 +3073,7 @@ const Record = () => {
             }}
           >
             📍{" "}
-            {lang === "fr"
-              ? "Localiser ce souvenir"
-              : lang === "ar"
-                ? "تحديد موقع هذه الذكرى"
-                : "Locate this memory"}
+            {pickLocalized(lang, { fr: "Localiser ce souvenir", ar: "تحديد موقع هذه الذكرى", en: "Locate this memory" })}
           </p>
           <p
             style={{
@@ -3104,11 +3086,7 @@ const Record = () => {
               lineHeight: 1.5,
             }}
           >
-            {lang === "fr"
-              ? "Où s'est passé ce souvenir ?"
-              : lang === "ar"
-                ? "أين حدثت هذه الذكرى؟"
-                : "Where did this memory take place?"}
+            {pickLocalized(lang, { fr: "Où s'est passé ce souvenir ?", ar: "أين حدثت هذه الذكرى؟", en: "Where did this memory take place?" })}
           </p>
 
           <button
@@ -3132,11 +3110,7 @@ const Record = () => {
             <span style={{ fontSize: "28px" }}>📍</span>
             <div>
               <p style={{ margin: 0, fontWeight: 700, fontSize: "15px" }}>
-                {lang === "fr"
-                  ? "Utiliser ma position actuelle"
-                  : lang === "ar"
-                    ? "استخدام موقعي الحالي"
-                    : "Use my current location"}
+                {pickLocalized(lang, { fr: "Utiliser ma position actuelle", ar: "استخدام موقعي الحالي", en: "Use my current location" })}
               </p>
               <p
                 style={{
@@ -3146,11 +3120,7 @@ const Record = () => {
                   marginTop: "2px",
                 }}
               >
-                {lang === "fr"
-                  ? "GPS de ton téléphone"
-                  : lang === "ar"
-                    ? "GPS هاتفك"
-                    : "Your phone GPS"}
+                {pickLocalized(lang, { fr: "GPS de ton téléphone", ar: "GPS هاتفك", en: "Your phone GPS" })}
               </p>
             </div>
           </button>
@@ -3169,11 +3139,7 @@ const Record = () => {
                 onChange={(e) => setLocationSearch(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && searchLocation()}
                 placeholder={
-                  lang === "fr"
-                    ? "Maison de grand-mère, école, ville..."
-                    : lang === "ar"
-                      ? "بيت الجدة، مدرسة، مدينة..."
-                      : "Grandmother's house, school, city..."
+                  pickLocalized(lang, { fr: "Maison de grand-mère, école, ville...", ar: "بيت الجدة، مدرسة، مدينة...", en: "Grandmother's house, school, city..." })
                 }
                 style={{
                   flex: 1,
@@ -3229,11 +3195,7 @@ const Record = () => {
                     fontWeight: 700,
                   }}
                 >
-                  {lang === "fr"
-                    ? "Lieu confirmé"
-                    : lang === "ar"
-                      ? "تم تأكيد الموقع"
-                      : "Location confirmed"}
+                  {pickLocalized(lang, { fr: "Lieu confirmé", ar: "تم تأكيد الموقع", en: "Location confirmed" })}
                 </p>
                 <p
                   style={{
@@ -3283,16 +3245,8 @@ const Record = () => {
             }}
           >
             {memoryLat
-              ? lang === "fr"
-                ? "Continuer avec ce lieu →"
-                : lang === "ar"
-                  ? "← متابعة مع هذا الموقع"
-                  : "Continue with this location →"
-              : lang === "fr"
-                ? "Continuer sans lieu →"
-                : lang === "ar"
-                  ? "← متابعة بدون موقع"
-                  : "Continue without location →"}
+              ? pickLocalized(lang, { fr: "Continuer avec ce lieu →", ar: "← متابعة مع هذا الموقع", en: "Continue with this location →" })
+              : pickLocalized(lang, { fr: "Continuer sans lieu →", ar: "← متابعة بدون موقع", en: "Continue without location →" })}
           </button>
           <button
             onClick={() => setStage("title")}
@@ -3305,7 +3259,7 @@ const Record = () => {
               padding: "8px",
             }}
           >
-            {lang === "fr" ? "← Retour" : lang === "ar" ? "رجوع →" : "← Back"}
+            {pickLocalized(lang, { fr: "← Retour", ar: "رجوع →", en: "← Back" })}
           </button>
         </div>
       )}
@@ -3327,17 +3281,13 @@ const Record = () => {
             {pickLocalized(lang, { fr: "← Retour", ar: "→ رجوع", en: "← Back" })}
           </button>
           <p className="text-[#E8742A] text-[10px] font-black uppercase tracking-[0.3em]">
-            {lang === "ar"
-              ? userName
-                ? `${userName}، لمن هذا الصوت؟`
-                : "لمن هذا الصوت؟"
-              : lang === "fr"
-                ? userName
-                  ? `${userName}, à qui appartient cette voix ?`
-                  : "À qui appartient cette voix ?"
-                : userName
-                  ? `${userName}, who is this voice for?`
-                  : "Who is this voice for?"}
+            {pickLocalized(lang, {
+              ar: userName ? `${userName}، لمن هذا الصوت؟` : "لمن هذا الصوت؟",
+              fr: userName
+                ? `${userName}, à qui appartient cette voix ?`
+                : "À qui appartient cette voix ?",
+              en: userName ? `${userName}, who is this voice for?` : "Who is this voice for?",
+            })}
           </p>
           <button
             onClick={() => handleVisibilitySelect("community")}
@@ -3345,7 +3295,7 @@ const Record = () => {
             style={visibilityButtonStyle("community")}
           >
             <Globe size={18} />
-            {lang === "ar" ? "للجميع" : pickLocalized(lang, { fr: "Tout le monde", en: "Everyone" })}
+            {pickLocalized(lang, { ar: "للجميع", fr: "Tout le monde", en: "Everyone" })}
           </button>
           <button
             onClick={() => handleVisibilitySelect("family")}
@@ -3353,7 +3303,7 @@ const Record = () => {
             style={visibilityButtonStyle("family")}
           >
             <Users size={18} />
-            {lang === "ar" ? "عائلتي" : lang === "fr" ? "Ma famille" : "My family"}
+            {pickLocalized(lang, { ar: "عائلتي", fr: "Ma famille", en: "My family" })}
           </button>
           <button
             onClick={() => handleVisibilitySelect("private")}
@@ -3361,7 +3311,7 @@ const Record = () => {
             style={visibilityButtonStyle("private")}
           >
             <Lock size={18} />
-            {lang === "ar" ? "خاص" : lang === "fr" ? "Privé" : "Private"}
+            {pickLocalized(lang, { ar: "خاص", fr: "Privé", en: "Private" })}
           </button>
 
           <div
@@ -3435,7 +3385,7 @@ const Record = () => {
             style={{ color: "#fff" }}
           >
             <Share2 size={18} />
-            {lang === "ar" ? "نشر ✦" : pickLocalized(lang, { fr: "Publier ✦", en: "Publish ✦" })}
+            {pickLocalized(lang, { ar: "نشر ✦", fr: "Publier ✦", en: "Publish ✦" })}
           </button>
         </div>
       )}

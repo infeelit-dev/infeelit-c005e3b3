@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveMemoryUrl } from "@/lib/memoryUrl";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import { toast } from "sonner";
 
@@ -70,7 +71,7 @@ const Profile = () => {
       .eq("user_id", session.user.id);
     if (error) {
       console.error("Save name failed:", error);
-      toast.error(lang === "fr" ? "Erreur de sauvegarde" : lang === "ar" ? "فشل الحفظ" : "Save failed");
+      toast.error(pickLocalized(lang, { fr: "Erreur de sauvegarde", ar: "فشل الحفظ", en: "Save failed" }));
       setSavingName(false);
       return;
     }
@@ -79,7 +80,7 @@ const Profile = () => {
     setDisplayName(trimmed);
     setEditingName(false);
     setSavingName(false);
-    toast.success(lang === "fr" ? "Nom mis à jour ✦" : lang === "ar" ? "تم تحديث الاسم ✦" : "Name updated ✦");
+    toast.success(pickLocalized(lang, { fr: "Nom mis à jour ✦", ar: "تم تحديث الاسم ✦", en: "Name updated ✦" }));
   };
 
   const handleDeleteMemory = (memoryId: string) => {
@@ -91,13 +92,13 @@ const Profile = () => {
     const { error } = await supabase.from("memories").delete().eq("id", memoryToDelete);
     if (error) {
       console.error("Delete memory failed:", error);
-      toast.error(lang === "fr" ? "Erreur de suppression" : lang === "ar" ? "خطأ في الحذف" : "Delete failed");
+      toast.error(pickLocalized(lang, { fr: "Erreur de suppression", ar: "خطأ في الحذف", en: "Delete failed" }));
       return;
     }
     setMemories((prev) => prev.filter((m) => m.id !== memoryToDelete));
     setMemoryToDelete(null);
     toast.success(
-      lang === "fr" ? "Souvenir supprimé." : lang === "ar" ? "تم حذف الذكرى." : "Memory deleted.",
+      pickLocalized(lang, { fr: "Souvenir supprimé.", ar: "تم حذف الذكرى.", en: "Memory deleted." }),
     );
   };
 
@@ -243,11 +244,7 @@ const Profile = () => {
             lineHeight: 1.3,
           }}
         >
-          {lang === "fr"
-            ? "Ton espace t'attend."
-            : lang === "ar"
-              ? "مساحتك بانتظارك."
-              : "Your space is waiting."}
+          {pickLocalized(lang, { fr: "Ton espace t'attend.", ar: "مساحتك بانتظارك.", en: "Your space is waiting." })}
         </p>
 
         <p
@@ -259,11 +256,7 @@ const Profile = () => {
             maxWidth: "280px",
           }}
         >
-          {lang === "fr"
-            ? "Préserve ta voix. Crée ton cercle familial. Laisse quelque chose d'éternel."
-            : lang === "ar"
-              ? "احفظ صوتك. أنشئ دائرتك العائلية. اترك شيئاً خالداً."
-              : "Preserve your voice. Create your family circle. Leave something eternal."}
+          {pickLocalized(lang, { fr: "Préserve ta voix. Crée ton cercle familial. Laisse quelque chose d'éternel.", ar: "احفظ صوتك. أنشئ دائرتك العائلية. اترك شيئاً خالداً.", en: "Preserve your voice. Create your family circle. Leave something eternal." })}
         </p>
 
         <div
@@ -275,9 +268,9 @@ const Profile = () => {
           }}
         >
           {[
-            { icon: "🎙️", label: lang === "fr" ? "Souvenirs" : lang === "ar" ? "ذكريات" : "Memories" },
-            { icon: "👨‍👩‍👧", label: lang === "fr" ? "Cercle" : lang === "ar" ? "دائرة" : "Circle" },
-            { icon: "✦", label: lang === "fr" ? "Étincelles" : lang === "ar" ? "شرارات" : "Sparks" },
+            { icon: "🎙️", label: pickLocalized(lang, { fr: "Souvenirs", ar: "ذكريات", en: "Memories" }) },
+            { icon: "👨‍👩‍👧", label: pickLocalized(lang, { fr: "Cercle", ar: "دائرة", en: "Circle" }) },
+            { icon: "✦", label: pickLocalized(lang, { fr: "Étincelles", ar: "شرارات", en: "Sparks" }) },
           ].map(({ icon, label }) => (
             <div
               key={label}
@@ -332,11 +325,7 @@ const Profile = () => {
             boxShadow: "0 8px 30px rgba(0,0,0,0.2)",
           }}
         >
-          {lang === "fr"
-            ? "Créer mon espace ✦"
-            : lang === "ar"
-              ? "أنشئ مساحتي ✦"
-              : "Create my space ✦"}
+          {pickLocalized(lang, { fr: "Créer mon espace ✦", ar: "أنشئ مساحتي ✦", en: "Create my space ✦" })}
         </button>
 
         <button
@@ -350,11 +339,7 @@ const Profile = () => {
             padding: "8px",
           }}
         >
-          {lang === "fr"
-            ? "J'ai déjà un compte →"
-            : lang === "ar"
-              ? "→ لديّ حسابٌ بالفعل"
-              : "I already have an account →"}
+          {pickLocalized(lang, { fr: "J'ai déjà un compte →", ar: "→ لديّ حسابٌ بالفعل", en: "I already have an account →" })}
         </button>
         <CurvedBottomNav onPlusClick={() => navigate("/record")} familySpace />
       </div>
@@ -405,7 +390,7 @@ const Profile = () => {
             justifyContent: "center",
             cursor: "pointer",
           }}
-          aria-label={lang === "fr" ? "Retour" : lang === "ar" ? "رجوع" : "Back"}
+          aria-label={pickLocalized(lang, { fr: "Retour", ar: "رجوع", en: "Back" })}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={rtl ? { transform: "scaleX(-1)" } : undefined}>
             <path
@@ -529,7 +514,7 @@ const Profile = () => {
                   cursor: "pointer",
                   fontSize: "16px",
                 }}
-                aria-label={lang === "fr" ? "Modifier le nom" : lang === "ar" ? "تعديل الاسم" : "Edit name"}
+                aria-label={pickLocalized(lang, { fr: "Modifier le nom", ar: "تعديل الاسم", en: "Edit name" })}
               >
                 ✎
               </button>
@@ -560,11 +545,11 @@ const Profile = () => {
           {[
             {
               count: totalMemoryCount,
-              label: lang === "fr" ? "souvenirs" : lang === "ar" ? "ذكريات" : "memories",
+              label: pickLocalized(lang, { fr: "souvenirs", ar: "ذكريات", en: "memories" }),
             },
             {
               count: sparksCount,
-              label: lang === "fr" ? "étincelles" : lang === "ar" ? "شرارات" : "sparks",
+              label: pickLocalized(lang, { fr: "étincelles", ar: "شرارات", en: "sparks" }),
             },
           ].map(({ count, label }) => (
             <div key={label} style={{ textAlign: "center" }}>
@@ -613,7 +598,7 @@ const Profile = () => {
               margin: 0,
             }}
           >
-            {lang === "fr" ? "Mes souvenirs" : lang === "ar" ? "ذكرياتي" : "My memories"}
+            {pickLocalized(lang, { fr: "Mes souvenirs", ar: "ذكرياتي", en: "My memories" })}
           </p>
           {isOwnProfile && memories.length > 0 && (
             <button
@@ -631,16 +616,8 @@ const Profile = () => {
               }}
             >
               {editMode
-                ? lang === "fr"
-                  ? "Terminer"
-                  : lang === "ar"
-                    ? "إنهاء"
-                    : "Done"
-                : lang === "fr"
-                  ? "Modifier"
-                  : lang === "ar"
-                    ? "تعديل"
-                    : "Edit"}
+                ? pickLocalized(lang, { fr: "Terminer", ar: "إنهاء", en: "Done" })
+                : pickLocalized(lang, { fr: "Modifier", ar: "تعديل", en: "Edit" })}
             </button>
           )}
         </div>
@@ -670,11 +647,7 @@ const Profile = () => {
                 margin: 0,
               }}
             >
-              {lang === "fr"
-                ? "Ta première voix attend d'être enregistrée."
-                : lang === "ar"
-                  ? "صوتك الأول ينتظر أن يُسجَّل."
-                  : "Your first voice is waiting to be recorded."}
+              {pickLocalized(lang, { fr: "Ta première voix attend d'être enregistrée.", ar: "صوتك الأول ينتظر أن يُسجَّل.", en: "Your first voice is waiting to be recorded." })}
             </h3>
             <p
               style={{
@@ -685,11 +658,7 @@ const Profile = () => {
                 whiteSpace: "pre-line",
               }}
             >
-              {lang === "fr"
-                ? "Chaque souvenir que tu préserves aujourd'hui\ndeviendra un trésor pour demain."
-                : lang === "ar"
-                  ? "كل ذكرى تحفظها اليوم ستصبح كنزاً للغد."
-                  : "Every memory you preserve today\nbecomes a treasure for tomorrow."}
+              {pickLocalized(lang, { fr: "Chaque souvenir que tu préserves aujourd'hui\ndeviendra un trésor pour demain.", ar: "كل ذكرى تحفظها اليوم ستصبح كنزاً للغد.", en: "Every memory you preserve today\nbecomes a treasure for tomorrow." })}
             </p>
             <button
               onClick={() => navigate("/questions")}
@@ -705,11 +674,7 @@ const Profile = () => {
                 boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
               }}
             >
-              {lang === "fr"
-                ? "🎙️ Enregistrer mon premier souvenir"
-                : lang === "ar"
-                  ? "🎙️ سجّل ذكراي الأولى"
-                  : "🎙️ Record my first memory"}
+              {pickLocalized(lang, { fr: "🎙️ Enregistrer mon premier souvenir", ar: "🎙️ سجّل ذكراي الأولى", en: "🎙️ Record my first memory" })}
             </button>
           </div>
         ) : (
@@ -837,7 +802,7 @@ const Profile = () => {
                   cursor: "pointer",
                 }}
               >
-                {lang === "fr" ? "Voir plus" : lang === "ar" ? "عرض المزيد" : "Load more"}
+                {pickLocalized(lang, { fr: "Voir plus", ar: "عرض المزيد", en: "Load more" })}
               </button>
             </div>
           )}
@@ -867,7 +832,7 @@ const Profile = () => {
           }}
         >
           <span>↩</span>
-          {lang === "fr" ? "Se déconnecter" : lang === "ar" ? "تسجيل الخروج" : "Sign out"}
+          {pickLocalized(lang, { fr: "Se déconnecter", ar: "تسجيل الخروج", en: "Sign out" })}
         </button>
       </div>
 
@@ -886,11 +851,7 @@ const Profile = () => {
             marginBottom: "8px",
           }}
         >
-          {lang === "fr"
-            ? "Vous souhaitez supprimer votre compte ?"
-            : lang === "ar"
-              ? "هل تريد حذف حسابك؟"
-              : "Want to delete your account?"}
+          {pickLocalized(lang, { fr: "Vous souhaitez supprimer votre compte ?", ar: "هل تريد حذف حسابك؟", en: "Want to delete your account?" })}
         </p>
         <a
           href="mailto:malik@infeelit.com?subject=Account deletion request"
@@ -900,7 +861,7 @@ const Profile = () => {
             textDecoration: "underline",
           }}
         >
-          {lang === "fr" ? "Contactez-nous" : lang === "ar" ? "تواصل معنا" : "Contact us"}
+          {pickLocalized(lang, { fr: "Contactez-nous", ar: "تواصل معنا", en: "Contact us" })}
         </a>
       </div>
       </>
@@ -937,11 +898,7 @@ const Profile = () => {
                 marginBottom: "8px",
               }}
             >
-              {lang === "fr"
-                ? "Supprimer ce souvenir ?"
-                : lang === "ar"
-                  ? "هل تريد حذف هذه الذكرى؟"
-                  : "Delete this memory?"}
+              {pickLocalized(lang, { fr: "Supprimer ce souvenir ?", ar: "هل تريد حذف هذه الذكرى؟", en: "Delete this memory?" })}
             </h3>
             <p
               style={{
@@ -950,11 +907,7 @@ const Profile = () => {
                 marginBottom: "32px",
               }}
             >
-              {lang === "fr"
-                ? "Cette action est irréversible."
-                : lang === "ar"
-                  ? "هذا الإجراء لا يمكن التراجع عنه."
-                  : "This action cannot be undone."}
+              {pickLocalized(lang, { fr: "Cette action est irréversible.", ar: "هذا الإجراء لا يمكن التراجع عنه.", en: "This action cannot be undone." })}
             </p>
             <button
               onClick={confirmDeleteMemory}
@@ -971,11 +924,7 @@ const Profile = () => {
                 marginBottom: "12px",
               }}
             >
-              {lang === "fr"
-                ? "Supprimer définitivement"
-                : lang === "ar"
-                  ? "حذف نهائياً"
-                  : "Delete permanently"}
+              {pickLocalized(lang, { fr: "Supprimer définitivement", ar: "حذف نهائياً", en: "Delete permanently" })}
             </button>
             <button
               onClick={() => setMemoryToDelete(null)}
@@ -987,7 +936,7 @@ const Profile = () => {
                 cursor: "pointer",
               }}
             >
-              {lang === "fr" ? "Annuler" : lang === "ar" ? "إلغاء" : "Cancel"}
+              {pickLocalized(lang, { fr: "Annuler", ar: "إلغاء", en: "Cancel" })}
             </button>
           </div>
         </div>

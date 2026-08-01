@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import { LANGUAGES, getUiFontFamily, type Lang } from "@/lib/i18n";
 import type { Timeline } from "@/types/timeline";
 import infeelit from "@/assets/infeelit-logo.png";
@@ -530,7 +531,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                     color: "#E8742A",
                   }}
                 >
-                  {lang === "fr" ? "Rejoindre Infeelit" : lang === "ar" ? "انضم إلى Infeelit" : "Join Infeelit"}
+                  {pickLocalized(lang, { fr: "Rejoindre Infeelit", ar: "انضم إلى Infeelit", en: "Join Infeelit" })}
                 </span>
               </button>
             )}
@@ -556,7 +557,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
               }}
             >
               <span>✦</span>
-              {lang === "fr" ? "À propos d'Infeelit" : lang === "ar" ? "عن Infeelit" : "About Infeelit"}
+              {pickLocalized(lang, { fr: "À propos d'Infeelit", ar: "عن Infeelit", en: "About Infeelit" })}
             </button>
 
             <button
@@ -580,7 +581,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
               }}
             >
               <span>💬</span>
-              {lang === "fr" ? "Nous contacter" : lang === "ar" ? "اتصل بنا" : "Contact us"}
+              {pickLocalized(lang, { fr: "Nous contacter", ar: "اتصل بنا", en: "Contact us" })}
             </button>
 
             {isLoggedIn && (
@@ -607,7 +608,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                 }}
               >
                 <span>🚪</span>
-                {lang === "fr" ? "Se déconnecter" : lang === "ar" ? "تسجيل الخروج" : "Log out"}
+                {pickLocalized(lang, { fr: "Se déconnecter", ar: "تسجيل الخروج", en: "Log out" })}
               </button>
             )}
           </div>

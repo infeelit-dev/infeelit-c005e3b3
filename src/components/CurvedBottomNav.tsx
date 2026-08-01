@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Users, MapPin, Plus, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 
 interface CurvedBottomNavProps {
   onPlusClick?: () => void;
@@ -74,17 +75,17 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: 
   };
 
   const NAV_ITEMS = [
-    { icon: Users, label: lang === "ar" ? "دوائر" : lang === "fr" ? "Cercles" : "Circles", path: "/circles" },
-    { icon: MapPin, label: lang === "ar" ? "أماكن" : lang === "fr" ? "Lieux" : "Places", path: "/places" },
+    { icon: Users, label: pickLocalized(lang, { ar: "دوائر", fr: "Cercles", en: "Circles" }), path: "/circles" },
+    { icon: MapPin, label: pickLocalized(lang, { ar: "أماكن", fr: "Lieux", en: "Places" }), path: "/places" },
     { icon: null, label: "", path: "/record" },
     {
       icon: MessageCircle,
-      label: lang === "ar" ? "همسات" : lang === "fr" ? "Murmures" : "Whispers",
+      label: pickLocalized(lang, { ar: "همسات", fr: "Murmures", en: "Whispers" }),
       path: "/whispers",
     },
     {
       icon: "flame",
-      label: lang === "ar" ? "أنا" : lang === "fr" ? "Moi" : "Me",
+      label: pickLocalized(lang, { ar: "أنا", fr: "Moi", en: "Me" }),
       path: isLoggedIn ? "/profile" : "/welcome",
     },
   ];

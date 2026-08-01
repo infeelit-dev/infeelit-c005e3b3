@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { pickLocalized } from "@/lib/pickLocalized";
 import infeelit from "@/assets/infeelit-logo.png";
 
 interface NamePromptProps {
@@ -22,15 +23,11 @@ const NamePrompt = ({ onComplete }: NamePromptProps) => {
   };
 
   const texts = {
-    title: lang === "ar" ? "ما اسمك ؟" : lang === "fr" ? "Comment tu t'appelles ?" : "What's your name?",
-    placeholder: lang === "ar" ? "اسمك الأول" : lang === "fr" ? "Ton prénom" : "Your first name",
-    button: lang === "ar" ? "دخول إلى Infeelit" : lang === "fr" ? "Entrer dans Infeelit" : "Enter Infeelit",
+    title: pickLocalized(lang, { ar: "ما اسمك ؟", fr: "Comment tu t'appelles ?", en: "What's your name?" }),
+    placeholder: pickLocalized(lang, { ar: "اسمك الأول", fr: "Ton prénom", en: "Your first name" }),
+    button: pickLocalized(lang, { ar: "دخول إلى Infeelit", fr: "Entrer dans Infeelit", en: "Enter Infeelit" }),
     signin:
-      lang === "ar"
-        ? "عضو بالفعل؟ تسجيل الدخول"
-        : lang === "fr"
-          ? "Déjà membre ? Se connecter"
-          : "Already a member? Sign in",
+      pickLocalized(lang, { ar: "عضو بالفعل؟ تسجيل الدخول", fr: "Déjà membre ? Se connecter", en: "Already a member? Sign in" }),
   };
 
   return (
