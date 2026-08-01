@@ -104,7 +104,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: 
         className="h-16 w-full pointer-events-none"
         style={{
           background: familySpace
-            ? "linear-gradient(to bottom, transparent, rgba(28,15,8,0.55))"
+            ? "linear-gradient(to bottom, transparent, rgba(253,248,242,0.85))"
             : "linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))",
         }}
       />
@@ -113,10 +113,10 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: 
         style={
           familySpace
             ? {
-                background: "rgba(28,15,8,0.95)",
+                background: "rgba(253,248,242,0.95)",
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
-                borderTop: "1px solid rgba(212,175,55,0.15)",
+                borderTop: "1px solid #E8D5B7",
               }
             : {
                 background: "linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7))",
@@ -157,7 +157,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: 
                     viewBox="0 0 24 24"
                     fill="none"
                     // ✅ CORRECTION 4 — isLoggedIn au lieu de isConnected
-                    stroke={isLoggedIn ? "#E8742A" : "rgba(255,255,255,0.3)"}
+                    stroke={isLoggedIn ? "#E8742A" : familySpace ? "rgba(45,24,16,0.3)" : "rgba(255,255,255,0.3)"}
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -197,7 +197,11 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: 
                     fontWeight: 700,
                     textTransform: "uppercase",
                     letterSpacing: "0.12em",
-                    color: isActive(item.path) ? "#E8742A" : "rgba(255,255,255,0.35)",
+                    color: isActive(item.path)
+                      ? "#E8742A"
+                      : familySpace
+                        ? "#9B7355"
+                        : "rgba(255,255,255,0.35)",
                   }}
                 >
                   {item.label}
@@ -220,7 +224,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: 
                   <Icon
                     size={22}
                     style={{
-                      color: active ? "#E8742A" : "rgba(255,255,255,0.5)",
+                      color: active ? "#E8742A" : familySpace ? "#6B4C35" : "rgba(255,255,255,0.5)",
                       filter: active ? "drop-shadow(0 0 6px rgba(232,116,42,0.7))" : "none",
                       transition: "all 0.2s ease",
                     }}
@@ -254,7 +258,11 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: 
                   fontWeight: 700,
                   textTransform: "uppercase",
                   letterSpacing: "0.12em",
-                  color: active ? "#E8742A" : "rgba(255,255,255,0.35)",
+                  color: active
+                    ? "#E8742A"
+                    : familySpace
+                      ? "#9B7355"
+                      : "rgba(255,255,255,0.35)",
                 }}
               >
                 {item.label}

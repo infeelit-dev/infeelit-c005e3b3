@@ -20,7 +20,7 @@ const LoadingSpinner = () => (
   <div
     style={{
       minHeight: "100vh",
-      background: "#1C0F08",
+      background: "#FDF8F2",
       transition: "background-color 0.3s ease",
       display: "flex",
       alignItems: "center",
@@ -198,15 +198,15 @@ const Profile = () => {
         dir={rtl ? "rtl" : "ltr"}
         style={{
           minHeight: "100vh",
-          ["--family-bg" as string]: "#1C0F08",
-          ["--family-bg-card" as string]: "#2D1810",
-          ["--family-bg-elevated" as string]: "#3D2418",
-          ["--family-border" as string]: "rgba(212,175,55,0.2)",
-          ["--family-text" as string]: "#FDF6ED",
-          ["--family-text-secondary" as string]: "rgba(253,246,237,0.6)",
-          ["--family-text-tertiary" as string]: "rgba(253,246,237,0.35)",
-          ["--family-success" as string]: "#5C8F5C",
-          background: "linear-gradient(160deg, #1C0F08 0%, #2D1810 40%, #3D2418 70%, #E8742A 100%)",
+          ["--family-bg" as string]: "#FDF8F2",
+          ["--family-bg-card" as string]: "#FFFFFF",
+          ["--family-bg-elevated" as string]: "#F5EDE0",
+          ["--family-border" as string]: "#E8D5B7",
+          ["--family-text" as string]: "#2D1810",
+          ["--family-text-secondary" as string]: "#6B4C35",
+          ["--family-text-tertiary" as string]: "#9B7355",
+          ["--family-success" as string]: "#4A7C59",
+          background: "linear-gradient(160deg, #FDF8F2 0%, #F5EDE0 40%, #FFFFFF 70%, #E8742A 100%)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -221,7 +221,7 @@ const Profile = () => {
             width: "80px",
             height: "80px",
             borderRadius: "50%",
-            background: "rgba(253,246,237,0.1)",
+            background: "#F5EDE0",
             border: "2px solid rgba(212,175,55,0.4)",
             display: "flex",
             alignItems: "center",
@@ -238,7 +238,7 @@ const Profile = () => {
             fontSize: "28px",
             fontFamily: "Georgia, serif",
             fontStyle: "italic",
-            color: "#FDF6ED",
+            color: "#2D1810",
             marginBottom: "12px",
             lineHeight: 1.3,
           }}
@@ -253,7 +253,7 @@ const Profile = () => {
         <p
           style={{
             fontSize: "15px",
-            color: "rgba(253,246,237,0.65)",
+            color: "#6B4C35",
             lineHeight: 1.6,
             marginBottom: "40px",
             maxWidth: "280px",
@@ -293,7 +293,7 @@ const Profile = () => {
                   width: "52px",
                   height: "52px",
                   borderRadius: "16px",
-                  background: "rgba(253,246,237,0.08)",
+                  background: "#F5EDE0",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -305,7 +305,7 @@ const Profile = () => {
               <span
                 style={{
                   fontSize: "11px",
-                  color: "rgba(253,246,237,0.6)",
+                  color: "#6B4C35",
                   fontWeight: 600,
                 }}
               >
@@ -323,7 +323,7 @@ const Profile = () => {
             padding: "18px",
             borderRadius: "18px",
             background: "linear-gradient(135deg, #E8742A, #D4621A)",
-            color: "#FDF6ED",
+            color: "#fff",
             fontWeight: 800,
             fontSize: "17px",
             border: "none",
@@ -344,7 +344,7 @@ const Profile = () => {
           style={{
             background: "none",
             border: "none",
-            color: "rgba(253,246,237,0.5)",
+            color: "#9B7355",
             fontSize: "14px",
             cursor: "pointer",
             padding: "8px",
@@ -365,16 +365,16 @@ const Profile = () => {
     <div
       dir={rtl ? "rtl" : "ltr"}
         style={{
-          ["--family-bg" as string]: "#1C0F08",
-          ["--family-bg-card" as string]: "#2D1810",
-          ["--family-bg-elevated" as string]: "#3D2418",
-          ["--family-border" as string]: "rgba(212,175,55,0.2)",
-          ["--family-text" as string]: "#FDF6ED",
-          ["--family-text-secondary" as string]: "rgba(253,246,237,0.6)",
-          ["--family-text-tertiary" as string]: "rgba(253,246,237,0.35)",
-          ["--family-success" as string]: "#5C8F5C",
+          ["--family-bg" as string]: "#FDF8F2",
+          ["--family-bg-card" as string]: "#FFFFFF",
+          ["--family-bg-elevated" as string]: "#F5EDE0",
+          ["--family-border" as string]: "#E8D5B7",
+          ["--family-text" as string]: "#2D1810",
+          ["--family-text-secondary" as string]: "#6B4C35",
+          ["--family-text-tertiary" as string]: "#9B7355",
+          ["--family-success" as string]: "#4A7C59",
           minHeight: "100vh",
-          background: "#1C0F08",
+          background: "#FDF8F2",
           paddingBottom: "100px",
           position: "relative",
           transition: "background-color 0.3s ease",
@@ -382,7 +382,7 @@ const Profile = () => {
       >
       <div
         style={{
-          background: "linear-gradient(160deg, #1C0F08 0%, #2D1810 50%, #3D2418 100%)",
+          background: "linear-gradient(160deg, #F5EDE0 0%, #FDF8F2 50%, #FFFFFF 100%)",
           padding: "60px 24px 32px",
           textAlign: "center",
           position: "relative",
@@ -398,8 +398,8 @@ const Profile = () => {
             width: "34px",
             height: "34px",
             borderRadius: "50%",
-            background: "rgba(253,246,237,0.12)",
-            border: "1px solid rgba(212,175,55,0.2)",
+            background: "#F5EDE0",
+            border: "1px solid #E8D5B7",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -431,7 +431,7 @@ const Profile = () => {
             margin: "0 auto 16px",
             fontSize: "28px",
             fontWeight: 700,
-            color: "#FDF6ED",
+            color: "#fff",
           }}
         >
           {userName[0]?.toUpperCase() || "✦"}
@@ -454,11 +454,12 @@ const Profile = () => {
               onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
               placeholder={userName}
               style={{
+                boxShadow: "0 2px 12px rgba(45,24,16,0.08)",
                 padding: "8px 16px",
                 borderRadius: "999px",
                 border: "1.5px solid #E8742A",
-                background: "rgba(253,246,237,0.06)",
-                color: "#FDF6ED",
+                background: "#FFFFFF",
+                color: "#2D1810",
                 fontSize: "16px",
                 outline: "none",
               }}
@@ -471,7 +472,7 @@ const Profile = () => {
                 padding: "8px 16px",
                 borderRadius: "999px",
                 background: "#E8742A",
-                color: "#FDF6ED",
+                color: "#fff",
                 border: "none",
                 cursor: savingName ? "wait" : "pointer",
                 fontWeight: 700,
@@ -485,8 +486,8 @@ const Profile = () => {
               style={{
                 padding: "8px 16px",
                 borderRadius: "999px",
-                background: "rgba(253,246,237,0.08)",
-                color: "#FDF6ED",
+                background: "#F5EDE0",
+                color: "#2D1810",
                 border: "none",
                 cursor: "pointer",
               }}
@@ -506,7 +507,7 @@ const Profile = () => {
           >
             <h2
               style={{
-                color: "#FDF6ED",
+                color: "#2D1810",
                 margin: 0,
                 fontSize: "22px",
                 fontWeight: 700,
@@ -524,7 +525,7 @@ const Profile = () => {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "rgba(253,246,237,0.4)",
+                  color: "#9B7355",
                   cursor: "pointer",
                   fontSize: "16px",
                 }}
@@ -539,7 +540,7 @@ const Profile = () => {
           <p
             style={{
               fontSize: "13px",
-              color: "rgba(253,246,237,0.5)",
+              color: "#9B7355",
               margin: 0,
             }}
           >
@@ -571,7 +572,7 @@ const Profile = () => {
                 style={{
                   fontSize: "24px",
                   fontWeight: 900,
-                  color: "#FDF6ED",
+                  color: "#2D1810",
                   margin: "0 0 2px",
                 }}
               >
@@ -580,7 +581,7 @@ const Profile = () => {
               <p
                 style={{
                   fontSize: "11px",
-                  color: "rgba(253,246,237,0.5)",
+                  color: "#9B7355",
                   margin: 0,
                   letterSpacing: "0.05em",
                 }}
@@ -620,9 +621,9 @@ const Profile = () => {
               style={{
                 padding: "8px 16px",
                 borderRadius: "999px",
-                background: editMode ? "#E8742A" : "rgba(253,246,237,0.08)",
-                color: "#FDF6ED",
-                border: "none",
+                background: editMode ? "#E8742A" : "#F5EDE0",
+                color: editMode ? "#fff" : "#2D1810",
+                border: editMode ? "none" : "1px solid #E8D5B7",
                 cursor: "pointer",
                 fontSize: "13px",
                 fontWeight: 700,
@@ -661,7 +662,7 @@ const Profile = () => {
             <p style={{ fontSize: "48px", margin: 0 }}>✦</p>
             <h3
               style={{
-                color: "#FDF6ED",
+                color: "#2D1810",
                 fontSize: "20px",
                 fontFamily: "Georgia, serif",
                 fontStyle: "italic",
@@ -677,7 +678,7 @@ const Profile = () => {
             </h3>
             <p
               style={{
-                color: "rgba(253,246,237,0.5)",
+                color: "#9B7355",
                 fontSize: "14px",
                 lineHeight: 1.6,
                 margin: 0,
@@ -696,7 +697,7 @@ const Profile = () => {
                 padding: "16px 32px",
                 borderRadius: "999px",
                 background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                color: "#FDF6ED",
+                color: "#fff",
                 fontWeight: 700,
                 fontSize: "16px",
                 border: "none",
@@ -729,6 +730,7 @@ const Profile = () => {
                   borderRadius: "12px",
                   overflow: "hidden",
                   background: "linear-gradient(135deg, #E8742A22, #D4AF3722)",
+                  boxShadow: "0 2px 12px rgba(45,24,16,0.08)",
                   cursor: "pointer",
                   position: "relative",
                 }}
@@ -747,7 +749,7 @@ const Profile = () => {
                     zIndex: 4,
                   }}
                 >
-                  <span style={{ fontSize: "10px", color: "#FDF6ED" }}>
+                  <span style={{ fontSize: "10px", color: "#2D1810" }}>
                     {memory.file_type === "audio" ? "🎙️" : "▶"}
                   </span>
                 </div>
@@ -765,8 +767,8 @@ const Profile = () => {
                       height: "28px",
                       borderRadius: "50%",
                       background: "rgba(220,38,38,0.9)",
-                      border: "2px solid #FDF6ED",
-                      color: "#FDF6ED",
+                      border: "2px solid #fff",
+                      color: "#fff",
                       fontSize: "16px",
                       cursor: "pointer",
                       display: "flex",
@@ -814,7 +816,7 @@ const Profile = () => {
                     }}
                   >
                     <span style={{ fontSize: "10px", color: "#E8742A" }}>✦</span>
-                    <span style={{ fontSize: "10px", color: "#FDF6ED", fontWeight: 700 }}>
+                    <span style={{ fontSize: "10px", color: "#fff", fontWeight: 700 }}>
                       {memory.sparks_count}
                     </span>
                   </div>
@@ -829,9 +831,9 @@ const Profile = () => {
                 style={{
                   padding: "12px 32px",
                   borderRadius: "999px",
-                  background: "rgba(253,246,237,0.08)",
-                  color: "#FDF6ED",
-                  border: "1px solid rgba(212,175,55,0.2)",
+                  background: "#F5EDE0",
+                  color: "#2D1810",
+                  border: "1px solid #E8D5B7",
                   cursor: "pointer",
                 }}
               >
@@ -853,8 +855,8 @@ const Profile = () => {
             padding: "14px",
             borderRadius: "14px",
             background: "none",
-            border: "1px solid rgba(212,175,55,0.15)",
-            color: "rgba(253,246,237,0.5)",
+            border: "1px solid #E8D5B7",
+            color: "#9B7355",
             fontWeight: 600,
             fontSize: "14px",
             cursor: "pointer",
@@ -873,13 +875,13 @@ const Profile = () => {
         style={{
           textAlign: "center",
           padding: "32px 24px 16px",
-          borderTop: "1px solid rgba(212,175,55,0.15)",
+          borderTop: "1px solid #E8D5B7",
           marginTop: "32px",
         }}
       >
         <p
           style={{
-            color: "rgba(253,246,237,0.4)",
+            color: "#9B7355",
             fontSize: "12px",
             marginBottom: "8px",
           }}
@@ -893,7 +895,7 @@ const Profile = () => {
         <a
           href="mailto:malik@infeelit.com?subject=Account deletion request"
           style={{
-            color: "rgba(253,246,237,0.45)",
+            color: "#9B7355",
             fontSize: "12px",
             textDecoration: "underline",
           }}
@@ -918,7 +920,8 @@ const Profile = () => {
           <div
             style={{
               width: "100%",
-              background: "#2D1810",
+              background: "#FFFFFF",
+              boxShadow: "0 2px 12px rgba(45,24,16,0.08)",
               borderRadius: "24px 24px 0 0",
               padding: "32px 24px 48px",
               textAlign: "center",
@@ -927,7 +930,7 @@ const Profile = () => {
             <p style={{ fontSize: "32px", marginBottom: "8px" }}>🗑️</p>
             <h3
               style={{
-                color: "#FDF6ED",
+                color: "#2D1810",
                 fontSize: "18px",
                 fontFamily: "Georgia, serif",
                 fontStyle: "italic",
@@ -942,7 +945,7 @@ const Profile = () => {
             </h3>
             <p
               style={{
-                color: "rgba(253,246,237,0.5)",
+                color: "#9B7355",
                 fontSize: "14px",
                 marginBottom: "32px",
               }}
@@ -960,7 +963,7 @@ const Profile = () => {
                 padding: "16px",
                 borderRadius: "16px",
                 background: "rgba(220,38,38,0.9)",
-                color: "#FDF6ED",
+                color: "#fff",
                 fontWeight: 700,
                 fontSize: "16px",
                 border: "none",
@@ -979,7 +982,7 @@ const Profile = () => {
               style={{
                 background: "none",
                 border: "none",
-                color: "rgba(253,246,237,0.5)",
+                color: "#9B7355",
                 fontSize: "14px",
                 cursor: "pointer",
               }}
