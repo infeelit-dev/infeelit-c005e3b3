@@ -7,9 +7,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface CurvedBottomNavProps {
   onPlusClick?: () => void;
   circleBadge?: number;
+  /** Warm family-library chrome for Circle / Profile only */
+  familySpace?: boolean;
 }
 
-const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps) => {
+const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: CurvedBottomNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, lang } = useLanguage();
@@ -100,15 +102,28 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
     <div className="absolute bottom-0 left-0 right-0 z-20">
       <div
         className="h-16 w-full pointer-events-none"
-        style={{ background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))" }}
+        style={{
+          background: familySpace
+            ? "linear-gradient(to bottom, transparent, rgba(28,15,8,0.55))"
+            : "linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))",
+        }}
       />
       <div
         className="flex items-center justify-around px-4 pb-8 pt-3"
-        style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7))",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-        }}
+        style={
+          familySpace
+            ? {
+                background: "rgba(28,15,8,0.95)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                borderTop: "1px solid rgba(212,175,55,0.15)",
+              }
+            : {
+                background: "linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7))",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+              }
+        }
       >
         {NAV_ITEMS.map((item, index) => {
           if (index === 2) {

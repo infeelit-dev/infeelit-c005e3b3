@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { Copy, Check, Mic, Play, Volume2, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -307,7 +307,10 @@ const Circle = () => {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: "radial-gradient(ellipse at 50% 36%, #1a0a05 0%, #0f0501 55%, #0a0301 100%)" }}
+        style={{
+          background: "radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 60%), #1C0F08",
+          transition: "background-color 0.3s ease",
+        }}
       >
         <div
           style={{
@@ -328,7 +331,19 @@ const Circle = () => {
     return (
       <div
         className="min-h-screen flex flex-col relative"
-        style={{ background: "#0f0501", paddingBottom: "100px" }}
+        style={{
+          ["--family-bg" as string]: "#1C0F08",
+          ["--family-bg-card" as string]: "#2D1810",
+          ["--family-bg-elevated" as string]: "#3D2418",
+          ["--family-border" as string]: "rgba(212,175,55,0.2)",
+          ["--family-text" as string]: "#FDF6ED",
+          ["--family-text-secondary" as string]: "rgba(253,246,237,0.6)",
+          ["--family-text-tertiary" as string]: "rgba(253,246,237,0.35)",
+          ["--family-success" as string]: "#5C8F5C",
+          background: "radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 60%), #1C0F08",
+          paddingBottom: "100px",
+          transition: "background-color 0.3s ease",
+        } as CSSProperties}
       >
         <Header activeTimeline="memories" onTimelineChange={() => {}} />
         <div style={{ textAlign: "center", padding: "80px 24px", flex: 1 }}>
@@ -349,7 +364,7 @@ const Circle = () => {
               padding: "14px 28px",
               borderRadius: "14px",
               background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              color: "#fff",
+              color: "#FDF6ED",
               fontWeight: 700,
               border: "none",
               cursor: "pointer",
@@ -359,7 +374,7 @@ const Circle = () => {
             {lang === "fr" ? "Réessayer" : lang === "ar" ? "إعادة المحاولة" : "Retry"}
           </button>
         </div>
-        <CurvedBottomNav onPlusClick={() => navigate("/record")} />
+        <CurvedBottomNav onPlusClick={() => navigate("/record")} familySpace />
       </div>
     );
   }
@@ -370,10 +385,19 @@ const Circle = () => {
         className="min-h-screen flex flex-col relative"
         dir={rtl ? "rtl" : "ltr"}
         style={{
-          background: "radial-gradient(ellipse at 50% 36%, #1a0a05 0%, #0f0501 55%, #0a0301 100%)",
+          ["--family-bg" as string]: "#1C0F08",
+          ["--family-bg-card" as string]: "#2D1810",
+          ["--family-bg-elevated" as string]: "#3D2418",
+          ["--family-border" as string]: "rgba(212,175,55,0.2)",
+          ["--family-text" as string]: "#FDF6ED",
+          ["--family-text-secondary" as string]: "rgba(253,246,237,0.6)",
+          ["--family-text-tertiary" as string]: "rgba(253,246,237,0.35)",
+          ["--family-success" as string]: "#5C8F5C",
+          background: "radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 60%), #1C0F08",
           fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
           paddingBottom: "100px",
-        }}
+          transition: "background-color 0.3s ease",
+        } as CSSProperties}
       >
         <Header activeTimeline="memories" onTimelineChange={() => {}} />
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-5">
@@ -383,7 +407,7 @@ const Circle = () => {
               fontSize: "22px",
               fontFamily: "Georgia, serif",
               fontStyle: "italic",
-              color: "#ffffff",
+              color: "#FDF6ED",
               lineHeight: 1.4,
             }}
           >
@@ -393,7 +417,7 @@ const Circle = () => {
                 ? "أنشئ دائرتك العائلية"
                 : "Create your family circle"}
           </h1>
-          <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", maxWidth: "280px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "14px", color: "rgba(253,246,237,0.55)", maxWidth: "280px", lineHeight: 1.6 }}>
             {lang === "fr"
               ? "Un espace privé pour préserver les voix de ceux que tu aimes."
               : lang === "ar"
@@ -408,7 +432,7 @@ const Circle = () => {
               padding: "16px",
               borderRadius: "18px",
               background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              color: "#fff",
+              color: "#FDF6ED",
               fontWeight: 700,
               fontSize: "16px",
               border: "none",
@@ -430,7 +454,7 @@ const Circle = () => {
             style={{
               background: "none",
               border: "none",
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(253,246,237,0.5)",
               fontSize: "14px",
               cursor: "pointer",
               padding: "8px",
@@ -443,7 +467,7 @@ const Circle = () => {
                 : "I have an invite code"}
           </button>
         </div>
-        <CurvedBottomNav onPlusClick={() => navigate("/record")} />
+        <CurvedBottomNav onPlusClick={() => navigate("/record")} familySpace />
 
         {showJoinModal && (
           <div
@@ -460,7 +484,7 @@ const Circle = () => {
           >
             <div
               style={{
-                background: "#0f0501",
+                background: "#2D1810",
                 borderRadius: "24px",
                 padding: "32px 24px",
                 width: "100%",
@@ -471,7 +495,7 @@ const Circle = () => {
               <p style={{ fontSize: "32px", marginBottom: "8px" }}>✦</p>
               <h3
                 style={{
-                  color: "#fff",
+                  color: "#FDF6ED",
                   fontSize: "18px",
                   fontFamily: "Georgia, serif",
                   fontStyle: "italic",
@@ -499,8 +523,8 @@ const Circle = () => {
                   padding: "14px 16px",
                   borderRadius: "12px",
                   border: "1.5px solid rgba(232,116,42,0.4)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#fff",
+                  background: "rgba(253,246,237,0.05)",
+                  color: "#FDF6ED",
                   fontSize: "16px",
                   marginBottom: "16px",
                   outline: "none",
@@ -534,7 +558,7 @@ const Circle = () => {
                   padding: "14px",
                   borderRadius: "14px",
                   background: "linear-gradient(135deg, #E8742A, #D4621A)",
-                  color: "#fff",
+                  color: "#FDF6ED",
                   fontWeight: 700,
                   fontSize: "15px",
                   border: "none",
@@ -549,7 +573,7 @@ const Circle = () => {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "rgba(255,255,255,0.4)",
+                  color: "rgba(253,246,237,0.4)",
                   cursor: "pointer",
                   fontSize: "13px",
                 }}
@@ -568,11 +592,20 @@ const Circle = () => {
       className="min-h-screen flex flex-col relative overflow-x-hidden"
       dir={rtl ? "rtl" : "ltr"}
       style={{
-        background: "radial-gradient(ellipse at 50% 36%, #1a0a05 0%, #0f0501 55%, #0a0301 100%)",
-        backgroundColor: "#0f0501",
+        ["--family-bg" as string]: "#1C0F08",
+        ["--family-bg-card" as string]: "#2D1810",
+        ["--family-bg-elevated" as string]: "#3D2418",
+        ["--family-border" as string]: "rgba(212,175,55,0.2)",
+        ["--family-text" as string]: "#FDF6ED",
+        ["--family-text-secondary" as string]: "rgba(253,246,237,0.6)",
+        ["--family-text-tertiary" as string]: "rgba(253,246,237,0.35)",
+        ["--family-success" as string]: "#5C8F5C",
+        background: "radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 60%), #1C0F08",
+        backgroundColor: "#1C0F08",
         fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
         paddingBottom: "100px",
-      }}
+        transition: "background-color 0.3s ease",
+      } as CSSProperties}
     >
       <Header activeTimeline="memories" onTimelineChange={() => {}} />
       <style>{`
@@ -630,8 +663,8 @@ const Circle = () => {
           onClick={() => navigate(-1)}
           className="rounded-full"
           style={{
-            backgroundColor: "rgba(255,255,255,0.1)",
-            color: "#ffffff",
+            backgroundColor: "rgba(253,246,237,0.08)",
+            color: "#FDF6ED",
             width: "44px",
             height: "44px",
             display: "flex",
@@ -661,8 +694,8 @@ const Circle = () => {
                   padding: "8px 12px",
                   borderRadius: "10px",
                   border: "1.5px solid rgba(232,116,42,0.5)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#fff",
+                  background: "rgba(253,246,237,0.05)",
+                  color: "#FDF6ED",
                   fontSize: "16px",
                   fontFamily: "Georgia, serif",
                   maxWidth: "180px",
@@ -693,7 +726,7 @@ const Circle = () => {
                   padding: "8px 12px",
                   borderRadius: "999px",
                   background: "#E8742A",
-                  color: "#fff",
+                  color: "#FDF6ED",
                   border: "none",
                   fontWeight: 700,
                   cursor: "pointer",
@@ -706,7 +739,7 @@ const Circle = () => {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "rgba(255,255,255,0.5)",
+                  color: "rgba(253,246,237,0.5)",
                   cursor: "pointer",
                 }}
               >
@@ -715,10 +748,10 @@ const Circle = () => {
             </div>
           ) : (
             <>
-              <h1 className="font-bold text-lg font-serif" style={{ color: "#ffffff" }}>
+              <h1 className="font-bold text-lg font-serif" style={{ color: "#FDF6ED" }}>
                 {circle.name}
               </h1>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>
+              <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(253,246,237,0.45)" }}>
                 {t.ourCircle} · {members.length}{" "}
                 {lang === "fr" ? "membres" : lang === "ar" ? "أعضاء" : "members"}
                 {" · "}
@@ -796,7 +829,7 @@ const Circle = () => {
                   fontSize: "6px",
                   fontWeight: 900,
                   letterSpacing: ".12em",
-                  color: "rgba(255,255,255,.7)",
+                  color: "rgba(253,246,237,0.7)",
                   textTransform: "uppercase",
                   marginBottom: "4px",
                   textAlign: "center",
@@ -804,7 +837,7 @@ const Circle = () => {
               >
                 {t.thisWeek}
               </p>
-              <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.38, textAlign: "center" }}>
+              <p style={{ fontSize: "9px", fontWeight: 700, color: "#FDF6ED", lineHeight: 1.38, textAlign: "center" }}>
                 {lang === "ar"
                   ? "ما الصوت الذي تريد حفظه اليوم؟"
                   : lang === "fr"
@@ -814,11 +847,11 @@ const Circle = () => {
             </>
           ) : (
             <>
-              <Play size={20} style={{ color: "#fff", marginBottom: "4px" }} />
-              <p style={{ fontSize: "9px", fontWeight: 700, color: "#fff", lineHeight: 1.3, textAlign: "center" }}>
+              <Play size={20} style={{ color: "#FDF6ED", marginBottom: "4px" }} />
+              <p style={{ fontSize: "9px", fontWeight: 700, color: "#FDF6ED", lineHeight: 1.3, textAlign: "center" }}>
                 {latestMem.title || memberNameById(latestMem.user_id)}
               </p>
-              <p style={{ fontSize: "7px", color: "rgba(255,255,255,.6)", marginTop: "3px", textAlign: "center" }}>
+              <p style={{ fontSize: "7px", color: "rgba(253,246,237,0.6)", marginTop: "3px", textAlign: "center" }}>
                 {t.latestMemory}
               </p>
             </>
@@ -870,13 +903,13 @@ const Circle = () => {
                   justifyContent: "center",
                 }}
               >
-                <span style={{ color: "#fff", fontWeight: 800, fontSize: "18px" }}>{initial}</span>
+                <span style={{ color: "#FDF6ED", fontWeight: 800, fontSize: "18px" }}>{initial}</span>
               </div>
               <p
                 style={{
                   fontSize: "12px",
                   fontWeight: 700,
-                  color: "#ffffff",
+                  color: "#FDF6ED",
                   textAlign: "center",
                   marginTop: "3px",
                   textShadow: "0 1px 4px rgba(0,0,0,.75)",
@@ -884,7 +917,7 @@ const Circle = () => {
               >
                 {name}
               </p>
-              <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.1 }}>
+              <p style={{ fontSize: "10px", color: "rgba(253,246,237,0.5)", textAlign: "center", lineHeight: 1.1 }}>
                 {count}{" "}
                 {lang === "fr" ? "souvenirs" : lang === "ar" ? "ذكريات" : "memories"}
               </p>
@@ -901,7 +934,7 @@ const Circle = () => {
               fontWeight: 900,
               letterSpacing: ".16em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(253,246,237,0.4)",
             }}
           >
             {t.thisWeek}
@@ -912,12 +945,12 @@ const Circle = () => {
             style={{
               padding: "24px 16px",
               borderRadius: "16px",
-              background: "rgba(255,255,255,0.08)",
+              background: "rgba(253,246,237,0.06)",
               border: "1px solid rgba(180,140,80,.38)",
               textAlign: "center",
             }}
           >
-            <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.55)", marginBottom: "12px" }}>
+            <p style={{ fontSize: "13px", color: "rgba(253,246,237,0.55)", marginBottom: "12px" }}>
               {lang === "fr"
                 ? "Aucun souvenir partagé pour l'instant."
                 : lang === "ar"
@@ -930,7 +963,7 @@ const Circle = () => {
                 padding: "10px 18px",
                 borderRadius: "999px",
                 background: "linear-gradient(135deg,#E8742A,#D4621A)",
-                color: "#fff",
+                color: "#FDF6ED",
                 fontWeight: 700,
                 fontSize: "13px",
                 border: "none",
@@ -949,7 +982,7 @@ const Circle = () => {
                 style={{
                   width: "148px",
                   height: "116px",
-                  backgroundColor: "rgba(255,255,255,0.08)",
+                  backgroundColor: "rgba(253,246,237,0.06)",
                   border: "1px solid rgba(180,140,80,.38)",
                   backdropFilter: "blur(6px)",
                 }}
@@ -980,14 +1013,14 @@ const Circle = () => {
                   className="absolute top-1.5 right-1.5 rounded-full px-1.5 py-0.5 flex items-center gap-1"
                   style={{ backgroundColor: "rgba(0,0,0,.5)" }}
                 >
-                  {card.file_type === "audio" ? <Volume2 size={8} color="#fff" /> : <Video size={8} color="#fff" />}
+                  {card.file_type === "audio" ? <Volume2 size={8} color="#FDF6ED" /> : <Video size={8} color="#FDF6ED" />}
                 </div>
                 <div style={{ padding: "5px 8px" }}>
                   <div className="flex items-center gap-1.5">
-                    <p style={{ fontSize: "8px", fontWeight: 700, color: "#ffffff" }}>
+                    <p style={{ fontSize: "8px", fontWeight: 700, color: "#FDF6ED" }}>
                       {memberNameById(card.user_id)}
                     </p>
-                    <span style={{ fontSize: "7px", color: "rgba(255,255,255,0.45)", marginLeft: "auto" }}>
+                    <span style={{ fontSize: "7px", color: "rgba(253,246,237,0.45)", marginLeft: "auto" }}>
                       {timeAgo(card.created_at, lang)}
                     </span>
                   </div>
@@ -995,7 +1028,7 @@ const Circle = () => {
                     style={{
                       fontSize: "9px",
                       fontWeight: 600,
-                      color: "#ffffff",
+                      color: "#FDF6ED",
                       marginTop: "2px",
                       overflow: "hidden",
                       whiteSpace: "nowrap",
@@ -1021,10 +1054,10 @@ const Circle = () => {
               className="shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all"
               style={
                 activeFilter === f.id
-                  ? { backgroundColor: "#E8742A", color: "#fff", boxShadow: "0 3px 12px rgba(232,116,42,.45)" }
+                  ? { backgroundColor: "#E8742A", color: "#FDF6ED", boxShadow: "0 3px 12px rgba(232,116,42,.45)" }
                   : {
-                      backgroundColor: "rgba(255,255,255,0.1)",
-                      color: "#ffffff",
+                      backgroundColor: "rgba(253,246,237,0.08)",
+                      color: "#FDF6ED",
                       border: "1px solid rgba(180,140,80,.36)",
                     }
               }
@@ -1038,7 +1071,7 @@ const Circle = () => {
       <div className="px-5 pb-36 relative z-10 space-y-3">
         <div
           className="flex items-center gap-3 p-4 rounded-2xl"
-          style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(180,140,80,.36)" }}
+          style={{ backgroundColor: "rgba(253,246,237,0.06)", border: "1px solid rgba(180,140,80,.36)" }}
         >
           <div className="flex-1 min-w-0">
             <p
@@ -1046,13 +1079,13 @@ const Circle = () => {
                 fontSize: "8px",
                 textTransform: "uppercase",
                 letterSpacing: ".1em",
-                color: "rgba(255,255,255,0.4)",
+                color: "rgba(253,246,237,0.4)",
                 marginBottom: "2px",
               }}
             >
               {t.inviteLink}
             </p>
-            <p className="font-mono text-sm truncate" style={{ color: "#ffffff" }}>
+            <p className="font-mono text-sm truncate" style={{ color: "#FDF6ED" }}>
               {circleCode ? `infeelit.com/join/${circleCode}` : "…"}
             </p>
           </div>
@@ -1062,13 +1095,13 @@ const Circle = () => {
             style={
               copied
                 ? { backgroundColor: "rgba(16,185,129,.2)", border: "1px solid rgba(16,185,129,.4)" }
-                : { backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(180,140,80,.36)" }
+                : { backgroundColor: "rgba(253,246,237,0.08)", border: "1px solid rgba(180,140,80,.36)" }
             }
           >
             {copied ? (
               <Check size={16} className="text-emerald-500" />
             ) : (
-              <Copy size={16} style={{ color: "#ffffff" }} />
+              <Copy size={16} style={{ color: "#FDF6ED" }} />
             )}
           </button>
         </div>
@@ -1076,7 +1109,7 @@ const Circle = () => {
         <button
           onClick={handleWhatsApp}
           className="w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2"
-          style={{ background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#fff" }}
+          style={{ background: "linear-gradient(135deg,#25D366,#128C7E)", color: "#FDF6ED" }}
         >
           <span>💬</span> {t.inviteWhatsApp}
         </button>
@@ -1108,7 +1141,7 @@ const Circle = () => {
               : "Import my WhatsApp group"}
         </button>
 
-        <p className="text-center text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <p className="text-center text-xs" style={{ color: "rgba(253,246,237,0.35)" }}>
           {t.circlePrivate}
         </p>
       </div>
@@ -1117,7 +1150,7 @@ const Circle = () => {
         className="fixed left-0 right-0 px-5 pb-4 pt-4 z-20"
         style={{
           bottom: "88px",
-          background: "linear-gradient(to top, rgba(15,5,1,1) 60%, transparent)",
+          background: "linear-gradient(to top, #1C0F08 60%, transparent)",
         }}
       >
         <button
@@ -1125,7 +1158,7 @@ const Circle = () => {
           className="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3"
           style={{
             background: "linear-gradient(135deg,#E8742A,#D4621A)",
-            color: "#fff",
+            color: "#FDF6ED",
             boxShadow: "0 0 28px rgba(232,116,42,.45)",
             minHeight: "48px",
           }}
@@ -1159,7 +1192,7 @@ const Circle = () => {
               backgroundColor: "#0E1A20",
               borderRadius: "24px 24px 0 0",
               padding: "24px 20px 40px",
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(212,175,55,0.15)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1167,7 +1200,7 @@ const Circle = () => {
               style={{
                 width: "40px",
                 height: "4px",
-                backgroundColor: "rgba(255,255,255,0.2)",
+                backgroundColor: "rgba(253,246,237,0.2)",
                 borderRadius: "999px",
                 margin: "0 auto 20px",
               }}
@@ -1191,7 +1224,7 @@ const Circle = () => {
               style={{
                 fontSize: "18px",
                 fontWeight: 700,
-                color: "#fff",
+                color: "#FDF6ED",
                 textAlign: "center",
                 fontFamily: "Georgia, serif",
                 marginBottom: "20px",
@@ -1222,9 +1255,9 @@ const Circle = () => {
                     width: "100%",
                     padding: "14px 16px",
                     borderRadius: "14px",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    backgroundColor: "rgba(255,255,255,0.05)",
-                    color: "#fff",
+                    border: "1px solid rgba(212,175,55,0.15)",
+                    backgroundColor: "rgba(253,246,237,0.05)",
+                    color: "#FDF6ED",
                     fontSize: "14px",
                     outline: "none",
                     resize: "none",
@@ -1241,7 +1274,7 @@ const Circle = () => {
                     padding: "16px",
                     borderRadius: "14px",
                     background: "linear-gradient(135deg, #25D366, #128C7E)",
-                    color: "#fff",
+                    color: "#FDF6ED",
                     fontWeight: 700,
                     fontSize: "15px",
                     border: "none",
@@ -1266,7 +1299,7 @@ const Circle = () => {
                   <p
                     style={{
                       fontSize: "13px",
-                      color: "rgba(255,255,255,0.85)",
+                      color: "rgba(253,246,237,0.85)",
                       lineHeight: 1.6,
                       whiteSpace: "pre-wrap",
                     }}
@@ -1283,7 +1316,7 @@ const Circle = () => {
                     padding: "16px",
                     borderRadius: "14px",
                     background: "linear-gradient(135deg, #25D366, #128C7E)",
-                    color: "#fff",
+                    color: "#FDF6ED",
                     fontWeight: 700,
                     fontSize: "15px",
                     border: "none",
@@ -1303,7 +1336,7 @@ const Circle = () => {
                     padding: "12px",
                     background: "none",
                     border: "none",
-                    color: "rgba(255,255,255,0.3)",
+                    color: "rgba(253,246,237,0.3)",
                     fontSize: "12px",
                     cursor: "pointer",
                   }}
@@ -1315,7 +1348,7 @@ const Circle = () => {
           </div>
         </div>
       )}
-      <CurvedBottomNav onPlusClick={() => navigate("/record")} />
+      <CurvedBottomNav onPlusClick={() => navigate("/record")} familySpace />
     </div>
   );
 };
