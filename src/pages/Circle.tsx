@@ -6,6 +6,7 @@ import { resolveMemoryFields } from "@/lib/memoryUrl";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
+import { getLabel } from "@/lib/uiLabels";
 import Header from "@/components/Header";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import useUserName from "@/hooks/useUserName";
@@ -533,7 +534,7 @@ const Circle = () => {
                   fontSize: "13px",
                 }}
               >
-                {pickLocalized(lang, { fr: "Annuler", ar: "إلغاء", en: "Cancel" })}
+                {getLabel("cancel", lang)}
               </button>
             </div>
           </div>

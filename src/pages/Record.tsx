@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
+import { getTimelineLabel } from "@/lib/timelineLabels";
 import useUserName from "@/hooks/useUserName";
 import Header from "@/components/Header";
 import ShareModal from "@/components/ShareModal";
@@ -2107,17 +2108,17 @@ const Record = () => {
             [
               {
                 id: "memories" as const,
-                label: pickLocalized(lang, { fr: "Souvenirs", ar: "ذكريات", en: "Memories" }),
+                label: getTimelineLabel("memories", lang),
                 icon: "🌅",
               },
               {
                 id: "instant" as const,
-                label: pickLocalized(lang, { fr: "Instant", ar: "لحظي", en: "Instant" }),
+                label: getTimelineLabel("instant", lang),
                 icon: "⚡",
               },
               {
                 id: "forever" as const,
-                label: pickLocalized(lang, { fr: "Pour toujours", ar: "للأبد", en: "Forever" }),
+                label: getTimelineLabel("forever", lang),
                 icon: "✉️",
               },
             ] as const

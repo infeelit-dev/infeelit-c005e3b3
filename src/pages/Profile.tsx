@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { resolveMemoryUrl } from "@/lib/memoryUrl";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
+import { getLabel } from "@/lib/uiLabels";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import { toast } from "sonner";
 
@@ -464,7 +465,7 @@ const Profile = () => {
                 opacity: savingName ? 0.7 : 1,
               }}
             >
-              {savingName ? "…" : "✓"}
+              {savingName ? "…" : getLabel("save", lang)}
             </button>
             <button
               onClick={() => setEditingName(false)}
@@ -477,7 +478,7 @@ const Profile = () => {
                 cursor: "pointer",
               }}
             >
-              ✕
+              {getLabel("cancel", lang)}
             </button>
           </div>
         ) : (
@@ -514,7 +515,7 @@ const Profile = () => {
                   cursor: "pointer",
                   fontSize: "16px",
                 }}
-                aria-label={pickLocalized(lang, { fr: "Modifier le nom", ar: "تعديل الاسم", en: "Edit name" })}
+                aria-label={getLabel("edit", lang)}
               >
                 ✎
               </button>
@@ -615,9 +616,7 @@ const Profile = () => {
                 minHeight: "36px",
               }}
             >
-              {editMode
-                ? pickLocalized(lang, { fr: "Terminer", ar: "إنهاء", en: "Done" })
-                : pickLocalized(lang, { fr: "Modifier", ar: "تعديل", en: "Edit" })}
+              {editMode ? getLabel("done", lang) : getLabel("edit", lang)}
             </button>
           )}
         </div>
@@ -924,7 +923,7 @@ const Profile = () => {
                 marginBottom: "12px",
               }}
             >
-              {pickLocalized(lang, { fr: "Supprimer définitivement", ar: "حذف نهائياً", en: "Delete permanently" })}
+              {getLabel("delete", lang)}
             </button>
             <button
               onClick={() => setMemoryToDelete(null)}
@@ -936,7 +935,7 @@ const Profile = () => {
                 cursor: "pointer",
               }}
             >
-              {pickLocalized(lang, { fr: "Annuler", ar: "إلغاء", en: "Cancel" })}
+              {getLabel("cancel", lang)}
             </button>
           </div>
         </div>

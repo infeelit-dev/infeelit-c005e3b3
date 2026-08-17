@@ -4,6 +4,8 @@ import { Menu, X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
+import { getTimelineLabel } from "@/lib/timelineLabels";
+import { getLabel } from "@/lib/uiLabels";
 import { LANGUAGES, getUiFontFamily, type Lang } from "@/lib/i18n";
 import type { Timeline } from "@/types/timeline";
 import infeelit from "@/assets/infeelit-logo.png";
@@ -59,9 +61,9 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
   }, []);
 
   const tabs = [
-    { id: "memories" as Timeline, label: "Memories" },
-    { id: "instant" as Timeline, label: "Instant" },
-    { id: "forever" as Timeline, label: "Forever" },
+    { id: "memories" as Timeline, label: getTimelineLabel("memories", lang) },
+    { id: "instant" as Timeline, label: getTimelineLabel("instant", lang) },
+    { id: "forever" as Timeline, label: getTimelineLabel("forever", lang) },
   ];
 
   const underlineColor = (id: Timeline) => (id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : "#ffffff");
@@ -608,7 +610,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                 }}
               >
                 <span>🚪</span>
-                {pickLocalized(lang, { fr: "Se déconnecter", ar: "تسجيل الخروج", en: "Log out" })}
+                {getLabel("logout", lang)}
               </button>
             )}
           </div>
