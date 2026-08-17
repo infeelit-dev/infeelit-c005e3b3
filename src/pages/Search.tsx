@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLabel } from "@/lib/uiLabels";
 
 const Search = () => {
   const { lang } = useLanguage();
@@ -26,7 +27,7 @@ const Search = () => {
           fontFamily: "Georgia, serif",
         }}
       >
-        {lang === "fr" ? "Recherche" : lang === "ar" ? "البحث" : "Search"}
+        {getLabel("search", lang)}
       </h1>
       <p
         style={{

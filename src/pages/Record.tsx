@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getTimelineLabel } from "@/lib/timelineLabels";
 import useUserName from "@/hooks/useUserName";
 import Header from "@/components/Header";
 import ShareModal from "@/components/ShareModal";
@@ -1869,17 +1870,17 @@ const Record = () => {
             [
               {
                 id: "memories" as const,
-                label: lang === "fr" ? "Souvenirs" : lang === "ar" ? "ذكريات" : "Memories",
+                label: getTimelineLabel("memories", lang),
                 icon: "🌅",
               },
               {
                 id: "instant" as const,
-                label: lang === "fr" ? "Instant" : lang === "ar" ? "لحظي" : "Instant",
+                label: getTimelineLabel("instant", lang),
                 icon: "⚡",
               },
               {
                 id: "forever" as const,
-                label: lang === "fr" ? "Pour toujours" : lang === "ar" ? "للأبد" : "Forever",
+                label: getTimelineLabel("forever", lang),
                 icon: "✉️",
               },
             ] as const

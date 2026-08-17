@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLabel } from "@/lib/uiLabels";
 import Header from "@/components/Header";
 import useUserName from "@/hooks/useUserName";
 
@@ -433,7 +434,7 @@ const Circle = () => {
             {lang === "ar" ? "دوائري" : lang === "fr" ? "Mes Cercles" : "My Circles"}
           </h1>
           <p className="text-[10px] uppercase tracking-widest" style={{ color: "rgba(61,43,26,.42)" }}>
-            {t.ourCircle} · 12 members
+            {t.ourCircle} · 12 {getLabel("members", lang)}
           </p>
         </div>
         <div
