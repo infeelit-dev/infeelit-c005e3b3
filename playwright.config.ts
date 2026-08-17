@@ -1,5 +1,4 @@
 import { defineConfig, devices } from "@playwright/test";
-
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -8,7 +7,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "list",
   use: {
-    baseURL: "http://127.0.0.1:8080",
+    baseURL: process.env.BASE_URL || "http://127.0.0.1:8080",
     trace: "on-first-retry",
   },
   projects: [
@@ -17,10 +16,9 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: "npm run dev",
+  webServer: process.env.BASE_URL ? undefined : {
+    command: "bun run dev",
     url: "http://127.0.0.1:8080",
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
   },
 });
