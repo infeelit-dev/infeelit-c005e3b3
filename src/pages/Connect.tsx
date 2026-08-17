@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, Search, Heart, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getTimelineLabel } from "@/lib/timelineLabels";
 
 interface Profile {
   id: string;
@@ -13,6 +15,7 @@ interface Profile {
 
 const Connect = () => {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [following, setFollowing] = useState<string[]>([]);
   const [search, setSearch] = useState("");
@@ -180,7 +183,7 @@ const Connect = () => {
                   <div className="flex items-center gap-3 mt-1">
                     <span className="flex items-center gap-1 text-white/30 text-xs">
                       <Heart size={10} />
-                      Memories
+                      {getTimelineLabel("memories", lang)}
                     </span>
                     <span className="flex items-center gap-1 text-white/30 text-xs">
                       <Play size={10} />

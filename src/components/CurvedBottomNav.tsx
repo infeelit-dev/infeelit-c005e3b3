@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Users, MapPin, Plus, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLabel } from "@/lib/uiLabels";
 
 interface CurvedBottomNavProps {
   onPlusClick?: () => void;
@@ -12,7 +13,7 @@ interface CurvedBottomNavProps {
 const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t, lang } = useLanguage();
+  const { lang } = useLanguage();
 
   // ✅ CORRECTION 1 — Utilisation de Supabase session au lieu de localStorage
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -35,17 +36,17 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
   };
 
   const NAV_ITEMS = [
-    { icon: Users, label: lang === "ar" ? "دوائر" : lang === "fr" ? "Cercles" : "Circles", path: "/circles" },
-    { icon: MapPin, label: lang === "ar" ? "أماكن" : lang === "fr" ? "Lieux" : "Places", path: "/places" },
+    { icon: Users, label: getLabel("circle", lang), path: "/circles" },
+    { icon: MapPin, label: getLabel("places", lang), path: "/places" },
     { icon: null, label: "", path: "/record" },
     {
       icon: MessageCircle,
-      label: lang === "ar" ? "همسات" : lang === "fr" ? "Murmures" : "Whispers",
+      label: getLabel("whispers", lang),
       path: "/whispers",
     },
     {
       icon: "flame",
-      label: lang === "ar" ? "أنا" : lang === "fr" ? "Moi" : "Me",
+      label: getLabel("me", lang),
       path: isLoggedIn ? "/me" : "/welcome",
     },
   ];

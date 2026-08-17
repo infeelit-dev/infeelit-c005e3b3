@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Map, { Marker, Popup, NavigationControl, GeolocateControl, Source, Layer } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLabel } from "@/lib/uiLabels";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin, X } from "lucide-react";
 import Header from "@/components/Header";
@@ -408,7 +409,7 @@ const Places = () => {
                 whiteSpace: "nowrap",
               }}
             >
-              🔍 Trouver
+              🔍 {getLabel("search", lang)}
             </button>
           </div>
           <Map

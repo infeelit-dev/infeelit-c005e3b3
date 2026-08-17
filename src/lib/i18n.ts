@@ -245,7 +245,7 @@ const en: Translations = {
 };
 
 const fr: Translations = {
-  memories: "Mémoires",
+  memories: "Souvenirs",
   instant: "Instant",
   forever: "Pour toujours",
   beginMyStory: "Commencer mon histoire",
@@ -263,7 +263,7 @@ const fr: Translations = {
   voiceCaptures: "Voix",
   previewMode: "✦ Mode aperçu — enregistrez votre premier souvenir",
   tabAll: "Tout",
-  tabMemories: "Mémoires",
+  tabMemories: "Souvenirs",
   tabForever: "Pour toujours",
   tabVideo: "🎬 Vidéo",
   tabVoices: "🎙️ Voix",
@@ -367,8 +367,8 @@ const fr: Translations = {
 };
 
 const ar: Translations = {
-  memories: "الذكريات",
-  instant: "اللحظة",
+  memories: "ذكريات",
+  instant: "لحظة",
   forever: "إلى الأبد",
   beginMyStory: "ابدأ قصتي",
   welcomeTagline: "صوت عائلتك، محفوظٌ إلى الأبد.",
@@ -385,7 +385,7 @@ const ar: Translations = {
   voiceCaptures: "الأصوات",
   previewMode: "✦ وضع المعاينة — سجّل أول ذكرى لك",
   tabAll: "الكل",
-  tabMemories: "الذكريات",
+  tabMemories: "ذكريات",
   tabForever: "للأبد",
   tabVideo: "🎬 فيديو",
   tabVoices: "🎙️ صوت",

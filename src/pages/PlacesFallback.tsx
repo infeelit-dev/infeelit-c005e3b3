@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Mic, Video, Lock, Globe, Navigation } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLabel } from "@/lib/uiLabels";
 import { toast } from "sonner";
 
 // ─── Demo memory pins ─────────────────────────────────────────────────────────
@@ -265,7 +266,7 @@ const Places = () => {
           }}
         >
           <Navigation size={13} />
-          {locating ? t("locating") : t("locate")}
+          {locating ? t("locating") : getLabel("locate", lang)}
         </button>
       </div>
 

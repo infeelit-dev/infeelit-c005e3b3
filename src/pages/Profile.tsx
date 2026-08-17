@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getLabel } from "@/lib/uiLabels";
+import { getTimelineLabel } from "@/lib/timelineLabels";
 
 interface ProfileMemory {
   id: string;
@@ -193,8 +195,8 @@ const Profile = () => {
           }}
         >
           {[
-            { icon: "🎙️", label: lang === "fr" ? "Souvenirs" : lang === "ar" ? "ذكريات" : "Memories" },
-            { icon: "👨‍👩‍👧", label: lang === "fr" ? "Cercle" : lang === "ar" ? "دائرة" : "Circle" },
+            { icon: "🎙️", label: getTimelineLabel("memories", lang) },
+            { icon: "👨‍👩‍👧", label: getLabel("circle", lang) },
             { icon: "✦", label: lang === "fr" ? "Étincelles" : lang === "ar" ? "شرارات" : "Sparks" },
           ].map(({ icon, label }) => (
             <div
@@ -377,7 +379,7 @@ const Profile = () => {
           {[
             {
               count: memories.length,
-              label: lang === "fr" ? "souvenirs" : lang === "ar" ? "ذكريات" : "memories",
+              label: getTimelineLabel("memories", lang),
             },
             {
               count: sparksCount,
@@ -421,7 +423,7 @@ const Profile = () => {
             marginBottom: "16px",
           }}
         >
-          {lang === "fr" ? "Mes souvenirs" : lang === "ar" ? "ذكرياتي" : "My memories"}
+          {getTimelineLabel("memories", lang)}
         </p>
 
         {memories.length === 0 ? (
@@ -557,7 +559,7 @@ const Profile = () => {
           }}
         >
           <span>↩</span>
-          {lang === "fr" ? "Se déconnecter" : lang === "ar" ? "تسجيل الخروج" : "Sign out"}
+          {getLabel("logout", lang)}
         </button>
       </div>
     </div>
