@@ -29,6 +29,8 @@ const AdminUpload = () => {
   const [category, setCategory] = useState("enfance");
   const [isPublic, setIsPublic] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [authorName, setAuthorName] = useState("");
+  const [autoThumbnail, setAutoThumbnail] = useState<Blob | null>(null);
   const [customThumbnail, setCustomThumbnail] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
@@ -135,6 +137,63 @@ const AdminUpload = () => {
     setReportedMemories(reportedMemories.filter((m) => m.id !== memoryId));
   };
 
+  const captureThumbnail = async (videoFile: File): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      const video = document.createElement("video");
+      const url = URL.createObjectURL(videoFile);
+      video.src = url;
+      video.muted = true;
+      video.playsInline = true;
+
+      const timeout = setTimeout(() => {
+        URL.revokeObjectURL(url);
+        resolve(null);
+      }, 8000);
+
+      video.onloadedmetadata = () => {
+        video.currentTime = Math.min(1, video.duration * 0.1);
+      };
+
+      video.onseeked = () => {
+        clearTimeout(timeout);
+        const canvas = document.createElement("canvas");
+        canvas.width = 480;
+        canvas.height = 270;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, 480, 270);
+          canvas.toBlob((blob) => {
+            URL.revokeObjectURL(url);
+            resolve(blob);
+          }, "image/jpeg", 0.8);
+        } else {
+          URL.revokeObjectURL(url);
+          resolve(null);
+        }
+      };
+
+      video.onerror = () => {
+        clearTimeout(timeout);
+        URL.revokeObjectURL(url);
+        resolve(null);
+      };
+    });
+  };
+
+  const handleVideoSelect = async (file: File) => {
+    setVideoFile(file);
+    const thumb = await captureThumbnail(file);
+    setAutoThumbnail(thumb);
+    if (thumb) setThumbnailPreview(URL.createObjectURL(thumb));
+  };
+
+  const handleManualThumb = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setCustomThumbnail(f);
+    setThumbnailPreview(URL.createObjectURL(f));
+  };
+
   const captureFrameAtTime = (file: File, timeSec: number): Promise<Blob | null> =>
     new Promise((resolve) => {
       const video = document.createElement("video");
@@ -195,8 +254,9 @@ const AdminUpload = () => {
 
       // Auto-generate thumbnail: prefer custom file, else capture frame at 1s (face position)
       let thumbnailPath: string | null = null;
+      const fallbackThumb = autoThumbnail || (await captureFrameAtTime(videoFile, 1));
       const thumbSource: File | Blob | null =
-        customThumbnail || (await captureFrameAtTime(videoFile, 1));
+        customThumbnail || fallbackThumb;
       if (thumbSource) {
         try {
           const thumbName = `${session.user.id}/${Date.now()}_thumb.jpg`;
@@ -212,11 +272,12 @@ const AdminUpload = () => {
       setProgress(75);
 
       const displayTitle = question.length > 60 ? question.substring(0, 60) + "..." : question;
-      const authorName = isAnonymous ? "Un Gardien" : firstName.trim();
+      const memoryAuthorName = (authorName || "").trim() || "Anonymous";
 
       const { error: insertError } = await supabase.from("memories").insert({
         user_id: session.user.id,
-        user_name: authorName,
+        user_name: memoryAuthorName,
+        author_name: memoryAuthorName,
         title: displayTitle,
         description: city ? `${firstName} · ${city}` : firstName,
         file_url: fileName,
@@ -244,6 +305,8 @@ const AdminUpload = () => {
         setCategory("enfance");
         setIsPublic(true);
         setIsAnonymous(false);
+        setAuthorName("");
+        setAutoThumbnail(null);
         setCustomThumbnail(null);
         setThumbnailPreview(null);
         setDone(false);
@@ -362,7 +425,7 @@ const AdminUpload = () => {
               style={{ display: "none" }}
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) setVideoFile(f);
+                if (f) void handleVideoSelect(f);
               }}
             />
           </label>
@@ -401,6 +464,25 @@ const AdminUpload = () => {
             }}
           />
         </div>
+
+        <input
+          type="text"
+          value={authorName}
+          onChange={(e) => setAuthorName(e.target.value)}
+          placeholder="Person's name (e.g. Sarah, Anonymous...)"
+          style={{
+            width: "100%",
+            padding: "12px 16px",
+            borderRadius: "12px",
+            border: "1.5px solid rgba(232,116,42,0.3)",
+            background: "rgba(255,255,255,0.06)",
+            color: "#fff",
+            fontSize: "14px",
+            marginBottom: "12px",
+            outline: "none",
+            boxSizing: "border-box",
+          }}
+        />
 
         {/* Miniature personnalisée */}
         <div>
@@ -446,12 +528,7 @@ const AdminUpload = () => {
               type="file"
               accept="image/*"
               style={{ display: "none" }}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                setCustomThumbnail(f);
-                setThumbnailPreview(URL.createObjectURL(f));
-              }}
+              onChange={handleManualThumb}
             />
           </label>
         </div>

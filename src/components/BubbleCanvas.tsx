@@ -96,6 +96,7 @@ interface BubbleData {
   file_type?: string | null;
   thumbnail_url?: string | null;
   user_name?: string;
+  author_name?: string | null;
   user_id?: string;
   sparks_count?: number;
   transcript_fr?: string | null;
@@ -232,10 +233,11 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       file_url: (m.file_url as string) || "",
       file_type: (m.file_type as string) || "video",
       thumbnail_url: (m.thumbnail_url as string) || null,
+      author_name: (m.author_name as string | null) || null,
       user_name:
-        (m.user_name as string | null) ||
-        profilesMap[m.user_id as string]?.split(" ")[0] ||
-        (m.is_anonymous ? "Un Gardien" : "Quelqu'un"),
+        (m.author_name as string | null) ||
+        profilesMap[m.user_id as string] ||
+        "Anonymous",
       user_id: m.user_id as string,
       sparks_count: (m.sparks_count as number) || 0,
       transcript_fr: m.transcript_fr as string | null,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -47,6 +47,7 @@ export default function MemoryFullscreen({
   const [sparkQuestion, setSparkQuestion] = useState("");
   const [hasShownSpark, setHasShownSpark] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const isPlayingRef = useRef(false);
 
   // Swipe-down-to-close support
   const touchStartY = useState(0);
@@ -334,11 +335,19 @@ export default function MemoryFullscreen({
           src={bubble.file_url}
           autoPlay
           playsInline
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
+          onPlay={() => {
+            isPlayingRef.current = true;
+            setIsPlaying(true);
+          }}
+          onPause={() => {
+            isPlayingRef.current = false;
+            setIsPlaying(false);
+          }}
           onEnded={() => {
+            isPlayingRef.current = false;
             setIsPlaying(false);
             setTimeout(() => {
+              if (isPlayingRef.current) return;
               if (!hasShownSpark) {
                 setHasShownSpark(true);
                 generateSparkQuestion();
@@ -410,11 +419,19 @@ export default function MemoryFullscreen({
             <audio
               autoPlay
               style={{ display: "none" }}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
+              onPlay={() => {
+                isPlayingRef.current = true;
+                setIsPlaying(true);
+              }}
+              onPause={() => {
+                isPlayingRef.current = false;
+                setIsPlaying(false);
+              }}
               onEnded={() => {
+                isPlayingRef.current = false;
                 setIsPlaying(false);
                 setTimeout(() => {
+                  if (isPlayingRef.current) return;
                   if (!hasShownSpark) {
                     setHasShownSpark(true);
                     generateSparkQuestion();
@@ -440,35 +457,32 @@ export default function MemoryFullscreen({
       />
 
       <button
-        onClick={handleClose}
-        onPointerUp={handleClose}
+        onPointerUp={(e) => {
+          e.preventDefault();
+          onClose();
+        }}
         style={{
           position: "fixed",
           top: "20px",
-          [rtl ? "right" : "left"]: "16px",
+          right: "20px",
           width: "44px",
           height: "44px",
           borderRadius: "50%",
           background: "rgba(0,0,0,0.6)",
-          border: "1px solid rgba(255,255,255,0.25)",
+          backdropFilter: "blur(8px)",
+          border: "1px solid rgba(255,255,255,0.2)",
+          color: "#fff",
+          fontSize: "20px",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backdropFilter: "blur(12px)",
           zIndex: 99999,
           WebkitTapHighlightColor: "transparent",
+          touchAction: "manipulation",
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path
-            d={rtl ? "M5 12h14M12 19l7-7-7-7" : "M19 12H5M12 5l-7 7 7 7"}
-            stroke="white"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        ×
       </button>
 
       <div
@@ -480,8 +494,8 @@ export default function MemoryFullscreen({
           direction: rtl ? "rtl" : "ltr",
           zIndex: 10,
           opacity: isPlaying ? 0 : 1,
-          transition: "opacity 0.3s",
-          pointerEvents: isPlaying ? "none" : undefined,
+          pointerEvents: isPlaying ? "none" : "auto",
+          transition: "opacity 0.3s ease",
         }}
       >
         <div
@@ -559,8 +573,8 @@ export default function MemoryFullscreen({
           gap: "24px",
           zIndex: 10,
           opacity: isPlaying ? 0 : 1,
-          transition: "opacity 0.3s",
-          pointerEvents: isPlaying ? "none" : undefined,
+          pointerEvents: isPlaying ? "none" : "auto",
+          transition: "opacity 0.3s ease",
         }}
       >
         {[
