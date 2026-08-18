@@ -548,6 +548,9 @@ export default function MemoryFullscreen({
         alignItems: "center",
         gap: "20px",
         zIndex: 100,
+        opacity: isPlaying ? 0 : 1,
+        pointerEvents: isPlaying ? "none" : "auto",
+        transition: "opacity 0.3s ease",
       }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
           <button

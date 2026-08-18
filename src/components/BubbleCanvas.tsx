@@ -236,8 +236,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       author_name: (m.author_name as string | null) || null,
       user_name:
         (m.author_name as string | null) ||
-        profilesMap[m.user_id as string] ||
-        "Anonymous",
+        "Infeelit",
       user_id: m.user_id as string,
       sparks_count: (m.sparks_count as number) || 0,
       transcript_fr: m.transcript_fr as string | null,

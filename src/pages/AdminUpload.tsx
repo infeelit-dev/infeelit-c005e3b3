@@ -272,7 +272,7 @@ const AdminUpload = () => {
       setProgress(75);
 
       const displayTitle = question.length > 60 ? question.substring(0, 60) + "..." : question;
-      const memoryAuthorName = (authorName || "").trim() || "Anonymous";
+      const memoryAuthorName = (authorName || "").trim() || "Infeelit";
 
       const { error: insertError } = await supabase.from("memories").insert({
         user_id: session.user.id,
