@@ -18,6 +18,7 @@ interface MemoryFullscreenProps {
     file_type?: string | null;
     user_id?: string;
     user_name?: string;
+    author_name?: string | null;
     sparks_count?: number;
     transcript_fr?: string | null;
     transcript_en?: string | null;
@@ -45,6 +46,18 @@ export default function MemoryFullscreen({
   const [showSparkQuestion, setShowSparkQuestion] = useState(false);
   const [sparkQuestion, setSparkQuestion] = useState("");
   const [hasShownSpark, setHasShownSpark] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Swipe-down-to-close support
+  const touchStartY = useState(0);
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartY[1](e.touches[0].clientY); };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientY - touchStartY[0];
+    if (delta > 80) handleClose();
+  };
+
+  // Prefer author_name (admin uploads) over user_name (profile)
+  const displayName = bubble.author_name || bubble.user_name || "Anonyme";
 
   const isOwner = !!(currentUserId && bubble.user_id && currentUserId === bubble.user_id);
   const memoryUrl = `https://infeelit.com/memory/${bubble.id}`;
@@ -304,6 +317,8 @@ export default function MemoryFullscreen({
 
   return (
     <div
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       style={{
         position: "fixed",
         inset: 0,
@@ -319,7 +334,10 @@ export default function MemoryFullscreen({
           src={bubble.file_url}
           autoPlay
           playsInline
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
           onEnded={() => {
+            setIsPlaying(false);
             if (!hasShownSpark) {
               setHasShownSpark(true);
               generateSparkQuestion();
@@ -374,7 +392,7 @@ export default function MemoryFullscreen({
               color: "#fff",
             }}
           >
-            {(bubble.user_name || "?")[0]?.toUpperCase()}
+            {(displayName || "?")[0]?.toUpperCase()}
           </div>
 
           <div
@@ -402,7 +420,10 @@ export default function MemoryFullscreen({
             <audio
               autoPlay
               style={{ display: "none" }}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
               onEnded={() => {
+                setIsPlaying(false);
                 if (!hasShownSpark) {
                   setHasShownSpark(true);
                   generateSparkQuestion();
@@ -440,26 +461,28 @@ export default function MemoryFullscreen({
 
       <button
         onClick={handleClose}
+        onPointerUp={handleClose}
         style={{
-          position: "absolute",
-          top: "56px",
-          left: "16px",
-          width: "40px",
-          height: "40px",
+          position: "fixed",
+          top: "20px",
+          [rtl ? "right" : "left"]: "16px",
+          width: "44px",
+          height: "44px",
           borderRadius: "50%",
-          background: "rgba(0,0,0,0.5)",
-          border: "1px solid rgba(255,255,255,0.2)",
+          background: "rgba(0,0,0,0.6)",
+          border: "1px solid rgba(255,255,255,0.25)",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backdropFilter: "blur(8px)",
-          zIndex: 10,
+          backdropFilter: "blur(12px)",
+          zIndex: 99999,
+          WebkitTapHighlightColor: "transparent",
         }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
           <path
-            d="M19 12H5M12 5l-7 7 7 7"
+            d={rtl ? "M5 12h14M12 19l7-7-7-7" : "M19 12H5M12 5l-7 7 7 7"}
             stroke="white"
             strokeWidth="2.5"
             strokeLinecap="round"
@@ -476,6 +499,9 @@ export default function MemoryFullscreen({
           right: "80px",
           direction: rtl ? "rtl" : "ltr",
           zIndex: 10,
+          opacity: isPlaying ? 0 : 1,
+          transition: "opacity 0.3s",
+          pointerEvents: isPlaying ? "none" : undefined,
         }}
       >
         <div
@@ -502,7 +528,7 @@ export default function MemoryFullscreen({
               flexShrink: 0,
             }}
           >
-            {(bubble.user_name || "?")[0]?.toUpperCase()}
+            {(displayName || "?")[0]?.toUpperCase()}
           </div>
           <p
             style={{
@@ -513,7 +539,7 @@ export default function MemoryFullscreen({
               textShadow: "0 1px 4px rgba(0,0,0,0.8)",
             }}
           >
-            {bubble.user_name || "Anonyme"}
+            {displayName}
           </p>
         </div>
 
@@ -552,6 +578,9 @@ export default function MemoryFullscreen({
           alignItems: "center",
           gap: "24px",
           zIndex: 10,
+          opacity: isPlaying ? 0 : 1,
+          transition: "opacity 0.3s",
+          pointerEvents: isPlaying ? "none" : undefined,
         }}
       >
         {[

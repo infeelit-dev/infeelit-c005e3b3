@@ -29,6 +29,8 @@ const AdminUpload = () => {
   const [category, setCategory] = useState("enfance");
   const [isPublic, setIsPublic] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [customThumbnail, setCustomThumbnail] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   // Upload state
   const [uploading, setUploading] = useState(false);
@@ -133,6 +135,29 @@ const AdminUpload = () => {
     setReportedMemories(reportedMemories.filter((m) => m.id !== memoryId));
   };
 
+  const captureFrameAtTime = (file: File, timeSec: number): Promise<Blob | null> =>
+    new Promise((resolve) => {
+      const video = document.createElement("video");
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      video.muted = true;
+      video.playsInline = true;
+      const cleanup = () => URL.revokeObjectURL(url);
+      video.onloadedmetadata = () => {
+        video.currentTime = Math.min(timeSec, video.duration * 0.1);
+      };
+      video.onseeked = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 360;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { cleanup(); resolve(null); return; }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => { cleanup(); resolve(blob); }, "image/jpeg", 0.85);
+      };
+      video.onerror = () => { cleanup(); resolve(null); };
+    });
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!videoFile || !firstName || !question) {
@@ -166,24 +191,37 @@ const AdminUpload = () => {
 
       if (uploadError) throw uploadError;
 
-      setProgress(60);
+      setProgress(50);
 
-      const { data: signedData } = await supabase.storage
-        .from("memories")
-        .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+      // Auto-generate thumbnail: prefer custom file, else capture frame at 1s (face position)
+      let thumbnailPath: string | null = null;
+      const thumbSource: File | Blob | null =
+        customThumbnail || (await captureFrameAtTime(videoFile, 1));
+      if (thumbSource) {
+        try {
+          const thumbName = `${session.user.id}/${Date.now()}_thumb.jpg`;
+          const { data: thumbData } = await supabase.storage
+            .from("memories")
+            .upload(thumbName, thumbSource, { contentType: "image/jpeg", upsert: false });
+          if (thumbData) thumbnailPath = thumbName;
+        } catch {
+          // non-fatal — continue without thumbnail
+        }
+      }
 
       setProgress(75);
 
       const displayTitle = question.length > 60 ? question.substring(0, 60) + "..." : question;
+      const authorName = isAnonymous ? "Un Gardien" : firstName.trim();
 
-      // ✅ MODIFICATION — is_public: true forcé
       const { error: insertError } = await supabase.from("memories").insert({
         user_id: session.user.id,
+        user_name: authorName,
         title: displayTitle,
         description: city ? `${firstName} · ${city}` : firstName,
         file_url: fileName,
         file_type: "video",
-        thumbnail_url: null,
+        thumbnail_url: thumbnailPath,
         is_public: true,
         is_community: true,
         is_anonymous: isAnonymous,
@@ -206,6 +244,8 @@ const AdminUpload = () => {
         setCategory("enfance");
         setIsPublic(true);
         setIsAnonymous(false);
+        setCustomThumbnail(null);
+        setThumbnailPreview(null);
         setDone(false);
         setProgress(0);
         setUploading(false);
@@ -360,6 +400,60 @@ const AdminUpload = () => {
               boxSizing: "border-box",
             }}
           />
+        </div>
+
+        {/* Miniature personnalisée */}
+        <div>
+          <label
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "#E8742A",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              display: "block",
+              marginBottom: "8px",
+            }}
+          >
+            Miniature personnalisée (optionnelle — sinon auto-capturée à 1s)
+          </label>
+          <label
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "20px",
+              borderRadius: "16px",
+              border: customThumbnail ? "2px solid #E8742A" : "2px dashed rgba(255,255,255,0.15)",
+              backgroundColor: customThumbnail ? "rgba(232,116,42,0.06)" : "rgba(255,255,255,0.02)",
+              cursor: "pointer",
+            }}
+          >
+            {thumbnailPreview ? (
+              <img
+                src={thumbnailPreview}
+                alt="preview"
+                style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px" }}
+              />
+            ) : (
+              <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>
+                {customThumbnail ? customThumbnail.name : "Choisir une image JPG/PNG"}
+              </span>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                setCustomThumbnail(f);
+                setThumbnailPreview(URL.createObjectURL(f));
+              }}
+            />
+          </label>
         </div>
 
         {/* Ville */}

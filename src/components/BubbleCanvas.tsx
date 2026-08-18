@@ -233,6 +233,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       file_type: (m.file_type as string) || "video",
       thumbnail_url: (m.thumbnail_url as string) || null,
       user_name:
+        (m.user_name as string | null) ||
         profilesMap[m.user_id as string]?.split(" ")[0] ||
         (m.is_anonymous ? "Un Gardien" : "Quelqu'un"),
       user_id: m.user_id as string,
