@@ -47,6 +47,10 @@ export default function MemoryFullscreen({
   const [sparkQuestion, setSparkQuestion] = useState("");
   const [hasShownSpark, setHasShownSpark] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isSparked, setIsSparked] = useState(false);
+  const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
+  const [commentsCount] = useState(0);
+  const [showComments, setShowComments] = useState(false);
   const isPlayingRef = useRef(false);
 
   // Swipe-down-to-close support
@@ -200,6 +204,11 @@ export default function MemoryFullscreen({
     setTimeout(() => {
       onClose();
     }, 400);
+  };
+
+  const handleSpark = () => {
+    setIsSparked((prev) => !prev);
+    setSparksCount((prev) => (isSparked ? Math.max(0, prev - 1) : prev + 1));
   };
 
   const handleDownloadEchoCard = async () => {
@@ -487,70 +496,38 @@ export default function MemoryFullscreen({
 
       <div
         style={{
-          position: "absolute",
-          bottom: "180px",
+          position: "fixed",
+          bottom: "100px",
           left: "16px",
           right: "80px",
+          zIndex: 100,
           direction: rtl ? "rtl" : "ltr",
-          zIndex: 10,
-          opacity: isPlaying ? 0 : 1,
-          pointerEvents: isPlaying ? "none" : "auto",
-          transition: "opacity 0.3s ease",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            marginBottom: "8px",
-            direction: "ltr",
-          }}
-        >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "14px",
-              fontWeight: 700,
-              color: "#fff",
-              flexShrink: 0,
-            }}
-          >
-            {(displayName || "?")[0]?.toUpperCase()}
-          </div>
-          <p
-            style={{
-              fontSize: "14px",
-              fontWeight: 700,
-              color: "#fff",
-              margin: 0,
-              textShadow: "0 1px 4px rgba(0,0,0,0.8)",
-            }}
-          >
-            {displayName}
-          </p>
-        </div>
-
         <p
           style={{
-            fontSize: "16px",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "15px",
+            margin: "0 0 4px",
+            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+          }}
+        >
+          {displayName}
+        </p>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.9)",
             fontFamily: "Georgia, serif",
             fontStyle: "italic",
-            color: "#fff",
-            margin: 0,
+            fontSize: "14px",
             lineHeight: 1.4,
-            textShadow: "0 1px 6px rgba(0,0,0,0.8)",
+            margin: 0,
+            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
           }}
         >
           {bubble.title}
         </p>
-
         {bubble.translation_status === "done" && (
           <SubtitleDisplay
             transcript_fr={bubble.transcript_fr ?? undefined}
@@ -562,117 +539,149 @@ export default function MemoryFullscreen({
         )}
       </div>
 
-      <div
-        style={{
-          position: "absolute",
-          right: "16px",
-          bottom: "180px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "24px",
-          zIndex: 10,
-          opacity: isPlaying ? 0 : 1,
-          pointerEvents: isPlaying ? "none" : "auto",
-          transition: "opacity 0.3s ease",
-        }}
-      >
-        {[
-          {
-            icon: "✦",
-            label: (bubble.sparks_count ?? 0) > 0 ? String(bubble.sparks_count) : "",
-            color: "#E8742A",
-          },
-          { icon: "💬", label: "", color: "#fff" },
-          { icon: "📤", label: "", color: "#fff" },
-          { icon: "🔖", label: "", color: "#fff" },
-        ].map(({ icon, label }, i) => (
-          <div key={i} style={{ textAlign: "center" }}>
-            <p
-              style={{
-                fontSize: "28px",
-                margin: 0,
-                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
-              }}
-            >
-              {icon}
-            </p>
-            {label && (
-              <p
-                style={{
-                  fontSize: "11px",
-                  color: "#fff",
-                  margin: "2px 0 0",
-                  fontWeight: 700,
-                  textShadow: "0 1px 3px rgba(0,0,0,0.8)",
-                }}
-              >
-                {label}
-              </p>
-            )}
-          </div>
-        ))}
-
-        {currentUserId && bubble.user_id && bubble.user_id !== currentUserId && (
+      <div style={{
+        position: "fixed",
+        right: "12px",
+        bottom: "120px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "20px",
+        zIndex: 100,
+      }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
           <button
-            onClick={handleReport}
-            disabled={reportSent}
+            onPointerUp={handleSpark}
             style={{
-              background: "none",
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.4)",
               border: "none",
-              color: reportSent ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.3)",
-              fontSize: "11px",
-              cursor: reportSent ? "default" : "pointer",
-              padding: "8px",
-            }}
-          >
-            ⚑{" "}
-            {reportSent
-              ? pickLocalized(lang, { fr: "Signalé", ar: "تم الإبلاغ", en: "Reported" })
-              : pickLocalized(lang, { fr: "Signaler", ar: "إبلاغ", en: "Report" })}
-          </button>
-        )}
-      </div>
-
-      {isOwner && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "100px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-            width: "100%",
-            maxWidth: "320px",
-            padding: "0 24px",
-            zIndex: 20,
-            boxSizing: "border-box",
-          }}
-        >
-          <button
-            onClick={() => setShowShareOptions(true)}
-            style={{
-              width: "100%",
-              padding: "16px",
-              borderRadius: "999px",
-              background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: "15px",
-              border: "none",
-              cursor: "pointer",
+              color: isSparked ? "#E8742A" : "#fff",
+              fontSize: "24px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "8px",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+              transform: isSparked ? "scale(1.1)" : "scale(1)",
+              transition: "transform 0.2s ease, color 0.2s ease",
             }}
           >
-            ✦ {t.shareMemory}
+            ✦
+          </button>
+          <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
+            {sparksCount || 0}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <button
+            onPointerUp={() => setShowComments(true)}
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.4)",
+              border: "none",
+              color: "#fff",
+              fontSize: "22px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            💬
+          </button>
+          <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
+            {commentsCount || 0}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <button
+            onPointerUp={() => toast.info("Saved to bookmarks")}
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.4)",
+              border: "none",
+              color: "#fff",
+              fontSize: "22px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            🔖
           </button>
         </div>
-      )}
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <button
+            onPointerUp={() => setShowShareOptions(true)}
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.4)",
+              border: "none",
+              color: "#fff",
+              fontSize: "22px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            ↗
+          </button>
+          <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
+            Share
+          </span>
+        </div>
+
+        {currentUserId && bubble.user_id !== currentUserId && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+            <button
+              onPointerUp={handleReport}
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "rgba(0,0,0,0.3)",
+                border: "none",
+                color: "rgba(255,255,255,0.5)",
+                fontSize: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                backdropFilter: "blur(8px)",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
+            >
+              ⚑
+            </button>
+          </div>
+        )}
+      </div>
 
       {showShareOptions && (
         <div
