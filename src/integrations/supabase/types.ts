@@ -102,6 +102,7 @@ export type Database = {
         Row: {
           allow_anonymous_share: boolean | null
           aura_intensity: number | null
+          author_name: string | null
           background_image_url: string | null
           created_at: string | null
           deliver_at: string | null
@@ -142,6 +143,7 @@ export type Database = {
         Insert: {
           allow_anonymous_share?: boolean | null
           aura_intensity?: number | null
+          author_name?: string | null
           background_image_url?: string | null
           created_at?: string | null
           deliver_at?: string | null
@@ -182,6 +184,7 @@ export type Database = {
         Update: {
           allow_anonymous_share?: boolean | null
           aura_intensity?: number | null
+          author_name?: string | null
           background_image_url?: string | null
           created_at?: string | null
           deliver_at?: string | null
