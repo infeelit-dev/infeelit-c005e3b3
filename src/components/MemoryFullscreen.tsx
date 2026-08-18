@@ -338,23 +338,13 @@ export default function MemoryFullscreen({
           onPause={() => setIsPlaying(false)}
           onEnded={() => {
             setIsPlaying(false);
-            if (!hasShownSpark) {
-              setHasShownSpark(true);
-              generateSparkQuestion();
-              setShowSparkQuestion(true);
-            }
-          }}
-          onTimeUpdate={(e) => {
-            const el = e.currentTarget;
-            if (
-              !hasShownSpark &&
-              el.duration > 0 &&
-              el.currentTime / el.duration > 0.8
-            ) {
-              setHasShownSpark(true);
-              generateSparkQuestion();
-              setTimeout(() => setShowSparkQuestion(true), 2000);
-            }
+            setTimeout(() => {
+              if (!hasShownSpark) {
+                setHasShownSpark(true);
+                generateSparkQuestion();
+                setShowSparkQuestion(true);
+              }
+            }, 3000);
           }}
           style={{
             width: "100%",
@@ -424,23 +414,13 @@ export default function MemoryFullscreen({
               onPause={() => setIsPlaying(false)}
               onEnded={() => {
                 setIsPlaying(false);
-                if (!hasShownSpark) {
-                  setHasShownSpark(true);
-                  generateSparkQuestion();
-                  setShowSparkQuestion(true);
-                }
-              }}
-              onTimeUpdate={(e) => {
-                const el = e.currentTarget;
-                if (
-                  !hasShownSpark &&
-                  el.duration > 0 &&
-                  el.currentTime / el.duration > 0.8
-                ) {
-                  setHasShownSpark(true);
-                  generateSparkQuestion();
-                  setTimeout(() => setShowSparkQuestion(true), 2000);
-                }
+                setTimeout(() => {
+                  if (!hasShownSpark) {
+                    setHasShownSpark(true);
+                    generateSparkQuestion();
+                    setShowSparkQuestion(true);
+                  }
+                }, 3000);
               }}
             >
               <source src={bubble.file_url} />
