@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, ArrowLeft, Check, X } from "lucide-react";
 
-const ADMIN_EMAIL = "malik.ceo@infeelit.com";
+const ADMIN_EMAILS = ["malik.ceo@infeelit.com", "amconsulting099@gmail.com"];
 
 const THEMATIC_CATEGORIES = [
   { id: "enfance", label: "Enfance / Childhood / طفولة" },
@@ -19,7 +19,7 @@ const THEMATIC_CATEGORIES = [
 const AdminUpload = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // Form state
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -43,19 +43,12 @@ const AdminUpload = () => {
 
   // Vérifier si l'utilisateur est admin
   useEffect(() => {
-    const checkAdmin = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user?.email === ADMIN_EMAIL) {
-        setIsAdmin(true);
-      } else {
-        navigate("/");
-      }
-      setChecking(false);
-    };
-    checkAdmin();
-  }, [navigate]);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const email = session?.user?.email;
+      setIsAdmin(ADMIN_EMAILS.includes(email || ""));
+      setLoading(false);
+    });
+  }, []);
 
   // Charger les contenus en attente et signalés
   useEffect(() => {
@@ -96,23 +89,25 @@ const AdminUpload = () => {
     };
   }, [isAdmin]);
 
-  if (checking) {
+  if (loading) {
     return (
       <div
         style={{
-          height: "100vh",
+          minHeight: "100vh",
+          background: "#0f0501",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#FDF8F0",
+          color: "#E8742A",
+          fontSize: "24px",
         }}
       >
-        <span style={{ fontSize: "40px" }}>✦</span>
+        ✦
       </div>
     );
   }
 
-  if (!isAdmin) return null;
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   const handleApprove = async (memoryId: string) => {
     await supabase.from("memories").update({ moderation_status: "approved" }).eq("id", memoryId);
