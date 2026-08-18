@@ -301,6 +301,10 @@ const Record = () => {
   const isFreeMode = recordMode === "instant" || recordMode === "forever";
   const { t, lang, rtl } = useLanguage();
   const userName = useUserName();
+  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isSafari =
+    typeof navigator !== "undefined" && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isIOSSafari = isIOS && isSafari;
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -660,8 +664,10 @@ const Record = () => {
     }
   }, [stage, previewReady, audioMode, localUrl]);
 
-  const getMimeType = (a: boolean) => {
-    if (a) {
+  const getMimeType = (audio: boolean) => {
+    if (audio) {
+      // iOS Safari only supports audio/mp4
+      if (MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4";
       if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) return "audio/webm;codecs=opus";
       if (MediaRecorder.isTypeSupported("audio/webm")) return "audio/webm";
       if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) return "audio/ogg;codecs=opus";
@@ -675,8 +681,11 @@ const Record = () => {
 
   const startMedia = async (a: boolean): Promise<MediaRecorder | null> => {
     try {
+      const audioConstraints = isIOS
+        ? { echoCancellation: true, noiseSuppression: true }
+        : { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 };
       const c = a
-        ? { audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } }
+        ? { audio: audioConstraints }
         : {
             video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
             audio: { echoCancellation: true, noiseSuppression: true },
@@ -685,7 +694,11 @@ const Record = () => {
       setStream(s);
       if (!a && videoRef.current) videoRef.current.srcObject = s;
       if (a) {
-        const ctx = new AudioContext();
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = new AudioCtx();
+        if (ctx.state === "suspended") void ctx.resume();
         const src = ctx.createMediaStreamSource(s);
         const an = ctx.createAnalyser();
         an.fftSize = 256;
@@ -1378,7 +1391,9 @@ const Record = () => {
 
   const handleNativeShare = async () => {
     const all = clipsRef.current.map((c) => c.blob);
-    const cb = new Blob(all, { type: getMimeType(audioMode) });
+    const mime = getMimeType(audioMode);
+    const cb = new Blob(all, { type: mime });
+    const shareExt = mime.includes("mp4") ? "mp4" : mime.includes("ogg") ? "ogg" : "webm";
     const topic =
       memoryTitle ||
       (pickLocalized(lang, { fr: "un souvenir précieux", ar: "ذكرى ثمينة", en: "a precious memory" }));
@@ -1393,7 +1408,7 @@ const Record = () => {
       memoryTitle ||
       (pickLocalized(lang, { fr: "Un souvenir sur Infeelit", ar: "ذكرى على Infeelit", en: "A memory on Infeelit" }));
     if (navigator.canShare && cb.size > 0) {
-      const f = new File([cb], "memory." + (audioMode ? "webm" : "mp4"), { type: cb.type });
+      const f = new File([cb], "memory." + shareExt, { type: cb.type || mime });
       if (navigator.canShare({ files: [f] })) {
         try {
           await navigator.share({ title: shareTitle, text: txt, files: [f] });
@@ -1419,12 +1434,14 @@ const Record = () => {
 
   const handleDownload = () => {
     const all = clipsRef.current.map((c) => c.blob);
-    const cb = new Blob(all, { type: getMimeType(audioMode) });
+    const mime = getMimeType(audioMode);
+    const cb = new Blob(all, { type: mime });
     if (cb.size === 0) return;
     const u = URL.createObjectURL(cb);
     const a = document.createElement("a");
     a.href = u;
-    a.download = "infeelit-memory-" + Date.now() + "." + (audioMode ? "webm" : "mp4");
+    const ext = mime.includes("mp4") ? "mp4" : mime.includes("ogg") ? "ogg" : "webm";
+    a.download = "infeelit-memory-" + Date.now() + "." + ext;
     a.click();
     URL.revokeObjectURL(u);
   };
@@ -2031,6 +2048,28 @@ const Record = () => {
               ? pickLocalized(lang, { fr: "Continuer →", ar: "→ متابعة", en: "Continue →" })
               : pickLocalized(lang, { fr: "Enregistrer ce moment →", ar: "→ سجّل هذه اللحظة", en: "Record this moment →" })}
           </button>
+          {isIOSSafari && !isImportMode && (
+            <p
+              style={{
+                maxWidth: "360px",
+                marginTop: "12px",
+                padding: "10px 14px",
+                borderRadius: "12px",
+                background: "rgba(232,116,42,0.12)",
+                border: "1px solid rgba(232,116,42,0.35)",
+                color: recordMode === "forever" ? "rgba(255,255,255,0.7)" : "rgba(61,43,31,0.7)",
+                fontSize: "12px",
+                lineHeight: 1.5,
+                textAlign: "center",
+              }}
+            >
+              {pickLocalized(lang, {
+                fr: "L'enregistrement fonctionne mieux sur Chrome (Android) ou un ordinateur. Tu peux quand même essayer ici.",
+                ar: "التسجيل يعمل بشكل أفضل على Chrome في أندرويد أو على الكمبيوتر. يمكنك المحاولة هنا رغم ذلك.",
+                en: "Recording works best in Chrome on Android or on a desktop browser. You can still try here.",
+              })}
+            </p>
+          )}
 
           <button
             onClick={() => navigate(-1)}
@@ -2218,6 +2257,27 @@ const Record = () => {
               </p>
             )}
             <p className="text-white/50 text-sm">{t.breathe}</p>
+            {isIOSSafari && (
+              <p
+                style={{
+                  maxWidth: "320px",
+                  margin: 0,
+                  padding: "10px 14px",
+                  borderRadius: "12px",
+                  background: "rgba(232,116,42,0.12)",
+                  border: "1px solid rgba(232,116,42,0.35)",
+                  color: "rgba(255,255,255,0.75)",
+                  fontSize: "12px",
+                  lineHeight: 1.5,
+                }}
+              >
+                {pickLocalized(lang, {
+                  fr: "L'enregistrement fonctionne mieux sur Chrome (Android) ou un ordinateur. Tu peux quand même essayer ici.",
+                  ar: "التسجيل يعمل بشكل أفضل على Chrome في أندرويد أو على الكمبيوتر. يمكنك المحاولة هنا رغم ذلك.",
+                  en: "Recording works best in Chrome on Android or on a desktop browser. You can still try here.",
+                })}
+              </p>
+            )}
             <div
               style={{
                 display: "flex",
