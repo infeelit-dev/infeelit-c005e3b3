@@ -1,4 +1,4 @@
-const CACHE_NAME = 'infeelit-v1';
+const CACHE_NAME = 'infeelit-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
