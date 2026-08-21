@@ -27,6 +27,7 @@ export default function MemoryFullscreen({
 }: MemoryFullscreenProps) {
   const { lang, rtl } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const handleClose = () => {
     setIsClosing(true);
@@ -50,17 +51,32 @@ export default function MemoryFullscreen({
       }}
     >
       {!isAudio && bubble.file_url && (
-        <video
-          src={bubble.file_url}
-          autoPlay
-          playsInline
-          loop
+        <div
           style={{
             width: "100%",
-            height: "100%",
-            objectFit: "cover",
+            height: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#000",
           }}
-        />
+        >
+          <video
+            src={bubble.file_url}
+            autoPlay
+            playsInline
+            loop
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => setIsPlaying(false)}
+            style={{
+              width: "100%",
+              height: "100%",
+              maxHeight: "100vh",
+              objectFit: "contain",
+            }}
+          />
+        </div>
       )}
 
       {isAudio && (
@@ -116,7 +132,14 @@ export default function MemoryFullscreen({
           </div>
 
           {bubble.file_url && (
-            <audio autoPlay loop style={{ display: "none" }}>
+            <audio
+              autoPlay
+              loop
+              style={{ display: "none" }}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={() => setIsPlaying(false)}
+            >
               <source src={bubble.file_url} />
             </audio>
           )}
@@ -171,6 +194,9 @@ export default function MemoryFullscreen({
           right: "80px",
           direction: rtl ? "rtl" : "ltr",
           zIndex: 10,
+          opacity: isPlaying ? 0 : 1,
+          pointerEvents: isPlaying ? "none" : "auto",
+          transition: "opacity 0.3s ease",
         }}
       >
         <div
@@ -188,7 +214,7 @@ export default function MemoryFullscreen({
               height: "36px",
               borderRadius: "50%",
               background: "linear-gradient(135deg, #E8742A, #D4621A)",
-              display: "flex",
+              display: isPlaying ? "none" : "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: "14px",
@@ -242,11 +268,14 @@ export default function MemoryFullscreen({
           position: "absolute",
           right: "16px",
           bottom: "180px",
-          display: "flex",
+          display: isPlaying ? "none" : "flex",
           flexDirection: "column",
           alignItems: "center",
           gap: "24px",
           zIndex: 10,
+          opacity: isPlaying ? 0 : 1,
+          pointerEvents: isPlaying ? "none" : "auto",
+          transition: "opacity 0.3s ease",
         }}
       >
         {[
