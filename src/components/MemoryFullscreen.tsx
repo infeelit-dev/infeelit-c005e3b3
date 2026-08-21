@@ -49,6 +49,7 @@ export default function MemoryFullscreen({
   const [hasShownSpark, setHasShownSpark] = useState(false);
   // Icons visible by default; hide only while media is actively playing (onPlay/onPause)
   const [isPlaying, setIsPlaying] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [isSparked, setIsSparked] = useState(false);
   const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
   const [commentsCount] = useState(0);
@@ -213,6 +214,10 @@ export default function MemoryFullscreen({
     setSparksCount((prev) => (isSparked ? Math.max(0, prev - 1) : prev + 1));
   };
 
+  const handleBookmark = () => {
+    toast.info("Saved to bookmarks");
+  };
+
   const handleDownloadEchoCard = async () => {
     if (sharingBusy) return;
     setSharingBusy(true);
@@ -344,6 +349,7 @@ export default function MemoryFullscreen({
       {!isAudio && bubble.file_url && (
         <div
           style={{
+            position: "relative",
             width: "100%",
             height: "100vh",
             display: "flex",
@@ -352,10 +358,36 @@ export default function MemoryFullscreen({
             background: "#000",
           }}
         >
+          {!videoReady && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#000",
+                zIndex: 10001,
+              }}
+            >
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  border: "3px solid rgba(232,116,42,0.3)",
+                  borderTop: "3px solid #E8742A",
+                  animation: "spin 1s linear infinite",
+                }}
+              />
+            </div>
+          )}
           <video
             src={bubble.file_url}
             autoPlay
             playsInline
+            preload="auto"
+            onCanPlay={() => setVideoReady(true)}
             onPlay={() => {
               isPlayingRef.current = true;
               setIsPlaying(true);
@@ -576,8 +608,7 @@ export default function MemoryFullscreen({
         flexDirection: "column",
         alignItems: "center",
         gap: "20px",
-        zIndex: 100,
-        // Visible by default; fade out only during active playback
+        zIndex: 10000,
         opacity: isPlaying ? 0 : 1,
         pointerEvents: isPlaying ? "none" : "auto",
         transition: "opacity 0.3s ease",
@@ -589,9 +620,9 @@ export default function MemoryFullscreen({
               width: "48px",
               height: "48px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.4)",
+              background: "rgba(0,0,0,0.5)",
               border: "none",
-              color: isSparked ? "#E8742A" : "#fff",
+              color: isSparked ? "#FF2D55" : "#fff",
               fontSize: "24px",
               display: "flex",
               alignItems: "center",
@@ -604,7 +635,7 @@ export default function MemoryFullscreen({
               transition: "transform 0.2s ease, color 0.2s ease",
             }}
           >
-            ✦
+            {isSparked ? "❤️" : "🤍"}
           </button>
           <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
             {sparksCount || 0}
@@ -618,7 +649,7 @@ export default function MemoryFullscreen({
               width: "48px",
               height: "48px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.4)",
+              background: "rgba(0,0,0,0.5)",
               border: "none",
               color: "#fff",
               fontSize: "22px",
@@ -640,12 +671,12 @@ export default function MemoryFullscreen({
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
           <button
-            onPointerUp={() => toast.info("Saved to bookmarks")}
+            onPointerUp={handleBookmark}
             style={{
               width: "48px",
               height: "48px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.4)",
+              background: "rgba(0,0,0,0.5)",
               border: "none",
               color: "#fff",
               fontSize: "22px",
@@ -669,7 +700,7 @@ export default function MemoryFullscreen({
               width: "48px",
               height: "48px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.4)",
+              background: "rgba(0,0,0,0.5)",
               border: "none",
               color: "#fff",
               fontSize: "22px",
@@ -1154,6 +1185,9 @@ export default function MemoryFullscreen({
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>,

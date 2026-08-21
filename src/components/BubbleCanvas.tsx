@@ -234,8 +234,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
     ): BubbleData => {
       // Prefer signed thumbnail_url (https) from resolveMemoryFields — never use raw storage paths as img src
       const rawThumb = typeof m.thumbnail_url === "string" ? m.thumbnail_url : null;
+      const rawPoster = typeof m.poster_url === "string" ? m.poster_url : null;
       const signedThumb =
         rawThumb && /^https?:\/\//i.test(rawThumb) ? rawThumb : null;
+      const signedPoster =
+        rawPoster && /^https?:\/\//i.test(rawPoster) ? rawPoster : null;
+      const faceImage = signedThumb || signedPoster || "";
       const title = (m.title as string) || "Un souvenir";
 
       return {
@@ -244,7 +248,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
         title,
         file_url: (m.file_url as string) || "",
         file_type: (m.file_type as string) || "video",
-        thumbnail_url: signedThumb,
+        thumbnail_url: signedThumb || signedPoster,
         author_name: (m.author_name as string | null) || null,
         user_name:
           (m.author_name as string | null) ||
@@ -257,7 +261,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
         transcript_ar: m.transcript_ar as string | null,
         translation_status: m.translation_status as string | null,
         detected_lang: m.detected_lang as string | null,
-        image: signedThumb || getThemedImage(title),
+        image: faceImage || getThemedImage(title),
         size: getBubbleSize((m.sparks_count as number) || 0),
         x: 0,
         y: 0,
@@ -587,6 +591,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
             : defaultBoxShadow,
           pointerEvents: openMemory || bloomingBubble ? "none" : "auto",
           WebkitTapHighlightColor: "transparent",
+          backgroundImage: bubble.image ? `url(${bubble.image})` : "none",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
           ...floatStyle,
         }}
       >
@@ -609,7 +616,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
             filter:
               bubble.type === "demo"
                 ? "grayscale(60%) sepia(40%) brightness(0.85)"
-                : "sepia(20%) brightness(0.92)",
+                : bubble.thumbnail_url
+                  ? "none"
+                  : "sepia(20%) brightness(0.92)",
           }}
         />
 
