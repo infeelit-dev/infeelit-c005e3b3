@@ -483,7 +483,7 @@ export default function MemoryFullscreen({
           inset: 0,
           background:
             "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 35%, rgba(0,0,0,0.2) 100%)",
-          pointerEvents: isPlaying ? "none" : "none",
+          pointerEvents: "none",
           opacity: isPlaying ? 0 : 1,
           transition: "opacity 0.3s ease",
         }}
