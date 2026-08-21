@@ -55,13 +55,14 @@ export default function MemoryFullscreen({
   const [commentsCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const isPlayingRef = useRef(false);
-  const videoElRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Force the browser to start buffering as soon as the source changes
+  // Force the browser to start buffering/playing as soon as the source changes
   useEffect(() => {
-    if (!videoElRef.current || !bubble.file_url) return;
+    if (!videoRef.current || !bubble.file_url) return;
     setVideoReady(false);
-    videoElRef.current.load();
+    videoRef.current.load();
+    videoRef.current.play().catch(() => {});
   }, [bubble.file_url]);
 
   // Swipe-down-to-close support
@@ -391,13 +392,15 @@ export default function MemoryFullscreen({
             </div>
           )}
           <video
-            ref={videoElRef}
+            ref={videoRef}
             src={bubble.file_url}
             autoPlay
             playsInline
             muted={false}
             preload="auto"
+            onLoadStart={() => setVideoReady(false)}
             onCanPlay={() => setVideoReady(true)}
+            onCanPlayThrough={() => setVideoReady(true)}
             onPlay={() => {
               isPlayingRef.current = true;
               setIsPlaying(true);
@@ -632,8 +635,6 @@ export default function MemoryFullscreen({
               borderRadius: "50%",
               background: "rgba(0,0,0,0.5)",
               border: "none",
-              color: isSparked ? "#FF2D55" : "#fff",
-              fontSize: "24px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -642,10 +643,12 @@ export default function MemoryFullscreen({
               WebkitTapHighlightColor: "transparent",
               touchAction: "manipulation",
               transform: isSparked ? "scale(1.1)" : "scale(1)",
-              transition: "transform 0.2s ease, color 0.2s ease",
+              transition: "transform 0.2s ease",
             }}
           >
-            {isSparked ? "❤️" : "🤍"}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill={isSparked ? "#ff2d55" : "none"} stroke="white" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
           </button>
           <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
             {sparksCount || 0}
@@ -661,8 +664,6 @@ export default function MemoryFullscreen({
               borderRadius: "50%",
               background: "rgba(0,0,0,0.5)",
               border: "none",
-              color: "#fff",
-              fontSize: "22px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -672,7 +673,9 @@ export default function MemoryFullscreen({
               touchAction: "manipulation",
             }}
           >
-            💬
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
           </button>
           <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
             {commentsCount || 0}
@@ -688,8 +691,6 @@ export default function MemoryFullscreen({
               borderRadius: "50%",
               background: "rgba(0,0,0,0.5)",
               border: "none",
-              color: "#fff",
-              fontSize: "22px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -699,7 +700,9 @@ export default function MemoryFullscreen({
               touchAction: "manipulation",
             }}
           >
-            🔖
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
           </button>
         </div>
 
@@ -712,8 +715,6 @@ export default function MemoryFullscreen({
               borderRadius: "50%",
               background: "rgba(0,0,0,0.5)",
               border: "none",
-              color: "#fff",
-              fontSize: "22px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -723,7 +724,13 @@ export default function MemoryFullscreen({
               touchAction: "manipulation",
             }}
           >
-            ↗
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <circle cx="18" cy="5" r="3"/>
+              <circle cx="6" cy="12" r="3"/>
+              <circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
           </button>
           <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
             Share
@@ -756,6 +763,62 @@ export default function MemoryFullscreen({
           </div>
         )}
       </div>
+
+      {showComments && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 10001,
+            display: "flex",
+            alignItems: "flex-end",
+          }}
+          onClick={() => setShowComments(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "#1a0a05",
+              borderRadius: "20px 20px 0 0",
+              padding: "20px 16px 40px",
+              maxHeight: "70vh",
+              overflowY: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "4px",
+                background: "rgba(255,255,255,0.3)",
+                borderRadius: "2px",
+                margin: "0 auto 20px",
+              }}
+            />
+            <h3
+              style={{
+                color: "#fff",
+                fontSize: "16px",
+                fontWeight: 700,
+                marginBottom: "16px",
+              }}
+            >
+              Comments
+            </h3>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.5)",
+                fontSize: "14px",
+                textAlign: "center",
+                padding: "20px 0",
+              }}
+            >
+              No comments yet. Be the first.
+            </p>
+          </div>
+        </div>
+      )}
 
       {showShareOptions && (
         <div
