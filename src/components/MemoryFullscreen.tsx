@@ -20,6 +20,8 @@ interface MemoryFullscreenProps {
     user_id?: string;
     user_name?: string;
     author_name?: string | null;
+    thumbnail_url?: string | null;
+    image?: string | null;
     sparks_count?: number;
     transcript_fr?: string | null;
     transcript_en?: string | null;
@@ -61,8 +63,9 @@ export default function MemoryFullscreen({
   useEffect(() => {
     if (!videoRef.current || !bubble.file_url) return;
     setVideoReady(false);
+    videoRef.current.src = bubble.file_url;
     videoRef.current.load();
-    videoRef.current.play().catch(() => {});
+    videoRef.current.play().catch(console.error);
   }, [bubble.file_url]);
 
   // Swipe-down-to-close support
@@ -398,6 +401,8 @@ export default function MemoryFullscreen({
             playsInline
             muted={false}
             preload="auto"
+            crossOrigin="anonymous"
+            poster={bubble.image || bubble.thumbnail_url || ""}
             onLoadStart={() => setVideoReady(false)}
             onCanPlay={() => setVideoReady(true)}
             onCanPlayThrough={() => setVideoReady(true)}
@@ -564,6 +569,29 @@ export default function MemoryFullscreen({
         ×
       </button>
 
+      {bubble.title && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "16px",
+            right: "72px",
+            zIndex: 10000,
+            padding: "8px 16px",
+            borderRadius: "12px",
+            background: "rgba(232,116,42,0.85)",
+            color: "#fff",
+            fontSize: "14px",
+            fontWeight: 600,
+            lineHeight: 1.35,
+            backdropFilter: "blur(8px)",
+            direction: rtl ? "rtl" : "ltr",
+          }}
+        >
+          {bubble.title}
+        </div>
+      )}
+
       <div
         style={{
           position: "fixed",
@@ -589,19 +617,6 @@ export default function MemoryFullscreen({
         >
           {displayName}
         </p>
-        <p
-          style={{
-            color: "rgba(255,255,255,0.9)",
-            fontFamily: "Georgia, serif",
-            fontStyle: "italic",
-            fontSize: "14px",
-            lineHeight: 1.4,
-            margin: 0,
-            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
-          }}
-        >
-          {bubble.title}
-        </p>
         {bubble.translation_status === "done" && (
           <SubtitleDisplay
             transcript_fr={bubble.transcript_fr ?? undefined}
@@ -615,23 +630,23 @@ export default function MemoryFullscreen({
 
       <div style={{
         position: "fixed",
-        right: "12px",
-        bottom: "120px",
+        right: "8px",
+        bottom: "100px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "20px",
+        gap: "16px",
         zIndex: 10000,
         opacity: 1,
         pointerEvents: "auto",
         transition: "opacity 0.3s ease",
       }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={handleSpark}
             style={{
-              width: "48px",
-              height: "48px",
+              width: "44px",
+              height: "44px",
               borderRadius: "50%",
               background: "rgba(0,0,0,0.5)",
               border: "none",
@@ -646,21 +661,21 @@ export default function MemoryFullscreen({
               transition: "transform 0.2s ease",
             }}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill={isSparked ? "#ff2d55" : "none"} stroke="white" strokeWidth="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={isSparked ? "#ff2d55" : "none"} stroke="white" strokeWidth="1.8">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
             </svg>
           </button>
-          <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
+          <span style={{ color: "#fff", fontSize: "12px", fontWeight: 600, marginTop: "2px" }}>
             {sparksCount || 0}
           </span>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={() => setShowComments(true)}
             style={{
-              width: "48px",
-              height: "48px",
+              width: "44px",
+              height: "44px",
               borderRadius: "50%",
               background: "rgba(0,0,0,0.5)",
               border: "none",
@@ -673,21 +688,21 @@ export default function MemoryFullscreen({
               touchAction: "manipulation",
             }}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </button>
-          <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
+          <span style={{ color: "#fff", fontSize: "12px", fontWeight: 600, marginTop: "2px" }}>
             {commentsCount || 0}
           </span>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={handleBookmark}
             style={{
-              width: "48px",
-              height: "48px",
+              width: "44px",
+              height: "44px",
               borderRadius: "50%",
               background: "rgba(0,0,0,0.5)",
               border: "none",
@@ -700,18 +715,18 @@ export default function MemoryFullscreen({
               touchAction: "manipulation",
             }}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
             </svg>
           </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={() => setShowShareOptions(true)}
             style={{
-              width: "48px",
-              height: "48px",
+              width: "44px",
+              height: "44px",
               borderRadius: "50%",
               background: "rgba(0,0,0,0.5)",
               border: "none",
@@ -724,7 +739,7 @@ export default function MemoryFullscreen({
               touchAction: "manipulation",
             }}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <circle cx="18" cy="5" r="3"/>
               <circle cx="6" cy="12" r="3"/>
               <circle cx="18" cy="19" r="3"/>
@@ -732,13 +747,10 @@ export default function MemoryFullscreen({
               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
             </svg>
           </button>
-          <span style={{ color: "#fff", fontSize: "11px", fontWeight: 600 }}>
-            Share
-          </span>
         </div>
 
         {currentUserId && bubble.user_id !== currentUserId && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
             <button
               onPointerUp={handleReport}
               style={{
