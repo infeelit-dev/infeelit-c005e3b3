@@ -55,6 +55,14 @@ export default function MemoryFullscreen({
   const [commentsCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const isPlayingRef = useRef(false);
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
+
+  // Force the browser to start buffering as soon as the source changes
+  useEffect(() => {
+    if (!videoElRef.current || !bubble.file_url) return;
+    setVideoReady(false);
+    videoElRef.current.load();
+  }, [bubble.file_url]);
 
   // Swipe-down-to-close support
   const touchStartY = useState(0);
