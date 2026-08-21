@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -326,14 +327,14 @@ export default function MemoryFullscreen({
 
   const isAudio = bubble.file_type === "audio";
 
-  return (
+  return createPortal(
     <div
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 200,
+        zIndex: 9999,
         background: "#000",
         animation: isClosing
           ? "bloomClose 0.4s ease-in forwards"
@@ -1155,6 +1156,7 @@ export default function MemoryFullscreen({
           to { opacity: 1; }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body,
   );
 }

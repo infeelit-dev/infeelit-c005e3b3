@@ -17,6 +17,7 @@ const Index = () => {
   useUserName();
   const [activeTimeline, setActiveTimeline] = useState<Timeline>("memories");
   const [sparkForced, setSparkForced] = useState(false);
+  const [isMemoryOpen, setIsMemoryOpen] = useState(false);
   const [showPlusSheet, setShowPlusSheet] = useState(false);
   const [showSparkLabel, setShowSparkLabel] = useState(false);
   const [sparkLabelDismissed, setSparkLabelDismissed] = useState(false);
@@ -179,10 +180,16 @@ const Index = () => {
       </div>
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
-      <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
-      <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
+      {!isMemoryOpen && (
+        <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
+      )}
+      <BubbleCanvas
+        onBubbleClick={handleBubbleClick}
+        activeTimeline={activeTimeline}
+        onMemoryOpen={setIsMemoryOpen}
+      />
 
-      {!isLoggedIn && (
+      {!isLoggedIn && !isMemoryOpen && (
         <div
           style={{
             position: "fixed",

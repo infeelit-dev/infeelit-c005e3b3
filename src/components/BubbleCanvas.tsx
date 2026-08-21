@@ -118,6 +118,7 @@ interface BubbleData {
 interface BubbleCanvasProps {
   onBubbleClick?: (question: string, category: "past") => void;
   activeTimeline: Timeline;
+  onMemoryOpen?: (open: boolean) => void;
 }
 
 function getBubbleSize(sparks: number): number {
@@ -185,7 +186,7 @@ function getThemedImage(title: string): string {
 
 const FLOAT_CLASSES = ["bubble-float-1", "bubble-float-2", "bubble-float-3"];
 
-const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
+const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCanvasProps) => {
   const { lang } = useLanguage();
   const userName = useUserName();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
@@ -210,6 +211,10 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   const touchedBubbles = useRef<string[]>([]);
   const isGesturing = useRef(false);
   const touchHandledRef = useRef(false);
+
+  useEffect(() => {
+    onMemoryOpen?.(!!openMemory);
+  }, [openMemory, onMemoryOpen]);
 
   useEffect(() => {
     seenIdsRef.current = seenIds;
