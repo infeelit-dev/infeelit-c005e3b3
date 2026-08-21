@@ -340,36 +340,48 @@ export default function MemoryFullscreen({
       }}
     >
       {!isAudio && bubble.file_url && (
-        <video
-          src={bubble.file_url}
-          autoPlay
-          playsInline
-          onPlay={() => {
-            isPlayingRef.current = true;
-            setIsPlaying(true);
-          }}
-          onPause={() => {
-            isPlayingRef.current = false;
-            setIsPlaying(false);
-          }}
-          onEnded={() => {
-            isPlayingRef.current = false;
-            setIsPlaying(false);
-            setTimeout(() => {
-              if (isPlayingRef.current) return;
-              if (!hasShownSpark) {
-                setHasShownSpark(true);
-                generateSparkQuestion();
-                setShowSparkQuestion(true);
-              }
-            }, 3000);
-          }}
+        <div
           style={{
             width: "100%",
-            height: "100%",
-            objectFit: "cover",
+            height: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#000",
           }}
-        />
+        >
+          <video
+            src={bubble.file_url}
+            autoPlay
+            playsInline
+            onPlay={() => {
+              isPlayingRef.current = true;
+              setIsPlaying(true);
+            }}
+            onPause={() => {
+              isPlayingRef.current = false;
+              setIsPlaying(false);
+            }}
+            onEnded={() => {
+              isPlayingRef.current = false;
+              setIsPlaying(false);
+              setTimeout(() => {
+                if (isPlayingRef.current) return;
+                if (!hasShownSpark) {
+                  setHasShownSpark(true);
+                  generateSparkQuestion();
+                  setShowSparkQuestion(true);
+                }
+              }, 3000);
+            }}
+            style={{
+              width: "100%",
+              height: "100%",
+              maxHeight: "100vh",
+              objectFit: "contain",
+            }}
+          />
+        </div>
       )}
 
       {isAudio && (
@@ -398,6 +410,9 @@ export default function MemoryFullscreen({
               fontSize: "40px",
               fontWeight: 700,
               color: "#fff",
+              opacity: isPlaying ? 0 : 1,
+              pointerEvents: isPlaying ? "none" : "auto",
+              transition: "opacity 0.3s ease",
             }}
           >
             {(displayName || "?")[0]?.toUpperCase()}
@@ -502,6 +517,9 @@ export default function MemoryFullscreen({
           right: "80px",
           zIndex: 100,
           direction: rtl ? "rtl" : "ltr",
+          opacity: isPlaying ? 0 : 1,
+          pointerEvents: isPlaying ? "none" : "auto",
+          transition: "opacity 0.3s ease",
         }}
       >
         <p
