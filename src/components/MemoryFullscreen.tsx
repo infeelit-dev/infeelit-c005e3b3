@@ -46,12 +46,13 @@ export default function MemoryFullscreen({
   const [showSparkQuestion, setShowSparkQuestion] = useState(false);
   const [sparkQuestion, setSparkQuestion] = useState("");
   const [hasShownSpark, setHasShownSpark] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  // Start true when media will autoplay so TikTok icons / orange spark stay hidden from first paint
+  const [isPlaying, setIsPlaying] = useState(Boolean(bubble.file_url));
   const [isSparked, setIsSparked] = useState(false);
   const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
   const [commentsCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
-  const isPlayingRef = useRef(false);
+  const isPlayingRef = useRef(Boolean(bubble.file_url));
 
   // Swipe-down-to-close support
   const touchStartY = useState(0);
@@ -435,7 +436,11 @@ export default function MemoryFullscreen({
                   width: "3px",
                   borderRadius: "999px",
                   background: "rgba(255,255,255,0.7)",
-                  animation: `waveBar 1.2s ease-in-out ${i * 0.06}s infinite alternate`,
+                  // No orange/wave glow while audio is playing — only after pause/end
+                  animation: isPlaying
+                    ? "none"
+                    : `waveBar 1.2s ease-in-out ${i * 0.06}s infinite alternate`,
+                  height: isPlaying ? "12px" : undefined,
                 }}
               />
             ))}
@@ -522,6 +527,7 @@ export default function MemoryFullscreen({
           zIndex: 100,
           direction: rtl ? "rtl" : "ltr",
           opacity: isPlaying ? 0 : 1,
+          visibility: isPlaying ? "hidden" : "visible",
           pointerEvents: isPlaying ? "none" : "auto",
           transition: "opacity 0.3s ease",
         }}
@@ -565,7 +571,7 @@ export default function MemoryFullscreen({
         position: "fixed",
         right: "12px",
         bottom: "120px",
-        display: "flex",
+        display: isPlaying ? "none" : "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: "20px",
@@ -1022,7 +1028,7 @@ export default function MemoryFullscreen({
         </div>
       )}
 
-      {showSparkQuestion && (
+      {showSparkQuestion && !isPlaying && (
         <div
           style={{
             position: "fixed",
