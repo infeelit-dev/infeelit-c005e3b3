@@ -609,8 +609,8 @@ export default function MemoryFullscreen({
         alignItems: "center",
         gap: "20px",
         zIndex: 10000,
-        opacity: isPlaying ? 0 : 1,
-        pointerEvents: isPlaying ? "none" : "auto",
+        opacity: 1,
+        pointerEvents: "auto",
         transition: "opacity 0.3s ease",
       }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
