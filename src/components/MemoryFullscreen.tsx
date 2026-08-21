@@ -424,6 +424,8 @@ export default function MemoryFullscreen({
               alignItems: "center",
               gap: "4px",
               height: "48px",
+              opacity: isPlaying ? 0 : 1,
+              transition: "opacity 0.3s ease",
             }}
           >
             {Array.from({ length: 20 }).map((_, i) => (
