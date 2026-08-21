@@ -226,32 +226,41 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       m: Record<string, unknown>,
       index: number,
       profilesMap: Record<string, string>,
-    ): BubbleData => ({
-      id: m.id as string,
-      type: "real",
-      title: (m.title as string) || "Un souvenir",
-      file_url: (m.file_url as string) || "",
-      file_type: (m.file_type as string) || "video",
-      thumbnail_url: (m.thumbnail_url as string) || null,
-      author_name: (m.author_name as string | null) || null,
-      user_name:
-        (m.author_name as string | null) ||
-        "Infeelit",
-      user_id: m.user_id as string,
-      sparks_count: (m.sparks_count as number) || 0,
-      transcript_fr: m.transcript_fr as string | null,
-      transcript_en: m.transcript_en as string | null,
-      transcript_ar: m.transcript_ar as string | null,
-      translation_status: m.translation_status as string | null,
-      detected_lang: m.detected_lang as string | null,
-      image: (m.thumbnail_url as string) || getThemedImage((m.title as string) || ""),
-      size: getBubbleSize((m.sparks_count as number) || 0),
-      x: 0,
-      y: 0,
-      animDelay: Math.random() * 3,
-      animDuration: 18 + (index % 5) * 2,
-      floatClass: FLOAT_CLASSES[index % 3],
-    }),
+    ): BubbleData => {
+      // Prefer signed thumbnail_url (https) from resolveMemoryFields — never use raw storage paths as img src
+      const rawThumb = typeof m.thumbnail_url === "string" ? m.thumbnail_url : null;
+      const signedThumb =
+        rawThumb && /^https?:\/\//i.test(rawThumb) ? rawThumb : null;
+      const title = (m.title as string) || "Un souvenir";
+
+      return {
+        id: m.id as string,
+        type: "real",
+        title,
+        file_url: (m.file_url as string) || "",
+        file_type: (m.file_type as string) || "video",
+        thumbnail_url: signedThumb,
+        author_name: (m.author_name as string | null) || null,
+        user_name:
+          (m.author_name as string | null) ||
+          profilesMap[(m.user_id as string) || ""] ||
+          "Infeelit",
+        user_id: m.user_id as string,
+        sparks_count: (m.sparks_count as number) || 0,
+        transcript_fr: m.transcript_fr as string | null,
+        transcript_en: m.transcript_en as string | null,
+        transcript_ar: m.transcript_ar as string | null,
+        translation_status: m.translation_status as string | null,
+        detected_lang: m.detected_lang as string | null,
+        image: signedThumb || getThemedImage(title),
+        size: getBubbleSize((m.sparks_count as number) || 0),
+        x: 0,
+        y: 0,
+        animDelay: Math.random() * 3,
+        animDuration: 18 + (index % 5) * 2,
+        floatClass: FLOAT_CLASSES[index % 3],
+      };
+    },
     [],
   );
 
@@ -579,6 +588,12 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         <img
           src={bubble.image || imgRelax}
           alt=""
+          onError={(e) => {
+            const el = e.currentTarget;
+            if (el.dataset.fallback === "1") return;
+            el.dataset.fallback = "1";
+            el.src = getThemedImage(bubble.title || "");
+          }}
           style={{
             position: "absolute",
             inset: 0,

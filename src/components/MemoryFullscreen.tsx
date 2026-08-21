@@ -46,13 +46,13 @@ export default function MemoryFullscreen({
   const [showSparkQuestion, setShowSparkQuestion] = useState(false);
   const [sparkQuestion, setSparkQuestion] = useState("");
   const [hasShownSpark, setHasShownSpark] = useState(false);
-  // Start true when media will autoplay so TikTok icons / orange spark stay hidden from first paint
-  const [isPlaying, setIsPlaying] = useState(Boolean(bubble.file_url));
+  // Icons visible by default; hide only while media is actively playing (onPlay/onPause)
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isSparked, setIsSparked] = useState(false);
   const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
   const [commentsCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
-  const isPlayingRef = useRef(Boolean(bubble.file_url));
+  const isPlayingRef = useRef(false);
 
   // Swipe-down-to-close support
   const touchStartY = useState(0);
@@ -571,11 +571,12 @@ export default function MemoryFullscreen({
         position: "fixed",
         right: "12px",
         bottom: "120px",
-        display: isPlaying ? "none" : "flex",
+        display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: "20px",
         zIndex: 100,
+        // Visible by default; fade out only during active playback
         opacity: isPlaying ? 0 : 1,
         pointerEvents: isPlaying ? "none" : "auto",
         transition: "opacity 0.3s ease",
