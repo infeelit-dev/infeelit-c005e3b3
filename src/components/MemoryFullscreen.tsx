@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -55,6 +55,14 @@ export default function MemoryFullscreen({
   const [commentsCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const isPlayingRef = useRef(false);
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
+
+  // Force the browser to start buffering as soon as the source changes
+  useEffect(() => {
+    if (!videoElRef.current || !bubble.file_url) return;
+    setVideoReady(false);
+    videoElRef.current.load();
+  }, [bubble.file_url]);
 
   // Swipe-down-to-close support
   const touchStartY = useState(0);
@@ -383,9 +391,11 @@ export default function MemoryFullscreen({
             </div>
           )}
           <video
+            ref={videoElRef}
             src={bubble.file_url}
             autoPlay
             playsInline
+            muted={false}
             preload="auto"
             onCanPlay={() => setVideoReady(true)}
             onPlay={() => {
@@ -609,8 +619,8 @@ export default function MemoryFullscreen({
         alignItems: "center",
         gap: "20px",
         zIndex: 10000,
-        opacity: isPlaying ? 0 : 1,
-        pointerEvents: isPlaying ? "none" : "auto",
+        opacity: 1,
+        pointerEvents: "auto",
         transition: "opacity 0.3s ease",
       }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
