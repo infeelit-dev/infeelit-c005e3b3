@@ -383,9 +383,11 @@ export default function MemoryFullscreen({
             </div>
           )}
           <video
+            ref={videoElRef}
             src={bubble.file_url}
             autoPlay
             playsInline
+            muted={false}
             preload="auto"
             onCanPlay={() => setVideoReady(true)}
             onPlay={() => {
