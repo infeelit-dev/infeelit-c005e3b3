@@ -218,11 +218,6 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
     }, 400);
   };
 
-  const handleSpark = () => {
-    setIsSparked((prev) => !prev);
-    setSparksCount((prev) => (isSparked ? Math.max(0, prev - 1) : prev + 1));
-  };
-
   const handleBookmark = () => {
     toast.info("Saved to bookmarks");
   };
