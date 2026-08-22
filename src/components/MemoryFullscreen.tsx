@@ -48,7 +48,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
   const [videoReady, setVideoReady] = useState(false);
   const [isSparked, setIsSparked] = useState(false);
   const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
-  const [commentsCount] = useState(0);
+  const [commentsCount, setCommentsCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const isPlayingRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
