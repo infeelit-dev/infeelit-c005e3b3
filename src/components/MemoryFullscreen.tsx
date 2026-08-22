@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
+import CommentSection from "@/components/CommentSection";
 import { supabase } from "@/integrations/supabase/client";
 import generateEchoCard, { generateStoriesCard, generateTeaserVideo } from "@/components/EchoCard";
 
@@ -31,7 +32,7 @@ interface MemoryFullscreenProps {
   currentUserId?: string;
 }
 
-export default function MemoryFullscreen({ bubble, onClose, currentUserId }: MemoryFullscreenProps) {
+export default function MemoryFullscreen({ bubble, onClose, userName, currentUserId }: MemoryFullscreenProps) {
   const navigate = useNavigate();
   const { lang, rtl, t } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
@@ -47,7 +48,7 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
   const [videoReady, setVideoReady] = useState(false);
   const [isSparked, setIsSparked] = useState(false);
   const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
-  const [commentsCount] = useState(0);
+  const [commentsCount, setCommentsCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const isPlayingRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -621,12 +622,12 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
       <div
         style={{
           position: "fixed",
-          right: "8px",
+          right: "4px",
           bottom: "100px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "16px",
+          gap: "12px",
           zIndex: 10000,
           opacity: 1,
           pointerEvents: "auto",
@@ -637,10 +638,10 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
           <button
             onPointerUp={handleSpark}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.3)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -654,8 +655,8 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
             }}
           >
             <svg
-              width="22"
-              height="22"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill={isSparked ? "#ff2d55" : "none"}
               stroke="white"
@@ -671,10 +672,10 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
           <button
             onPointerUp={() => setShowComments(true)}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.3)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -685,7 +686,7 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
               touchAction: "manipulation",
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </button>
@@ -698,10 +699,10 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
           <button
             onPointerUp={handleBookmark}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.3)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -712,7 +713,7 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
               touchAction: "manipulation",
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
           </button>
@@ -722,10 +723,10 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
           <button
             onPointerUp={() => setShowShareOptions(true)}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.3)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -736,7 +737,7 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
               touchAction: "manipulation",
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <circle cx="18" cy="5" r="3" />
               <circle cx="6" cy="12" r="3" />
               <circle cx="18" cy="19" r="3" />
@@ -751,13 +752,13 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
             <button
               onPointerUp={handleReport}
               style={{
-                width: "36px",
-                height: "36px",
+                width: "32px",
+                height: "32px",
                 borderRadius: "50%",
                 background: "rgba(0,0,0,0.3)",
                 border: "none",
                 color: "rgba(255,255,255,0.5)",
-                fontSize: "16px",
+                fontSize: "14px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -774,58 +775,13 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
       </div>
 
       {showComments && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 10001,
-            display: "flex",
-            alignItems: "flex-end",
-          }}
-          onClick={() => setShowComments(false)}
-        >
-          <div
-            style={{
-              width: "100%",
-              background: "#1a0a05",
-              borderRadius: "20px 20px 0 0",
-              padding: "20px 16px 40px",
-              maxHeight: "70vh",
-              overflowY: "auto",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "4px",
-                background: "rgba(255,255,255,0.3)",
-                borderRadius: "2px",
-                margin: "0 auto 20px",
-              }}
-            />
-            <h3
-              style={{
-                color: "#fff",
-                fontSize: "16px",
-                fontWeight: 700,
-                marginBottom: "16px",
-              }}
-            >
-              Comments
-            </h3>
-            <p
-              style={{
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "14px",
-                textAlign: "center",
-                padding: "20px 0",
-              }}
-            >
-              No comments yet. Be the first.
-            </p>
-          </div>
+        <div style={{ position: "fixed", inset: 0, zIndex: 10001 }}>
+          <CommentSection
+            memoryId={bubble.id}
+            userName={userName || "Anonyme"}
+            onClose={() => setShowComments(false)}
+            onCountChange={(count) => setCommentsCount(count)}
+          />
         </div>
       )}
 
