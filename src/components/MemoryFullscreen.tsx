@@ -622,12 +622,12 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
       <div
         style={{
           position: "fixed",
-          right: "8px",
+          right: "4px",
           bottom: "100px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "16px",
+          gap: "12px",
           zIndex: 10000,
           opacity: 1,
           pointerEvents: "auto",
@@ -638,10 +638,10 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
           <button
             onPointerUp={handleSpark}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.3)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -655,8 +655,8 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
             }}
           >
             <svg
-              width="22"
-              height="22"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill={isSparked ? "#ff2d55" : "none"}
               stroke="white"
@@ -672,10 +672,10 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
           <button
             onPointerUp={() => setShowComments(true)}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.3)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -686,7 +686,7 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
               touchAction: "manipulation",
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </button>
@@ -699,10 +699,10 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
           <button
             onPointerUp={handleBookmark}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.3)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -713,7 +713,7 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
               touchAction: "manipulation",
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
           </button>
@@ -723,10 +723,10 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
           <button
             onPointerUp={() => setShowShareOptions(true)}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.3)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -737,7 +737,7 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
               touchAction: "manipulation",
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <circle cx="18" cy="5" r="3" />
               <circle cx="6" cy="12" r="3" />
               <circle cx="18" cy="19" r="3" />
@@ -752,13 +752,13 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
             <button
               onPointerUp={handleReport}
               style={{
-                width: "36px",
-                height: "36px",
+                width: "32px",
+                height: "32px",
                 borderRadius: "50%",
                 background: "rgba(0,0,0,0.3)",
                 border: "none",
                 color: "rgba(255,255,255,0.5)",
-                fontSize: "16px",
+                fontSize: "14px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
