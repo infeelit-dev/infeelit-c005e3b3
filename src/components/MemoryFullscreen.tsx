@@ -32,7 +32,7 @@ interface MemoryFullscreenProps {
   currentUserId?: string;
 }
 
-export default function MemoryFullscreen({ bubble, onClose, currentUserId }: MemoryFullscreenProps) {
+export default function MemoryFullscreen({ bubble, onClose, userName, currentUserId }: MemoryFullscreenProps) {
   const navigate = useNavigate();
   const { lang, rtl, t } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
