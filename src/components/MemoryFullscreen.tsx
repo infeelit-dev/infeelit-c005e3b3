@@ -775,58 +775,15 @@ export default function MemoryFullscreen({ bubble, onClose, currentUserId }: Mem
       </div>
 
       {showComments && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 10001,
-            display: "flex",
-            alignItems: "flex-end",
-          }}
-          onClick={() => setShowComments(false)}
-        >
-          <div
-            style={{
-              width: "100%",
-              background: "#1a0a05",
-              borderRadius: "20px 20px 0 0",
-              padding: "20px 16px 40px",
-              maxHeight: "70vh",
-              overflowY: "auto",
+        <div style={{ position: "fixed", inset: 0, zIndex: 10001 }}>
+          <CommentSection
+            memoryId={bubble.id}
+            userName={displayName}
+            onClose={() => setShowComments(false)}
+            onCountChange={(count) => {
+              /* count updated in CommentSection itself */
             }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "4px",
-                background: "rgba(255,255,255,0.3)",
-                borderRadius: "2px",
-                margin: "0 auto 20px",
-              }}
-            />
-            <h3
-              style={{
-                color: "#fff",
-                fontSize: "16px",
-                fontWeight: 700,
-                marginBottom: "16px",
-              }}
-            >
-              Comments
-            </h3>
-            <p
-              style={{
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "14px",
-                textAlign: "center",
-                padding: "20px 0",
-              }}
-            >
-              No comments yet. Be the first.
-            </p>
-          </div>
+          />
         </div>
       )}
 
