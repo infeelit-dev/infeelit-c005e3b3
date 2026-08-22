@@ -6,10 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
 import { supabase } from "@/integrations/supabase/client";
-import generateEchoCard, {
-  generateStoriesCard,
-  generateTeaserVideo,
-} from "@/components/EchoCard";
+import generateEchoCard, { generateStoriesCard, generateTeaserVideo } from "@/components/EchoCard";
 
 interface MemoryFullscreenProps {
   bubble: {
@@ -34,11 +31,7 @@ interface MemoryFullscreenProps {
   currentUserId?: string;
 }
 
-export default function MemoryFullscreen({
-  bubble,
-  onClose,
-  currentUserId,
-}: MemoryFullscreenProps) {
+export default function MemoryFullscreen({ bubble, onClose, currentUserId }: MemoryFullscreenProps) {
   const navigate = useNavigate();
   const { lang, rtl, t } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
@@ -70,7 +63,9 @@ export default function MemoryFullscreen({
 
   // Swipe-down-to-close support
   const touchStartY = useState(0);
-  const handleTouchStart = (e: React.TouchEvent) => { touchStartY[1](e.touches[0].clientY); };
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY[1](e.touches[0].clientY);
+  };
   const handleTouchEnd = (e: React.TouchEvent) => {
     const delta = e.changedTouches[0].clientY - touchStartY[0];
     if (delta > 80) handleClose();
@@ -198,19 +193,24 @@ export default function MemoryFullscreen({
     if (error) {
       console.error("Report failed:", error);
       alert(
-        pickLocalized(lang, { fr: "Impossible d'envoyer le signalement.", ar: "تعذر إرسال البلاغ.", en: "Could not send report." }),
+        pickLocalized(lang, {
+          fr: "Impossible d'envoyer le signalement.",
+          ar: "تعذر إرسال البلاغ.",
+          en: "Could not send report.",
+        }),
       );
       return;
     }
 
-    await supabase
-      .from("memories")
-      .update({ moderation_status: "reported" })
-      .eq("id", bubble.id);
+    await supabase.from("memories").update({ moderation_status: "reported" }).eq("id", bubble.id);
 
     setReportSent(true);
     alert(
-      pickLocalized(lang, { fr: "Signalement envoyé. Merci.", ar: "تم إرسال البلاغ. شكراً.", en: "Report sent. Thank you." }),
+      pickLocalized(lang, {
+        fr: "Signalement envoyé. Merci.",
+        ar: "تم إرسال البلاغ. شكراً.",
+        en: "Report sent. Thank you.",
+      }),
     );
   };
 
@@ -244,7 +244,11 @@ export default function MemoryFullscreen({
     } catch (err) {
       console.error("Echo Card generation failed:", err);
       alert(
-        pickLocalized(lang, { fr: "Impossible de générer la carte.", ar: "تعذر إنشاء البطاقة.", en: "Could not generate Echo Card." }),
+        pickLocalized(lang, {
+          fr: "Impossible de générer la carte.",
+          ar: "تعذر إنشاء البطاقة.",
+          en: "Could not generate Echo Card.",
+        }),
       );
     } finally {
       setSharingBusy(false);
@@ -261,17 +265,13 @@ export default function MemoryFullscreen({
         await navigator.share({ text: shareText, url: ogShareUrl });
       } else {
         await navigator.clipboard.writeText(ogShareUrl);
-        alert(
-          pickLocalized(lang, { fr: "Lien copié !", ar: "تم نسخ الرابط!", en: "Link copied!" }),
-        );
+        alert(pickLocalized(lang, { fr: "Lien copié !", ar: "تم نسخ الرابط!", en: "Link copied!" }));
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
       try {
         await navigator.clipboard.writeText(ogShareUrl);
-        alert(
-          pickLocalized(lang, { fr: "Lien copié !", ar: "تم نسخ الرابط!", en: "Link copied!" }),
-        );
+        alert(pickLocalized(lang, { fr: "Lien copié !", ar: "تم نسخ الرابط!", en: "Link copied!" }));
       } catch {
         /* ignore */
       }
@@ -298,9 +298,7 @@ export default function MemoryFullscreen({
       a.download = "infeelit-stories.png";
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(
-        "Stories card downloaded! Upload to Instagram Stories and add a link sticker.",
-      );
+      toast.success("Stories card downloaded! Upload to Instagram Stories and add a link sticker.");
     } catch (err) {
       console.error("Stories card failed:", err);
       toast.error("Could not generate Stories card.");
@@ -318,9 +316,7 @@ export default function MemoryFullscreen({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = blob.type.includes("mp4")
-        ? "infeelit-teaser.mp4"
-        : "infeelit-teaser.webm";
+      a.download = blob.type.includes("mp4") ? "infeelit-teaser.mp4" : "infeelit-teaser.webm";
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Teaser video ready! Upload to TikTok or Instagram Reels.");
@@ -332,8 +328,7 @@ export default function MemoryFullscreen({
     }
   };
 
-  const transcript =
-    bubble.transcript_fr || bubble.transcript_en || bubble.transcript_ar || "";
+  const transcript = bubble.transcript_fr || bubble.transcript_en || bubble.transcript_ar || "";
 
   const captions = {
     whatsapp: `"${bubble.title || "A memory"}" — écoute ce souvenir ✦\n${ogShareUrl}`,
@@ -353,9 +348,7 @@ export default function MemoryFullscreen({
         inset: 0,
         zIndex: 9999,
         background: "#000",
-        animation: isClosing
-          ? "bloomClose 0.4s ease-in forwards"
-          : "bloomReveal 0.4s ease-out forwards",
+        animation: isClosing ? "bloomClose 0.4s ease-in forwards" : "bloomReveal 0.4s ease-out forwards",
       }}
     >
       {!isAudio && bubble.file_url && (
@@ -402,7 +395,7 @@ export default function MemoryFullscreen({
             muted={false}
             preload="auto"
             crossOrigin="anonymous"
-            poster={bubble.image || ""}
+            poster={bubble.image || bubble.thumbnail_url || ""}
             onLoadStart={() => setVideoReady(false)}
             onCanPlay={() => setVideoReady(true)}
             onCanPlayThrough={() => setVideoReady(true)}
@@ -488,9 +481,7 @@ export default function MemoryFullscreen({
                   borderRadius: "999px",
                   background: "rgba(255,255,255,0.7)",
                   // No orange/wave glow while audio is playing — only after pause/end
-                  animation: isPlaying
-                    ? "none"
-                    : `waveBar 1.2s ease-in-out ${i * 0.06}s infinite alternate`,
+                  animation: isPlaying ? "none" : `waveBar 1.2s ease-in-out ${i * 0.06}s infinite alternate`,
                   height: isPlaying ? "12px" : undefined,
                 }}
               />
@@ -532,8 +523,7 @@ export default function MemoryFullscreen({
         style={{
           position: "absolute",
           inset: 0,
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 35%, rgba(0,0,0,0.2) 100%)",
+          background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 35%, rgba(0,0,0,0.2) 100%)",
           pointerEvents: "none",
           opacity: isPlaying ? 0 : 1,
           transition: "opacity 0.3s ease",
@@ -628,19 +618,21 @@ export default function MemoryFullscreen({
         )}
       </div>
 
-      <div style={{
-        position: "fixed",
-        right: "8px",
-        bottom: "100px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "16px",
-        zIndex: 10000,
-        opacity: 1,
-        pointerEvents: "auto",
-        transition: "opacity 0.3s ease",
-      }}>
+      <div
+        style={{
+          position: "fixed",
+          right: "8px",
+          bottom: "100px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "16px",
+          zIndex: 10000,
+          opacity: 1,
+          pointerEvents: "auto",
+          transition: "opacity 0.3s ease",
+        }}
+      >
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={handleSpark}
@@ -661,13 +653,18 @@ export default function MemoryFullscreen({
               transition: "transform 0.2s ease",
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill={isSparked ? "#ff2d55" : "none"} stroke="white" strokeWidth="1.8">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill={isSparked ? "#ff2d55" : "none"}
+              stroke="white"
+              strokeWidth="1.8"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </button>
-          <span style={{ color: "#fff", fontSize: "12px", fontWeight: 600, marginTop: "2px" }}>
-            {sparksCount || 0}
-          </span>
+          <span style={{ color: "#fff", fontSize: "12px", fontWeight: 600, marginTop: "2px" }}>{sparksCount || 0}</span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
@@ -689,7 +686,7 @@ export default function MemoryFullscreen({
             }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </button>
           <span style={{ color: "#fff", fontSize: "12px", fontWeight: 600, marginTop: "2px" }}>
@@ -716,7 +713,7 @@ export default function MemoryFullscreen({
             }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
           </button>
         </div>
@@ -740,11 +737,11 @@ export default function MemoryFullscreen({
             }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
-              <circle cx="18" cy="5" r="3"/>
-              <circle cx="6" cy="12" r="3"/>
-              <circle cx="18" cy="19" r="3"/>
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
             </svg>
           </button>
         </div>
@@ -890,9 +887,7 @@ export default function MemoryFullscreen({
                 marginBottom: "20px",
               }}
             >
-              <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>
-                Share anonymously
-              </span>
+              <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>Share anonymously</span>
               <input
                 type="checkbox"
                 checked={anonymous}
@@ -923,9 +918,7 @@ export default function MemoryFullscreen({
               >
                 <span style={{ fontSize: "24px" }}>🖼</span>
                 <div style={{ textAlign: "left" }}>
-                  <p style={{ margin: 0, fontWeight: 700 }}>
-                    {sharingBusy ? "Generating…" : "Download Echo Card"}
-                  </p>
+                  <p style={{ margin: 0, fontWeight: 700 }}>{sharingBusy ? "Generating…" : "Download Echo Card"}</p>
                   <p
                     style={{
                       margin: 0,
@@ -1024,9 +1017,7 @@ export default function MemoryFullscreen({
               >
                 <span style={{ fontSize: "24px" }}>📸</span>
                 <div style={{ textAlign: "left" }}>
-                  <p style={{ margin: 0, fontWeight: 700 }}>
-                    Download for Instagram Stories
-                  </p>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Download for Instagram Stories</p>
                   <p
                     style={{
                       margin: 0,
@@ -1061,9 +1052,7 @@ export default function MemoryFullscreen({
               >
                 <span style={{ fontSize: "24px" }}>🎵</span>
                 <div style={{ textAlign: "left" }}>
-                  <p style={{ margin: 0, fontWeight: 700 }}>
-                    Generate TikTok/Reels teaser
-                  </p>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Generate TikTok/Reels teaser</p>
                   <p
                     style={{
                       margin: 0,
@@ -1241,12 +1230,7 @@ export default function MemoryFullscreen({
                 gap: "8px",
               }}
             >
-              🎙️{" "}
-              {lang === "fr"
-                ? "Enregistrer ma réponse"
-                : lang === "ar"
-                  ? "سجّل إجابتي"
-                  : "Record my answer"}
+              🎙️ {lang === "fr" ? "Enregistrer ma réponse" : lang === "ar" ? "سجّل إجابتي" : "Record my answer"}
             </button>
 
             <button
