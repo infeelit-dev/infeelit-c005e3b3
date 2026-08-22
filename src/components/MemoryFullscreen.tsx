@@ -641,7 +641,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.3)",
+              background: "rgba(0,0,0,0.25)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -658,14 +658,14 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               width="20"
               height="20"
               viewBox="0 0 24 24"
-              fill={isSparked ? "#ff2d55" : "none"}
+              fill={isSparked ? "white" : "none"}
               stroke="white"
               strokeWidth="1.8"
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </button>
-          <span style={{ color: "#fff", fontSize: "12px", fontWeight: 600, marginTop: "2px" }}>{sparksCount || 0}</span>
+          <span style={{ color: "white", fontSize: "11px", fontWeight: 600, marginTop: "2px" }}>{sparksCount || 0}</span>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
@@ -675,7 +675,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.3)",
+              background: "rgba(0,0,0,0.25)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -690,7 +690,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </button>
-          <span style={{ color: "#fff", fontSize: "12px", fontWeight: 600, marginTop: "2px" }}>
+          <span style={{ color: "white", fontSize: "11px", fontWeight: 600, marginTop: "2px" }}>
             {commentsCount || 0}
           </span>
         </div>
@@ -702,7 +702,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.3)",
+              background: "rgba(0,0,0,0.25)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -726,7 +726,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.3)",
+              background: "rgba(0,0,0,0.25)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -755,7 +755,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
                 width: "32px",
                 height: "32px",
                 borderRadius: "50%",
-                background: "rgba(0,0,0,0.3)",
+                background: "rgba(0,0,0,0.25)",
                 border: "none",
                 color: "rgba(255,255,255,0.5)",
                 fontSize: "14px",
