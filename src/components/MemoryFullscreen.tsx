@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
+import CommentSection from "@/components/CommentSection";
 import { supabase } from "@/integrations/supabase/client";
 import generateEchoCard, { generateStoriesCard, generateTeaserVideo } from "@/components/EchoCard";
 
