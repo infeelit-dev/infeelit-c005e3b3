@@ -46,10 +46,6 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
   // Icons visible by default; hide only while media is actively playing (onPlay/onPause)
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
-  const [isSparked, setIsSparked] = useState(false);
-  const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
-  const [commentsCount, setCommentsCount] = useState(0);
-  const [showComments, setShowComments] = useState(false);
   const isPlayingRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -220,11 +216,6 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
     setTimeout(() => {
       onClose();
     }, 400);
-  };
-
-  const handleSpark = () => {
-    setIsSparked((prev) => !prev);
-    setSparksCount((prev) => (isSparked ? Math.max(0, prev - 1) : prev + 1));
   };
 
   const handleBookmark = () => {
@@ -619,171 +610,14 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
         )}
       </div>
 
-      <div
-        style={{
-          position: "fixed",
-          right: "4px",
-          bottom: "100px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "12px",
-          zIndex: 10000,
-          opacity: 1,
-          pointerEvents: "auto",
-          transition: "opacity 0.3s ease",
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-          <button
-            onPointerUp={handleSpark}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.25)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-              transform: isSparked ? "scale(1.1)" : "scale(1)",
-              transition: "transform 0.2s ease",
-            }}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill={isSparked ? "white" : "none"}
-              stroke="white"
-              strokeWidth="1.8"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
-          <span style={{ color: "white", fontSize: "11px", fontWeight: 600, marginTop: "2px" }}>{sparksCount || 0}</span>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-          <button
-            onPointerUp={() => setShowComments(true)}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.25)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </button>
-          <span style={{ color: "white", fontSize: "11px", fontWeight: 600, marginTop: "2px" }}>
-            {commentsCount || 0}
-          </span>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-          <button
-            onPointerUp={handleBookmark}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.25)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-            </svg>
-          </button>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-          <button
-            onPointerUp={() => setShowShareOptions(true)}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.25)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-            </svg>
-          </button>
-        </div>
-
-        {currentUserId && bubble.user_id !== currentUserId && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-            <button
-              onPointerUp={handleReport}
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                background: "rgba(0,0,0,0.25)",
-                border: "none",
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "14px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                backdropFilter: "blur(8px)",
-                WebkitTapHighlightColor: "transparent",
-                touchAction: "manipulation",
-              }}
-            >
-              ⚑
-            </button>
-          </div>
-        )}
-      </div>
-
-      {showComments && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 10001 }}>
-          <CommentSection
-            memoryId={bubble.id}
-            userName={userName || "Anonyme"}
-            onClose={() => setShowComments(false)}
-            onCountChange={(count) => setCommentsCount(count)}
-          />
-        </div>
-      )}
+      <MemoryActions
+        bubble={bubble}
+        userName={userName}
+        currentUserId={currentUserId}
+        handleBookmark={handleBookmark}
+        setShowShareOptions={setShowShareOptions}
+        handleReport={handleReport}
+      />
 
       {showShareOptions && (
         <div
@@ -1217,5 +1051,201 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
       `}</style>
     </div>,
     document.body,
+  );
+}
+
+function MemoryActions({
+  bubble,
+  userName,
+  currentUserId,
+  handleBookmark,
+  setShowShareOptions,
+  handleReport,
+}: {
+  bubble: MemoryFullscreenProps["bubble"];
+  userName: string;
+  currentUserId?: string;
+  handleBookmark: () => void;
+  setShowShareOptions: (v: boolean) => void;
+  handleReport: () => void;
+}) {
+  const [isSparked, setIsSparked] = useState(false);
+  const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
+  const [showComments, setShowComments] = useState(false);
+  const [commentsCount, setCommentsCount] = useState(0);
+
+  const handleSpark = () => {
+    setIsSparked((prev) => !prev);
+    setSparksCount((prev) => (isSparked ? Math.max(0, prev - 1) : prev + 1));
+  };
+
+  return (
+    <>
+      <div
+        style={{
+          position: "fixed",
+          right: "4px",
+          bottom: "100px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "12px",
+          zIndex: 10000,
+          opacity: 1,
+          pointerEvents: "auto",
+          transition: "opacity 0.3s ease",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+          <button
+            onPointerUp={handleSpark}
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.25)",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+              transform: isSparked ? "scale(1.1)" : "scale(1)",
+              transition: "transform 0.2s ease",
+            }}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill={isSparked ? "white" : "none"}
+              stroke="white"
+              strokeWidth="1.8"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+          <span style={{ color: "white", fontSize: "11px", fontWeight: 600, marginTop: "2px" }}>{sparksCount || 0}</span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+          <button
+            onPointerUp={() => setShowComments(true)}
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.25)",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+          <span style={{ color: "white", fontSize: "11px", fontWeight: 600, marginTop: "2px" }}>
+            {commentsCount || 0}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+          <button
+            onPointerUp={handleBookmark}
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.25)",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+          <button
+            onPointerUp={() => setShowShareOptions(true)}
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.25)",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              backdropFilter: "blur(8px)",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+          </button>
+        </div>
+
+        {currentUserId && bubble.user_id !== currentUserId && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+            <button
+              onPointerUp={handleReport}
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                background: "rgba(0,0,0,0.25)",
+                border: "none",
+                color: "rgba(255,255,255,0.5)",
+                fontSize: "14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                backdropFilter: "blur(8px)",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
+            >
+              ⚑
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showComments && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 10001 }}>
+          <CommentSection
+            memoryId={bubble.id}
+            userName={userName || "Anonyme"}
+            onClose={() => setShowComments(false)}
+            onCountChange={(count) => setCommentsCount(count)}
+          />
+        </div>
+      )}
+    </>
   );
 }
