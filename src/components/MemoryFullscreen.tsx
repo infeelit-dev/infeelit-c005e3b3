@@ -46,10 +46,6 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
   // Icons visible by default; hide only while media is actively playing (onPlay/onPause)
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
-  const [isSparked, setIsSparked] = useState(false);
-  const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
-  const [commentsCount, setCommentsCount] = useState(0);
-  const [showComments, setShowComments] = useState(false);
   const isPlayingRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
