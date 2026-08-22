@@ -402,7 +402,7 @@ export default function MemoryFullscreen({
             muted={false}
             preload="auto"
             crossOrigin="anonymous"
-            poster={bubble.image || bubble.thumbnail_url || ""}
+            poster={bubble.image || ""}
             onLoadStart={() => setVideoReady(false)}
             onCanPlay={() => setVideoReady(true)}
             onCanPlayThrough={() => setVideoReady(true)}
