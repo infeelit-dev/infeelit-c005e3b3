@@ -778,11 +778,9 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
         <div style={{ position: "fixed", inset: 0, zIndex: 10001 }}>
           <CommentSection
             memoryId={bubble.id}
-            userName={displayName}
+            userName={userName || "Anonyme"}
             onClose={() => setShowComments(false)}
-            onCountChange={(count) => {
-              /* count updated in CommentSection itself */
-            }}
+            onCountChange={(count) => setCommentsCount(count)}
           />
         </div>
       )}
