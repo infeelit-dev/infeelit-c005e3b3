@@ -55,10 +55,12 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
   useEffect(() => {
     if (!videoRef.current || !bubble.file_url) return;
     setVideoReady(false);
+    videoRef.current.preload = "auto";
     videoRef.current.src = bubble.file_url;
     videoRef.current.load();
     videoRef.current.play().catch(console.error);
   }, [bubble.file_url]);
+
 
   const touchStartY = useState(0);
   const handleTouchStart = (e: React.TouchEvent) => {
