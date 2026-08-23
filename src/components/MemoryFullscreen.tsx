@@ -119,6 +119,19 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
+    if (!currentUserId || !bubble.id) return;
+    supabase
+      .from("memory_sparks")
+      .select("id")
+      .eq("memory_id", bubble.id)
+      .eq("user_id", currentUserId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setIsSparked(true);
+      });
+  }, [bubble.id, currentUserId]);
+
+  useEffect(() => {
     if (!videoRef.current || !bubble.file_url) return;
     setVideoReady(false);
     videoRef.current.preload = "auto";
@@ -293,9 +306,45 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
     toast.info("Saved to bookmarks");
   };
 
-  const handleSpark = () => {
-    setIsSparked((prev) => !prev);
-    setSparksCount((prev) => (isSparked ? Math.max(0, prev - 1) : prev + 1));
+  const handleSpark = async () => {
+    if (!currentUserId) {
+      navigate("/welcome");
+      return;
+    }
+
+    const newSparked = !isSparked;
+    setIsSparked(newSparked);
+    setSparksCount((prev) => (newSparked ? prev + 1 : Math.max(0, prev - 1)));
+
+    try {
+      if (newSparked) {
+        const { error } = await supabase.from("memory_sparks").insert({
+          memory_id: bubble.id,
+          user_id: currentUserId,
+          user_name: userName || "Anonyme",
+        });
+        if (error) throw error;
+        await supabase
+          .from("memories")
+          .update({ sparks_count: sparksCount + 1 })
+          .eq("id", bubble.id);
+      } else {
+        const { error } = await supabase
+          .from("memory_sparks")
+          .delete()
+          .eq("memory_id", bubble.id)
+          .eq("user_id", currentUserId);
+        if (error) throw error;
+        await supabase
+          .from("memories")
+          .update({ sparks_count: Math.max(0, sparksCount - 1) })
+          .eq("id", bubble.id);
+      }
+    } catch (error) {
+      setIsSparked(!newSparked);
+      setSparksCount((prev) => (newSparked ? Math.max(0, prev - 1) : prev + 1));
+      console.error("Spark error:", error);
+    }
   };
 
   const handleDownloadEchoCard = async () => {
@@ -656,7 +705,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
           background: "rgba(0,0,0,0.3)",
           border: "none",
           color: "#FFFFFF",
-          fontSize: "24px",
+          fontSize: "28px",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
@@ -666,7 +715,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
           touchAction: "manipulation",
         }}
       >
-        ×
+        ←
       </button>
 
       {showSwipeHint && (

@@ -400,48 +400,8 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
     }
   };
 
-  const handleCloseMemory = (viewedBubble: BubbleData) => {
+  const handleCloseMemory = () => {
     setOpenMemory(null);
-    setSeenIds((prev) => new Set([...prev, viewedBubble.id]));
-
-    if (memoryQueue.length > 0) {
-      const [nextBubble, ...remainingQueue] = memoryQueue;
-      setMemoryQueue(remainingQueue);
-
-      const newPosition = getNewPosition(
-        visibleBubbles.filter((b) => b.id !== viewedBubble.id),
-        nextBubble.size,
-      );
-
-      const newBubble: BubbleData = {
-        ...nextBubble,
-        x: newPosition.x,
-        y: newPosition.y,
-        animDelay: Math.random() * 2,
-        animDuration: 18 + Math.floor(Math.random() * 6) * 2,
-        isEntering: true,
-      };
-
-      setVisibleBubbles((prev) =>
-        prev.map((b) => (b.id === viewedBubble.id ? { ...b, isExiting: true } : b)),
-      );
-
-      setTimeout(() => {
-        setVisibleBubbles((prev) => [
-          ...prev.filter((b) => b.id !== viewedBubble.id),
-          newBubble,
-        ]);
-
-        setTimeout(() => {
-          setVisibleBubbles((prev) =>
-            prev.map((b) => (b.id === newBubble.id ? { ...b, isEntering: false } : b)),
-          );
-        }, 600);
-      }, 500);
-    } else {
-      setVisibleBubbles((prev) => prev.filter((b) => b.id !== viewedBubble.id));
-      reloadMoreMemories();
-    }
   };
 
   const handleBubbleTap = (
@@ -870,7 +830,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
       {openMemory && (
         <MemoryFullscreen
           bubble={openMemory}
-          onClose={() => handleCloseMemory(openMemory)}
+          onClose={() => handleCloseMemory()}
           userName={userName}
           currentUserId={currentUserId}
         />
