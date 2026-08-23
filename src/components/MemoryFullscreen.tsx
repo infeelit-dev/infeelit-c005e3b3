@@ -45,6 +45,10 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
   const [hasShownSpark, setHasShownSpark] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
+  const [isSparked, setIsSparked] = useState(false);
+  const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
+  const [showComments, setShowComments] = useState(false);
+  const [commentsCount, setCommentsCount] = useState(0);
   const isPlayingRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -213,6 +217,11 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
 
   const handleBookmark = () => {
     toast.info("Saved to bookmarks");
+  };
+
+  const handleSpark = () => {
+    setIsSparked((prev) => !prev);
+    setSparksCount((prev) => (isSparked ? Math.max(0, prev - 1) : prev + 1));
   };
 
   const handleDownloadEchoCard = async () => {
@@ -603,14 +612,211 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
         )}
       </div>
 
-      <MemoryActions
-        bubble={bubble}
-        userName={userName}
-        currentUserId={currentUserId}
-        handleBookmark={handleBookmark}
-        setShowShareOptions={setShowShareOptions}
-        handleReport={handleReport}
-      />
+      {/* TikTok action rail — inline, always on top */}
+      <div
+        style={{
+          position: "fixed",
+          right: "8px",
+          bottom: "110px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "14px",
+          zIndex: 10050,
+          pointerEvents: "auto",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <button
+            type="button"
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              handleSpark();
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSpark();
+            }}
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.45)",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            }}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill={isSparked ? "#ff2d55" : "none"}
+              stroke="#FFFFFF"
+              strokeWidth="2"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+          <span
+            style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+          >
+            {sparksCount || 0}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <button
+            type="button"
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              setShowComments(true);
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowComments(true);
+            }}
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.45)",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+          <span
+            style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+          >
+            {commentsCount || 0}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <button
+            type="button"
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              handleBookmark();
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleBookmark();
+            }}
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.45)",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+          <button
+            type="button"
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              setShowShareOptions(true);
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowShareOptions(true);
+            }}
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.45)",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+          </button>
+        </div>
+
+        {currentUserId && bubble.user_id !== currentUserId && (
+          <button
+            type="button"
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              handleReport();
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReport();
+            }}
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.35)",
+              border: "none",
+              color: "rgba(255,255,255,0.6)",
+              fontSize: "14px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            ⚑
+          </button>
+        )}
+      </div>
+
+      {showComments && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 10060 }}>
+          <CommentSection
+            memoryId={bubble.id}
+            userName={userName || "Anonyme"}
+            onClose={() => setShowComments(false)}
+            onCountChange={(count) => setCommentsCount(count)}
+          />
+        </div>
+      )}
 
       {showShareOptions && (
         <div
@@ -624,20 +830,395 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
           }}
           onClick={() => setShowShareOptions(false)}
         >
-          {/* ... share sheet unchanged — full content in file above lines 623-895 ... */}
+          <div
+            style={{
+              width: "100%",
+              background: "#0f0501",
+              borderRadius: "24px 24px 0 0",
+              padding: "32px 24px 48px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                color: "#fff",
+                fontSize: "18px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                textAlign: "center",
+                marginBottom: "8px",
+              }}
+            >
+              Share this memory
+            </h3>
+
+            <p
+              style={{
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "13px",
+                textAlign: "center",
+                marginBottom: "24px",
+              }}
+            >
+              Only the question and a teaser will be shared. Your full voice stays private.
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 16px",
+                background: "rgba(255,255,255,0.05)",
+                borderRadius: "12px",
+                marginBottom: "20px",
+              }}
+            >
+              <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>Share anonymously</span>
+              <input
+                type="checkbox"
+                checked={anonymous}
+                onChange={(e) => setAnonymous(e.target.checked)}
+                style={{ width: "20px", height: "20px", cursor: "pointer" }}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <button
+                onClick={handleDownloadEchoCard}
+                disabled={sharingBusy}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: sharingBusy ? "wait" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  opacity: sharingBusy ? 0.7 : 1,
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>🖼</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>{sharingBusy ? "Generating…" : "Download Echo Card"}</p>
+                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                    For Instagram Stories & LinkedIn
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleShareLink}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>🔗</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Share link</p>
+                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                    For WhatsApp & iMessage preview
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleWhatsApp}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(37,211,102,0.15)",
+                  border: "1px solid rgba(37,211,102,0.3)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>📱</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Send on WhatsApp</p>
+                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                    Direct share to contacts
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleDownloadStoriesCard}
+                disabled={sharingBusy}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(193,53,132,0.15)",
+                  border: "1px solid rgba(193,53,132,0.3)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: sharingBusy ? "wait" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginTop: "8px",
+                  opacity: sharingBusy ? 0.7 : 1,
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>📸</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Download for Instagram Stories</p>
+                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                    Add a link sticker in Stories
+                  </p>
+                </div>
+              </button>
+
+              <button
+                onClick={handleGenerateTeaserVideo}
+                disabled={sharingBusy}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "16px",
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: sharingBusy ? "wait" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginTop: "8px",
+                  opacity: sharingBusy ? 0.7 : 1,
+                }}
+              >
+                <span style={{ fontSize: "24px" }}>🎵</span>
+                <div style={{ textAlign: "left" }}>
+                  <p style={{ margin: 0, fontWeight: 700 }}>Generate TikTok/Reels teaser</p>
+                  <p style={{ margin: 0, fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                    12s animated video with waveform
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            <div style={{ marginTop: "16px" }}>
+              <p
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  marginBottom: "10px",
+                  textAlign: "center",
+                }}
+              >
+                Caption kit — copy & paste
+              </p>
+
+              {(
+                [
+                  { platform: "WhatsApp", key: "whatsapp" as const },
+                  { platform: "Instagram", key: "instagram" as const },
+                  { platform: "TikTok", key: "tiktok" as const },
+                  { platform: "LinkedIn", key: "linkedin" as const },
+                ] as const
+              ).map(({ platform, key }) => (
+                <button
+                  key={key}
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(captions[key]);
+                    toast.success(`${platform} caption copied!`);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: "12px",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <span>Copy {platform} caption</span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowShareOptions(false)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.3)",
+                fontSize: "14px",
+                cursor: "pointer",
+                width: "100%",
+                textAlign: "center",
+                marginTop: "16px",
+                padding: "8px",
+              }}
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
 
-      {/* spark question + style block — see full file */}
+      {showSparkQuestion && !isPlaying && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.92)",
+            zIndex: 300,
+            display: "flex",
+            alignItems: "flex-end",
+            animation: "fadeIn 0.5s ease",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "linear-gradient(to top, #0f0501, #1a0a05)",
+              borderRadius: "24px 24px 0 0",
+              padding: "40px 24px 56px",
+              textAlign: "center",
+              borderTop: "1px solid rgba(212,175,55,0.2)",
+            }}
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "3px",
+                background: "rgba(255,255,255,0.2)",
+                borderRadius: "999px",
+                margin: "0 auto 24px",
+              }}
+            />
+
+            <p
+              style={{
+                fontSize: "11px",
+                fontWeight: 900,
+                letterSpacing: "0.3em",
+                color: "#D4AF37",
+                textTransform: "uppercase",
+                marginBottom: "16px",
+              }}
+            >
+              ✦{" "}
+              {lang === "fr"
+                ? "Ce souvenir t'a touché"
+                : lang === "ar"
+                  ? "لمستك هذه الذكرى"
+                  : "This memory touched you"}
+            </p>
+
+            <h3
+              style={{
+                color: "#fff",
+                fontSize: "20px",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                lineHeight: 1.5,
+                marginBottom: "32px",
+                padding: "0 8px",
+              }}
+            >
+              {sparkQuestion}
+            </h3>
+
+            <button
+              onClick={() => {
+                setShowSparkQuestion(false);
+                navigate("/record", {
+                  state: {
+                    question: sparkQuestion,
+                    inspiredBy: {
+                      memoryId: bubble.id,
+                      title: bubble.title,
+                    },
+                  },
+                });
+              }}
+              style={{
+                width: "100%",
+                padding: "18px",
+                borderRadius: "18px",
+                background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "12px",
+                boxShadow: "0 4px 20px rgba(232,116,42,0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
+              🎙️ {lang === "fr" ? "Enregistrer ma réponse" : lang === "ar" ? "سجّل إجابتي" : "Record my answer"}
+            </button>
+
+            <button
+              onClick={() => setShowSparkQuestion(false)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "14px",
+                cursor: "pointer",
+                padding: "8px",
+              }}
+            >
+              {lang === "fr" ? "Plus tard" : lang === "ar" ? "لاحقاً" : "Maybe later"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>,
     document.body,
   );
-}
-
-function MemoryActions(
-  {
-    /* ... */
-  },
-) {
-  /* ... full component lines 1022-1240 ... */
 }
