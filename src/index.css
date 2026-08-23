@@ -246,27 +246,20 @@
   }
 }
 
-[data-memory-actions] button {
-  background-color: rgba(0, 0, 0, 0.5) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-[data-memory-actions] button svg {
-  width: 20px !important;
-  height: 20px !important;
-  stroke: white !important;
-  stroke-width: 1.8 !important;
-}
-
-[data-memory-actions] button {
-  background-color: rgba(0,0,0,0.6) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+.memory-action-btn {
+  background: none !important;
+  background-color: transparent !important;
   border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
-[data-memory-actions] button svg {
+.memory-action-btn svg {
   stroke: #FFFFFF !important;
-  fill: none !important;
+  width: 28px !important;
+  height: 28px !important;
+  stroke-width: 2 !important;
 }

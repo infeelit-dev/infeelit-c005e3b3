@@ -338,14 +338,26 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
 
   const actionButtonStyle: React.CSSProperties = {
     background: "none",
+    backgroundColor: "transparent",
     border: "none",
-    padding: "4px",
+    outline: "none",
+    boxShadow: "none",
+    padding: "0",
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    WebkitAppearance: "none",
+    appearance: "none",
     WebkitTapHighlightColor: "transparent",
     touchAction: "manipulation",
+  };
+
+  const actionCountStyle: React.CSSProperties = {
+    color: "#FFFFFF",
+    fontSize: "12px",
+    fontWeight: 700,
+    textShadow: "0 1px 4px rgba(0,0,0,0.9)",
   };
 
   return createPortal(
@@ -646,7 +658,6 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
 
       {/* TikTok action rail — inline, always on top */}
       <div
-        data-memory-actions
         style={{
           position: "fixed",
           right: "8px",
@@ -661,6 +672,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
       >
         <button
           type="button"
+          className="memory-action-btn"
           onTouchEnd={(e) => {
             e.stopPropagation();
             handleSpark();
@@ -675,19 +687,18 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
             width="28"
             height="28"
             viewBox="0 0 24 24"
-            fill={isSparked ? "#ff2d55" : "none"}
+            fill={isSparked ? "#FFFFFF" : "none"}
             stroke="#FFFFFF"
             strokeWidth="2"
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700 }}>
-            {sparksCount || 0}
-          </span>
+          <span style={actionCountStyle}>{sparksCount || 0}</span>
         </button>
 
         <button
           type="button"
+          className="memory-action-btn"
           onTouchEnd={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -698,13 +709,12 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-          <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700 }}>
-            {commentsCount || 0}
-          </span>
+          <span style={actionCountStyle}>{commentsCount || 0}</span>
         </button>
 
         <button
           type="button"
+          className="memory-action-btn"
           onTouchEnd={(e) => {
             e.stopPropagation();
             handleBookmark();
@@ -722,6 +732,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
 
         <button
           type="button"
+          className="memory-action-btn"
           onTouchEnd={(e) => {
             e.stopPropagation();
             setShowShareOptions(true);
