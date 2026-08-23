@@ -25,6 +25,7 @@ import CreateCircle from "./pages/CreateCircle";
 import JoinCircle from "./pages/JoinCircle";
 import Whispers from "./pages/Whispers";
 import Search from "./pages/Search";
+import Notifications from "./pages/Notifications";
 import Contact from "./pages/Contact";
 import AdminUpload from "./pages/AdminUpload";
 import MemoryDetail from "./pages/MemoryDetail";
@@ -91,6 +92,7 @@ const App = () => (
             <Route path="/create-circle" element={<CreateCircle />} />
             <Route path="/join/:code" element={<JoinCircle />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/contact" element={
               <HeaderProvider showBack pageTitle="Contact">
                 <Contact />

@@ -14,9 +14,10 @@ interface CommentSectionProps {
   userName: string;
   onClose: () => void;
   onCountChange?: (count: number) => void;
+  memoryOwnerId?: string;
 }
 
-export default function CommentSection({ memoryId, userName, onClose, onCountChange }: CommentSectionProps) {
+export default function CommentSection({ memoryId, userName, onClose, onCountChange, memoryOwnerId }: CommentSectionProps) {
   const { lang, rtl } = useLanguage();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -60,6 +61,19 @@ export default function CommentSection({ memoryId, userName, onClose, onCountCha
           .from("memories")
           .update({ comments_count: comments.length + 1 })
           .eq("id", memoryId);
+
+        const { data: authData } = await supabase.auth.getUser();
+        const fromId = authData.user?.id;
+        if (fromId && memoryOwnerId && memoryOwnerId !== fromId) {
+          await supabase.from("notifications").insert({
+            user_id: memoryOwnerId,
+            type: "comment",
+            memory_id: memoryId,
+            from_user_id: fromId,
+            read: false,
+            message: "commented on your memory",
+          });
+        }
       }
     } catch (err) {
       console.error("Comment error:", err);

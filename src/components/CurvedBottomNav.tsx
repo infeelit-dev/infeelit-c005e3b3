@@ -45,6 +45,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0, familySpace = false }: 
       const { count, error } = await supabase
         .from("notifications")
         .select("*", { count: "exact", head: true })
+        .eq("user_id", session.user.id)
         .eq("read", false)
         .neq("from_user_id", session.user.id);
 

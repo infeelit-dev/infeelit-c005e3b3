@@ -336,6 +336,16 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
           .from("memories")
           .update({ sparks_count: sparksCount + 1 })
           .eq("id", bubble.id);
+        if (bubble.user_id && bubble.user_id !== currentUserId) {
+          await supabase.from("notifications").insert({
+            user_id: bubble.user_id,
+            type: "spark",
+            memory_id: bubble.id,
+            from_user_id: currentUserId,
+            read: false,
+            message: "liked your memory",
+          });
+        }
       } else {
         const { error } = await supabase
           .from("memory_sparks")
@@ -931,6 +941,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
           <CommentSection
             memoryId={bubble.id}
             userName={userName || "Anonyme"}
+            memoryOwnerId={bubble.user_id}
             onClose={() => setShowComments(false)}
             onCountChange={(count) => setCommentsCount(count)}
           />

@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { pickLocalized } from "@/lib/pickLocalized";
@@ -45,6 +45,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
   const [langOpen, setLangOpen] = useState(false);
   const [langSearch, setLangSearch] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -59,6 +60,30 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
     });
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setUnreadCount(0);
+      return;
+    }
+    let cancelled = false;
+    const loadUnread = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user || cancelled) return;
+      const { count } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", session.user.id)
+        .eq("read", false);
+      if (!cancelled) setUnreadCount(count || 0);
+    };
+    loadUnread();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn]);
 
   const tabs = [
     { id: "memories" as Timeline, label: getTimelineLabel("memories", lang) },
@@ -348,6 +373,50 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
               )}
             </div>
 
+            {isLoggedIn && (
+              <button
+                onClick={() => navigate("/notifications")}
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  minWidth: "44px",
+                  minHeight: "44px",
+                  borderRadius: "50%",
+                  backgroundColor: "rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  backdropFilter: "blur(8px)",
+                  position: "relative",
+                }}
+              >
+                <Bell size={16} color="#fff" />
+                {unreadCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "4px",
+                      right: "4px",
+                      minWidth: "16px",
+                      height: "16px",
+                      borderRadius: "999px",
+                      background: "#E8742A",
+                      color: "#fff",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0 4px",
+                    }}
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
             <button
               onClick={() => navigate("/search")}
               style={{
