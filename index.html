@@ -42,11 +42,21 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js?v=3')
-            .then(reg => console.log('SW registered'))
-            .catch(err => console.log('SW error:', err));
+      // Service worker is optional — never block app boot (Firefox Focus / strict privacy)
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          try {
+            navigator.serviceWorker
+              .register("/sw.js?v=4")
+              .then(function () {
+                console.log("SW registered");
+              })
+              .catch(function (err) {
+                console.log("SW skipped:", err);
+              });
+          } catch (err) {
+            console.log("SW unavailable:", err);
+          }
         });
       }
     </script>
