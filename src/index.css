@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Noto+Sans+Tifinagh&family=Noto+Sans:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&family=Noto+Sans+Tifinagh&family=Noto+Sans:wght@400;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -74,7 +74,7 @@
   }
 
   body {
-    font-family: 'Nunito', sans-serif;
+    font-family: "Nunito", sans-serif;
     @apply bg-background text-foreground;
   }
 }
@@ -120,35 +120,78 @@
 
 /* Bubble floating animations — organic, asynchronous */
 @keyframes float-slow {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  20% { transform: translate(6px, -14px) scale(1.015); }
-  40% { transform: translate(-4px, -22px) scale(1.005); }
-  60% { transform: translate(10px, -16px) scale(0.995); }
-  80% { transform: translate(-3px, -8px) scale(1.01); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  20% {
+    transform: translate(6px, -14px) scale(1.015);
+  }
+  40% {
+    transform: translate(-4px, -22px) scale(1.005);
+  }
+  60% {
+    transform: translate(10px, -16px) scale(0.995);
+  }
+  80% {
+    transform: translate(-3px, -8px) scale(1.01);
+  }
 }
 
 @keyframes float-medium {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(-8px, -18px) scale(1.01); }
-  50% { transform: translate(5px, -28px) scale(0.99); }
-  75% { transform: translate(-6px, -10px) scale(1.005); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-8px, -18px) scale(1.01);
+  }
+  50% {
+    transform: translate(5px, -28px) scale(0.99);
+  }
+  75% {
+    transform: translate(-6px, -10px) scale(1.005);
+  }
 }
 
 @keyframes float-fast {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  30% { transform: translate(5px, -12px) scale(1.02); }
-  60% { transform: translate(-4px, -20px) scale(0.98); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  30% {
+    transform: translate(5px, -12px) scale(1.02);
+  }
+  60% {
+    transform: translate(-4px, -20px) scale(0.98);
+  }
 }
 
 @keyframes bokeh-drift {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.15; }
-  50% { transform: translate(25px, -35px) scale(1.15); opacity: 0.3; }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translate(25px, -35px) scale(1.15);
+    opacity: 0.3;
+  }
 }
 
 @keyframes countdown-pop {
-  0% { transform: scale(0.3); opacity: 0; }
-  40% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1); opacity: 0; }
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
 }
 
 .animate-float-slow {
@@ -172,11 +215,22 @@
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 .animate-shake {
@@ -184,6 +238,23 @@
 }
 
 @keyframes waveBar {
-  from { height: 4px; }
-  to { height: 40px; }
+  from {
+    height: 4px;
+  }
+  to {
+    height: 40px;
+  }
+}
+
+[data-memory-actions] button {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-memory-actions] button svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke: white !important;
+  stroke-width: 1.8 !important;
 }
