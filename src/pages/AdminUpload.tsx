@@ -2,8 +2,24 @@ import { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, ArrowLeft, Check, X } from "lucide-react";
+import { toast } from "sonner";
 
 const ADMIN_EMAILS = ["malik.ceo@infeelit.com", "amconsulting099@gmail.com"];
+
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/mov"];
+const ALLOWED_AUDIO_TYPES = ["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/ogg"];
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+
+const validateFile = (file: File, type: "video" | "audio"): string | null => {
+  const allowed = type === "video" ? ALLOWED_VIDEO_TYPES : ALLOWED_AUDIO_TYPES;
+  if (!allowed.includes(file.type)) {
+    return `Invalid file type. Allowed: ${allowed.join(", ")}`;
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return "File too large. Maximum 500MB.";
+  }
+  return null;
+};
 
 const THEMATIC_CATEGORIES = [
   { id: "enfance", label: "Enfance / Childhood / طفولة" },
@@ -183,7 +199,14 @@ const AdminUpload = () => {
   };
 
   const handleVideoSelect = async (file: File) => {
+    const validationError = validateFile(file, "video");
+    if (validationError) {
+      toast.error(validationError);
+      setError(validationError);
+      return;
+    }
     setVideoFile(file);
+    setError("");
     const thumb = await captureThumbnail(file);
     setAutoThumbnail(thumb);
     if (thumb) setThumbnailPreview(URL.createObjectURL(thumb));

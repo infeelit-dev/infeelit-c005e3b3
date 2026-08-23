@@ -27,7 +27,6 @@ import MemoryCard from "@/components/MemoryCard";
 import html2canvas from "html2canvas";
 import { CHAPTERS } from "@/data/questions";
 import { triggerTranscription } from "@/lib/triggerTranscription";
-
 import childImg from "@/assets/child.jpg";
 import grandfatherImg from "@/assets/grandfather.jpg";
 import houseImg from "@/assets/house.jpg";
@@ -38,6 +37,21 @@ import picnicImg from "@/assets/picnic.jpg";
 import marryImg from "@/assets/marry.jpg";
 import birthImg from "@/assets/birth.jpg";
 import graduateImg from "@/assets/graduate.jpg";
+
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/mov"];
+const ALLOWED_AUDIO_TYPES = ["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/ogg"];
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+
+const validateFile = (file: File, type: "video" | "audio"): string | null => {
+  const allowed = type === "video" ? ALLOWED_VIDEO_TYPES : ALLOWED_AUDIO_TYPES;
+  if (!allowed.includes(file.type)) {
+    return `Invalid file type. Allowed: ${allowed.join(", ")}`;
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return "File too large. Maximum 500MB.";
+  }
+  return null;
+};
 
 const MAX_DURATION_SECONDS = 180;
 const VIDEO_BITRATE = 500_000;
@@ -461,6 +475,13 @@ const Record = () => {
   useEffect(() => {
     const file = location.state?.importedFile as File | undefined;
     if (!location.state?.skipToImport || !file) return;
+
+    const validationError = validateFile(file, file.type.startsWith("audio/") ? "audio" : "video");
+    if (validationError) {
+      toast.error(validationError);
+      navigate("/", { replace: true });
+      return;
+    }
 
     isImportModeRef.current = true;
     setIsImportMode(true);
