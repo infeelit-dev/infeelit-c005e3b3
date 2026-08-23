@@ -1081,40 +1081,39 @@ function MemoryActions({
 
   return (
     <>
-      <div
-        style={{
-          position: "fixed",
-          right: "4px",
-          bottom: "100px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "12px",
-          zIndex: 10000,
-          opacity: 1,
-          pointerEvents: "auto",
-          transition: "opacity 0.3s ease",
-        }}
-      >
+        <div
+          style={{
+            position: "fixed",
+            right: "6px",
+            bottom: "90px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "10px",
+            zIndex: 10000,
+            opacity: 1,
+            pointerEvents: "auto",
+            transition: "opacity 0.3s ease",
+          }}
+        >
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={handleSpark}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.25)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-              transform: isSparked ? "scale(1.1)" : "scale(1)",
-              transition: "transform 0.2s ease",
-            }}
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "rgba(0,0,0,0.5)",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+                transform: isSparked ? "scale(1.1)" : "scale(1)",
+                transition: "transform 0.2s ease",
+              }}
           >
             <svg
               width="20"
@@ -1133,20 +1132,19 @@ function MemoryActions({
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={() => setShowComments(true)}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.25)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-            }}
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "rgba(0,0,0,0.5)",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -1160,20 +1158,19 @@ function MemoryActions({
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={handleBookmark}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.25)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-            }}
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "rgba(0,0,0,0.5)",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
@@ -1184,20 +1181,19 @@ function MemoryActions({
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             onPointerUp={() => setShowShareOptions(true)}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.25)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              backdropFilter: "blur(8px)",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-            }}
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "rgba(0,0,0,0.5)",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
               <circle cx="18" cy="5" r="3" />
