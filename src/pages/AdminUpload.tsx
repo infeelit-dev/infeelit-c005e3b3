@@ -37,6 +37,7 @@ const AdminUpload = () => {
 
   // Upload state
   const [uploading, setUploading] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -220,11 +221,13 @@ const AdminUpload = () => {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isPublishing) return;
     if (!videoFile || !firstName || !question) {
       setError("Remplis tous les champs requis.");
       return;
     }
 
+    setIsPublishing(true);
     setUploading(true);
     setProgress(10);
     setError("");
@@ -236,6 +239,7 @@ const AdminUpload = () => {
       if (!session) {
         setError("Tu dois être connecté comme admin.");
         setUploading(false);
+        setIsPublishing(false);
         return;
       }
 
@@ -314,10 +318,12 @@ const AdminUpload = () => {
         setDone(false);
         setProgress(0);
         setUploading(false);
+        setIsPublishing(false);
       }, 3000);
     } catch (err: any) {
       setError(err.message || "Erreur upload.");
       setUploading(false);
+      setIsPublishing(false);
       setProgress(0);
     }
   };
@@ -788,26 +794,26 @@ const AdminUpload = () => {
         {/* Bouton submit */}
         <button
           type="submit"
-          disabled={uploading || !videoFile || !firstName || !question}
+          disabled={isPublishing || uploading || !videoFile || !firstName || !question}
           style={{
             padding: "17px",
             borderRadius: "18px",
-            background: uploading ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #E8742A, #D4621A)",
+            background: uploading || isPublishing ? "rgba(255,255,255,0.1)" : "linear-gradient(135deg, #E8742A, #D4621A)",
             color: "#fff",
             fontWeight: 700,
             fontSize: "15px",
             border: "none",
-            cursor: uploading ? "not-allowed" : "pointer",
-            opacity: !videoFile || !firstName || !question ? 0.4 : 1,
+            cursor: uploading || isPublishing ? "not-allowed" : "pointer",
+            opacity: isPublishing || !videoFile || !firstName || !question ? 0.6 : 1,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "8px",
-            boxShadow: uploading ? "none" : "0 0 0 1px rgba(232,116,42,0.3), 0 8px 28px rgba(232,116,42,0.45)",
+            boxShadow: uploading || isPublishing ? "none" : "0 0 0 1px rgba(232,116,42,0.3), 0 8px 28px rgba(232,116,42,0.45)",
           }}
         >
           <Upload size={18} />
-          {uploading ? "Upload en cours..." : "Publier dans le feed ✦"}
+          {uploading || isPublishing ? "Upload en cours..." : "Publier dans le feed ✦"}
         </button>
       </form>
 

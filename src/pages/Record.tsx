@@ -333,6 +333,7 @@ const Record = () => {
   const auraRef = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const isPublishingRef = useRef(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const deliverAtRef = useRef<string>("");
   const isImportModeRef = useRef(false);
   const importTimelineRef = useRef<"memories" | "instant" | "forever">("memories");
@@ -1126,7 +1127,8 @@ const Record = () => {
   };
 
   const handlePublish = async () => {
-    if (isPublishingRef.current) return;
+    if (isPublishing || isPublishingRef.current) return;
+    setIsPublishing(true);
     isPublishingRef.current = true;
     try {
       const shareType =
@@ -1134,6 +1136,7 @@ const Record = () => {
       await handleShare(shareType);
     } finally {
       isPublishingRef.current = false;
+      setIsPublishing(false);
     }
   };
 
@@ -3484,12 +3487,14 @@ const Record = () => {
 
           <button
             onClick={handleVisibilityConfirm}
-            disabled={!visibilityChoice}
+            disabled={!visibilityChoice || isPublishing}
             className="w-full max-w-xs py-4 rounded-full gradient-orange font-bold text-base flex items-center justify-center gap-2 mt-2 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ color: "#fff" }}
+            style={{ color: "#fff", opacity: isPublishing ? 0.6 : 1 }}
           >
             <Share2 size={18} />
-            {pickLocalized(lang, { ar: "نشر ✦", fr: "Publier ✦", en: "Publish ✦" })}
+            {isPublishing
+              ? pickLocalized(lang, { ar: "جاري النشر…", fr: "Publication…", en: "Publishing…" })
+              : pickLocalized(lang, { ar: "نشر ✦", fr: "Publier ✦", en: "Publish ✦" })}
           </button>
         </div>
       )}
