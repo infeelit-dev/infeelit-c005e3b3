@@ -18,34 +18,69 @@ function toStoragePath(value: string): string | null {
   return null;
 }
 
-/**
- * Resolve a stored memory reference (path or legacy storage URL) into a
- * usable signed URL. Returns null when the object is missing or signing fails
- * (e.g. NoSuchKey / 400) so callers can skip orphan rows.
- */
-export async function resolveMemoryUrl(value: string | null | undefined): Promise<string | null> {
-  if (!value) return null;
-  const path = toStoragePath(value);
+export const getMemoryUrl = async (
+  path: string | null | undefined,
+  isPublic: boolean = false,
+): Promise<string | null> => {
   if (!path) return null;
+
+  // Already a full URL
+  if (path.startsWith("https://") || path.startsWith("http://")) {
+    const storagePath = toStoragePath(path);
+    if (isPublic && storagePath) {
+      const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+      return data.publicUrl || null;
+    }
+    return path;
+  }
+
+  const storagePath = toStoragePath(path) ?? path.replace(/^\/+/, "");
+  if (!storagePath) return null;
+
+  // For public memories, use public URL directly (instant, no signing)
+  if (isPublic) {
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+    return data.publicUrl || null;
+  }
+
+  // For private memories, use signed URL
   try {
     const { data, error } = await supabase.storage
       .from(BUCKET)
-      .createSignedUrl(path, SIGNED_TTL_SECONDS);
+      .createSignedUrl(storagePath, SIGNED_TTL_SECONDS);
     if (error || !data?.signedUrl) return null;
     return data.signedUrl;
   } catch {
     return null;
   }
+};
+
+/**
+ * Resolve a stored memory reference (path or legacy storage URL) into a
+ * usable URL. Uses public URLs for public memories, signed URLs otherwise.
+ */
+export async function resolveMemoryUrl(
+  value: string | null | undefined,
+  isPublic: boolean = false,
+): Promise<string | null> {
+  return getMemoryUrl(value, isPublic);
 }
 
-export async function resolveMemoryFields<T extends { file_url?: string | null; thumbnail_url?: string | null }>(
+export async function resolveMemoryFields<
+  T extends {
+    file_url?: string | null;
+    thumbnail_url?: string | null;
+    is_public?: boolean | null;
+  },
+>(
   rows: T[],
 ): Promise<Array<Omit<T, "file_url" | "thumbnail_url"> & { file_url: string | null; thumbnail_url: string | null }>> {
   return Promise.all(
     rows.map(async (row) => {
+      const isPublic = row.is_public === true;
       const [file_url, thumbnail_url] = await Promise.all([
-        resolveMemoryUrl(row.file_url),
-        resolveMemoryUrl(row.thumbnail_url),
+        getMemoryUrl(row.file_url, isPublic),
+        getMemoryUrl(row.thumbnail_url, isPublic),
       ]);
       return { ...row, file_url, thumbnail_url };
     }),

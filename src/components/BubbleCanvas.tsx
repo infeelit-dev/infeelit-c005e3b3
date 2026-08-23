@@ -232,7 +232,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
       index: number,
       profilesMap: Record<string, string>,
     ): BubbleData => {
-      // Prefer signed thumbnail_url (https) from resolveMemoryFields — never use raw storage paths as img src
+      // Prefer resolved thumbnail_url (https) from resolveMemoryFields — never use raw storage paths as img src
       const rawThumb = typeof m.thumbnail_url === "string" ? m.thumbnail_url : null;
       const rawPoster = typeof m.poster_url === "string" ? m.poster_url : null;
       const signedThumb =
@@ -330,6 +330,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
       }
 
       const profilesMap = await fetchProfilesMap(data);
+      // resolveMemoryFields uses memory.is_public for instant public URLs (no signing)
       const resolved = await resolveMemoryFields(data);
       const validMemories = resolved.filter(
         (m) => m.file_url !== null && m.file_url !== "",
@@ -383,6 +384,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
 
     if (data && data.length > 0) {
       const profilesMap = await fetchProfilesMap(data);
+      // resolveMemoryFields uses memory.is_public for instant public URLs (no signing)
       const resolved = await resolveMemoryFields(data);
       const validMemories = resolved.filter(
         (m) => m.file_url !== null && m.file_url !== "",
