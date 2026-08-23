@@ -118,7 +118,12 @@ const MemoryDetail = () => {
           gap: "16px",
         }}
       >
-        <p>Ce souvenir n'existe pas ou n'est plus accessible.</p>
+        <p style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: "20px" }}>
+          This memory doesn't exist yet.
+        </p>
+        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px" }}>
+          The page you're looking for has been moved or deleted.
+        </p>
         <button
           onClick={() => navigate("/")}
           style={{
@@ -147,6 +152,7 @@ const MemoryDetail = () => {
     user_name: memory.profiles?.display_name?.split(" ")[0] || "Quelqu'un",
     user_id: memory.user_id,
     sparks_count: memory.sparks_count || 0,
+    comments_count: memory.comments_count || 0,
     transcript_fr: memory.transcript_fr || null,
     transcript_en: memory.transcript_en || null,
     transcript_ar: memory.transcript_ar || null,
