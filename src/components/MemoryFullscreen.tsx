@@ -49,6 +49,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
   const [sparksCount, setSparksCount] = useState(bubble.sparks_count || 0);
   const [showComments, setShowComments] = useState(false);
   const [commentsCount, setCommentsCount] = useState(0);
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
   const isPlayingRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -61,14 +62,20 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
     videoRef.current.play().catch(console.error);
   }, [bubble.file_url]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSwipeHint(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const touchStartY = useState(0);
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY[1](e.touches[0].clientY);
   };
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const delta = e.changedTouches[0].clientY - touchStartY[0];
-    if (delta > 80) handleClose();
+    const deltaY = e.changedTouches[0].clientY - touchStartY[0];
+    if (deltaY > 100) {
+      handleClose();
+    }
   };
 
   const displayName = bubble.author_name || bubble.user_name || "Anonyme";
@@ -362,8 +369,6 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
 
   return createPortal(
     <div
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
       style={{
         position: "fixed",
         inset: 0,
@@ -374,6 +379,8 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
     >
       {!isAudio && bubble.file_url && (
         <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           style={{
             position: "relative",
             width: "100%",
@@ -568,6 +575,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
       />
 
       <button
+        type="button"
         onTouchEnd={(e) => {
           e.stopPropagation();
           handleClose();
@@ -576,20 +584,19 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
         style={{
           position: "fixed",
           top: "20px",
-          right: "20px",
+          left: "16px",
           width: "44px",
           height: "44px",
           borderRadius: "50%",
-          background: "rgba(0,0,0,0.6)",
-          backdropFilter: "none",
-          border: "1px solid rgba(255,255,255,0.2)",
-          color: "#fff",
-          fontSize: "20px",
+          background: "rgba(0,0,0,0.3)",
+          border: "none",
+          color: "#FFFFFF",
+          fontSize: "24px",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          zIndex: 99999,
+          zIndex: 10001,
           WebkitTapHighlightColor: "transparent",
           touchAction: "manipulation",
         }}
@@ -597,13 +604,30 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
         ×
       </button>
 
+      {showSwipeHint && (
+        <div
+          style={{
+            position: "fixed",
+            top: "70px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "rgba(255,255,255,0.6)",
+            fontSize: "12px",
+            zIndex: 10001,
+            pointerEvents: "none",
+          }}
+        >
+          ↓ swipe to close
+        </div>
+      )}
+
       {bubble.title && (
         <div
           style={{
             position: "fixed",
             top: "20px",
-            left: "16px",
-            right: "72px",
+            left: "72px",
+            right: "16px",
             zIndex: 10000,
             padding: "8px 16px",
             borderRadius: "12px",
