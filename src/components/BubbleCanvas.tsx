@@ -92,6 +92,7 @@ interface BubbleData {
   id: string;
   type: "real" | "demo";
   title: string;
+  description?: string | null;
   file_url?: string;
   file_type?: string | null;
   thumbnail_url?: string | null;
@@ -246,6 +247,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline, onMemoryOpen }: BubbleCan
         id: m.id as string,
         type: "real",
         title,
+        description: (m.description as string | null) || null,
         file_url: (m.file_url as string) || "",
         file_type: (m.file_type as string) || "video",
         thumbnail_url: signedThumb || signedPoster,

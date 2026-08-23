@@ -140,6 +140,7 @@ const MemoryDetail = () => {
     id: memory.id,
     type: "real" as const,
     title: memory.title || "Un souvenir",
+    description: memory.description || null,
     file_url: signedFileUrl || "",
     file_type: memory.file_type || "video",
     thumbnail_url: signedThumbUrl,

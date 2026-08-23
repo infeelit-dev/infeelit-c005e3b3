@@ -9,10 +9,75 @@ import CommentSection from "@/components/CommentSection";
 import { supabase } from "@/integrations/supabase/client";
 import generateEchoCard, { generateStoriesCard, generateTeaserVideo } from "@/components/EchoCard";
 
+function DescriptionText({ description, lang }: { description: string; lang: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = description.length > 80;
+  const displayText = expanded ? description : description.slice(0, 80);
+
+  const renderWithHashtags = (text: string) => {
+    const parts = text.split(/(#\w+)/g);
+    return parts.map((part, i) =>
+      part.startsWith("#") ? (
+        <span key={i} style={{ color: "#E8742A", fontWeight: 700 }}>
+          {part}
+        </span>
+      ) : (
+        <span key={i}>{part}</span>
+      ),
+    );
+  };
+
+  return (
+    <p
+      style={{
+        color: "rgba(255,255,255,0.85)",
+        fontSize: "13px",
+        lineHeight: 1.4,
+        margin: 0,
+        textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+      }}
+    >
+      {renderWithHashtags(displayText)}
+      {isLong && !expanded && "… "}
+      {isLong && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((prev) => !prev);
+          }}
+          style={{
+            background: "none",
+            border: "none",
+            color: "rgba(255,255,255,0.6)",
+            fontSize: "12px",
+            cursor: "pointer",
+            padding: 0,
+            marginLeft: "4px",
+          }}
+        >
+          {expanded
+            ? lang === "fr"
+              ? "moins"
+              : lang === "ar"
+                ? "أقل"
+                : "less"
+            : lang === "fr"
+              ? "plus"
+              : lang === "ar"
+                ? "المزيد"
+                : "more"}
+        </button>
+      )}
+    </p>
+  );
+}
+
 interface MemoryFullscreenProps {
   bubble: {
     id: string;
     title?: string | null;
+    description?: string | null;
     file_url?: string | null;
     file_type?: string | null;
     user_id?: string;
@@ -669,6 +734,11 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
         >
           {displayName}
         </p>
+        {bubble.description && (
+          <div style={{ marginTop: "6px", maxWidth: "calc(100% - 80px)" }}>
+            <DescriptionText description={bubble.description} lang={lang} />
+          </div>
+        )}
         {bubble.translation_status === "done" && (
           <SubtitleDisplay
             transcript_fr={bubble.transcript_fr ?? undefined}

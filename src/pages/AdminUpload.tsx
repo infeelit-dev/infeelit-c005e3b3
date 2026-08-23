@@ -26,6 +26,7 @@ const AdminUpload = () => {
   const [firstName, setFirstName] = useState("");
   const [city, setCity] = useState("");
   const [question, setQuestion] = useState("");
+  const [description, setDescription] = useState("");
   const [category, setCategory] = useState("enfance");
   const [isPublic, setIsPublic] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -279,7 +280,7 @@ const AdminUpload = () => {
         user_name: memoryAuthorName,
         author_name: memoryAuthorName,
         title: displayTitle,
-        description: city ? `${firstName} · ${city}` : firstName,
+        description: description || null,
         file_url: fileName,
         file_type: "video",
         thumbnail_url: thumbnailPath,
@@ -302,6 +303,7 @@ const AdminUpload = () => {
         setFirstName("");
         setCity("");
         setQuestion("");
+        setDescription("");
         setCategory("enfance");
         setIsPublic(true);
         setIsAnonymous(false);
@@ -602,6 +604,26 @@ const AdminUpload = () => {
             }}
           />
         </div>
+
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Description or #hashtags (optional, max 150 chars)"
+          maxLength={150}
+          rows={2}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            background: "rgba(255,255,255,0.1)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            color: "#fff",
+            fontSize: "14px",
+            resize: "none",
+            outline: "none",
+            marginBottom: "12px",
+          }}
+        />
 
         {/* Catégorie */}
         <div>

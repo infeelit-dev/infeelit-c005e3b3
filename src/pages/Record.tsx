@@ -344,6 +344,7 @@ const Record = () => {
   const [countdown, setCountdown] = useState(3);
   const [followupIdx, setFollowIdx] = useState(0);
   const [memoryTitle, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [audioMode, setAudioMode] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [estSize, setEstSize] = useState("0 KB");
@@ -1260,7 +1261,7 @@ const Record = () => {
             title:
               memoryTitle ||
               (pickLocalized(lang, { fr: "Un souvenir", ar: "ذكرى", en: "A memory" })),
-            description: null,
+            description: description || null,
             file_url: finalUrl,
             file_type: typeRef.current,
             thumbnail_url: finalThumbnailUrl,
@@ -1978,6 +1979,48 @@ const Record = () => {
             autoFocus
             dir={rtl ? "rtl" : "ltr"}
           />
+
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={
+              lang === "fr"
+                ? "Ajoute une description ou des #hashtags... (optionnel)"
+                : lang === "ar"
+                  ? "أضف وصفاً أو #وسوم... (اختياري)"
+                  : "Add a description or #hashtags... (optional)"
+            }
+            maxLength={150}
+            rows={2}
+            style={{
+              width: "100%",
+              maxWidth: "320px",
+              padding: "12px 16px",
+              borderRadius: "12px",
+              border: "1.5px solid rgba(255,255,255,0.15)",
+              background: "rgba(255,255,255,0.06)",
+              color: "#fff",
+              fontSize: "14px",
+              resize: "none",
+              outline: "none",
+              fontFamily: "Georgia, serif",
+              lineHeight: 1.5,
+              marginTop: "12px",
+            }}
+            dir={rtl ? "rtl" : "ltr"}
+          />
+          <p
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontSize: "11px",
+              textAlign: "right",
+              maxWidth: "320px",
+              width: "100%",
+              marginTop: "4px",
+            }}
+          >
+            {description.length}/150
+          </p>
 
           {!isImportMode && recordMode === "forever" && (
             <div style={{ width: "100%", maxWidth: "360px", marginBottom: "16px" }}>
