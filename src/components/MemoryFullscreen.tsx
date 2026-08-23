@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import generateEchoCard, { generateStoriesCard, generateTeaserVideo } from "@/components/EchoCard";
 
 function DescriptionText({ description, lang }: { description: string; lang: string }) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const isLong = description.length > 80;
   const displayText = expanded ? description : description.slice(0, 80);
@@ -18,7 +19,14 @@ function DescriptionText({ description, lang }: { description: string; lang: str
     const parts = text.split(/(#\w+)/g);
     return parts.map((part, i) =>
       part.startsWith("#") ? (
-        <span key={i} style={{ color: "#E8742A", fontWeight: 700 }}>
+        <span
+          key={i}
+          style={{ color: "#E8742A", fontWeight: 700, cursor: "pointer" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/search?tag=${encodeURIComponent(part.slice(1))}`);
+          }}
+        >
           {part}
         </span>
       ) : (
