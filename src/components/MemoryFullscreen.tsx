@@ -539,7 +539,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
           height: "44px",
           borderRadius: "50%",
           background: "rgba(0,0,0,0.6)",
-          backdropFilter: "blur(8px)",
+          backdropFilter: "none",
           border: "1px solid rgba(255,255,255,0.2)",
           color: "#fff",
           fontSize: "20px",
