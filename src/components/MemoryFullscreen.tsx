@@ -570,7 +570,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
             fontSize: "14px",
             fontWeight: 600,
             lineHeight: 1.35,
-            backdropFilter: "blur(8px)",
+            backdropFilter: "none",
             direction: rtl ? "rtl" : "ltr",
           }}
         >
