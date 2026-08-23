@@ -616,19 +616,20 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
 
       {/* TikTok action rail — inline, always on top */}
       <div
+        data-memory-actions
         style={{
           position: "fixed",
-          right: "8px",
-          bottom: "110px",
+          right: "6px",
+          bottom: "90px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "14px",
+          gap: "10px",
           zIndex: 10050,
           pointerEvents: "auto",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             type="button"
             onTouchEnd={(e) => {
@@ -640,10 +641,10 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               handleSpark();
             }}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "36px",
+              height: "36px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.45)",
+              backgroundColor: "rgba(0,0,0,0.6)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -655,39 +656,36 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
             }}
           >
             <svg
-              width="24"
-              height="24"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill={isSparked ? "#ff2d55" : "none"}
               stroke="#FFFFFF"
-              strokeWidth="2"
+              strokeWidth="1.8"
             >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </button>
           <span
-            style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+            style={{ color: "#FFFFFF", fontSize: "11px", fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
           >
             {sparksCount || 0}
           </span>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             type="button"
             onTouchEnd={(e) => {
-              e.stopPropagation();
-              setShowComments(true);
-            }}
-            onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               setShowComments(true);
             }}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "36px",
+              height: "36px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.45)",
+              backgroundColor: "rgba(0,0,0,0.6)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -698,18 +696,18 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </button>
           <span
-            style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
+            style={{ color: "#FFFFFF", fontSize: "11px", fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
           >
             {commentsCount || 0}
           </span>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             type="button"
             onTouchEnd={(e) => {
@@ -721,10 +719,10 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               handleBookmark();
             }}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "36px",
+              height: "36px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.45)",
+              backgroundColor: "rgba(0,0,0,0.6)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -735,13 +733,13 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
           </button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
           <button
             type="button"
             onTouchEnd={(e) => {
@@ -753,10 +751,10 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               setShowShareOptions(true);
             }}
             style={{
-              width: "44px",
-              height: "44px",
+              width: "36px",
+              height: "36px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.45)",
+              backgroundColor: "rgba(0,0,0,0.6)",
               border: "none",
               display: "flex",
               alignItems: "center",
@@ -767,7 +765,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8">
               <circle cx="18" cy="5" r="3" />
               <circle cx="6" cy="12" r="3" />
               <circle cx="18" cy="19" r="3" />
@@ -792,7 +790,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               width: "36px",
               height: "36px",
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.35)",
+              backgroundColor: "rgba(0,0,0,0.6)",
               border: "none",
               color: "rgba(255,255,255,0.6)",
               fontSize: "14px",
@@ -808,6 +806,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
           </button>
         )}
       </div>
+
 
       {showComments && (
         <div style={{ position: "fixed", inset: 0, zIndex: 10060 }}>
