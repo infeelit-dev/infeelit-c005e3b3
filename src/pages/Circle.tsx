@@ -292,20 +292,22 @@ const Circle = () => {
   if (loading) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
         style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "200px",
           background: "#FDF8F2",
-          transition: "background-color 0.3s ease",
         }}
       >
         <div
           style={{
-            width: "36px",
-            height: "36px",
+            width: "40px",
+            height: "40px",
             borderRadius: "50%",
-            border: "3px solid rgba(232,116,42,0.2)",
-            borderTopColor: "#E8742A",
-            animation: "spin 0.8s linear infinite",
+            border: "3px solid rgba(232,116,42,0.3)",
+            borderTop: "3px solid #E8742A",
+            animation: "spin 1s linear infinite",
           }}
         />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
