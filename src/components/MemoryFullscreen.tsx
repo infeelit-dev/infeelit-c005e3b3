@@ -334,6 +334,19 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
   };
 
   const isAudio = bubble.file_type === "audio";
+  const posterUrl = bubble.image || bubble.thumbnail_url || "";
+
+  const actionButtonStyle: React.CSSProperties = {
+    background: "none",
+    border: "none",
+    padding: "4px",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    WebkitTapHighlightColor: "transparent",
+    touchAction: "manipulation",
+  };
 
   return createPortal(
     <div
@@ -359,7 +372,22 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
             background: "#000",
           }}
         >
-          {!videoReady && (
+          {!videoReady && posterUrl && (
+            <img
+              src={posterUrl}
+              alt=""
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                maxHeight: "100vh",
+                objectFit: "contain",
+                zIndex: 9997,
+              }}
+            />
+          )}
+          {!videoReady && !posterUrl && (
             <div
               style={{
                 position: "absolute",
@@ -391,7 +419,7 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
             muted={false}
             preload="auto"
             crossOrigin="anonymous"
-            poster={bubble.image || bubble.thumbnail_url || ""}
+            poster={posterUrl}
             onLoadStart={() => setVideoReady(false)}
             onCanPlay={() => setVideoReady(true)}
             onCanPlayThrough={() => setVideoReady(true)}
@@ -420,6 +448,8 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               height: "100%",
               maxHeight: "100vh",
               objectFit: "contain",
+              opacity: videoReady ? 1 : 0,
+              transition: "opacity 0.2s ease",
             }}
           />
         </div>
@@ -619,161 +649,97 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
         data-memory-actions
         style={{
           position: "fixed",
-          right: "6px",
-          bottom: "90px",
+          right: "8px",
+          bottom: "100px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "10px",
+          gap: "20px",
           zIndex: 10050,
           pointerEvents: "auto",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-          <button
-            type="button"
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              handleSpark();
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSpark();
-            }}
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(0,0,0,0.6)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-            }}
+        <button
+          type="button"
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            handleSpark();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSpark();
+          }}
+          style={actionButtonStyle}
+        >
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill={isSparked ? "#ff2d55" : "none"}
+            stroke="#FFFFFF"
+            strokeWidth="2"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill={isSparked ? "#ff2d55" : "none"}
-              stroke="#FFFFFF"
-              strokeWidth="1.8"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
-          <span
-            style={{ color: "#FFFFFF", fontSize: "11px", fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
-          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700 }}>
             {sparksCount || 0}
           </span>
-        </div>
+        </button>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-          <button
-            type="button"
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setShowComments(true);
-            }}
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(0,0,0,0.6)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </button>
-          <span
-            style={{ color: "#FFFFFF", fontSize: "11px", fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}
-          >
+        <button
+          type="button"
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowComments(true);
+          }}
+          style={actionButtonStyle}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700 }}>
             {commentsCount || 0}
           </span>
-        </div>
+        </button>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-          <button
-            type="button"
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              handleBookmark();
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleBookmark();
-            }}
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(0,0,0,0.6)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-            </svg>
-          </button>
-        </div>
+        <button
+          type="button"
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            handleBookmark();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleBookmark();
+          }}
+          style={actionButtonStyle}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-          <button
-            type="button"
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              setShowShareOptions(true);
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowShareOptions(true);
-            }}
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(0,0,0,0.6)",
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="1.8">
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-            </svg>
-          </button>
-        </div>
+        <button
+          type="button"
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            setShowShareOptions(true);
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowShareOptions(true);
+          }}
+          style={actionButtonStyle}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+        </button>
 
         {currentUserId && bubble.user_id !== currentUserId && (
           <button
@@ -787,19 +753,9 @@ export default function MemoryFullscreen({ bubble, onClose, userName, currentUse
               handleReport();
             }}
             style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              backgroundColor: "rgba(0,0,0,0.6)",
-              border: "none",
+              ...actionButtonStyle,
               color: "rgba(255,255,255,0.6)",
               fontSize: "14px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
             }}
           >
             ⚑
