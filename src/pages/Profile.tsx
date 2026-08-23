@@ -12,6 +12,7 @@ import { toast } from "sonner";
 interface ProfileMemory {
   id: string;
   title: string | null;
+  description: string | null;
   thumbnail_url: string | null;
   created_at: string;
   sparks_count: number;
@@ -21,22 +22,21 @@ interface ProfileMemory {
 const LoadingSpinner = () => (
   <div
     style={{
-      minHeight: "100vh",
-      background: "#FDF8F2",
-      transition: "background-color 0.3s ease",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      minHeight: "200px",
+      background: "#FDF8F2",
     }}
   >
     <div
       style={{
-        width: "32px",
-        height: "32px",
-        border: "2px solid rgba(232,116,42,0.2)",
-        borderTopColor: "#E8742A",
+        width: "40px",
+        height: "40px",
         borderRadius: "50%",
-        animation: "spin 0.8s linear infinite",
+        border: "3px solid rgba(232,116,42,0.3)",
+        borderTop: "3px solid #E8742A",
+        animation: "spin 1s linear infinite",
       }}
     />
     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -54,6 +54,10 @@ const Profile = () => {
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState("");
   const [editMode, setEditMode] = useState(false);
+  const [editingMemoryId, setEditingMemoryId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
   const [memoryToDelete, setMemoryToDelete] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -84,7 +88,33 @@ const Profile = () => {
     toast.success(pickLocalized(lang, { fr: "Nom mis à jour ✦", ar: "تم تحديث الاسم ✦", en: "Name updated ✦" }));
   };
 
-  const handleDeleteMemory = (memoryId: string) => {
+    const handleSaveMemoryEdit = async (memoryId: string) => {
+    if (savingEdit) return;
+    setSavingEdit(true);
+    const { error } = await supabase
+      .from("memories")
+      .update({
+        title: editTitle.trim() || null,
+        description: editDescription.trim() || null,
+      })
+      .eq("id", memoryId);
+    setSavingEdit(false);
+    if (error) {
+      toast.error(pickLocalized(lang, { fr: "Erreur de sauvegarde", ar: "خطأ في الحفظ", en: "Save failed" }));
+      return;
+    }
+    setMemories((prev) =>
+      prev.map((m) =>
+        m.id === memoryId
+          ? { ...m, title: editTitle.trim() || null, description: editDescription.trim() || null }
+          : m,
+      ),
+    );
+    setEditingMemoryId(null);
+    toast.success(pickLocalized(lang, { fr: "Souvenir mis à jour", ar: "تم تحديث الذكرى", en: "Memory updated" }));
+  };
+
+const handleDeleteMemory = (memoryId: string) => {
     setMemoryToDelete(memoryId);
   };
 
@@ -149,7 +179,7 @@ const Profile = () => {
       const to = (page + 1) * PAGE_SIZE - 1;
       const { data } = await supabase
         .from("memories")
-        .select("id, title, thumbnail_url, created_at, sparks_count, file_type")
+        .select("id, title, description, thumbnail_url, created_at, sparks_count, file_type")
         .eq("user_id", routeUserId || session.user.id)
         .order("created_at", { ascending: false })
         .range(from, to);
@@ -688,7 +718,15 @@ const Profile = () => {
             {memories.map((memory) => (
               <div
                 key={memory.id}
-                onClick={() => navigate(`/memory/${memory.id}`)}
+                onClick={() => {
+                  if (editMode) {
+                    setEditingMemoryId(memory.id);
+                    setEditTitle(memory.title || "");
+                    setEditDescription(memory.description || "");
+                    return;
+                  }
+                  navigate(`/memory/${memory.id}`);
+                }}
                 style={{
                   aspectRatio: "9/16",
                   borderRadius: "12px",
@@ -764,6 +802,37 @@ const Profile = () => {
                     🎙️
                   </div>
                 )}
+
+                {(memory.title || editMode) && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      padding: "28px 8px 8px",
+                      background: "linear-gradient(transparent, rgba(0,0,0,0.75))",
+                      zIndex: 3,
+                    }}
+                  >
+                    <p
+                      style={{
+                        margin: 0,
+                        color: "#fff",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        lineHeight: 1.3,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {memory.title || "Untitled"}
+                    </p>
+                  </div>
+                )}
+
                 {memory.sparks_count > 0 && (
                   <div
                     style={{
@@ -937,6 +1006,116 @@ const Profile = () => {
             >
               {getLabel("cancel", lang)}
             </button>
+          </div>
+        </div>
+      )}
+
+      
+      {editingMemoryId && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            zIndex: 100,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+          }}
+          onClick={() => setEditingMemoryId(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "480px",
+              background: "#FFF9F2",
+              borderRadius: "24px 24px 0 0",
+              padding: "24px 20px 32px",
+            }}
+          >
+            <p style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: "18px", color: "#2D1810", marginBottom: "16px" }}>
+              {pickLocalized(lang, { fr: "Modifier le souvenir", ar: "تعديل الذكرى", en: "Edit memory" })}
+            </p>
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#E8742A", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Title
+            </label>
+            <input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              maxLength={80}
+              style={{
+                width: "100%",
+                marginTop: "8px",
+                marginBottom: "14px",
+                padding: "12px 14px",
+                borderRadius: "12px",
+                border: "1px solid #E8D5B7",
+                background: "#fff",
+                color: "#2D1810",
+                fontSize: "15px",
+                boxSizing: "border-box",
+              }}
+            />
+            <label style={{ fontSize: "11px", fontWeight: 700, color: "#E8742A", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Description
+            </label>
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value.slice(0, 150))}
+              maxLength={150}
+              rows={3}
+              style={{
+                width: "100%",
+                marginTop: "8px",
+                marginBottom: "8px",
+                padding: "12px 14px",
+                borderRadius: "12px",
+                border: "1px solid #E8D5B7",
+                background: "#fff",
+                color: "#2D1810",
+                fontSize: "14px",
+                resize: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            <p style={{ fontSize: "11px", color: "#9B7355", marginBottom: "16px" }}>{editDescription.length}/150</p>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                type="button"
+                onClick={() => setEditingMemoryId(null)}
+                style={{
+                  flex: 1,
+                  padding: "14px",
+                  borderRadius: "999px",
+                  border: "1px solid #E8D5B7",
+                  background: "#fff",
+                  color: "#2D1810",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {pickLocalized(lang, { fr: "Annuler", ar: "إلغاء", en: "Cancel" })}
+              </button>
+              <button
+                type="button"
+                disabled={savingEdit}
+                onClick={() => handleSaveMemoryEdit(editingMemoryId)}
+                style={{
+                  flex: 1,
+                  padding: "14px",
+                  borderRadius: "999px",
+                  border: "none",
+                  background: "linear-gradient(135deg, #E8742A, #D4621A)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  cursor: savingEdit ? "not-allowed" : "pointer",
+                  opacity: savingEdit ? 0.6 : 1,
+                }}
+              >
+                {pickLocalized(lang, { fr: "Enregistrer", ar: "حفظ", en: "Save" })}
+              </button>
+            </div>
           </div>
         </div>
       )}
