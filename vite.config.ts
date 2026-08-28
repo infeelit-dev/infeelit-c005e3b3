@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import legacy from "@vitejs/plugin-legacy";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
@@ -12,14 +13,23 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(),
+    legacy({
+      targets: ["firefox >= 68", "chrome >= 60", "safari >= 12"],
+      modernTargets: ["firefox >= 68", "chrome >= 67", "safari >= 14", "ios >= 14"],
+      additionalLegacyPolyfills: ["regenerator-runtime/runtime"],
+      modernPolyfills: true,
+      renderLegacyChunks: true,
+    }),
+    mode === "development" && componentTagger(),
+  ].filter(Boolean),
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
           "react-vendor": ["react", "react-dom"],
           supabase: ["@supabase/supabase-js"],
-          maplibre: ["maplibre-gl", "react-map-gl/maplibre"],
           ui: ["lucide-react"],
         },
       },
