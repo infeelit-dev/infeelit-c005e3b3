@@ -50,7 +50,10 @@ export default function MemoryFullscreen({
     <div
       style={{
         position: "fixed",
-        inset: 0,
+        top: "104px",
+        left: 0,
+        right: 0,
+        bottom: 0,
         zIndex: 200,
         background: "#000",
         animation: isClosing
@@ -62,7 +65,7 @@ export default function MemoryFullscreen({
         <div
           style={{
             width: "100%",
-            height: "100vh",
+            height: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -80,7 +83,7 @@ export default function MemoryFullscreen({
             style={{
               width: "100%",
               height: "100%",
-              maxHeight: "100vh",
+              maxHeight: "100%",
               objectFit: "contain",
             }}
           />
@@ -168,7 +171,7 @@ export default function MemoryFullscreen({
         onClick={handleClose}
         style={{
           position: "absolute",
-          top: "56px",
+          top: "16px",
           left: "16px",
           width: "40px",
           height: "40px",
