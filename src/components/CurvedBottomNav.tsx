@@ -26,7 +26,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // ✅ CORRECTION 2 — handleFlameClick redirige vers /me si connecté
+  // Me tab uses /profile (no /me route)
   const handleFlameClick = () => {
     if (isLoggedIn) {
       navigate("/profile");
@@ -47,13 +47,14 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
     {
       icon: "flame",
       label: getLabel("me", lang),
-      path: isLoggedIn ? "/me" : "/welcome",
+      path: isLoggedIn ? "/profile" : "/welcome",
     },
   ];
 
   const isActive = (path: string) => {
     if (path === "/record") return false;
     if (path === "/circles" && (location.pathname === "/circles" || location.pathname === "/circle")) return true;
+    if (path === "/profile" && (location.pathname === "/profile" || location.pathname.startsWith("/profile/"))) return true;
     return location.pathname === path;
   };
 
@@ -76,7 +77,7 @@ const CurvedBottomNav = ({ onPlusClick, circleBadge = 0 }: CurvedBottomNavProps)
             return (
               <button
                 key="record"
-                onClick={() => onPlusClick?.()}
+                onClick={() => (onPlusClick ? onPlusClick() : navigate("/record"))}
                 className="relative -top-6 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform"
                 style={{
                   background: "linear-gradient(135deg, #E8742A, #D4621A)",

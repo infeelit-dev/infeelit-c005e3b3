@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SubtitleDisplay from "@/components/SubtitleDisplay";
+import CommentSection from "@/components/CommentSection";
 
 interface MemoryFullscreenProps {
   bubble: {
@@ -24,12 +25,19 @@ interface MemoryFullscreenProps {
 export default function MemoryFullscreen({
   bubble,
   onClose,
+  userName,
 }: MemoryFullscreenProps) {
   const { lang, rtl } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [commentsCount, setCommentsCount] = useState(0);
 
   const handleClose = () => {
+    if (showComments) {
+      setShowComments(false);
+      return;
+    }
     setIsClosing(true);
     setTimeout(() => {
       onClose();
@@ -278,42 +286,109 @@ export default function MemoryFullscreen({
           transition: "opacity 0.3s ease",
         }}
       >
-        {[
-          {
-            icon: "✦",
-            label: (bubble.sparks_count ?? 0) > 0 ? String(bubble.sparks_count) : "",
-            color: "#E8742A",
-          },
-          { icon: "💬", label: "", color: "#fff" },
-          { icon: "📤", label: "", color: "#fff" },
-          { icon: "🔖", label: "", color: "#fff" },
-        ].map(({ icon, label }, i) => (
-          <div key={i} style={{ textAlign: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              fontSize: "28px",
+              margin: 0,
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
+            }}
+          >
+            ✦
+          </p>
+          {(bubble.sparks_count ?? 0) > 0 && (
             <p
               style={{
-                fontSize: "28px",
-                margin: 0,
-                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
+                fontSize: "11px",
+                color: "#fff",
+                margin: "2px 0 0",
+                fontWeight: 700,
+                textShadow: "0 1px 3px rgba(0,0,0,0.8)",
               }}
             >
-              {icon}
+              {bubble.sparks_count}
             </p>
-            {label && (
-              <p
-                style={{
-                  fontSize: "11px",
-                  color: "#fff",
-                  margin: "2px 0 0",
-                  fontWeight: 700,
-                  textShadow: "0 1px 3px rgba(0,0,0,0.8)",
-                }}
-              >
-                {label}
-              </p>
-            )}
-          </div>
-        ))}
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowComments(true);
+          }}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            textAlign: "center",
+          }}
+          aria-label={lang === "fr" ? "Commentaires" : lang === "ar" ? "تعليقات" : "Comments"}
+        >
+          <p
+            style={{
+              fontSize: "28px",
+              margin: 0,
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
+            }}
+          >
+            💬
+          </p>
+          {commentsCount > 0 && (
+            <p
+              style={{
+                fontSize: "11px",
+                color: "#fff",
+                margin: "2px 0 0",
+                fontWeight: 700,
+                textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+              }}
+            >
+              {commentsCount}
+            </p>
+          )}
+        </button>
+
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              fontSize: "28px",
+              margin: 0,
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
+            }}
+          >
+            📤
+          </p>
+        </div>
+
+        <div style={{ textAlign: "center" }}>
+          <p
+            style={{
+              fontSize: "28px",
+              margin: 0,
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
+            }}
+          >
+            🔖
+          </p>
+        </div>
       </div>
+
+      {showComments && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 10060 }}
+          onClick={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
+          <CommentSection
+            memoryId={bubble.id}
+            userName={userName || "Anonyme"}
+            onClose={() => setShowComments(false)}
+            onCountChange={(count) => setCommentsCount(count)}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getLabel } from "@/lib/uiLabels";
 import Header from "@/components/Header";
+import CurvedBottomNav from "@/components/CurvedBottomNav";
 import useUserName from "@/hooks/useUserName";
 
 import grandfatherImg from "@/assets/grandfather.jpg";
@@ -360,9 +361,10 @@ const Circle = () => {
         background: "radial-gradient(ellipse at 50% 36%, #F5E6CC 0%, #D2B48C 100%)",
         backgroundColor: "#D2B48C",
         fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
+        paddingBottom: "80px",
       }}
     >
-      <Header activeTimeline="memories" onTimelineChange={() => {}} />
+      <Header activeTimeline="memories" onTimelineChange={() => {}} variant="light" />
       <style>{`
         @keyframes bgS { 0%{transform:translate(0,0);} 20%{transform:translate(35px,-45px);} 40%{transform:translate(58px,10px);} 60%{transform:translate(40px,55px);} 80%{transform:translate(-12px,35px);} 100%{transform:translate(0,0);} }
         @keyframes bgM { 0%{transform:translate(0,0);} 20%{transform:translate(-42px,-32px);} 40%{transform:translate(-60px,20px);} 60%{transform:translate(-38px,60px);} 80%{transform:translate(10px,42px);} 100%{transform:translate(0,0);} }
@@ -1264,6 +1266,7 @@ const Circle = () => {
           </div>
         </div>
       )}
+      <CurvedBottomNav />
     </div>
   );
 };

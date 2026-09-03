@@ -13,6 +13,7 @@ interface HeaderProps {
   onTimelineChange: (t: Timeline) => void;
   showBack?: boolean;
   pageTitle?: string;
+  variant?: "dark" | "light";
 }
 
 export const HeaderOverrideContext = createContext<{ showBack?: boolean; pageTitle?: string }>({});
@@ -33,7 +34,7 @@ export function HeaderProvider({
   );
 }
 
-const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: HeaderProps) => {
+const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle, variant = "dark" }: HeaderProps) => {
   const headerOverride = useContext(HeaderOverrideContext);
   const effectiveShowBack = showBack ?? headerOverride.showBack;
   const effectivePageTitle = pageTitle ?? headerOverride.pageTitle;
@@ -42,6 +43,14 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const isLight = variant === "light";
+  const iconColor = isLight ? "#3D2B1F" : "#fff";
+  const controlBg = isLight ? "rgba(61,43,31,0.08)" : "rgba(255,255,255,0.15)";
+  const controlBorder = isLight ? "1px solid rgba(61,43,31,0.12)" : "1px solid rgba(255,255,255,0.2)";
+  const timelineInactive = isLight ? "rgba(61,43,31,0.45)" : "rgba(255,255,255,0.5)";
+  const timelineActive = isLight ? "#3D2B1F" : "#ffffff";
+  const underlineFor = (id: Timeline) =>
+    id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : isLight ? "#3D2B1F" : "#ffffff";
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -58,8 +67,6 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
     { id: "instant" as Timeline, label: getTimelineLabel("instant", lang) },
     { id: "forever" as Timeline, label: getTimelineLabel("forever", lang) },
   ];
-
-  const underlineColor = (id: Timeline) => (id === "forever" ? "#38bdf8" : id === "instant" ? "#E8742A" : "#ffffff");
 
   const LANGS = [
     { id: "fr", label: "Français" },
@@ -83,6 +90,8 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
           alignItems: "center",
           paddingTop: "12px",
           paddingBottom: "8px",
+          background: isLight ? "rgba(253,248,240,0.95)" : "transparent",
+          backdropFilter: isLight ? "blur(12px)" : undefined,
         }}
         dir="ltr"
       >
@@ -107,8 +116,8 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                 width: "34px",
                 height: "34px",
                 borderRadius: "50%",
-                backgroundColor: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.2)",
+                backgroundColor: controlBg,
+                border: controlBorder,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -120,7 +129,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M19 12H5M12 5l-7 7 7 7"
-                  stroke="white"
+                  stroke={iconColor}
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -134,8 +143,8 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                 width: "34px",
                 height: "34px",
                 borderRadius: "50%",
-                backgroundColor: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.2)",
+                backgroundColor: controlBg,
+                border: controlBorder,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -143,7 +152,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                 backdropFilter: "blur(8px)",
               }}
             >
-              <Menu size={18} color="#fff" />
+              <Menu size={18} color={iconColor} />
             </button>
           )}
 
@@ -183,8 +192,8 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                   width: "34px",
                   height: "34px",
                   borderRadius: "50%",
-                  backgroundColor: "rgba(255,255,255,0.15)",
-                  border: "1px solid rgba(255,255,255,0.2)",
+                  backgroundColor: controlBg,
+                  border: controlBorder,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -196,7 +205,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                   style={{
                     fontSize: "11px",
                     fontWeight: 900,
-                    color: "#fff",
+                    color: iconColor,
                     fontFamily: lang === "ar" ? "'Noto Sans Arabic', Arial, sans-serif" : "inherit",
                   }}
                 >
@@ -294,8 +303,8 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                 width: "34px",
                 height: "34px",
                 borderRadius: "50%",
-                backgroundColor: "rgba(255,255,255,0.15)",
-                border: "1px solid rgba(255,255,255,0.2)",
+                backgroundColor: controlBg,
+                border: controlBorder,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -303,7 +312,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                 backdropFilter: "blur(8px)",
               }}
             >
-              <Search size={16} color="#fff" />
+              <Search size={16} color={iconColor} />
             </button>
           </div>
         </div>
@@ -322,10 +331,7 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                 margin: 0,
                 paddingBottom: "6px",
                 textAlign: "center",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: "15px",
-                textShadow: "0 1px 8px rgba(0,0,0,0.9)",
+                color: iconColor,
               }}
             >
               {effectivePageTitle}
@@ -351,10 +357,10 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.75)",
+                    color: isActive ? timelineActive : timelineInactive,
                     fontWeight: isActive ? 900 : 700,
                     fontSize: isActive ? "16px" : "13px",
-                    textShadow: "0 1px 8px rgba(0,0,0,0.9)",
+                    textShadow: isLight ? "none" : "0 1px 8px rgba(0,0,0,0.9)",
                     transition: "all 0.2s",
                     whiteSpace: "nowrap",
                     textAlign: "center",
@@ -370,8 +376,8 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle }: Heade
                         right: 0,
                         height: "2.5px",
                         borderRadius: "999px",
-                        backgroundColor: underlineColor(tab.id),
-                        boxShadow: `0 0 10px ${underlineColor(tab.id)}`,
+                        backgroundColor: underlineFor(tab.id),
+                        boxShadow: `0 0 10px ${underlineFor(tab.id)}`,
                       }}
                     />
                   )}

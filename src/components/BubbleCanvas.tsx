@@ -280,6 +280,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         .from("memories")
         .select("*")
         .eq("is_public", true)
+        .eq("timeline", activeTimeline)
         .order("created_at", { ascending: false })
         .limit(40);
 
@@ -328,6 +329,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       .from("memories")
       .select("*")
       .eq("is_public", true)
+      .eq("timeline", activeTimeline)
       .order("created_at", { ascending: false })
       .limit(20);
 

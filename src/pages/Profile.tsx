@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getLabel } from "@/lib/uiLabels";
 import { getTimelineLabel } from "@/lib/timelineLabels";
+import CurvedBottomNav from "@/components/CurvedBottomNav";
+import Header from "@/components/Header";
 
 interface ProfileMemory {
   id: string;
@@ -276,6 +278,7 @@ const Profile = () => {
               ? "→ لديّ حسابٌ بالفعل"
               : "I already have an account →"}
         </button>
+        <CurvedBottomNav />
       </div>
     );
   }
@@ -286,47 +289,18 @@ const Profile = () => {
       style={{
         minHeight: "100vh",
         background: "#FDF8F0",
-        paddingBottom: "100px",
+        paddingBottom: "80px",
       }}
     >
+      <Header activeTimeline="memories" onTimelineChange={() => {}} variant="light" />
       <div
         style={{
           background: "linear-gradient(160deg, #2D1810, #8B3A1A)",
-          padding: "60px 24px 32px",
+          padding: "100px 24px 32px",
           textAlign: "center",
           position: "relative",
         }}
       >
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            position: "absolute",
-            top: "56px",
-            left: rtl ? undefined : "20px",
-            right: rtl ? "20px" : undefined,
-            width: "34px",
-            height: "34px",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.15)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-          }}
-          aria-label={lang === "fr" ? "Retour" : lang === "ar" ? "رجوع" : "Back"}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={rtl ? { transform: "scaleX(-1)" } : undefined}>
-            <path
-              d="M19 12H5M12 5l-7 7 7 7"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-
         <div
           style={{
             width: "72px",
@@ -562,6 +536,7 @@ const Profile = () => {
           {getLabel("logout", lang)}
         </button>
       </div>
+      <CurvedBottomNav />
     </div>
   );
 };
