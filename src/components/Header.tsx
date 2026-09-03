@@ -84,14 +84,14 @@ const Header = ({ activeTimeline, onTimelineChange, showBack, pageTitle, variant
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 10,
+          zIndex: 250,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           paddingTop: "12px",
           paddingBottom: "8px",
-          background: isLight ? "rgba(253,248,240,0.95)" : "transparent",
-          backdropFilter: isLight ? "blur(12px)" : undefined,
+          background: isLight ? "rgba(253,248,240,0.95)" : "rgba(15,5,1,0.92)",
+          backdropFilter: "blur(12px)",
         }}
         dir="ltr"
       >

@@ -20,12 +20,15 @@ interface MemoryFullscreenProps {
   onClose: () => void;
   userName: string;
   currentUserId?: string;
+  /** Offset below Index Header (logo row 74px + tabs ~44px + pad). 0 = full-bleed (e.g. /memory/:id). */
+  contentTopOffset?: number;
 }
 
 export default function MemoryFullscreen({
   bubble,
   onClose,
   userName,
+  contentTopOffset = 0,
 }: MemoryFullscreenProps) {
   const { lang, rtl } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
@@ -45,12 +48,16 @@ export default function MemoryFullscreen({
   };
 
   const isAudio = bubble.file_type === "audio";
+  // Header: paddingTop 12 + logo 52 + marginBottom 10 = 74
+  // Tabs: ~44px (16px type + paddingBottom 6 + underline + metrics)
+  // Header paddingBottom 8 + buffer 6 → 132
+  const topOffset = contentTopOffset;
 
   return (
     <div
       style={{
         position: "fixed",
-        top: "104px",
+        top: topOffset > 0 ? `calc(${topOffset}px + env(safe-area-inset-top, 0px))` : 0,
         left: 0,
         right: 0,
         bottom: 0,

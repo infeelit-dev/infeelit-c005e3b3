@@ -911,6 +911,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
           onClose={() => handleCloseMemory(openMemory)}
           userName={userName}
           currentUserId={currentUserId}
+          contentTopOffset={132}
         />
       )}
     </div>
