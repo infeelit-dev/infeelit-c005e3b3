@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -31,7 +32,25 @@ import MemoryDetail from "./pages/MemoryDetail";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 
+const Pro = lazy(() => import("@/pages/Pro"));
+
 const queryClient = new QueryClient();
+
+const RouteFallback = () => (
+  <div
+    style={{
+      minHeight: "100vh",
+      background: "#0D1B2A",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "#C4922A",
+      fontSize: "32px",
+    }}
+  >
+    ◆
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -93,6 +112,14 @@ const App = () => (
             } />
             <Route path="/admin" element={<AdminUpload />} />
             <Route path="/memory/:id" element={<MemoryDetail />} />
+            <Route
+              path="/pro"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <Pro />
+                </Suspense>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
