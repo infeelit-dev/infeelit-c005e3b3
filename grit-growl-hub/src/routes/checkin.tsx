@@ -66,7 +66,7 @@ function CheckinPage() {
         return;
       }
 
-      navigate({ to: "/quick-question" });
+      navigate({ to: "/oracle-signal" });
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");

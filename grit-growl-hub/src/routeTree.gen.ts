@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RecapRouteImport } from './routes/recap'
 import { Route as QuickQuestionRouteImport } from './routes/quick-question'
 import { Route as ProfileSetupRouteImport } from './routes/profile-setup'
+import { Route as OracleSignalRouteImport } from './routes/oracle-signal'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ModeRouteImport } from './routes/mode'
 import { Route as MatchRouteImport } from './routes/match'
@@ -36,6 +37,11 @@ const QuickQuestionRoute = QuickQuestionRouteImport.update({
 const ProfileSetupRoute = ProfileSetupRouteImport.update({
   id: '/profile-setup',
   path: '/profile-setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OracleSignalRoute = OracleSignalRouteImport.update({
+  id: '/oracle-signal',
+  path: '/oracle-signal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
+  '/oracle-signal': typeof OracleSignalRoute
   '/profile-setup': typeof ProfileSetupRoute
   '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
+  '/oracle-signal': typeof OracleSignalRoute
   '/profile-setup': typeof ProfileSetupRoute
   '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/match': typeof MatchRoute
   '/mode': typeof ModeRoute
   '/onboarding': typeof OnboardingRoute
+  '/oracle-signal': typeof OracleSignalRoute
   '/profile-setup': typeof ProfileSetupRoute
   '/quick-question': typeof QuickQuestionRoute
   '/recap': typeof RecapRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
+    | '/oracle-signal'
     | '/profile-setup'
     | '/quick-question'
     | '/recap'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
+    | '/oracle-signal'
     | '/profile-setup'
     | '/quick-question'
     | '/recap'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/match'
     | '/mode'
     | '/onboarding'
+    | '/oracle-signal'
     | '/profile-setup'
     | '/quick-question'
     | '/recap'
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   MatchRoute: typeof MatchRoute
   ModeRoute: typeof ModeRoute
   OnboardingRoute: typeof OnboardingRoute
+  OracleSignalRoute: typeof OracleSignalRoute
   ProfileSetupRoute: typeof ProfileSetupRoute
   QuickQuestionRoute: typeof QuickQuestionRoute
   RecapRoute: typeof RecapRoute
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/profile-setup'
       fullPath: '/profile-setup'
       preLoaderRoute: typeof ProfileSetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oracle-signal': {
+      id: '/oracle-signal'
+      path: '/oracle-signal'
+      fullPath: '/oracle-signal'
+      preLoaderRoute: typeof OracleSignalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   MatchRoute: MatchRoute,
   ModeRoute: ModeRoute,
   OnboardingRoute: OnboardingRoute,
+  OracleSignalRoute: OracleSignalRoute,
   ProfileSetupRoute: ProfileSetupRoute,
   QuickQuestionRoute: QuickQuestionRoute,
   RecapRoute: RecapRoute,
