@@ -46,6 +46,7 @@ export type Database = {
           suggestions_shown: number
           visits: number
           whatsapp: string | null
+          room: string | null
         }
         Insert: {
           building?: string | null
@@ -78,6 +79,7 @@ export type Database = {
           suggestions_shown?: number
           visits?: number
           whatsapp?: string | null
+          room?: string | null
         }
         Update: {
           building?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           suggestions_shown?: number
           visits?: number
           whatsapp?: string | null
+          room?: string | null
         }
         Relationships: []
       }

@@ -4,6 +4,7 @@ import { findTopMatches, type MatchResult } from "@/lib/matchingOracle";
 import { getDubaiEventDate } from "@/lib/eventDate";
 import { normalizeLinkedInUrl, normalizeWhatsAppPhone } from "@/lib/contacts";
 import { getStoredEmail } from "@/lib/matchFlow";
+import { isRoomCode, roomDisplayName, type RoomCode } from "@/lib/rooms";
 import { createFileRoute } from "@tanstack/react-router";
 
 type AttendeeRow = {
@@ -23,6 +24,7 @@ type AttendeeRow = {
   whatsapp?: string | null;
   avatar_url?: string | null;
   event_date?: string | null;
+  room?: RoomCode | string | null;
 };
 
 type MatchPerson = {
@@ -363,6 +365,84 @@ function LoadingScreen({ text }: { text: string }) {
   );
 }
 
+function RoomReveal({
+  room,
+  onContinue,
+}: {
+  room: RoomCode;
+  onContinue: () => void;
+}) {
+  const name = roomDisplayName(room);
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#0A0A0A",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "32px 24px",
+        fontFamily: "Inter, sans-serif",
+        textAlign: "center",
+      }}
+    >
+      <p
+        style={{
+          fontSize: "13px",
+          color: "#888",
+          marginBottom: "16px",
+          lineHeight: 1.5,
+        }}
+      >
+        Tonight you are in the
+      </p>
+      <h1
+        style={{
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: "42px",
+          letterSpacing: "2px",
+          color: "#fff",
+          margin: "0 0 12px",
+          lineHeight: 1.1,
+        }}
+      >
+        {name.toUpperCase()}
+      </h1>
+      <p
+        style={{
+          fontSize: "13px",
+          color: "#D85A30",
+          letterSpacing: "1px",
+          marginBottom: "40px",
+        }}
+      >
+        U Deck · Take the elevator
+      </p>
+      <button
+        type="button"
+        onClick={onContinue}
+        style={{
+          background: "#D85A30",
+          border: "none",
+          borderRadius: "12px",
+          height: "52px",
+          padding: "0 28px",
+          color: "#fff",
+          fontSize: "15px",
+          fontWeight: 600,
+          cursor: "pointer",
+          fontFamily: "Inter, sans-serif",
+          minWidth: "220px",
+        }}
+      >
+        See your matches →
+      </button>
+    </div>
+  );
+}
+
 function MatchPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
@@ -371,6 +451,7 @@ function MatchPage() {
   const [peopleCount, setPeopleCount] = useState(0);
   const [error, setError] = useState("");
   const [instant, setInstant] = useState(false);
+  const [showRoom, setShowRoom] = useState(true);
 
   const eventDate = getDubaiEventDate();
 
@@ -537,6 +618,15 @@ function MatchPage() {
           </button>
         </div>
       </div>
+    );
+  }
+
+  if (showRoom && currentUser && isRoomCode(currentUser.room)) {
+    return (
+      <RoomReveal
+        room={currentUser.room}
+        onContinue={() => setShowRoom(false)}
+      />
     );
   }
 

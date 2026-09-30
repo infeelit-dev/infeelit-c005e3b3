@@ -30,8 +30,34 @@ const SELECT_FIELDS = `
   whatsapp,
   suggestions_shown,
   match_count,
-  checked_in_at
+  checked_in_at,
+  room
 `;
+
+type RoomCode = "GOLDEN_LION" | "CRYSTAL_BAR";
+
+async function assignBalancedRoom(eventDate: string | null | undefined): Promise<RoomCode> {
+  if (!eventDate) {
+    return Math.random() < 0.5 ? "GOLDEN_LION" : "CRYSTAL_BAR";
+  }
+
+  const { count: golden } = await supabase
+    .from("attendees")
+    .select("*", { count: "exact", head: true })
+    .eq("event_date", eventDate)
+    .eq("room", "GOLDEN_LION");
+
+  const { count: crystal } = await supabase
+    .from("attendees")
+    .select("*", { count: "exact", head: true })
+    .eq("event_date", eventDate)
+    .eq("room", "CRYSTAL_BAR");
+
+  const g = golden ?? 0;
+  const c = crystal ?? 0;
+  if (g === c) return Math.random() < 0.5 ? "GOLDEN_LION" : "CRYSTAL_BAR";
+  return g < c ? "GOLDEN_LION" : "CRYSTAL_BAR";
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -63,6 +89,16 @@ Deno.serve(async (req) => {
         .eq("email", normalizedEmail)
         .maybeSingle();
       if (error) return json({ error: error.message }, 500);
+
+      if (profile && !profile.room) {
+        const room = await assignBalancedRoom(profile.event_date || event_date || body.event_date);
+        const { error: roomErr } = await supabase
+          .from("attendees")
+          .update({ room })
+          .eq("email", normalizedEmail);
+        if (!roomErr) profile.room = room;
+      }
+
       return json({ profile });
     }
 
@@ -140,7 +176,7 @@ Deno.serve(async (req) => {
 
       const { data: existing, error: checkError } = await supabase
         .from("attendees")
-        .select("id, event_date")
+        .select("id, event_date, room")
         .eq("email", normalizedEmail)
         .maybeSingle();
 
@@ -157,6 +193,9 @@ Deno.serve(async (req) => {
         if (isNewEventDay) {
           updatePayload.suggestions_shown = 0;
           updatePayload.match_count = 0;
+          updatePayload.room = await assignBalancedRoom(evDate);
+        } else if (!existing.room) {
+          updatePayload.room = await assignBalancedRoom(evDate || existing.event_date);
         }
 
         const { error: updateError } = await supabase
@@ -165,9 +204,12 @@ Deno.serve(async (req) => {
           .eq("email", normalizedEmail);
 
         if (updateError) return json({ error: updateError.message }, 500);
-        return json({ success: true, action: "updated" });
+
+        const room = (updatePayload.room as string | undefined) || existing.room || null;
+        return json({ success: true, action: "updated", room });
       }
 
+      const room = await assignBalancedRoom(evDate);
       const { error: insertError } = await supabase.from("attendees").insert({
         email: normalizedEmail,
         first_name: first_name || null,
@@ -178,10 +220,11 @@ Deno.serve(async (req) => {
         manifesto_accepted: false,
         match_count: 0,
         suggestions_shown: 0,
+        room,
       });
 
       if (insertError) return json({ error: insertError.message }, 500);
-      return json({ success: true, action: "inserted" });
+      return json({ success: true, action: "inserted", room });
     }
 
     // ============ get ============
@@ -235,6 +278,7 @@ Deno.serve(async (req) => {
         "linkedin_url",
         "whatsapp",
         "luma_bio",
+        "room",
       ];
 
       const updateData: Record<string, unknown> = {};
