@@ -5,6 +5,7 @@ import { getDubaiEventDate } from "@/lib/eventDate";
 import { normalizeLinkedInUrl, normalizeWhatsAppPhone } from "@/lib/contacts";
 import { getStoredEmail } from "@/lib/matchFlow";
 import { isRoomCode, roomDisplayName, type RoomCode } from "@/lib/rooms";
+import { passionTribeLine } from "@/lib/passion";
 import { createFileRoute } from "@tanstack/react-router";
 
 type AttendeeRow = {
@@ -25,6 +26,8 @@ type AttendeeRow = {
   avatar_url?: string | null;
   event_date?: string | null;
   room?: RoomCode | string | null;
+  passion?: string | null;
+  passion_cluster?: string | null;
 };
 
 type MatchPerson = {
@@ -41,6 +44,7 @@ type MatchPerson = {
   whatsapp?: string;
   linkedin_url?: string;
   avatar_url?: string;
+  passion_cluster?: string;
 };
 
 type Match = MatchResult & {
@@ -85,6 +89,7 @@ function toPerson(row: AttendeeRow): MatchPerson {
     whatsapp: row.whatsapp ?? undefined,
     linkedin_url: normalizeLinkedInUrl(row.linkedin_url) ?? undefined,
     avatar_url: row.avatar_url ?? undefined,
+    passion_cluster: row.passion_cluster ?? undefined,
   };
 }
 
@@ -187,19 +192,28 @@ function MatchCard({
   match,
   person,
   currentUserFirstName,
+  sharedPassionCluster,
 }: {
   match: Match;
   person: MatchPerson;
   currentUserFirstName: string;
+  sharedPassionCluster?: string | null;
 }) {
   const phone = normalizeWhatsAppPhone(person.whatsapp);
   const linkedInUrl = normalizeLinkedInUrl(person.linkedin_url);
   const fullName = [person.first_name, person.last_name].filter(Boolean).join(" ");
-  const whatsappMessage = `Hey ${person.first_name}, it's ${currentUserFirstName} from Grit & Growl tonight — the app matched us. Where are you right now?`;
+  const whatsappMessage = `Hey ${person.first_name}, it's ${currentUserFirstName} from Grit & Growl tonight, the app matched us. Where are you right now?`;
   const waHref =
     phone.length > 0
       ? `https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}`
       : undefined;
+
+  const building =
+    person.q1?.trim() ||
+    person.luma_bio?.trim() ||
+    person.linkedin_summary?.trim()?.split("\n")[0] ||
+    "";
+  const conversation = person.q2?.trim() || "";
 
   return (
     <div
@@ -214,10 +228,44 @@ function MatchCard({
         <MatchAvatar person={person} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ fontSize: "18px", fontWeight: 600, color: "#fff", margin: 0 }}>{fullName}</h2>
+          {sharedPassionCluster && (
+            <span
+              style={{
+                display: "inline-block",
+                marginTop: "6px",
+                fontSize: "11px",
+                color: "#E07B3A",
+                fontWeight: 600,
+                letterSpacing: "0.3px",
+              }}
+            >
+              Also into {sharedPassionCluster.toLowerCase()}
+            </span>
+          )}
           <BondTypeTag bondType={match.bond_type} />
-          <p style={{ fontSize: "13px", color: "#666", margin: "4px 0 0" }}>{roleLine(person)}</p>
+          {!building && !conversation && (
+            <p style={{ fontSize: "13px", color: "#666", margin: "4px 0 0" }}>{roleLine(person)}</p>
+          )}
         </div>
       </div>
+
+      {building && (
+        <p style={{ fontSize: "13px", color: "#999", lineHeight: 1.5, marginBottom: "10px" }}>
+          <span style={{ color: "#555", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase" }}>
+            Building ·{" "}
+          </span>
+          {building}
+        </p>
+      )}
+
+      {conversation && (
+        <p style={{ fontSize: "13px", color: "#999", lineHeight: 1.5, marginBottom: "12px" }}>
+          <span style={{ color: "#555", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase" }}>
+            Conversation ·{" "}
+          </span>
+          {conversation}
+        </p>
+      )}
 
       {match.resonance && (
         <p
@@ -235,7 +283,7 @@ function MatchCard({
 
       {match.ice_breaker && (
         <p style={{ fontSize: "12px", color: "#555", marginBottom: "16px", lineHeight: 1.5 }}>
-          <span style={{ color: "#D85A30", textTransform: "uppercase", letterSpacing: "1px", fontSize: "10px" }}>
+          <span style={{ color: "#E07B3A", textTransform: "uppercase", letterSpacing: "1px", fontSize: "10px" }}>
             Open with ·{" "}
           </span>
           {match.ice_breaker}
@@ -452,6 +500,7 @@ function MatchPage() {
   const [error, setError] = useState("");
   const [instant, setInstant] = useState(false);
   const [showRoom, setShowRoom] = useState(true);
+  const [passionOthers, setPassionOthers] = useState(0);
 
   const eventDate = getDubaiEventDate();
 
@@ -485,6 +534,21 @@ function MatchPage() {
     }
 
     setCurrentUser(userData);
+
+    if (!userData.passion?.trim() || !userData.passion_cluster?.trim()) {
+      window.location.assign("/passion");
+      return;
+    }
+
+    const { data: passionRes } = await supabase.functions.invoke("manage-attendee", {
+      body: {
+        action: "count-passion",
+        passion_cluster: userData.passion_cluster,
+        exclude_id: userData.id,
+        event_date: eventDate,
+      },
+    });
+    setPassionOthers(typeof passionRes?.count === "number" ? passionRes.count : 0);
 
     const { data: preRes } = await supabase.functions.invoke("manage-attendee", {
       body: {
@@ -660,7 +724,7 @@ function MatchPage() {
           </h1>
           <p style={{ fontSize: "14px", color: "#666", lineHeight: 1.6, marginBottom: "24px" }}>
             {peopleCount > 0
-              ? `${peopleCount} people are here — check back in a few minutes for stronger matches.`
+              ? `${peopleCount} people are here, check back in a few minutes for stronger matches.`
               : "Your matches will appear as more people check in."}
           </p>
           <button
@@ -686,6 +750,7 @@ function MatchPage() {
 
   const currentUserFirstName =
     currentUser?.first_name || currentUser?.full_name?.split(" ")[0] || "Someone";
+  const myCluster = currentUser?.passion_cluster?.trim() || "";
 
   return (
     <div
@@ -696,19 +761,32 @@ function MatchPage() {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      <div style={{ textAlign: "center", marginBottom: "32px" }}>
+      <div style={{ textAlign: "center", marginBottom: "28px", maxWidth: "420px", marginLeft: "auto", marginRight: "auto" }}>
         <p
           style={{
             fontSize: "11px",
-            color: "#D85A30",
+            color: "#E07B3A",
             letterSpacing: "3px",
             textTransform: "uppercase",
-            marginBottom: "8px",
+            marginBottom: "12px",
           }}
         >
           Tonight's connections
         </p>
-        <p style={{ fontSize: "22px", fontWeight: 600, color: "#fff" }}>
+        {myCluster && (
+          <p
+            style={{
+              fontSize: "16px",
+              fontWeight: 500,
+              color: "#fff",
+              lineHeight: 1.45,
+              marginBottom: "12px",
+            }}
+          >
+            {passionTribeLine(myCluster, passionOthers)}
+          </p>
+        )}
+        <p style={{ fontSize: "14px", color: "#666" }}>
           {matches.length} {matches.length === 1 ? "person" : "people"} waiting for you
         </p>
       </div>
@@ -722,14 +800,23 @@ function MatchPage() {
           margin: "0 auto",
         }}
       >
-        {matches.map((match) => (
-          <MatchCard
-            key={match.pre_match_id || match.match_id}
-            match={match}
-            person={match.person}
-            currentUserFirstName={currentUserFirstName}
-          />
-        ))}
+        {matches.map((match) => {
+          const shared =
+            myCluster &&
+            match.person.passion_cluster &&
+            match.person.passion_cluster.toLowerCase() === myCluster.toLowerCase()
+              ? myCluster
+              : null;
+          return (
+            <MatchCard
+              key={match.pre_match_id || match.match_id}
+              match={match}
+              person={match.person}
+              currentUserFirstName={currentUserFirstName}
+              sharedPassionCluster={shared}
+            />
+          );
+        })}
       </div>
     </div>
   );

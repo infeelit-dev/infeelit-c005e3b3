@@ -31,7 +31,9 @@ const SELECT_FIELDS = `
   suggestions_shown,
   match_count,
   checked_in_at,
-  room
+  room,
+  passion,
+  passion_cluster
 `;
 
 type RoomCode = "GOLDEN_LION" | "CRYSTAL_BAR";
@@ -275,6 +277,7 @@ Deno.serve(async (req) => {
         "building",
         "needs",
         "passion",
+        "passion_cluster",
         "linkedin_url",
         "whatsapp",
         "luma_bio",
@@ -307,9 +310,29 @@ Deno.serve(async (req) => {
       return json({ count });
     }
 
+    // ============ count-passion ============
+    if (action === "count-passion") {
+      const { passion_cluster, exclude_id, event_date: evDate } = body;
+      if (!passion_cluster || !evDate) {
+        return json({ error: "Missing passion_cluster or event_date" }, 400);
+      }
+
+      let query = supabase
+        .from("attendees")
+        .select("*", { count: "exact", head: true })
+        .eq("event_date", evDate)
+        .eq("passion_cluster", passion_cluster);
+
+      if (exclude_id) query = query.neq("id", exclude_id);
+
+      const { count, error } = await query;
+      if (error) return json({ error: error.message }, 500);
+      return json({ count: count ?? 0 });
+    }
+
     return json({
       error:
-        "Invalid action. Allowed: upsert, get, get-profile, get-pre-matches, mark-pre-matches-used, get-active, get-active-participants, update, count",
+        "Invalid action. Allowed: upsert, get, get-profile, get-pre-matches, mark-pre-matches-used, get-active, get-active-participants, update, count, count-passion",
     }, 400);
   } catch (error) {
     console.error("Unexpected error:", error);

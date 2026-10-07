@@ -45,7 +45,7 @@ function QuickQuestionPage() {
       if (updateErr) throw updateErr;
 
       setMatchSource("oracle");
-      navigate({ to: "/match" });
+      navigate({ to: "/passion" });
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");

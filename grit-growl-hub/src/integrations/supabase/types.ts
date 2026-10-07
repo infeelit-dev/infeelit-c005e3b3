@@ -39,6 +39,7 @@ export type Database = {
           no_push_flag: boolean
           onboarding_complete: boolean
           passion: string | null
+          passion_cluster: string | null
           phone: string | null
           q1: string | null
           q2: string | null
@@ -72,6 +73,7 @@ export type Database = {
           no_push_flag?: boolean
           onboarding_complete?: boolean
           passion?: string | null
+          passion_cluster?: string | null
           phone?: string | null
           q1?: string | null
           q2?: string | null
@@ -105,6 +107,7 @@ export type Database = {
           no_push_flag?: boolean
           onboarding_complete?: boolean
           passion?: string | null
+          passion_cluster?: string | null
           phone?: string | null
           q1?: string | null
           q2?: string | null

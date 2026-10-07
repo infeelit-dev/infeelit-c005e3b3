@@ -55,14 +55,14 @@ function CheckinPage() {
 
         if (preData?.pre_matches?.length > 0) {
           setMatchSource("precomputed");
-          navigate({ to: "/match" });
+          navigate({ to: "/passion" });
           return;
         }
       }
 
       if (hasProfileData(profile)) {
         setMatchSource("oracle");
-        navigate({ to: "/match" });
+        navigate({ to: "/passion" });
         return;
       }
 
