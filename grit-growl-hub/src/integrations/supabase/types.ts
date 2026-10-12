@@ -119,6 +119,45 @@ export type Database = {
         }
         Relationships: []
       }
+      carpool_offers: {
+        Row: {
+          id: string
+          created_at: string
+          type: string
+          name: string
+          whatsapp: string
+          zone: string
+          departure_time: string
+          seats: number | null
+          bio: string | null
+          event_date: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          type: string
+          name: string
+          whatsapp: string
+          zone: string
+          departure_time: string
+          seats?: number | null
+          bio?: string | null
+          event_date?: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          type?: string
+          name?: string
+          whatsapp?: string
+          zone?: string
+          departure_time?: string
+          seats?: number | null
+          bio?: string | null
+          event_date?: string
+        }
+        Relationships: []
+      }
       matches: {
         Row: {
           accepted: boolean

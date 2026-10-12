@@ -21,6 +21,7 @@ import { Route as ManifestoRouteImport } from './routes/manifesto'
 import { Route as LoungeRouteImport } from './routes/lounge'
 import { Route as GratitudeRouteImport } from './routes/gratitude'
 import { Route as CheckinRouteImport } from './routes/checkin'
+import { Route as CarpoolRouteImport } from './routes/carpool'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
@@ -85,6 +86,11 @@ const CheckinRoute = CheckinRouteImport.update({
   path: '/checkin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CarpoolRoute = CarpoolRouteImport.update({
+  id: '/carpool',
+  path: '/carpool',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -104,6 +110,7 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/carpool': typeof CarpoolRoute
   '/checkin': typeof CheckinRoute
   '/gratitude': typeof GratitudeRoute
   '/lounge': typeof LoungeRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/carpool': typeof CarpoolRoute
   '/checkin': typeof CheckinRoute
   '/gratitude': typeof GratitudeRoute
   '/lounge': typeof LoungeRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/carpool': typeof CarpoolRoute
   '/checkin': typeof CheckinRoute
   '/gratitude': typeof GratitudeRoute
   '/lounge': typeof LoungeRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/carpool'
     | '/checkin'
     | '/gratitude'
     | '/lounge'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/carpool'
     | '/checkin'
     | '/gratitude'
     | '/lounge'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/carpool'
     | '/checkin'
     | '/gratitude'
     | '/lounge'
@@ -210,6 +222,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  CarpoolRoute: typeof CarpoolRoute
   CheckinRoute: typeof CheckinRoute
   GratitudeRoute: typeof GratitudeRoute
   LoungeRoute: typeof LoungeRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/carpool': {
+      id: '/carpool'
+      path: '/carpool'
+      fullPath: '/carpool'
+      preLoaderRoute: typeof CarpoolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -338,6 +358,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  CarpoolRoute: CarpoolRoute,
   CheckinRoute: CheckinRoute,
   GratitudeRoute: GratitudeRoute,
   LoungeRoute: LoungeRoute,
