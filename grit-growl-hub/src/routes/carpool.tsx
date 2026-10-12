@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getDubaiEventDate } from "@/lib/eventDate";
@@ -24,44 +24,20 @@ type CarpoolOffer = {
   event_date: string;
 };
 
-const ZONES = [
-  "DIFC",
-  "Downtown",
-  "Business Bay",
-  "Marina",
-  "JLT",
-  "Palm",
-  "Deira",
-  "Other",
-] as const;
-
-const TIMES = ["6:00 PM", "6:30 PM", "7:00 PM"] as const;
-
-const ZONE_COLORS: Record<string, string> = {
-  DIFC: "#E07B3A",
-  Downtown: "#0A66C2",
-  "Business Bay": "#9C27B0",
-  Marina: "#128C7E",
-  JLT: "#4CAF50",
-  Palm: "#C9A227",
-  Deira: "#5C6BC0",
-  Other: "#666",
-};
-
 const ACCENT = "#E07B3A";
 
 function CarpoolPage() {
-  const [mode, setMode] = useState<"choose" | OfferType>("choose");
+  const [tab, setTab] = useState<OfferType>("driver");
   const [offers, setOffers] = useState<CarpoolOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [zoneFilter, setZoneFilter] = useState<string>("all");
+  const [posted, setPosted] = useState(false);
 
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const [zone, setZone] = useState<string>(ZONES[0]);
-  const [departureTime, setDepartureTime] = useState<string>(TIMES[0]);
+  const [zone, setZone] = useState("");
+  const [departureTime, setDepartureTime] = useState("");
   const [seats, setSeats] = useState(2);
   const [bio, setBio] = useState("");
 
@@ -76,7 +52,7 @@ function CarpoolPage() {
 
     if (fetchErr) {
       console.error(fetchErr);
-      setError("Could not load the board. Has the carpool table been created?");
+      setError("Could not load tonight's rides.");
       setLoading(false);
       return;
     }
@@ -96,17 +72,12 @@ function CarpoolPage() {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "carpool_offers",
         },
-        (payload) => {
-          const row = payload.new as CarpoolOffer;
-          if (row.event_date !== eventDate) return;
-          setOffers((prev) => {
-            if (prev.some((o) => o.id === row.id)) return prev;
-            return [row, ...prev];
-          });
+        () => {
+          void loadOffers();
         },
       )
       .subscribe();
@@ -114,34 +85,33 @@ function CarpoolPage() {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [eventDate]);
+  }, [loadOffers]);
 
-  const filtered = useMemo(() => {
-    if (zoneFilter === "all") return offers;
-    return offers.filter((o) => o.zone === zoneFilter);
-  }, [offers, zoneFilter]);
-
-  const drivers = filtered.filter((o) => o.type === "driver");
-  const riders = filtered.filter((o) => o.type === "rider");
+  const sortedOffers = useMemo(() => {
+    const drivers = offers.filter((o) => o.type === "driver");
+    const riders = offers.filter((o) => o.type === "rider");
+    return [...drivers, ...riders];
+  }, [offers]);
 
   const resetForm = () => {
     setName("");
     setWhatsapp("");
-    setZone(ZONES[0]);
-    setDepartureTime(TIMES[0]);
+    setZone("");
+    setDepartureTime("");
     setSeats(2);
     setBio("");
-    setMode("choose");
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (mode === "choose") return;
 
     const trimmedName = name.trim();
     const trimmedWa = whatsapp.trim();
-    if (!trimmedName || !trimmedWa) {
-      setError("Name and WhatsApp help people reach you.");
+    const trimmedZone = zone.trim();
+    const trimmedTime = departureTime.trim();
+
+    if (!trimmedName || !trimmedWa || !trimmedZone || !trimmedTime) {
+      setError("Name, WhatsApp, zone, and departure time help people find you.");
       return;
     }
 
@@ -149,12 +119,12 @@ function CarpoolPage() {
     setError(null);
 
     const payload = {
-      type: mode,
+      type: tab,
       name: trimmedName,
       whatsapp: trimmedWa,
-      zone,
-      departure_time: departureTime,
-      seats: mode === "driver" ? seats : null,
+      zone: trimmedZone,
+      departure_time: trimmedTime,
+      seats: tab === "driver" ? seats : null,
       bio: bio.trim() || null,
       event_date: eventDate,
     };
@@ -181,6 +151,7 @@ function CarpoolPage() {
       });
     }
 
+    setPosted(true);
     resetForm();
   };
 
@@ -194,7 +165,7 @@ function CarpoolPage() {
         padding: "28px 20px 64px",
       }}
     >
-      <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "480px", margin: "0 auto" }}>
         <p
           style={{
             fontSize: "11px",
@@ -208,266 +179,200 @@ function CarpoolPage() {
         </p>
         <h1
           style={{
-            fontSize: "28px",
+            fontSize: "26px",
             fontWeight: 600,
-            lineHeight: 1.2,
+            lineHeight: 1.25,
             margin: "0 0 10px",
           }}
         >
           Who's driving Wednesday?
         </h1>
-        <p style={{ fontSize: "14px", color: "#888", lineHeight: 1.55, marginBottom: "28px" }}>
-          Offer a seat or hitch a ride. Arrive together, already mid conversation. Not Uber, a favor
-          between people headed to the same rooftop.
+        <p style={{ fontSize: "14px", color: "#888", lineHeight: 1.55, marginBottom: "24px" }}>
+          Offer a seat or hitch a ride. Arrive together, already mid conversation. A favor between
+          people headed to the same rooftop.
         </p>
 
-        {mode === "choose" ? (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr",
-              gap: "12px",
-              marginBottom: "36px",
-            }}
-          >
-            <ChoiceButton
-              title="I have a seat"
-              subtitle="Share the road from your zone"
-              emoji="🚗"
-              onClick={() => setMode("driver")}
-            />
-            <ChoiceButton
-              title="I need a ride"
-              subtitle="Who's coming from near you?"
-              emoji="👋"
-              onClick={() => setMode("rider")}
-            />
-          </div>
-        ) : (
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              background: "#111",
-              border: "1px solid #1E1E1E",
-              borderRadius: "16px",
-              padding: "20px",
-              marginBottom: "36px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "18px",
-              }}
-            >
-              <p style={{ margin: 0, fontSize: "15px", fontWeight: 600 }}>
-                {mode === "driver" ? "You're offering a seat" : "You're looking for a ride"}
-              </p>
-              <button
-                type="button"
-                onClick={() => setMode("choose")}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#666",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  fontFamily: "Inter, sans-serif",
-                }}
-              >
-                ← Back
-              </button>
-            </div>
-
-            <Field label="Your name">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="First name is enough"
-                required
-                style={inputStyle}
-              />
-            </Field>
-
-            <Field label="WhatsApp">
-              <input
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="+971 50 123 4567"
-                required
-                style={inputStyle}
-              />
-            </Field>
-
-            <Field label="Your zone">
-              <select
-                value={zone}
-                onChange={(e) => setZone(e.target.value)}
-                style={inputStyle}
-              >
-                {ZONES.map((z) => (
-                  <option key={z} value={z}>
-                    {z}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Leaving around">
-              <select
-                value={departureTime}
-                onChange={(e) => setDepartureTime(e.target.value)}
-                style={inputStyle}
-              >
-                {TIMES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            {mode === "driver" && (
-              <Field label="Seats free">
-                <select
-                  value={seats}
-                  onChange={(e) => setSeats(Number(e.target.value))}
-                  style={inputStyle}
-                >
-                  {[1, 2, 3, 4].map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            )}
-
-            <Field label="One line about you (optional)">
-              <input
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Founder in fintech, love a good conversation"
-                style={inputStyle}
-              />
-            </Field>
-
-            {error && (
-              <p style={{ color: ACCENT, fontSize: "13px", marginBottom: "12px" }}>{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                width: "100%",
-                minHeight: "52px",
-                background: submitting ? "#161616" : ACCENT,
-                color: submitting ? "#555" : "#fff",
-                border: "none",
-                borderRadius: "12px",
-                fontSize: "15px",
-                fontWeight: 600,
-                cursor: submitting ? "not-allowed" : "pointer",
-                fontFamily: "Inter, sans-serif",
-              }}
-            >
-              {submitting ? "Posting…" : "Post to the board →"}
-            </button>
-          </form>
-        )}
-
+        {/* Tabs */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "16px",
-            flexWrap: "wrap",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "8px",
+            marginBottom: "20px",
+            background: "#111",
+            border: "1px solid #1E1E1E",
+            borderRadius: "12px",
+            padding: "6px",
           }}
         >
-          <h2 style={{ fontSize: "18px", fontWeight: 600, margin: 0 }}>Tonight's board</h2>
-          <select
-            value={zoneFilter}
-            onChange={(e) => setZoneFilter(e.target.value)}
-            style={{
-              ...inputStyle,
-              width: "auto",
-              minWidth: "140px",
-              marginBottom: 0,
-              padding: "10px 12px",
-              fontSize: "13px",
-            }}
-          >
-            <option value="all">All zones</option>
-            {ZONES.map((z) => (
-              <option key={z} value={z}>
-                {z}
-              </option>
-            ))}
-          </select>
+          <TabButton active={tab === "driver"} onClick={() => setTab("driver")} label="I'm driving" />
+          <TabButton active={tab === "rider"} onClick={() => setTab("rider")} label="I need a ride" />
         </div>
 
-        {loading ? (
-          <p style={{ color: "#555", fontSize: "14px" }}>Loading the board…</p>
-        ) : (
-          <div
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            background: "#111",
+            border: "1px solid #1E1E1E",
+            borderRadius: "16px",
+            padding: "18px",
+            marginBottom: "32px",
+          }}
+        >
+          <Field label="Name">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="First name is enough"
+              required
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label="WhatsApp number">
+            <input
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder="+971 50 123 4567"
+              required
+              inputMode="tel"
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label="Zone / neighbourhood">
+            <input
+              value={zone}
+              onChange={(e) => setZone(e.target.value)}
+              placeholder='e.g. Marina, DIFC, JLT'
+              required
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label="Departure time">
+            <input
+              value={departureTime}
+              onChange={(e) => setDepartureTime(e.target.value)}
+              placeholder='e.g. 19:00, 19:30'
+              required
+              style={inputStyle}
+            />
+          </Field>
+
+          {tab === "driver" && (
+            <Field label="Seats available">
+              <select
+                value={seats}
+                onChange={(e) => setSeats(Number(e.target.value))}
+                style={inputStyle}
+              >
+                {[1, 2, 3, 4, 5, 6].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+
+          <Field label="Note (optional)">
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value.slice(0, 140))}
+              placeholder="Founder in fintech, love a good conversation"
+              rows={3}
+              maxLength={140}
+              style={{ ...inputStyle, resize: "none", lineHeight: 1.45 }}
+            />
+            <p
+              style={{
+                fontSize: "11px",
+                color: bio.length >= 140 ? ACCENT : "#555",
+                textAlign: "right",
+                margin: "4px 0 0",
+              }}
+            >
+              {bio.length} / 140
+            </p>
+          </Field>
+
+          {error && (
+            <p style={{ color: ACCENT, fontSize: "13px", marginBottom: "12px" }}>{error}</p>
+          )}
+          {posted && !error && (
+            <p style={{ color: "#4CAF50", fontSize: "13px", marginBottom: "12px" }}>
+              You're on the board. Someone may WhatsApp you soon.
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr",
-              gap: "28px",
+              width: "100%",
+              minHeight: "52px",
+              background: submitting ? "#161616" : ACCENT,
+              color: submitting ? "#555" : "#fff",
+              border: "none",
+              borderRadius: "12px",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: submitting ? "not-allowed" : "pointer",
+              fontFamily: "Inter, sans-serif",
+              marginTop: "8px",
             }}
-            className="carpool-board"
           >
-            <BoardColumn title="Drivers" empty="No drivers yet. Be the first from your zone." offers={drivers} />
-            <BoardColumn title="Riders" empty="No riders yet. Who needs a lift?" offers={riders} />
+            {submitting ? "Posting…" : tab === "driver" ? "Offer my seat →" : "Ask for a ride →"}
+          </button>
+        </form>
+
+        <h2 style={{ fontSize: "18px", fontWeight: 600, margin: "0 0 14px" }}>Tonight's board</h2>
+
+        {loading ? (
+          <p style={{ color: "#555", fontSize: "14px" }}>Loading…</p>
+        ) : sortedOffers.length === 0 ? (
+          <p style={{ color: "#555", fontSize: "14px", lineHeight: 1.5 }}>
+            No rides yet. Be the first from your zone.
+          </p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {sortedOffers.map((offer) => (
+              <OfferCard key={offer.id} offer={offer} />
+            ))}
           </div>
         )}
       </div>
-
-      <style>{`
-        @media (min-width: 720px) {
-          .carpool-board {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
 
-function ChoiceButton({
-  title,
-  subtitle,
-  emoji,
+function TabButton({
+  active,
   onClick,
+  label,
 }: {
-  title: string;
-  subtitle: string;
-  emoji: string;
+  active: boolean;
   onClick: () => void;
+  label: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       style={{
-        textAlign: "left",
-        background: "#111",
-        border: "1px solid #1E1E1E",
-        borderRadius: "16px",
-        padding: "20px",
+        minHeight: "44px",
+        border: "none",
+        borderRadius: "10px",
+        background: active ? ACCENT : "transparent",
+        color: active ? "#fff" : "#888",
+        fontSize: "14px",
+        fontWeight: 600,
         cursor: "pointer",
         fontFamily: "Inter, sans-serif",
-        color: "#fff",
       }}
     >
-      <div style={{ fontSize: "28px", marginBottom: "10px" }}>{emoji}</div>
-      <div style={{ fontSize: "17px", fontWeight: 600, marginBottom: "4px" }}>{title}</div>
-      <div style={{ fontSize: "13px", color: "#666" }}>{subtitle}</div>
+      {label}
     </button>
   );
 }
@@ -492,41 +397,6 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function BoardColumn({
-  title,
-  empty,
-  offers,
-}: {
-  title: string;
-  empty: string;
-  offers: CarpoolOffer[];
-}) {
-  return (
-    <section>
-      <p
-        style={{
-          fontSize: "12px",
-          color: ACCENT,
-          letterSpacing: "2px",
-          textTransform: "uppercase",
-          marginBottom: "12px",
-        }}
-      >
-        {title} · {offers.length}
-      </p>
-      {offers.length === 0 ? (
-        <p style={{ fontSize: "13px", color: "#444", lineHeight: 1.5 }}>{empty}</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {offers.map((offer) => (
-            <OfferCard key={offer.id} offer={offer} />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
 function OfferCard({ offer }: { offer: CarpoolOffer }) {
   const phone = normalizeWhatsAppPhone(offer.whatsapp);
   const message =
@@ -537,7 +407,6 @@ function OfferCard({ offer }: { offer: CarpoolOffer }) {
     phone.length > 0
       ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
       : undefined;
-  const badge = ZONE_COLORS[offer.zone] || "#666";
 
   return (
     <div
@@ -564,19 +433,19 @@ function OfferCard({ offer }: { offer: CarpoolOffer }) {
             fontWeight: 600,
             letterSpacing: "0.5px",
             textTransform: "uppercase",
-            color: "#fff",
-            background: badge,
+            color: offer.type === "driver" ? ACCENT : "#128C7E",
+            border: `1px solid ${offer.type === "driver" ? ACCENT : "#128C7E"}`,
             borderRadius: "999px",
             padding: "4px 8px",
             whiteSpace: "nowrap",
           }}
         >
-          {offer.zone}
+          {offer.type === "driver" ? "Driving" : "Needs ride"}
         </span>
       </div>
 
       <p style={{ margin: "0 0 6px", fontSize: "13px", color: "#888" }}>
-        {offer.departure_time}
+        {offer.zone} · {offer.departure_time}
         {offer.type === "driver" && offer.seats
           ? ` · ${offer.seats} seat${offer.seats === 1 ? "" : "s"}`
           : ""}
