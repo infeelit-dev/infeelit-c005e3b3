@@ -1,4 +1,5 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type ProZoneId = "vision" | "now" | "foundation";
 
@@ -14,6 +15,7 @@ export interface ProBubbleItem {
   x?: number;
   y?: number;
   color?: string;
+  audioUrl?: string;
 }
 
 interface ProBubbleCanvasProps {
@@ -25,154 +27,61 @@ type ZoneConfig = {
   id: ProZoneId;
   label: string;
   color: string;
-  opacity: number;
   borderWidth: number;
   fill: string;
   float: "slow" | "medium" | "anchored";
   wash: string;
 };
 
+const INK = "#0F172A";
+const CANVAS_BG = "#F8F9FA";
+
 const ZONES: ZoneConfig[] = [
   {
     id: "vision",
     label: "VISION",
-    color: "#6D59A8",
-    opacity: 0.7,
+    color: "#7C3AED",
     borderWidth: 1.5,
-    fill: "rgba(109,89,168,0.15)",
+    fill: "#EDE9FE",
     float: "slow",
-    wash: "radial-gradient(ellipse at 50% 30%, rgba(109,89,168,0.22) 0%, transparent 65%)",
+    wash: "#EDE9FE",
   },
   {
     id: "now",
-    label: "NOW",
-    color: "#2A6496",
-    opacity: 0.85,
+    label: "ACTUALITÉS",
+    color: "#2563EB",
     borderWidth: 2,
-    fill: "rgba(42,100,150,0.2)",
+    fill: "#DBEAFE",
     float: "medium",
-    wash: "radial-gradient(ellipse at 50% 40%, rgba(42,100,150,0.2) 0%, transparent 65%)",
+    wash: "#DBEAFE",
   },
   {
     id: "foundation",
     label: "FONDATION",
-    color: "#C4922A",
-    opacity: 1,
+    color: "#D97706",
     borderWidth: 3,
-    fill: "rgba(196,146,42,0.25)",
+    fill: "#FEF3C7",
     float: "anchored",
-    wash: "radial-gradient(ellipse at 50% 60%, rgba(196,146,42,0.22) 0%, transparent 70%)",
+    wash: "#FEF3C7",
   },
 ];
 
-export const ZONE_BUBBLES: Record<ProZoneId, ProBubbleItem[]> = {
+/** Fallback network only — several members, never a single-user profile. */
+const FALLBACK_NETWORK: Record<ProZoneId, ProBubbleItem[]> = {
   vision: [
-    {
-      id: "v1",
-      name: "Malik A.",
-      role: "Fondateur",
-      title: "Karak Tea Dubai Campaign",
-      duration: "1:23",
-      size: 75,
-      x: 28,
-      y: 32,
-      hasPhoto: true,
-      photoUrl:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
-    },
-    {
-      id: "v2",
-      name: "Équipe",
-      role: "Infeelit",
-      title: "$FEEL Token 2027",
-      duration: "2:01",
-      size: 80,
-      x: 70,
-      y: 28,
-    },
-    {
-      id: "v3",
-      name: "Malik A.",
-      role: "Fondateur",
-      title: "Infeelit pour les familles",
-      duration: "1:45",
-      size: 70,
-      x: 52,
-      y: 62,
-    },
+    { id: "v1", name: "Sara M.", role: "CEO", title: "Bloom Health 2027", duration: "1:45", size: 78, x: 28, y: 32 },
+    { id: "v2", name: "Karim B.", role: "Fondateur", title: "Infeelit pour les familles", duration: "2:01", size: 82, x: 70, y: 28 },
+    { id: "v3", name: "Jean-Pierre D.", role: "Technicien", title: "Usine du futur", duration: "1:23", size: 74, x: 50, y: 62 },
   ],
   now: [
-    {
-      id: "n1",
-      name: "Malik A.",
-      role: "Fondateur",
-      title: "Launch day est arrivé",
-      duration: "2:14",
-      size: 95,
-      x: 32,
-      y: 30,
-      hasPhoto: true,
-      photoUrl:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
-    },
-    {
-      id: "n2",
-      name: "Équipe",
-      role: "Infeelit",
-      title: "18 langues ajoutées",
-      duration: "1:38",
-      size: 85,
-      x: 72,
-      y: 36,
-    },
-    {
-      id: "n3",
-      name: "Malik A.",
-      role: "Fondateur",
-      title: "Grit & Growl x Infeelit",
-      duration: "3:02",
-      size: 90,
-      x: 48,
-      y: 64,
-      hasPhoto: true,
-      photoUrl:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face",
-    },
+    { id: "n1", name: "Karim B.", role: "Fondateur", title: "Launch day", duration: "2:14", size: 92, x: 32, y: 30 },
+    { id: "n2", name: "Sara M.", role: "CEO", title: "18 langues ajoutées", duration: "1:38", size: 84, x: 72, y: 36 },
+    { id: "n3", name: "Jean-Pierre D.", role: "Technicien", title: "Chantier en cours", duration: "3:02", size: 88, x: 48, y: 64 },
   ],
   foundation: [
-    {
-      id: "f1",
-      name: "Malik A.",
-      role: "Fondateur",
-      title: "Pourquoi Infeelit est né",
-      duration: "2:34",
-      size: 125,
-      x: 30,
-      y: 34,
-      hasPhoto: true,
-      photoUrl:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
-    },
-    {
-      id: "f2",
-      name: "Malik A.",
-      role: "Fondateur",
-      title: "La peur de la première année",
-      duration: "1:47",
-      size: 110,
-      x: 72,
-      y: 30,
-    },
-    {
-      id: "f3",
-      name: "Malik A.",
-      role: "Fondateur",
-      title: "Notre mission pour 20 ans",
-      duration: "3:12",
-      size: 115,
-      x: 50,
-      y: 66,
-    },
+    { id: "f1", name: "Karim B.", role: "Fondateur", title: "Pourquoi on a commencé", duration: "2:34", size: 110, x: 30, y: 34 },
+    { id: "f2", name: "Sara M.", role: "CEO", title: "La première année", duration: "1:47", size: 100, x: 72, y: 30 },
+    { id: "f3", name: "Jean-Pierre D.", role: "Technicien", title: "Ce qu'on transmet", duration: "3:12", size: 105, x: 50, y: 66 },
   ],
 };
 
@@ -181,6 +90,113 @@ const FLOAT_CLASS: Record<ZoneConfig["float"], string> = {
   medium: "pro-zone-float-medium",
   anchored: "pro-zone-float-anchored",
 };
+
+function formatDuration(seconds: unknown) {
+  const n = Number(seconds);
+  if (!Number.isFinite(n) || n <= 0) return "0:00";
+  const s = Math.round(n);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+function zoneOf(row: Record<string, unknown>): ProZoneId {
+  const raw = String(row.trame ?? row.zone ?? row.timeline ?? row.kind ?? row.pillar ?? row.frame ?? "").toLowerCase();
+  if (/vision|future|projet|project/.test(raw)) return "vision";
+  if (/fond|found|past|origin|heritage/.test(raw)) return "foundation";
+  if (/now|actu|present|news/.test(raw)) return "now";
+  return "now";
+}
+
+function displayName(row: Record<string, unknown>, profiles: Record<string, { name: string; role: string; photo?: string }>) {
+  const uid = String(row.user_id ?? row.profile_id ?? "");
+  const fromProfile = profiles[uid];
+  const name = String(
+    row.author_name || row.display_name || row.name || fromProfile?.name || "Membre Pro",
+  );
+  const role = String(row.role || row.job_title || fromProfile?.role || "Pro");
+  const photo = String(row.photo_url || row.avatar_url || fromProfile?.photo || "");
+  return { name, role, photo };
+}
+
+function place(index: number) {
+  const col = index % 3;
+  const row = Math.floor(index / 3);
+  return {
+    x: 22 + col * 28 + (row % 2) * 5,
+    y: 28 + (row % 4) * 22,
+  };
+}
+
+function emptyZones(): Record<ProZoneId, ProBubbleItem[]> {
+  return { vision: [], now: [], foundation: [] };
+}
+
+function hasAny(z: Record<ProZoneId, ProBubbleItem[]>) {
+  return z.vision.length + z.now.length + z.foundation.length > 0;
+}
+
+/**
+ * Network feed: every Pro member. Never filter by auth.uid() / current user.
+ */
+async function loadAllProBubbles(): Promise<Record<ProZoneId, ProBubbleItem[]>> {
+  const sb = supabase as any;
+  const zones = emptyZones();
+
+  const [{ data: drafts }, { data: memories }] = await Promise.all([
+    sb.from("pro_voice_drafts").select("*"),
+    sb.from("memories").select("*").eq("is_pro", true),
+  ]);
+
+  const rows: Record<string, unknown>[] = [
+    ...((drafts || []) as Record<string, unknown>[]),
+    ...((memories || []) as Record<string, unknown>[]).map((m) => ({ ...m, _source: "memory" })),
+  ];
+
+  const userIds = [...new Set(rows.map((r) => String(r.user_id ?? "")).filter(Boolean))];
+  const profiles: Record<string, { name: string; role: string; photo?: string }> = {};
+  if (userIds.length) {
+    const { data: profileRows } = await sb.from("profiles").select("user_id, display_name, spark").in("user_id", userIds);
+    for (const p of profileRows || []) {
+      profiles[p.user_id] = { name: p.display_name || "Membre Pro", role: p.spark || "Pro" };
+    }
+    const { data: proRows } = await sb
+      .from("pro_profiles")
+      .select("user_id, display_name, role, avatar_url, photo_url")
+      .in("user_id", userIds);
+    for (const p of proRows || []) {
+      profiles[p.user_id] = {
+        name: p.display_name || profiles[p.user_id]?.name || "Membre Pro",
+        role: p.role || profiles[p.user_id]?.role || "Pro",
+        photo: p.avatar_url || p.photo_url,
+      };
+    }
+  }
+
+  const counts: Record<ProZoneId, number> = { vision: 0, now: 0, foundation: 0 };
+
+  for (const row of rows) {
+    const zone = zoneOf(row);
+    const { name, role, photo } = displayName(row, profiles);
+    const dur = formatDuration(row.duration_s ?? row.duration);
+    const idx = counts[zone];
+    const pos = place(idx);
+    counts[zone] += 1;
+    zones[zone].push({
+      id: String(row.id ?? `${zone}-${idx}`),
+      name,
+      role,
+      title: String(row.title || row.prompt || row.question || row.transcript || "Voix"),
+      duration: dur.includes(":") ? dur : formatDuration(row.duration_s),
+      size: zone === "foundation" ? 108 : zone === "now" ? 92 : 80,
+      x: pos.x,
+      y: pos.y,
+      hasPhoto: Boolean(photo),
+      photoUrl: photo || undefined,
+      audioUrl: String(row.audio_url || row.file_url || row.media_url || ""),
+    });
+  }
+
+  return zones;
+}
 
 function ZoneBubble({
   bubble,
@@ -216,8 +232,7 @@ function ZoneBubble({
         borderRadius: "50%",
         border: `${zone.borderWidth}px solid ${zone.color}`,
         background: bg,
-        opacity: zone.opacity,
-        boxShadow: `0 4px 24px ${zone.color}40`,
+        boxShadow: `0 4px 16px ${zone.color}33`,
         cursor: "pointer",
         padding: 0,
         overflow: "hidden",
@@ -229,8 +244,7 @@ function ZoneBubble({
           style={{
             position: "absolute",
             inset: 0,
-            background:
-              "linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.12) 45%, transparent 70%)",
+            background: "linear-gradient(to top, rgba(15,23,42,0.35) 0%, transparent 55%)",
             pointerEvents: "none",
           }}
         />
@@ -243,7 +257,7 @@ function ZoneBubble({
           left: "50%",
           transform: "translate(-50%, -55%)",
           textAlign: "center",
-          color: hasPhoto ? "#fff" : zone.color,
+          color: hasPhoto ? "#fff" : INK,
           width: "82%",
           pointerEvents: "none",
         }}
@@ -254,7 +268,6 @@ function ZoneBubble({
             fontWeight: 800,
             margin: 0,
             lineHeight: 1.15,
-            textShadow: hasPhoto ? "0 1px 4px rgba(0,0,0,0.5)" : "none",
           }}
         >
           {bubble.name}
@@ -263,7 +276,7 @@ function ZoneBubble({
           style={{
             fontSize: "9px",
             margin: "2px 0 0",
-            opacity: 0.85,
+            opacity: 0.8,
             fontWeight: 600,
           }}
         >
@@ -277,7 +290,7 @@ function ZoneBubble({
           bottom: dim > 100 ? "10px" : "6px",
           left: "50%",
           transform: "translateX(-50%)",
-          background: "rgba(0,0,0,0.65)",
+          background: "rgba(15,23,42,0.78)",
           borderRadius: "999px",
           padding: "2px 8px",
           display: "flex",
@@ -298,6 +311,7 @@ function ZoneBubble({
 
 export default function ProBubbleCanvas({ onScroll, onBubbleTap }: ProBubbleCanvasProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const [bubbles, setBubbles] = useState<Record<ProZoneId, ProBubbleItem[]>>(FALLBACK_NETWORK);
 
   useEffect(() => {
     const el = scrollerRef.current;
@@ -306,6 +320,21 @@ export default function ProBubbleCanvas({ onScroll, onBubbleTap }: ProBubbleCanv
     el.addEventListener("scroll", handle, { passive: true });
     return () => el.removeEventListener("scroll", handle);
   }, [onScroll]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const loaded = await loadAllProBubbles();
+        if (!cancelled && hasAny(loaded)) setBubbles(loaded);
+      } catch (err) {
+        console.warn("Pro canvas network load failed, keeping fallback network", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div
@@ -318,17 +347,7 @@ export default function ProBubbleCanvas({ onScroll, onBubbleTap }: ProBubbleCanv
         overflowX: "hidden",
         position: "relative",
         scrollBehavior: "smooth",
-        background: `
-          linear-gradient(
-            180deg,
-            rgba(109,89,168,0.28) 0%,
-            rgba(13,27,42,0.4) 18%,
-            rgba(42,100,150,0.22) 48%,
-            rgba(13,27,42,0.35) 72%,
-            rgba(196,146,42,0.26) 100%
-          ),
-          #0D1B2A
-        `,
+        background: CANVAS_BG,
       }}
     >
       <style>{`
@@ -366,9 +385,9 @@ export default function ProBubbleCanvas({ onScroll, onBubbleTap }: ProBubbleCanv
             minHeight: "100vh",
             paddingTop: zoneIndex === 0 ? "8px" : 0,
             paddingBottom: "48px",
+            background: zone.wash,
           }}
         >
-          {/* Sticky zone rail */}
           <div
             style={{
               position: "sticky",
@@ -388,8 +407,7 @@ export default function ProBubbleCanvas({ onScroll, onBubbleTap }: ProBubbleCanv
                 right: "16px",
                 top: "50%",
                 height: "1px",
-                background: `linear-gradient(90deg, transparent, ${zone.color}99, transparent)`,
-                boxShadow: `0 0 12px ${zone.color}55`,
+                background: `linear-gradient(90deg, transparent, ${zone.color}66, transparent)`,
               }}
             />
             <span
@@ -398,28 +416,17 @@ export default function ProBubbleCanvas({ onScroll, onBubbleTap }: ProBubbleCanv
                 zIndex: 1,
                 padding: "4px 14px",
                 borderRadius: "999px",
-                background: "rgba(13,27,42,0.92)",
-                border: `1px solid ${zone.color}66`,
-                color: zone.color,
+                background: CANVAS_BG,
+                border: `1px solid ${zone.color}55`,
+                color: INK,
                 fontSize: "10px",
                 fontWeight: 900,
                 letterSpacing: "0.28em",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
               }}
             >
               {zone.label}
             </span>
           </div>
-
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: zone.wash,
-              pointerEvents: "none",
-            }}
-          />
 
           <div
             style={{
@@ -429,7 +436,7 @@ export default function ProBubbleCanvas({ onScroll, onBubbleTap }: ProBubbleCanv
               minHeight: "480px",
             }}
           >
-            {ZONE_BUBBLES[zone.id].map((bubble, index) => (
+            {(bubbles[zone.id] || []).map((bubble, index) => (
               <ZoneBubble
                 key={bubble.id}
                 bubble={bubble}
