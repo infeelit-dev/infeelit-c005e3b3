@@ -33,6 +33,8 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 
 const Pro = lazy(() => import("@/pages/Pro"));
+const Interview = lazy(() => import("@/pages/Interview"));
+const InterviewPortrait = lazy(() => import("@/pages/InterviewPortrait"));
 
 const queryClient = new QueryClient();
 
