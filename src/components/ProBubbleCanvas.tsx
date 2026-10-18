@@ -14,6 +14,7 @@ export interface ProBubbleItem {
   photoUrl?: string;
   x?: number;
   y?: number;
+  yPx?: number;
   color?: string;
   audioUrl?: string;
 }
@@ -98,11 +99,19 @@ function formatDuration(seconds: unknown) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
+const COLS = 3;
+const ROW_PX = 168;
+
 function zoneOf(row: Record<string, unknown>): ProZoneId {
-  const raw = String(row.trame ?? row.zone ?? row.timeline ?? row.kind ?? row.pillar ?? row.frame ?? "").toLowerCase();
-  if (/vision|future|projet|project/.test(raw)) return "vision";
-  if (/fond|found|past|origin|heritage/.test(raw)) return "foundation";
-  if (/now|actu|present|news/.test(raw)) return "now";
+  const raw = String(row.trame ?? row.zone ?? row.timeline ?? row.kind ?? row.pillar ?? row.frame ?? "")
+    .toLowerCase()
+    .trim();
+  // memories.timeline is memories | instant | forever
+  if (raw === "forever" || raw === "vision" || /future|projet|project/.test(raw)) return "vision";
+  if (raw === "memories" || raw === "foundation" || raw === "fondation" || /fond|found|past|origin|heritage/.test(raw)) {
+    return "foundation";
+  }
+  if (raw === "instant" || raw === "now" || /actu|present|news/.test(raw)) return "now";
   return "now";
 }
 
@@ -118,12 +127,17 @@ function displayName(row: Record<string, unknown>, profiles: Record<string, { na
 }
 
 function place(index: number) {
-  const col = index % 3;
-  const row = Math.floor(index / 3);
+  const col = index % COLS;
+  const row = Math.floor(index / COLS);
   return {
-    x: 22 + col * 28 + (row % 2) * 5,
-    y: 28 + (row % 4) * 22,
+    x: 20 + col * 30 + (row % 2) * 4,
+    yPx: 56 + row * ROW_PX,
   };
+}
+
+function zoneBodyHeight(count: number) {
+  const rows = Math.max(1, Math.ceil(count / COLS));
+  return Math.max(480, 56 + rows * ROW_PX + 48);
 }
 
 function emptyZones(): Record<ProZoneId, ProBubbleItem[]> {
@@ -143,7 +157,7 @@ async function loadAllProBubbles(): Promise<Record<ProZoneId, ProBubbleItem[]>> 
 
   const [{ data: drafts }, { data: memories }] = await Promise.all([
     sb.from("pro_voice_drafts").select("*"),
-    sb.from("memories").select("*").eq("is_pro", true),
+    sb.from("memories").select("*").eq("is_pro", true).eq("is_public", true),
   ]);
 
   const rows: Record<string, unknown>[] = [
@@ -188,7 +202,7 @@ async function loadAllProBubbles(): Promise<Record<ProZoneId, ProBubbleItem[]>> 
       duration: dur.includes(":") ? dur : formatDuration(row.duration_s),
       size: zone === "foundation" ? 108 : zone === "now" ? 92 : 80,
       x: pos.x,
-      y: pos.y,
+      yPx: pos.yPx,
       hasPhoto: Boolean(photo),
       photoUrl: photo || undefined,
       audioUrl: String(row.audio_url || row.file_url || row.media_url || ""),
@@ -224,7 +238,7 @@ function ZoneBubble({
       style={{
         position: "absolute",
         left: `${bubble.x ?? 50}%`,
-        top: `${bubble.y ?? 40}%`,
+        top: bubble.yPx != null ? `${bubble.yPx}px` : `${bubble.y ?? 40}%`,
         width: `${dim}px`,
         height: `${dim}px`,
         marginLeft: `-${dim / 2}px`,
@@ -432,7 +446,7 @@ export default function ProBubbleCanvas({ onScroll, onBubbleTap }: ProBubbleCanv
             style={{
               position: "relative",
               width: "100%",
-              height: "calc(100vh - 44px)",
+              height: zoneBodyHeight((bubbles[zone.id] || []).length),
               minHeight: "480px",
             }}
           >
