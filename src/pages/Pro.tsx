@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ProBubbleCanvas, { type ProBubbleItem } from "@/components/ProBubbleCanvas";
+import ProBubbleCanvas, { type ProBubbleItem, type ProZoneId } from "@/components/ProBubbleCanvas";
 import ProBottomNav, { type ProTab } from "@/components/ProBottomNav";
 
 const NAVY = "#0D1B2A";
@@ -210,6 +210,7 @@ function ProVoix() {
 }
 
 function ProProfile() {
+  const navigate = useNavigate();
   return (
     <div style={{ padding: "72px 24px 24px" }}>
       <div style={{ textAlign: "center", marginBottom: "24px" }}>
@@ -261,9 +262,32 @@ function ProProfile() {
           </p>
         </div>
       ))}
+      <button
+        type="button"
+        onClick={() => navigate("/pro/entreprise/new")}
+        style={{
+          marginTop: 8,
+          width: "100%",
+          padding: "12px",
+          borderRadius: 14,
+          border: "1px solid rgba(196,146,42,0.35)",
+          background: "transparent",
+          color: "#C4922A",
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        Créer un profil entreprise
+      </button>
     </div>
   );
 }
+
+const TRAME_CHIPS: { id: ProZoneId; label: string; color: string }[] = [
+  { id: "foundation", label: "Fondation", color: "#C4922A" },
+  { id: "now", label: "Actualités", color: "#2A6496" },
+  { id: "vision", label: "Vision", color: "#6D59A8" },
+];
 
 type SelectedBubble = ProBubbleItem & { color: string };
 
@@ -274,6 +298,7 @@ export default function Pro() {
   const [selected, setSelected] = useState<SelectedBubble | null>(null);
   const [followedPeople, setFollowedPeople] = useState<DemoVoice[]>([]);
   const [followers] = useState<DemoVoice[]>([]);
+  const [focusedZone, setFocusedZone] = useState<ProZoneId | null>(null);
 
   const handleFollow = (voice: DemoVoice) => {
     setFollowedPeople((prev) => {
@@ -395,6 +420,32 @@ export default function Pro() {
               Préserver les voix qu&apos;on aime avant qu&apos;il soit trop tard.
             </p>
           )}
+
+          <div style={{ display: "flex", gap: 6, marginTop: headerCollapsed ? 8 : 12 }}>
+            {TRAME_CHIPS.map((chip) => {
+              const on = focusedZone === chip.id;
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => setFocusedZone(on ? null : chip.id)}
+                  style={{
+                    flex: 1,
+                    padding: "7px 8px",
+                    borderRadius: 999,
+                    border: `1px solid ${on ? chip.color : "rgba(255,255,255,0.16)"}`,
+                    background: on ? `${chip.color}33` : "transparent",
+                    color: on ? chip.color : "rgba(253,248,240,0.75)",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  }}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -404,6 +455,67 @@ export default function Pro() {
             onScroll={(scrolled) => setHeaderCollapsed(scrolled > 80)}
             onBubbleTap={(bubble) => setSelected(bubble)}
           />
+          <div
+            style={{
+              flexShrink: 0,
+              maxHeight: "34vh",
+              overflowY: "auto",
+              padding: "10px 16px 8px",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(13,27,42,0.96)",
+            }}
+          >
+            {focusedZone ? (
+              <>
+                <p style={{ margin: "0 0 8px", fontSize: 12, color: "rgba(253,248,240,0.7)" }}>
+                  {TRAME_CHIPS.find((c) => c.id === focusedZone)?.label}{" "}
+                  <span style={{ opacity: 0.5 }}>&gt; tous les souvenirs</span>
+                </p>
+                <p style={{ margin: 0, fontSize: 13, fontStyle: "italic", opacity: 0.5 }}>
+                  Aucun souvenir dans cette trame.
+                </p>
+                <p style={{ margin: "12px 0 6px", fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", opacity: 0.55 }}>
+                  Voir aussi
+                </p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {TRAME_CHIPS.filter((c) => c.id !== focusedZone).map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setFocusedZone(c.id)}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: 999,
+                        border: `1px solid ${c.color}66`,
+                        background: "transparent",
+                        color: c.color,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              TRAME_CHIPS.map((g, i) => (
+                <div
+                  key={g.id}
+                  style={{
+                    paddingTop: i === 0 ? 0 : 10,
+                    borderTop: i === 0 ? "none" : "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 900, letterSpacing: "0.16em", color: g.color }}>
+                    {g.label}
+                  </p>
+                  <p style={{ margin: "0 0 8px", fontSize: 12, opacity: 0.4, fontStyle: "italic" }}>—</p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
       {navTab === "reseau" && (

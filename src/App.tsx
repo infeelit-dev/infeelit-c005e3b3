@@ -33,6 +33,9 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 
 const Pro = lazy(() => import("@/pages/Pro"));
+const ProMember = lazy(() => import("@/pages/ProMember"));
+const Entreprise = lazy(() => import("@/pages/Entreprise"));
+const EntrepriseNew = lazy(() => import("@/pages/EntrepriseNew"));
 
 const queryClient = new QueryClient();
 
@@ -117,6 +120,30 @@ const App = () => (
               element={
                 <Suspense fallback={<RouteFallback />}>
                   <Pro />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/pro/m/:id"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <ProMember />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/pro/entreprise/new"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <EntrepriseNew />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/pro/entreprise/:id"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <Entreprise />
                 </Suspense>
               }
             />
