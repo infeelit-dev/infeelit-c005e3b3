@@ -73,6 +73,27 @@ export type Database = {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          created_at: string | null
+          follower_id: string | null
+          following_id: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id?: string | null
+          following_id?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string | null
+          following_id?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
