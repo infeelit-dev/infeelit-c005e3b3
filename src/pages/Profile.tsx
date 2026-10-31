@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,9 @@ import { getLabel } from "@/lib/uiLabels";
 import { getTimelineLabel } from "@/lib/timelineLabels";
 import CurvedBottomNav from "@/components/CurvedBottomNav";
 import Header from "@/components/Header";
+
+const LIEU_MAX_BYTES = 5 * 1024 * 1024;
+const LIEU_CAPTION = "Là où naissaient les souvenirs";
 
 interface ProfileMemory {
   id: string;
@@ -47,6 +50,12 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [memories, setMemories] = useState<ProfileMemory[]>([]);
   const [sparksCount, setSparksCount] = useState(0);
+  const [lieuPhotoUrl, setLieuPhotoUrl] = useState<string | null>(null);
+  const [lieuCaption, setLieuCaption] = useState(false);
+  const [lieuBusy, setLieuBusy] = useState(false);
+  const [lieuError, setLieuError] = useState<string | null>(null);
+  const lieuInputRef = useRef<HTMLInputElement>(null);
+  const lieuCaptionTimer = useRef<number | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
@@ -96,6 +105,13 @@ const Profile = () => {
 
       setMemories(signed);
 
+      const { data: profileRow } = await supabase
+        .from("profiles")
+        .select("lieu_photo_url")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      setLieuPhotoUrl(profileRow?.lieu_photo_url || null);
+
       if (memoriesData.length > 0) {
         const { count } = await supabase
           .from("memory_sparks")
@@ -112,6 +128,52 @@ const Profile = () => {
 
     loadProfileData();
   }, [session]);
+
+  const handleLieuFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !session) return;
+    setLieuError(null);
+    if (!file.type.startsWith("image/")) {
+      setLieuError("Image only.");
+      return;
+    }
+    if (file.size > LIEU_MAX_BYTES) {
+      setLieuError("5 MB max.");
+      return;
+    }
+    setLieuBusy(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `${session.user.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("lieu-photos").upload(path, file, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType: file.type,
+      });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("lieu-photos").getPublicUrl(path);
+      const url = pub.publicUrl;
+      const { error: rowErr } = await supabase
+        .from("profiles")
+        .update({ lieu_photo_url: url })
+        .eq("user_id", session.user.id);
+      if (rowErr) throw rowErr;
+      setLieuPhotoUrl(url);
+    } catch (err) {
+      console.error(err);
+      setLieuError("Could not save.");
+    } finally {
+      setLieuBusy(false);
+    }
+  };
+
+  const showLieuCaption = () => {
+    if (!lieuPhotoUrl) return;
+    setLieuCaption(true);
+    if (lieuCaptionTimer.current) window.clearTimeout(lieuCaptionTimer.current);
+    lieuCaptionTimer.current = window.setTimeout(() => setLieuCaption(false), 2500);
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -386,7 +448,91 @@ const Profile = () => {
         </div>
       </div>
 
-      <div style={{ padding: "24px 20px 0" }}>
+      <div
+        style={{ padding: "24px 20px 0", position: "relative" }}
+        onMouseEnter={() => lieuPhotoUrl && setLieuCaption(true)}
+        onMouseLeave={() => setLieuCaption(false)}
+        onTouchStart={showLieuCaption}
+      >
+        {lieuPhotoUrl && (
+          <>
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: 0,
+                overflow: "hidden",
+                zIndex: 0,
+                pointerEvents: "none",
+              }}
+            >
+              <img
+                src={lieuPhotoUrl}
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  opacity: 0.15,
+                  filter: "blur(8px)",
+                  transform: "scale(1.06)",
+                }}
+              />
+            </div>
+            {lieuCaption && (
+              <p
+                style={{
+                  position: "absolute",
+                  left: 20,
+                  right: 20,
+                  top: 8,
+                  zIndex: 2,
+                  margin: 0,
+                  textAlign: "center",
+                  fontFamily: "Georgia, serif",
+                  fontStyle: "italic",
+                  fontSize: 13,
+                  color: "rgba(61,43,31,0.55)",
+                  pointerEvents: "none",
+                }}
+              >
+                {LIEU_CAPTION}
+              </p>
+            )}
+          </>
+        )}
+        <div style={{ position: "relative", zIndex: 1 }}>
+        {!lieuPhotoUrl && (
+          <div style={{ marginBottom: 12 }}>
+            <input
+              ref={lieuInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(ev) => void handleLieuFile(ev)}
+            />
+            <button
+              type="button"
+              onClick={() => lieuInputRef.current?.click()}
+              disabled={lieuBusy}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                color: "rgba(61,43,31,0.45)",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                cursor: lieuBusy ? "default" : "pointer",
+              }}
+            >
+              {lieuBusy ? "…" : "Ajouter mon lieu"}
+            </button>
+            {lieuError && (
+              <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(61,43,31,0.45)" }}>{lieuError}</p>
+            )}
+          </div>
+        )}
         <p
           style={{
             fontSize: "11px",
@@ -511,6 +657,7 @@ const Profile = () => {
             ))}
           </div>
         )}
+        </div>
       </div>
 
       <div style={{ padding: "32px 20px 0" }}>
