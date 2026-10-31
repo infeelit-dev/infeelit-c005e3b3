@@ -416,6 +416,7 @@ export type Database = {
           generation: string | null
           has_children: boolean | null
           id: string
+          lieu_photo_url: string | null
           onboarding_completed: boolean
           phone: string | null
           spark: string | null
@@ -429,6 +430,7 @@ export type Database = {
           generation?: string | null
           has_children?: boolean | null
           id?: string
+          lieu_photo_url?: string | null
           onboarding_completed?: boolean
           phone?: string | null
           spark?: string | null
@@ -442,6 +444,7 @@ export type Database = {
           generation?: string | null
           has_children?: boolean | null
           id?: string
+          lieu_photo_url?: string | null
           onboarding_completed?: boolean
           phone?: string | null
           spark?: string | null
