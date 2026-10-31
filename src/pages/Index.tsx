@@ -16,6 +16,7 @@ const Index = () => {
   const [sparkForced, setSparkForced] = useState(false);
   const [showPlusSheet, setShowPlusSheet] = useState(false);
   const [circleBadge, setCircleBadge] = useState(0);
+  const [followedOnly, setFollowedOnly] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -125,8 +126,56 @@ const Index = () => {
       </div>
 
       <Header activeTimeline={activeTimeline} onTimelineChange={handleTimelineChange} />
+      <div
+        style={{
+          position: "absolute",
+          top: "122px",
+          left: 0,
+          right: 0,
+          zIndex: 40,
+          display: "flex",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            pointerEvents: "auto",
+            background: "rgba(0,0,0,0.28)",
+            borderRadius: "999px",
+            padding: "3px",
+            gap: "2px",
+          }}
+        >
+          {(
+            [
+              { on: false, label: "Tous les souvenirs" },
+              { on: true, label: "Personnes suivies" },
+            ] as const
+          ).map(({ on, label }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setFollowedOnly(on)}
+              style={{
+                border: "none",
+                borderRadius: "999px",
+                padding: "6px 12px",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+                background: followedOnly === on ? "#FFFFFF" : "transparent",
+                color: followedOnly === on ? "#2D1810" : "rgba(255,255,255,0.85)",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
       <SparkBubble forceOpen={sparkForced} onSparkClose={() => setSparkForced(false)} />
-      <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} />
+      <BubbleCanvas onBubbleClick={handleBubbleClick} activeTimeline={activeTimeline} followedOnly={followedOnly} />
 
       <CurvedBottomNav onPlusClick={() => setShowPlusSheet(true)} circleBadge={circleBadge} />
 

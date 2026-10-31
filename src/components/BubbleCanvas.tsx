@@ -117,6 +117,7 @@ interface BubbleData {
 interface BubbleCanvasProps {
   onBubbleClick?: (question: string, category: "past") => void;
   activeTimeline: Timeline;
+  followedOnly?: boolean;
 }
 
 function getBubbleSize(sparks: number): number {
@@ -184,7 +185,7 @@ function getThemedImage(title: string): string {
 
 const FLOAT_CLASSES = ["bubble-float-1", "bubble-float-2", "bubble-float-3"];
 
-const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
+const BubbleCanvas = ({ onBubbleClick, activeTimeline, followedOnly = false }: BubbleCanvasProps) => {
   const { lang } = useLanguage();
   const userName = useUserName();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
@@ -205,6 +206,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
   const [openMemory, setOpenMemory] = useState<BubbleData | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [followedEmpty, setFollowedEmpty] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const isTouchDevice =
@@ -276,15 +278,56 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
   useEffect(() => {
     const loadMemories = async () => {
-      const { data } = await supabase
+      setFollowedEmpty(false);
+      let followedIds: string[] | null = null;
+      if (followedOnly) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.user?.id) {
+          setFollowedEmpty(true);
+          setUseRealFeed(false);
+          setDemoBubbles([]);
+          setVisibleBubbles([]);
+          setMemoryQueue([]);
+          return;
+        }
+        const { data: followRows } = await supabase
+          .from("follows")
+          .select("following_id")
+          .eq("follower_id", session.user.id);
+        followedIds = (followRows || []).map((r) => r.following_id).filter(Boolean) as string[];
+        if (followedIds.length === 0) {
+          setFollowedEmpty(true);
+          setUseRealFeed(false);
+          setDemoBubbles([]);
+          setVisibleBubbles([]);
+          setMemoryQueue([]);
+          return;
+        }
+      }
+
+      let query = supabase
         .from("memories")
         .select("*")
         .eq("is_public", true)
         .eq("timeline", activeTimeline)
         .order("created_at", { ascending: false })
         .limit(40);
+      if (followedIds) {
+        query = query.in("user_id", followedIds);
+      }
 
-      if (!data || data.length < REAL_CONTENT_THRESHOLD) {
+      const { data } = await query;
+
+      if (!data || data.length === 0 || (!followedOnly && data.length < REAL_CONTENT_THRESHOLD)) {
+        if (followedOnly) {
+          setUseRealFeed(false);
+          setDemoBubbles([]);
+          setVisibleBubbles([]);
+          setMemoryQueue([]);
+          return;
+        }
         setUseRealFeed(false);
         setDemoBubbles(getDemoBubbles());
         setVisibleBubbles([]);
@@ -303,9 +346,9 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
 
       const resolved = await resolveMemoryFields(data);
       const bubbles = resolved.map((m, i) => mapMemoryToBubble(m as Record<string, unknown>, i, profilesMap));
-      const shuffled = [...bubbles].sort(() => Math.random() - 0.5);
-      const initial = shuffled.slice(0, VISIBLE_COUNT);
-      const queue = shuffled.slice(VISIBLE_COUNT);
+      const ordered = followedOnly ? bubbles : [...bubbles].sort(() => Math.random() - 0.5);
+      const initial = ordered.slice(0, VISIBLE_COUNT);
+      const queue = ordered.slice(VISIBLE_COUNT);
       const positions = generatePositions(initial.map((b) => b.size));
       const positioned = initial.map((b, i) => ({
         ...b,
@@ -321,7 +364,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
     };
 
     loadMemories();
-  }, [activeTimeline, getDemoBubbles, mapMemoryToBubble]);
+  }, [activeTimeline, followedOnly, getDemoBubbles, mapMemoryToBubble]);
 
   const reloadMoreMemories = async () => {
     const ids = [...seenIdsRef.current];
@@ -332,6 +375,20 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
       .eq("timeline", activeTimeline)
       .order("created_at", { ascending: false })
       .limit(20);
+
+    if (followedOnly) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user?.id) return;
+      const { data: followRows } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", session.user.id);
+      const followedIds = (followRows || []).map((r) => r.following_id).filter(Boolean) as string[];
+      if (followedIds.length === 0) return;
+      query = query.in("user_id", followedIds);
+    }
 
     if (ids.length > 0) {
       query = query.not("id", "in", `(${ids.join(",")})`);
@@ -810,6 +867,35 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
         .bubble-float-2 { animation: bubble-float-2 var(--dur) ease-in-out infinite var(--delay); }
         .bubble-float-3 { animation: bubble-float-3 var(--dur) ease-in-out infinite var(--delay); }
       `}</style>
+
+      {followedEmpty && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 32px",
+            pointerEvents: "none",
+            zIndex: 2,
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              color: "rgba(255,255,255,0.92)",
+              fontSize: "15px",
+              fontWeight: 500,
+              lineHeight: 1.45,
+              maxWidth: "280px",
+              textShadow: "0 1px 8px rgba(0,0,0,0.35)",
+            }}
+          >
+            Suivez des personnes pour voir leurs souvenirs ici
+          </p>
+        </div>
+      )}
 
       {bubblesToRender.map(renderBubble)}
 
