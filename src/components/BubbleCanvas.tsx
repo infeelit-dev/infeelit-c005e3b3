@@ -57,34 +57,45 @@ const THEME_IMAGES: Record<string, string> = {
   راحة: imgRelax,
 };
 
+const DEMO_AVATARS = [
+  "https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=150",
+  "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=150",
+  "https://images.unsplash.com/photo-1511895426328-dc8714191011?w=150",
+  "https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=150",
+  "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=150",
+  "https://images.unsplash.com/photo-1543342384-1f1350e27861?w=150",
+];
+
+const demoAvatar = (index: number) => DEMO_AVATARS[index % DEMO_AVATARS.length];
+
 const DEMO_QUESTIONS: Record<
   string,
   { fr: string; en: string; ar: string; image: string; size: number; x: number; y: number }[]
 > = {
   memories: [
-    { fr: "L'odeur de sa cuisine", en: "The scent of her kitchen", ar: "رائحة مطبخها", image: imgGrandfather, size: 130, x: 5, y: 15 },
-    { fr: "Ton plus vieux fou rire", en: "Your earliest belly laugh", ar: "أول ضحكة من القلب", image: imgChild, size: 110, x: 55, y: 10 },
-    { fr: "Leur geste d'amour muet", en: "Their silent act of love", ar: "لفتة حب صامتة", image: imgMarry, size: 140, x: 25, y: 38 },
-    { fr: "Le bruit de la maison", en: "The sound of home", ar: "صوت البيت", image: imgPicnic, size: 90, x: 5, y: 52 },
-    { fr: "Le café des matins", en: "The morning coffee", ar: "قهوة الصباح", image: imgLove, size: 115, x: 45, y: 68 },
-    { fr: "Le vêtement de ton père", en: "Your father's old coat", ar: "رداء والدك القديم", image: imgTravel, size: 100, x: 65, y: 55 },
-    { fr: "Leur secret de bonheur", en: "Their secret to happiness", ar: "سر سعادتهم", image: imgRelax, size: 95, x: 70, y: 20 },
+    { fr: "L'odeur de sa cuisine", en: "The scent of her kitchen", ar: "رائحة مطبخها", image: demoAvatar(0), size: 130, x: 5, y: 15 },
+    { fr: "Ton plus vieux fou rire", en: "Your earliest belly laugh", ar: "أول ضحكة من القلب", image: demoAvatar(1), size: 110, x: 55, y: 10 },
+    { fr: "Leur geste d'amour muet", en: "Their silent act of love", ar: "لفتة حب صامتة", image: demoAvatar(2), size: 140, x: 25, y: 38 },
+    { fr: "Le bruit de la maison", en: "The sound of home", ar: "صوت البيت", image: demoAvatar(3), size: 90, x: 5, y: 52 },
+    { fr: "Le café des matins", en: "The morning coffee", ar: "قهوة الصباح", image: demoAvatar(4), size: 115, x: 45, y: 68 },
+    { fr: "Le vêtement de ton père", en: "Your father's old coat", ar: "رداء والدك القديم", image: demoAvatar(5), size: 100, x: 65, y: 55 },
+    { fr: "Leur secret de bonheur", en: "Their secret to happiness", ar: "سر سعادتهم", image: demoAvatar(0), size: 95, x: 70, y: 20 },
   ],
   instant: [
-    { fr: "Ton doudou fétiche", en: "Your favorite plushie", ar: "دميتك المفضلة", image: imgLove, size: 130, x: 10, y: 18 },
-    { fr: "Votre langage secret", en: "Your secret language", ar: "لغتكم السرية", image: imgChild, size: 110, x: 55, y: 12 },
-    { fr: "Ta première cabane", en: "Your first secret fort", ar: "مخبؤك الأول", image: imgPicnic, size: 95, x: 70, y: 35 },
-    { fr: "Le pacte de sang", en: "The childhood pact", ar: "عهد الطفولة", image: imgTravel, size: 120, x: 20, y: 50 },
-    { fr: "Ton goûter d'enfance", en: "Your childhood snack", ar: "وجبة طفولتك الخفيفة", image: imgMarry, size: 100, x: 60, y: 65 },
+    { fr: "Ton doudou fétiche", en: "Your favorite plushie", ar: "دميتك المفضلة", image: demoAvatar(1), size: 130, x: 10, y: 18 },
+    { fr: "Votre langage secret", en: "Your secret language", ar: "لغتكم السرية", image: demoAvatar(2), size: 110, x: 55, y: 12 },
+    { fr: "Ta première cabane", en: "Your first secret fort", ar: "مخبؤك الأول", image: demoAvatar(3), size: 95, x: 70, y: 35 },
+    { fr: "Le pacte de sang", en: "The childhood pact", ar: "عهد الطفولة", image: demoAvatar(4), size: 120, x: 20, y: 50 },
+    { fr: "Ton goûter d'enfance", en: "Your childhood snack", ar: "وجبة طفولتك الخفيفة", image: demoAvatar(5), size: 100, x: 60, y: 65 },
   ],
   forever: [
-    { fr: "S'ils t'écoutaient ce soir", en: "If they heard you tonight", ar: "لو سمعوك الليلة", image: imgGraduate, size: 140, x: 8, y: 18 },
-    { fr: "Le merci suspendu", en: "The unspoken thank you", ar: "شكر لم يُقل بعد", image: imgHouse, size: 120, x: 58, y: 12 },
-    { fr: "Le nom que tu portes", en: "The name you carry", ar: "الاسم الذي تحمله", image: imgRelax, size: 130, x: 22, y: 40 },
-    { fr: "La maison quittée", en: "The house left behind", ar: "البيت الذي غادرته", image: imgMarry, size: 105, x: 68, y: 42 },
-    { fr: "La valeur héritée", en: "The inherited value", ar: "القيمة الموروثة", image: imgLove, size: 115, x: 12, y: 62 },
-    { fr: "Leur sacrifice invisible", en: "Their invisible sacrifice", ar: "تضحيتهم غير المرئية", image: imgBirth, size: 100, x: 55, y: 65 },
-    { fr: "Le fauteuil de ton grand-père", en: "Your grandfather's chair", ar: "كرسي جدك المفضل", image: imgGrandfather, size: 110, x: 72, y: 28 },
+    { fr: "S'ils t'écoutaient ce soir", en: "If they heard you tonight", ar: "لو سمعوك الليلة", image: demoAvatar(0), size: 140, x: 8, y: 18 },
+    { fr: "Le merci suspendu", en: "The unspoken thank you", ar: "شكر لم يُقل بعد", image: demoAvatar(1), size: 120, x: 58, y: 12 },
+    { fr: "Le nom que tu portes", en: "The name you carry", ar: "الاسم الذي تحمله", image: demoAvatar(2), size: 130, x: 22, y: 40 },
+    { fr: "La maison quittée", en: "The house left behind", ar: "البيت الذي غادرته", image: demoAvatar(3), size: 105, x: 68, y: 42 },
+    { fr: "La valeur héritée", en: "The inherited value", ar: "القيمة الموروثة", image: demoAvatar(4), size: 115, x: 12, y: 62 },
+    { fr: "Leur sacrifice invisible", en: "Their invisible sacrifice", ar: "تضحيتهم غير المرئية", image: demoAvatar(5), size: 100, x: 55, y: 65 },
+    { fr: "Le fauteuil de ton grand-père", en: "Your grandfather's chair", ar: "كرسي جدك المفضل", image: demoAvatar(0), size: 110, x: 72, y: 28 },
   ],
 };
 
@@ -602,7 +613,7 @@ const BubbleCanvas = ({ onBubbleClick, activeTimeline }: BubbleCanvasProps) => {
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            objectPosition: "center top",
+            objectPosition: bubble.type === "demo" ? "center" : "center top",
             filter:
               bubble.type === "demo"
                 ? "grayscale(60%) sepia(40%) brightness(0.85)"
