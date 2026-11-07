@@ -386,7 +386,93 @@ const Profile = () => {
         </div>
       </div>
 
+<<<<<<< Updated upstream
       <div style={{ padding: "24px 20px 0" }}>
+=======
+      <div
+        style={{ padding: "24px 20px 0", position: "relative" }}
+        onMouseEnter={() => lieuPhotoUrl && setLieuCaption(true)}
+        onMouseLeave={() => setLieuCaption(false)}
+        onTouchStart={showLieuCaption}
+      >
+        <>
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: 0,
+                overflow: "hidden",
+                zIndex: 0,
+                pointerEvents: "none",
+              }}
+            >
+              <img
+                src={lieuPhotoUrl || "/scenes/scene-salon.webp"}
+                alt=""
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  opacity: 0.15,
+                  filter: "blur(8px)",
+                  transform: "scale(1.06)",
+                }}
+              />
+            </div>
+            {lieuCaption && (
+              <p
+                style={{
+                  position: "absolute",
+                  left: 20,
+                  right: 20,
+                  top: 8,
+                  zIndex: 2,
+                  margin: 0,
+                  textAlign: "center",
+                  fontFamily: "Georgia, serif",
+                  fontStyle: "italic",
+                  fontSize: 13,
+                  color: "rgba(61,43,31,0.55)",
+                  pointerEvents: "none",
+                }}
+              >
+                {LIEU_CAPTION}
+              </p>
+            )}
+          </>
+        <div style={{ position: "relative", zIndex: 1 }}>
+        {!lieuPhotoUrl && (
+          <div style={{ marginBottom: 12 }}>
+            <input
+              ref={lieuInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(ev) => void handleLieuFile(ev)}
+            />
+            <button
+              type="button"
+              onClick={() => lieuInputRef.current?.click()}
+              disabled={lieuBusy}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                color: "rgba(61,43,31,0.45)",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                cursor: lieuBusy ? "default" : "pointer",
+              }}
+            >
+              {lieuBusy ? "…" : "Ajouter mon lieu"}
+            </button>
+            {lieuError && (
+              <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(61,43,31,0.45)" }}>{lieuError}</p>
+            )}
+          </div>
+        )}
+>>>>>>> Stashed changes
         <p
           style={{
             fontSize: "11px",
