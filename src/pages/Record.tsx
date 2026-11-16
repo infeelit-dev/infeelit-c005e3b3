@@ -571,6 +571,14 @@ const Record = () => {
     const rec = await startMedia(audioMode);
     if (!rec || rec.state !== "inactive") {
       captureSessionRef.current = false;
+      toast.error(
+        lang === "fr"
+          ? "L'enregistrement n'a pas pu démarrer. Réessaie."
+          : lang === "ar"
+            ? "تعذر بدء التسجيل. حاول مرة أخرى."
+            : "Recording could not start. Try again.",
+      );
+      setStage(isFreeMode ? "background" : "question");
       return;
     }
     setStage("countdown");
@@ -584,6 +592,14 @@ const Record = () => {
           const mr = mrRef.current;
           if (!mr || mr.state !== "inactive") {
             captureSessionRef.current = false;
+            toast.error(
+              lang === "fr"
+                ? "L'enregistrement n'a pas pu démarrer. Réessaie."
+                : lang === "ar"
+                  ? "تعذر بدء التسجيل. حاول مرة أخرى."
+                  : "Recording could not start. Try again.",
+            );
+            setStage(isFreeMode ? "background" : "question");
             return 3;
           }
           chunksRef.current = [];
@@ -593,6 +609,14 @@ const Record = () => {
           } catch (err) {
             console.error("MR start skipped:", err);
             captureSessionRef.current = false;
+            toast.error(
+              lang === "fr"
+                ? "L'enregistrement n'a pas pu démarrer. Réessaie."
+                : lang === "ar"
+                  ? "تعذر بدء التسجيل. حاول مرة أخرى."
+                  : "Recording could not start. Try again.",
+            );
+            setStage(isFreeMode ? "background" : "question");
             return 3;
           }
           console.log("MR started, state:", mrRef.current?.state);
