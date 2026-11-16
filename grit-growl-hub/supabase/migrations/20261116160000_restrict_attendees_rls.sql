@@ -17,5 +17,5 @@ CREATE POLICY "Public can update own check-in row"
   ON public.attendees
   FOR UPDATE
   TO authenticated
-  USING (email IS NOT NULL AND email = auth.jwt() ->> 'email')
-  WITH CHECK (email IS NOT NULL AND email = auth.jwt() ->> 'email');
+  USING (email IS NOT NULL AND lower(email) = lower(auth.jwt() ->> 'email'))
+  WITH CHECK (email IS NOT NULL AND lower(email) = lower(auth.jwt() ->> 'email'));
