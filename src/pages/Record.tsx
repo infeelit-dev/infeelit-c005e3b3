@@ -515,7 +515,11 @@ const Record = () => {
     }
   };
 
-  const startCountdown = () => {
+  const startCountdown = async () => {
+    if (!mrRef.current) {
+      const rec = await startMedia(audioMode);
+      if (!rec) return;
+    }
     setStage("countdown");
     setCountdown(3);
     const tmr = setInterval(() => {
@@ -523,7 +527,11 @@ const Record = () => {
         if (p === 1) {
           clearInterval(tmr);
           chunksRef.current = [];
-          mrRef.current?.start(1000); // collect chunks every 1 second
+          if (!mrRef.current) {
+            console.error("MR start skipped: MediaRecorder was not initialized");
+            return 3;
+          }
+          mrRef.current.start(1000); // collect chunks every 1 second
           console.log("MR started, state:", mrRef.current?.state);
           setStage("recording");
           setElapsed(0);
@@ -571,32 +579,38 @@ const Record = () => {
     const q = ff ? followupQuestions[Math.min(followupIdx, followupQuestions.length - 1)] : question;
     questionRef.current = q;
     setStage("background");
+    if (isFreeMode && !mrRef.current) {
+      void startMedia(audioMode);
+    }
   };
 
-  const handleBackgroundSkip = () => {
+  const handleBackgroundSkip = async () => {
     setBgImage(null);
     if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
     setBgVideoUrl(null);
     setUseAsAura(false);
     auraRef.current = false;
+    if (!mrRef.current) await startMedia(audioMode);
     startCountdown();
   };
 
-  const handleBackgroundContinue = () => {
+  const handleBackgroundContinue = async () => {
     if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
     setBgVideoUrl(null);
     const url = customThumb || thumbCards[selectedThumb];
     setBgImage(url);
     setUseAsAura(true);
     auraRef.current = true;
+    if (!mrRef.current) await startMedia(audioMode);
     startCountdown();
   };
 
-  const handleBackgroundVideoContinue = () => {
+  const handleBackgroundVideoContinue = async () => {
     if (!bgVideoUrl) return;
     setBgImage(null);
     setUseAsAura(false);
     auraRef.current = false;
+    if (!mrRef.current) await startMedia(audioMode);
     startCountdown();
   };
 
