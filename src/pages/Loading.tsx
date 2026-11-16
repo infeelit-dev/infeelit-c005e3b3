@@ -43,15 +43,13 @@ const Loading = () => {
       setProgress((prev) => (prev >= 100 ? 100 : prev + 1));
     }, 40);
 
-    const timeout =
-      location.pathname === "/loading"
-        ? setTimeout(() => navigate("/"), 4500)
-        : null;
+    if (location.pathname === "/loading") {
+      navigate("/", { replace: true });
+    }
 
     return () => {
       clearInterval(imgInterval);
       clearInterval(progressInterval);
-      if (timeout) clearTimeout(timeout);
     };
   }, [navigate, location.pathname]);
 
