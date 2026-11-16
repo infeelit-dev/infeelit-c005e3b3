@@ -244,6 +244,8 @@ const Record = () => {
   const mrRef = useRef<MediaRecorder | null>(null);
   const startMediaInflightRef = useRef<Promise<MediaRecorder | null> | null>(null);
   const mrUsedRef = useRef(false);
+  const captureSessionRef = useRef(false);
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [countdown, setCountdown] = useState(3);
   const [followupIdx, setFollowIdx] = useState(0);
@@ -564,22 +566,34 @@ const Record = () => {
   };
 
   const startCountdown = async () => {
+    if (captureSessionRef.current) return;
+    captureSessionRef.current = true;
     const rec = await startMedia(audioMode);
-    if (!rec) return;
+    if (!rec || rec.state !== "inactive") {
+      captureSessionRef.current = false;
+      return;
+    }
     setStage("countdown");
     setCountdown(3);
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
     const tmr = setInterval(() => {
       setCountdown((p) => {
         if (p === 1) {
           clearInterval(tmr);
-          chunksRef.current = [];
-          if (!mrRef.current) {
-            console.error("MR start skipped: MediaRecorder was not initialized");
+          countdownTimerRef.current = null;
+          const mr = mrRef.current;
+          if (!mr || mr.state !== "inactive") {
+            captureSessionRef.current = false;
             return 3;
           }
-          if (mrRef.current.state === "inactive") {
+          chunksRef.current = [];
+          try {
             mrUsedRef.current = true;
-            mrRef.current.start(1000); // collect chunks every 1 second
+            mr.start(1000);
+          } catch (err) {
+            console.error("MR start skipped:", err);
+            captureSessionRef.current = false;
+            return 3;
           }
           console.log("MR started, state:", mrRef.current?.state);
           setStage("recording");
@@ -606,6 +620,7 @@ const Record = () => {
         return p - 1;
       });
     }, 1000);
+    countdownTimerRef.current = tmr;
   };
 
   const handleModeSelect = async (mode: "voice" | "film" | "memory") => {
@@ -731,6 +746,11 @@ const Record = () => {
   };
 
   const handleRetake = () => {
+    captureSessionRef.current = false;
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
     releaseMedia();
     if (localUrl) URL.revokeObjectURL(localUrl);
     setLocalUrl(null);
