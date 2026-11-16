@@ -14,12 +14,9 @@ import FamilyIdentity from "./pages/FamilyIdentity";
 import Portrait from "./pages/Portrait";
 import Index from "./pages/Index";
 import Loading from "./pages/Loading";
-import About from "./pages/About";
-import Record from "./pages/Record";
 import Profile from "./pages/Profile";
 import Circle from "./pages/Circle";
 import Treasure from "./pages/Treasure";
-import Places from "./pages/Places";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import CreateCircle from "./pages/CreateCircle";
@@ -27,30 +24,17 @@ import JoinCircle from "./pages/JoinCircle";
 import Whispers from "./pages/Whispers";
 import Search from "./pages/Search";
 import Contact from "./pages/Contact";
-import AdminUpload from "./pages/AdminUpload";
 import MemoryDetail from "./pages/MemoryDetail";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 
+const Places = lazy(() => import("@/pages/Places"));
+const Record = lazy(() => import("@/pages/Record"));
+const AdminUpload = lazy(() => import("@/pages/AdminUpload"));
+const About = lazy(() => import("@/pages/About"));
 const Pro = lazy(() => import("@/pages/Pro"));
 
 const queryClient = new QueryClient();
-
-const RouteFallback = () => (
-  <div
-    style={{
-      minHeight: "100vh",
-      background: "#0D1B2A",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#C4922A",
-      fontSize: "32px",
-    }}
-  >
-    ◆
-  </div>
-);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -59,6 +43,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <Suspense fallback={<Loading />}>
           <Routes>
             {/* Routes principales */}
             <Route path="/" element={<Index />} />
@@ -112,16 +97,10 @@ const App = () => (
             } />
             <Route path="/admin" element={<AdminUpload />} />
             <Route path="/memory/:id" element={<MemoryDetail />} />
-            <Route
-              path="/pro"
-              element={
-                <Suspense fallback={<RouteFallback />}>
-                  <Pro />
-                </Suspense>
-              }
-            />
+            <Route path="/pro" element={<Pro />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </LanguageProvider>
     </TooltipProvider>
