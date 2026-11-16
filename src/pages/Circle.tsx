@@ -259,6 +259,7 @@ const Circle = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [seenMembers, setSeenMembers] = useState<Set<string>>(new Set());
   const [circleCode, setCircleCode] = useState("");
+  const [circleMembers, setCircleMembers] = useState<DemoMember[]>([]);
   const [showGroupImport, setShowGroupImport] = useState(false);
   const [groupNames, setGroupNames] = useState("");
   const [generatedMessage, setGeneratedMessage] = useState("");
@@ -290,8 +291,40 @@ const Circle = () => {
       if (!memberships?.length) return;
 
       const circleId = memberships[0].circle_id;
+      if (!circleId) return;
       const { data: code } = await supabase.rpc("get_circle_invite_code", { _circle_id: circleId });
       if (code) setCircleCode(code);
+
+      const { data: memberRows } = await supabase
+        .from("circle_members")
+        .select("user_id")
+        .eq("circle_id", circleId);
+      const { data: profiles } = await supabase.rpc("get_circle_member_profiles", { _circle_id: circleId });
+      const names = new Map<string, string>(
+        ((profiles ?? []) as { user_id: string; display_name?: string | null }[]).map((p) => [
+          p.user_id,
+          p.display_name || "",
+        ]),
+      );
+      const slots = DEMO_MEMBERS;
+      const mapped: DemoMember[] = (memberRows ?? []).map((row, i) => {
+        const layout = slots[i % slots.length];
+        const name = names.get(row.user_id) || "Membre";
+        return {
+          id: row.user_id,
+          name,
+          subtitle: "",
+          photo: "",
+          hasNew: false,
+          isPet: false,
+          leftPct: layout.leftPct,
+          topPct: layout.topPct,
+          sizePct: layout.sizePct,
+          float: layout.float,
+          delay: `${(i % 5) * 0.4}s`,
+        };
+      });
+      setCircleMembers(mapped);
     };
     loadCircleCode();
   }, []);
@@ -306,14 +339,22 @@ const Circle = () => {
   }, []);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText("https://infeelit.com/join/demo");
+    if (!circleCode) {
+      toast.error(lang === "fr" ? "Aucun lien d'invitation" : "No invite link");
+      return;
+    }
+    navigator.clipboard.writeText(`https://infeelit.com/join/${circleCode}`);
     setCopied(true);
-    toast.success(t.comingSoon);
+    toast.success(lang === "fr" ? "Lien copié" : "Link copied");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = () => {
-    const msg = `Join our Family Circle on Infeelit 🕯️\nhttps://infeelit.com/join/demo`;
+    if (!circleCode) {
+      toast.error(lang === "fr" ? "Aucun lien d'invitation" : "No invite link");
+      return;
+    }
+    const msg = `Join our Family Circle on Infeelit 🕯️\nhttps://infeelit.com/join/${circleCode}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -325,7 +366,11 @@ const Circle = () => {
 
     if (names.length === 0) return;
 
-    const inviteUrl = `infeelit.com/join/${circleCode || "demo"}`;
+    if (!circleCode) {
+      toast.error(lang === "fr" ? "Aucun lien d'invitation" : "No invite link");
+      return;
+    }
+    const inviteUrl = `infeelit.com/join/${circleCode}`;
 
     const displayed = names.slice(0, 3);
     const remaining = names.length - 3;
@@ -528,7 +573,7 @@ const Circle = () => {
           />
         </div>
 
-        {DEMO_MEMBERS.map((m) => {
+        {circleMembers.map((m) => {
           const isNew = m.hasNew && !seenMembers.has(m.id);
           return (
             <div
@@ -564,6 +609,7 @@ const Circle = () => {
                   boxShadow: "0 4px 14px rgba(0,0,0,.16)",
                 }}
               >
+                {m.photo ? (
                 <img
                   src={m.photo}
                   alt={m.name}
@@ -575,6 +621,23 @@ const Circle = () => {
                     filter: m.isPet ? "saturate(1.35) brightness(1.06)" : "none",
                   }}
                 />
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "#E8742A",
+                      color: "#fff",
+                      fontWeight: 700,
+                      fontSize: "18px",
+                    }}
+                  >
+                    {m.name.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
                 <div
                   className="absolute inset-0 rounded-full"
                   style={{ background: "linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%)" }}
@@ -954,7 +1017,7 @@ const Circle = () => {
               {t.inviteLink}
             </p>
             <p className="font-mono text-sm truncate" style={{ color: "#3D2B1A" }}>
-              infeelit.com/join/demo
+              {circleCode ? `infeelit.com/join/${circleCode}` : "—"}
             </p>
           </div>
           <button

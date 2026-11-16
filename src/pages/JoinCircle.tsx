@@ -16,9 +16,10 @@ const JoinCircle = () => {
   useEffect(() => {
     const loadCircle = async () => {
       if (!code) return;
-      const { data, error } = await supabase.rpc("lookup_circle_by_invite_code", { _code: code }).single();
-      if (error || !data) { setNotFound(true); }
-      else { setCircle(data); }
+      const { data, error } = await supabase.rpc("lookup_circle_by_invite_code", { _code: code });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (error || !row) { setNotFound(true); }
+      else { setCircle(row); }
       setLoading(false);
     };
     loadCircle();
