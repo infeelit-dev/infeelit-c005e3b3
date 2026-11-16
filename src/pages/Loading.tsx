@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import infeelit from "@/assets/infeelit-logo.png";
 import imgRelax from "@/assets/relax.jpg";
@@ -28,6 +28,7 @@ const IMAGES = [
 
 const Loading = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, lang, rtl } = useLanguage();
 
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
@@ -42,14 +43,17 @@ const Loading = () => {
       setProgress((prev) => (prev >= 100 ? 100 : prev + 1));
     }, 40);
 
-    const timeout = setTimeout(() => navigate("/"), 4500);
+    const timeout =
+      location.pathname === "/loading"
+        ? setTimeout(() => navigate("/"), 4500)
+        : null;
 
     return () => {
       clearInterval(imgInterval);
       clearInterval(progressInterval);
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
     };
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   return (
     <div
