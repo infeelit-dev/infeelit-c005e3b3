@@ -989,6 +989,17 @@ const Record = () => {
             .limit(1)
             .maybeSingle();
           familyCircleId = membership?.circle_id ?? null;
+          if (!familyCircleId) {
+            toast.error(
+              lang === "fr"
+                ? "Rejoins ou crée un cercle famille avant de partager ce souvenir."
+                : lang === "ar"
+                  ? "انضم إلى دائرة عائلية أو أنشئ واحدة قبل المشاركة."
+                  : "Join or create a family circle before sharing this memory.",
+            );
+            setStage("share");
+            return;
+          }
         }
 
         const { data: inserted, error: insertError } = await (supabase.from("memories") as any)
