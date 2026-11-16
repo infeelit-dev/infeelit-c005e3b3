@@ -41,14 +41,15 @@ function LoungePage() {
     const email = localStorage.getItem("gg_email");
 
     if (email) {
-      await supabase
-        .from("attendees")
-        .update({
+      await supabase.functions.invoke("manage-attendee", {
+        body: {
+          action: "update",
+          email,
           lounge_interests: selectedInterests.join(","),
           onboarding_complete: true,
           mode: "lounge",
-        })
-        .eq("email", email);
+        },
+      });
     }
 
     setView("ready");
