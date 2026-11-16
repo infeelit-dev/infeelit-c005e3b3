@@ -242,6 +242,10 @@ const Record = () => {
   const [stage, setStage] = useState<Stage>("question");
   const [deliverAt, setDeliverAt] = useState("");
   const mrRef = useRef<MediaRecorder | null>(null);
+  const startMediaInflightRef = useRef<Promise<MediaRecorder | null> | null>(null);
+  const mrUsedRef = useRef(false);
+  const captureSessionRef = useRef(false);
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [countdown, setCountdown] = useState(3);
   const [followupIdx, setFollowIdx] = useState(0);
@@ -465,65 +469,156 @@ const Record = () => {
     return "";
   };
 
-  const startMedia = async (a: boolean): Promise<MediaRecorder | null> => {
+  const releaseMedia = () => {
+    const mr = mrRef.current;
+    mrRef.current = null;
+    mrUsedRef.current = false;
+    startMediaInflightRef.current = null;
     try {
-      const audioConstraints = isIOS
-        ? { echoCancellation: true, noiseSuppression: true }
-        : { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 };
-      const c = a
-        ? { audio: audioConstraints }
-        : {
-            video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-            audio: { echoCancellation: true, noiseSuppression: true },
-          };
-      const s = await navigator.mediaDevices.getUserMedia(c);
-      setStream(s);
-      if (!a && videoRef.current) videoRef.current.srcObject = s;
-      if (a) {
-        const AudioCtx =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AudioCtx();
-        if (ctx.state === "suspended") void ctx.resume();
-        const src = ctx.createMediaStreamSource(s);
-        const an = ctx.createAnalyser();
-        an.fftSize = 256;
-        src.connect(an);
-        analyserRef.current = an;
-      }
-      const m = getMimeType(a);
-      const options: MediaRecorderOptions = {
-        videoBitsPerSecond: VIDEO_BITRATE,
-        audioBitsPerSecond: AUDIO_BITRATE,
-      };
-      if (m) options.mimeType = m;
-      const r = new MediaRecorder(s, options);
-      r.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      mrRef.current = r; // set ref immediately (avoids stale React state)
-      return r;
+      if (mr && mr.state !== "inactive") mr.stop();
     } catch {
-      toast.error(
-        lang === "fr"
-          ? "Micro inaccessible."
-          : lang === "ar"
-            ? "الميكروفون غير متاح."
-            : "Microphone not accessible.",
-      );
-      return null;
+      /* already stopped */
     }
+    mr?.stream?.getTracks().forEach((t) => {
+      try {
+        t.stop();
+      } catch {
+        /* ignore */
+      }
+    });
+    setStream(null);
   };
 
-  const startCountdown = () => {
+  const startMedia = async (a: boolean): Promise<MediaRecorder | null> => {
+    if (startMediaInflightRef.current) return startMediaInflightRef.current;
+    const existing = mrRef.current;
+    const live = existing?.stream?.getTracks().some((t) => t.readyState === "live") ?? false;
+    if (existing && live && (!mrUsedRef.current || existing.state === "recording" || existing.state === "paused")) {
+      return existing;
+    }
+
+    const run = (async () => {
+      try {
+        if (mrRef.current) {
+          const prev = mrRef.current;
+          mrRef.current = null;
+          mrUsedRef.current = false;
+          prev.stream?.getTracks().forEach((t) => {
+            try {
+              t.stop();
+            } catch {
+              /* ignore */
+            }
+          });
+        }
+        const audioConstraints = isIOS
+          ? { echoCancellation: true, noiseSuppression: true }
+          : { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 };
+        const c = a
+          ? { audio: audioConstraints }
+          : {
+              video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+              audio: { echoCancellation: true, noiseSuppression: true },
+            };
+        const s = await navigator.mediaDevices.getUserMedia(c);
+        setStream(s);
+        if (!a && videoRef.current) videoRef.current.srcObject = s;
+        if (a) {
+          const AudioCtx =
+            window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          const ctx = new AudioCtx();
+          if (ctx.state === "suspended") void ctx.resume();
+          const src = ctx.createMediaStreamSource(s);
+          const an = ctx.createAnalyser();
+          an.fftSize = 256;
+          src.connect(an);
+          analyserRef.current = an;
+        }
+        const m = getMimeType(a);
+        const options: MediaRecorderOptions = {
+          videoBitsPerSecond: VIDEO_BITRATE,
+          audioBitsPerSecond: AUDIO_BITRATE,
+        };
+        if (m) options.mimeType = m;
+        const r = new MediaRecorder(s, options);
+        r.ondataavailable = (e) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+        mrRef.current = r;
+        mrUsedRef.current = false;
+        return r;
+      } catch {
+        toast.error(
+          lang === "fr"
+            ? "Micro inaccessible."
+            : lang === "ar"
+              ? "الميكروفون غير متاح."
+              : "Microphone not accessible.",
+        );
+        return null;
+      } finally {
+        startMediaInflightRef.current = null;
+      }
+    })();
+    startMediaInflightRef.current = run;
+    return run;
+  };
+
+  const startCountdown = async () => {
+    if (captureSessionRef.current) return;
+    captureSessionRef.current = true;
+    const rec = await startMedia(audioMode);
+    if (!rec || rec.state !== "inactive") {
+      captureSessionRef.current = false;
+      toast.error(
+        lang === "fr"
+          ? "L'enregistrement n'a pas pu démarrer. Réessaie."
+          : lang === "ar"
+            ? "تعذر بدء التسجيل. حاول مرة أخرى."
+            : "Recording could not start. Try again.",
+      );
+      setStage(isFreeMode ? "background" : "question");
+      return;
+    }
     setStage("countdown");
     setCountdown(3);
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
     const tmr = setInterval(() => {
       setCountdown((p) => {
         if (p === 1) {
           clearInterval(tmr);
+          countdownTimerRef.current = null;
+          const mr = mrRef.current;
+          if (!mr || mr.state !== "inactive") {
+            captureSessionRef.current = false;
+            toast.error(
+              lang === "fr"
+                ? "L'enregistrement n'a pas pu démarrer. Réessaie."
+                : lang === "ar"
+                  ? "تعذر بدء التسجيل. حاول مرة أخرى."
+                  : "Recording could not start. Try again.",
+            );
+            setStage(isFreeMode ? "background" : "question");
+            return 3;
+          }
           chunksRef.current = [];
-          mrRef.current?.start(1000); // collect chunks every 1 second
+          try {
+            mrUsedRef.current = true;
+            mr.start(1000);
+          } catch (err) {
+            console.error("MR start skipped:", err);
+            captureSessionRef.current = false;
+            toast.error(
+              lang === "fr"
+                ? "L'enregistrement n'a pas pu démarrer. Réessaie."
+                : lang === "ar"
+                  ? "تعذر بدء التسجيل. حاول مرة أخرى."
+                  : "Recording could not start. Try again.",
+            );
+            setStage(isFreeMode ? "background" : "question");
+            return 3;
+          }
           console.log("MR started, state:", mrRef.current?.state);
           setStage("recording");
           setElapsed(0);
@@ -549,6 +644,7 @@ const Record = () => {
         return p - 1;
       });
     }, 1000);
+    countdownTimerRef.current = tmr;
   };
 
   const handleModeSelect = async (mode: "voice" | "film" | "memory") => {
@@ -573,30 +669,33 @@ const Record = () => {
     setStage("background");
   };
 
-  const handleBackgroundSkip = () => {
+  const handleBackgroundSkip = async () => {
     setBgImage(null);
     if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
     setBgVideoUrl(null);
     setUseAsAura(false);
     auraRef.current = false;
+    if (!mrRef.current) await startMedia(audioMode);
     startCountdown();
   };
 
-  const handleBackgroundContinue = () => {
+  const handleBackgroundContinue = async () => {
     if (bgVideoUrl) URL.revokeObjectURL(bgVideoUrl);
     setBgVideoUrl(null);
     const url = customThumb || thumbCards[selectedThumb];
     setBgImage(url);
     setUseAsAura(true);
     auraRef.current = true;
+    if (!mrRef.current) await startMedia(audioMode);
     startCountdown();
   };
 
-  const handleBackgroundVideoContinue = () => {
+  const handleBackgroundVideoContinue = async () => {
     if (!bgVideoUrl) return;
     setBgImage(null);
     setUseAsAura(false);
     auraRef.current = false;
+    if (!mrRef.current) await startMedia(audioMode);
     startCountdown();
   };
 
@@ -671,6 +770,12 @@ const Record = () => {
   };
 
   const handleRetake = () => {
+    captureSessionRef.current = false;
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    releaseMedia();
     if (localUrl) URL.revokeObjectURL(localUrl);
     setLocalUrl(null);
     chunksRef.current = [];
