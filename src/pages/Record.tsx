@@ -962,7 +962,7 @@ const Record = () => {
         let finalThumbnailUrl: string | null = null;
         if (finalThumbnailBlob) {
           try {
-            const thumbPath = `thumbnails/${uid}/${Date.now()}.jpg`;
+            const thumbPath = `${uid}/thumbnails/${Date.now()}.jpg`;
             const { data } = await supabase.storage
               .from("memories")
               .upload(thumbPath, finalThumbnailBlob, {
