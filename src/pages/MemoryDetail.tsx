@@ -29,11 +29,20 @@ const MemoryDetail = () => {
     const fetchMemory = async () => {
       const { data } = await supabase
         .from("memories")
-        .select("*, profiles(display_name, avatar_url)")
+        .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
       if (data) {
-        setMemory(data);
+        let displayName = (data.author_name as string | null) || "";
+        if (!displayName && data.user_id) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("user_id", data.user_id)
+            .maybeSingle();
+          displayName = profile?.display_name || "";
+        }
+        setMemory({ ...data, display_name: displayName });
         const fileUrl = await signUrl(data.file_url);
         const thumbUrl = await signUrl(data.thumbnail_url);
         setSignedFileUrl(fileUrl);
@@ -95,7 +104,7 @@ const MemoryDetail = () => {
     file_type: memory.file_type || "video",
     thumbnail_url: signedThumbUrl,
     user_name:
-      memory.profiles?.display_name?.split(" ")[0] || "Quelqu'un",
+      (memory.author_name || memory.display_name || "Quelqu'un").split(" ")[0] || "Quelqu'un",
     user_id: memory.user_id,
     sparks_count: memory.sparks_count || 0,
     transcript_fr: memory.transcript_fr || null,
