@@ -997,7 +997,7 @@ const Record = () => {
                   ? "انضم إلى دائرة عائلية أو أنشئ واحدة قبل المشاركة."
                   : "Join or create a family circle before sharing this memory.",
             );
-            setStage("share");
+            setStage("visibility");
             return;
           }
         }
