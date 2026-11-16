@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { callDeepSeek } from "@/lib/deepseek";
 
@@ -81,9 +81,27 @@ function fuzzyMatch(extractedName: string, attendees: any[]): any | null {
 }
 
 function AdminPage() {
+  const [authed, setAuthed] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      if (!session) {
+        window.location.assign("/checkin");
+        return;
+      }
+      setAuthed(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!authed) return null;
 
   const log = (msg: string) =>
     setLogs((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
