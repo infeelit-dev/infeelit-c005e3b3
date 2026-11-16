@@ -227,6 +227,7 @@ const Record = () => {
   const fromSparkRef = useRef(false);
   const sparkRewardRef = useRef(0);
   const isCommunityRef = useRef(false);
+  const isFamilyRef = useRef(false);
   const isAnonymousRef = useRef(false);
   const [visibilityChoice, setVisibilityChoice] = useState<"family" | "community" | "private" | null>(null);
   const posterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -344,6 +345,7 @@ const Record = () => {
     }
     if (location.state.pendingVisibility) {
       setVisibilityChoice(location.state.pendingVisibility);
+      handleVisibilitySelect(location.state.pendingVisibility);
     }
 
     toast.info(
@@ -821,14 +823,17 @@ const Record = () => {
     setVisibilityChoice(ch);
     if (ch === "family") {
       isCommunityRef.current = false;
+      isFamilyRef.current = true;
       isAnonymousRef.current = false;
       sparkRewardRef.current = 0;
     } else if (ch === "community") {
       isCommunityRef.current = true;
+      isFamilyRef.current = false;
       isAnonymousRef.current = false;
       sparkRewardRef.current = 2;
     } else {
       isCommunityRef.current = false;
+      isFamilyRef.current = false;
       isAnonymousRef.current = false;
       sparkRewardRef.current = 0;
     }
@@ -975,6 +980,28 @@ const Record = () => {
           }
         }
 
+        let familyCircleId: string | null = null;
+        if (isFamilyRef.current) {
+          const { data: membership } = await supabase
+            .from("circle_members")
+            .select("circle_id")
+            .eq("user_id", uid)
+            .limit(1)
+            .maybeSingle();
+          familyCircleId = membership?.circle_id ?? null;
+          if (!familyCircleId) {
+            toast.error(
+              lang === "fr"
+                ? "Rejoins ou crée un cercle famille avant de partager ce souvenir."
+                : lang === "ar"
+                  ? "انضم إلى دائرة عائلية أو أنشئ واحدة قبل المشاركة."
+                  : "Join or create a family circle before sharing this memory.",
+            );
+            setStage("visibility");
+            return;
+          }
+        }
+
         const { data: inserted, error: insertError } = await (supabase.from("memories") as any)
           .insert({
             user_id: uid,
@@ -994,6 +1021,7 @@ const Record = () => {
                   : "memories",
             is_public: isCommunityRef.current,
             is_community: isCommunityRef.current,
+            ...(familyCircleId ? { circle_id: familyCircleId } : {}),
             is_anonymous: isAnonymousRef.current,
             spark_reward: sparkRewardRef.current,
             background_image_url: auraRef.current ? customThumb || thumbCards[selectedThumb] : null,

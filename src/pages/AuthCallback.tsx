@@ -63,11 +63,13 @@ const AuthCallback = () => {
         const pendingCode = localStorage.getItem("pending_circle_code");
         if (pendingCode) {
           localStorage.removeItem("pending_circle_code");
-          const { data: circle } = await supabase
-            .rpc("lookup_circle_by_invite_code", { _code: pendingCode })
-            .single<{ id: string; name: string; member_count: number }>();
+          const { data: lookedUp } = await supabase
+            .rpc("lookup_circle_by_invite_code", { _code: pendingCode });
+          const circle = (Array.isArray(lookedUp) ? lookedUp[0] : lookedUp) as
+            | { id: string; name: string; member_count: number }
+            | null;
 
-          if (circle) {
+          if (circle?.id) {
             await supabase.from("circle_members").insert({
               circle_id: circle.id,
               user_id: userId,
