@@ -242,6 +242,8 @@ const Record = () => {
   const [stage, setStage] = useState<Stage>("question");
   const [deliverAt, setDeliverAt] = useState("");
   const mrRef = useRef<MediaRecorder | null>(null);
+  const startMediaInflightRef = useRef<Promise<MediaRecorder | null> | null>(null);
+  const mrUsedRef = useRef(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [countdown, setCountdown] = useState(3);
   const [followupIdx, setFollowIdx] = useState(0);
@@ -465,61 +467,105 @@ const Record = () => {
     return "";
   };
 
-  const startMedia = async (a: boolean): Promise<MediaRecorder | null> => {
+  const releaseMedia = () => {
+    const mr = mrRef.current;
+    mrRef.current = null;
+    mrUsedRef.current = false;
+    startMediaInflightRef.current = null;
     try {
-      const audioConstraints = isIOS
-        ? { echoCancellation: true, noiseSuppression: true }
-        : { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 };
-      const c = a
-        ? { audio: audioConstraints }
-        : {
-            video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-            audio: { echoCancellation: true, noiseSuppression: true },
-          };
-      const s = await navigator.mediaDevices.getUserMedia(c);
-      setStream(s);
-      if (!a && videoRef.current) videoRef.current.srcObject = s;
-      if (a) {
-        const AudioCtx =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AudioCtx();
-        if (ctx.state === "suspended") void ctx.resume();
-        const src = ctx.createMediaStreamSource(s);
-        const an = ctx.createAnalyser();
-        an.fftSize = 256;
-        src.connect(an);
-        analyserRef.current = an;
-      }
-      const m = getMimeType(a);
-      const options: MediaRecorderOptions = {
-        videoBitsPerSecond: VIDEO_BITRATE,
-        audioBitsPerSecond: AUDIO_BITRATE,
-      };
-      if (m) options.mimeType = m;
-      const r = new MediaRecorder(s, options);
-      r.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      mrRef.current = r; // set ref immediately (avoids stale React state)
-      return r;
+      if (mr && mr.state !== "inactive") mr.stop();
     } catch {
-      toast.error(
-        lang === "fr"
-          ? "Micro inaccessible."
-          : lang === "ar"
-            ? "الميكروفون غير متاح."
-            : "Microphone not accessible.",
-      );
-      return null;
+      /* already stopped */
     }
+    mr?.stream?.getTracks().forEach((t) => {
+      try {
+        t.stop();
+      } catch {
+        /* ignore */
+      }
+    });
+    setStream(null);
+  };
+
+  const startMedia = async (a: boolean): Promise<MediaRecorder | null> => {
+    if (startMediaInflightRef.current) return startMediaInflightRef.current;
+    const existing = mrRef.current;
+    const live = existing?.stream?.getTracks().some((t) => t.readyState === "live") ?? false;
+    if (existing && live && (!mrUsedRef.current || existing.state === "recording" || existing.state === "paused")) {
+      return existing;
+    }
+
+    const run = (async () => {
+      try {
+        if (mrRef.current) {
+          const prev = mrRef.current;
+          mrRef.current = null;
+          mrUsedRef.current = false;
+          prev.stream?.getTracks().forEach((t) => {
+            try {
+              t.stop();
+            } catch {
+              /* ignore */
+            }
+          });
+        }
+        const audioConstraints = isIOS
+          ? { echoCancellation: true, noiseSuppression: true }
+          : { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 };
+        const c = a
+          ? { audio: audioConstraints }
+          : {
+              video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+              audio: { echoCancellation: true, noiseSuppression: true },
+            };
+        const s = await navigator.mediaDevices.getUserMedia(c);
+        setStream(s);
+        if (!a && videoRef.current) videoRef.current.srcObject = s;
+        if (a) {
+          const AudioCtx =
+            window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          const ctx = new AudioCtx();
+          if (ctx.state === "suspended") void ctx.resume();
+          const src = ctx.createMediaStreamSource(s);
+          const an = ctx.createAnalyser();
+          an.fftSize = 256;
+          src.connect(an);
+          analyserRef.current = an;
+        }
+        const m = getMimeType(a);
+        const options: MediaRecorderOptions = {
+          videoBitsPerSecond: VIDEO_BITRATE,
+          audioBitsPerSecond: AUDIO_BITRATE,
+        };
+        if (m) options.mimeType = m;
+        const r = new MediaRecorder(s, options);
+        r.ondataavailable = (e) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+        mrRef.current = r;
+        mrUsedRef.current = false;
+        return r;
+      } catch {
+        toast.error(
+          lang === "fr"
+            ? "Micro inaccessible."
+            : lang === "ar"
+              ? "الميكروفون غير متاح."
+              : "Microphone not accessible.",
+        );
+        return null;
+      } finally {
+        startMediaInflightRef.current = null;
+      }
+    })();
+    startMediaInflightRef.current = run;
+    return run;
   };
 
   const startCountdown = async () => {
-    if (!mrRef.current) {
-      const rec = await startMedia(audioMode);
-      if (!rec) return;
-    }
+    const rec = await startMedia(audioMode);
+    if (!rec) return;
     setStage("countdown");
     setCountdown(3);
     const tmr = setInterval(() => {
@@ -531,7 +577,10 @@ const Record = () => {
             console.error("MR start skipped: MediaRecorder was not initialized");
             return 3;
           }
-          mrRef.current.start(1000); // collect chunks every 1 second
+          if (mrRef.current.state === "inactive") {
+            mrUsedRef.current = true;
+            mrRef.current.start(1000); // collect chunks every 1 second
+          }
           console.log("MR started, state:", mrRef.current?.state);
           setStage("recording");
           setElapsed(0);
@@ -579,9 +628,6 @@ const Record = () => {
     const q = ff ? followupQuestions[Math.min(followupIdx, followupQuestions.length - 1)] : question;
     questionRef.current = q;
     setStage("background");
-    if (isFreeMode && !mrRef.current) {
-      void startMedia(audioMode);
-    }
   };
 
   const handleBackgroundSkip = async () => {
@@ -685,6 +731,7 @@ const Record = () => {
   };
 
   const handleRetake = () => {
+    releaseMedia();
     if (localUrl) URL.revokeObjectURL(localUrl);
     setLocalUrl(null);
     chunksRef.current = [];
