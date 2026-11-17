@@ -75,30 +75,22 @@ export default function ActionBar({
     setLoading(true);
     try {
       if (sparked) {
-        // Retirer le like
-        await supabase
+        const { error } = await supabase
           .from("memory_sparks")
           .delete()
           .eq("memory_id", memoryId)
           .eq("user_name", userName || "anonymous");
+        if (error) throw error;
         setSparked(false);
         setSparks((s) => Math.max(0, s - 1));
-        await supabase
-          .from("memories")
-          .update({ sparks_count: Math.max(0, sparks - 1) })
-          .eq("id", memoryId);
       } else {
-        // Ajouter le like
-        await supabase.from("memory_sparks").insert({
+        const { error } = await supabase.from("memory_sparks").insert({
           memory_id: memoryId,
           user_name: userName || "anonymous",
         });
+        if (error) throw error;
         setSparked(true);
         setSparks((s) => s + 1);
-        await supabase
-          .from("memories")
-          .update({ sparks_count: sparks + 1 })
-          .eq("id", memoryId);
       }
     } catch (err) {
       console.error("Spark error:", err);

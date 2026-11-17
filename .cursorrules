@@ -1,10 +1,21 @@
 # INFEELIT — CURSOR RULES
 
+## Remotes (permanent)
+Two remotes are configured:
+- origin = infeelit-c005e3b3 (mirror, for PRs and history)
+- prod = infeelit-app (Vercel production)
+
+After every successful build, ALWAYS push to both:
+  git push origin HEAD
+  git push prod HEAD:main
+Never push to only one. Production is infeelit-app, not infeelit-c005e3b3.
+
 ## Branch Strategy
 ALWAYS work directly on the main branch.
 NEVER create new branches like cursor/xxx.
 Before any change: git checkout main && git pull origin main
-After each fix: git add . && git commit -m "fix: description" && git push origin main
+After each fix: git add . && git commit -m "fix: description"
+After every successful build, push both remotes as above.
 
 ## Scope
 Only modify files explicitly mentioned in the prompt.
